@@ -1,12 +1,7 @@
 'use client';
 
+import { useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import Link from 'next/link';
-import {
-  useRef,
-  useState,
-  type PointerEvent,
-  type ReactNode,
-} from 'react';
 import {
   Brush,
   Eraser,
@@ -20,6 +15,11 @@ import {
 } from 'lucide-react';
 
 import type { UploadedRemoverImage } from './remover-editor-types';
+import { buildBinaryMaskPixels } from './remover-mask';
+import {
+  uploadRemoverAssetsForJob,
+  type RemoverUploadResponse,
+} from './remover-upload-flow';
 
 type EditorTool = 'brush' | 'eraser' | 'pan';
 type JobState =
@@ -29,12 +29,6 @@ type JobState =
   | 'processing'
   | 'succeeded'
   | 'failed';
-
-type RemoverUploadResponse = {
-  asset: {
-    id: string;
-  };
-};
 
 type RemoverJobResponse = {
   job: {
@@ -186,23 +180,12 @@ export default function CanvasMaskEditor({
     setJobError('');
 
     try {
-      const maskBlob = await canvasToPngBlob(canvas);
-      const [inputUpload, maskUpload] = await Promise.all([
-        uploadRemoverAsset({
-          file: image.file,
-          kind: 'original',
-          width: image.width,
-          height: image.height,
-        }),
-        uploadRemoverAsset({
-          file: new File([maskBlob], 'ai-remover-mask.png', {
-            type: 'image/png',
-          }),
-          kind: 'mask',
-          width: image.width,
-          height: image.height,
-        }),
-      ]);
+      const maskBlob = await canvasToPngBlob(createBinaryMaskCanvas(canvas));
+      const { inputUpload, maskUpload } = await uploadRemoverAssetsForJob({
+        image,
+        maskBlob,
+        uploadAsset: uploadRemoverAsset,
+      });
 
       const job = await createRemoverJob({
         inputImageAssetId: inputUpload.asset.id,
@@ -414,7 +397,9 @@ export default function CanvasMaskEditor({
               : 'cursor-not-allowed bg-slate-300',
           ].join(' ')}
           title={
-            hasMask ? 'Remove the marked area' : 'Brush over an area before removing'
+            hasMask
+              ? 'Remove the marked area'
+              : 'Brush over an area before removing'
           }
         >
           <Wand2
@@ -558,6 +543,29 @@ function canvasToPngBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   });
 }
 
+function createBinaryMaskCanvas(canvas: HTMLCanvasElement): HTMLCanvasElement {
+  const context = canvas.getContext('2d');
+  if (!context) {
+    throw new Error('Could not read the mask.');
+  }
+
+  const source = context.getImageData(0, 0, canvas.width, canvas.height);
+  const maskCanvas = document.createElement('canvas');
+  maskCanvas.width = canvas.width;
+  maskCanvas.height = canvas.height;
+
+  const maskContext = maskCanvas.getContext('2d');
+  if (!maskContext) {
+    throw new Error('Could not create the mask.');
+  }
+
+  const mask = maskContext.createImageData(canvas.width, canvas.height);
+  mask.data.set(buildBinaryMaskPixels(source.data));
+  maskContext.putImageData(mask, 0, 0);
+
+  return maskCanvas;
+}
+
 async function uploadRemoverAsset({
   file,
   kind,
@@ -578,6 +586,7 @@ async function uploadRemoverAsset({
   return fetchRemoverJson<RemoverUploadResponse>('/api/remover/upload', {
     method: 'POST',
     body: formData,
+    credentials: 'same-origin',
   });
 }
 
@@ -630,9 +639,11 @@ async function fetchRemoverJson<T>(
   init?: RequestInit
 ): Promise<T> {
   const response = await fetch(input, init);
-  const data = (await response.json().catch(() => null)) as
-    | { code?: number; message?: string; data?: T }
-    | null;
+  const data = (await response.json().catch(() => null)) as {
+    code?: number;
+    message?: string;
+    data?: T;
+  } | null;
 
   if (!response.ok || data?.code !== 0) {
     throw new Error(data?.message || `Request failed with ${response.status}`);
@@ -680,9 +691,9 @@ async function fetchRemoverDownloadBlob(
   });
 
   if (!response.ok) {
-    const data = (await response.json().catch(() => null)) as
-      | { message?: string }
-      | null;
+    const data = (await response.json().catch(() => null)) as {
+      message?: string;
+    } | null;
     throw new Error(data?.message || `Download failed with ${response.status}`);
   }
 
