@@ -152,6 +152,18 @@ Worker and bucket names are derived automatically:
 - router origin:
   `https://aooi-<site-key>-preview-router.<CF_WORKERS_DEV_SUBDOMAIN>.workers.dev`
 
+The preview Hyperdrive value is not a database URL. It is the Cloudflare
+Hyperdrive config ID that Wrangler binds as `env.HYPERDRIVE`. Local Node.js
+commands still use a direct PostgreSQL `DATABASE_URL` from `.env.development`,
+`sites/<site-key>/.env.local`, or an explicit shell env.
+
+| Runtime / command             | Database configuration source                         |
+| ----------------------------- | ----------------------------------------------------- |
+| `SITE=<site> pnpm dev`        | direct `DATABASE_URL` from local env files            |
+| `SITE=<site> pnpm db:migrate` | direct `DATABASE_URL` from env or shell               |
+| `CF_DEPLOY_PROFILE=preview`   | `deploy.preview.settings.json.resources.hyperdriveId` |
+| production Cloudflare deploy  | `deploy.settings.json.resources.hyperdriveId`         |
+
 First preview deploy:
 
 ```bash

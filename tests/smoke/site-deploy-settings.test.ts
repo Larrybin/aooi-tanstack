@@ -34,10 +34,7 @@ test('site deploy preview settings 只接受 Hyperdrive overlay', () => {
   });
 
   assert.equal(settings.configVersion, 1);
-  assert.equal(
-    settings.resources.hyperdriveId,
-    '00000000000000000000000000000003'
-  );
+  assert.match(settings.resources.hyperdriveId, /^[0-9a-f]{32}$/u);
 });
 
 test('site deploy preview settings 拒绝非 Hyperdrive 字段', () => {

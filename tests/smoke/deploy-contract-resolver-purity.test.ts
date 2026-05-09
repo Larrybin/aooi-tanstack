@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { resolveSiteDeployContract } from '../../scripts/lib/site-deploy-contract.mjs';
+import { readSitePreviewDeploySettings } from '../../scripts/lib/site-deploy-settings.mjs';
 
 test('deploy contract resolver 在相同输入下输出完全一致', () => {
   const first = resolveSiteDeployContract({
@@ -29,6 +30,10 @@ test('deploy contract resolver 默认使用 production profile', () => {
 });
 
 test('deploy contract resolver 为 preview 派生 workers.dev 资源', () => {
+  const previewSettings = readSitePreviewDeploySettings({
+    rootDir: process.cwd(),
+    siteKey: 'ai-remover',
+  });
   const contract = resolveSiteDeployContract({
     rootDir: process.cwd(),
     siteKey: 'ai-remover',
@@ -54,7 +59,7 @@ test('deploy contract resolver 为 preview 派生 workers.dev 资源', () => {
   );
   assert.equal(
     contract.resources.hyperdriveId,
-    '00000000000000000000000000000003'
+    previewSettings.resources.hyperdriveId
   );
   assert.equal(contract.router.workerName, 'aooi-ai-remover-preview-router');
   assert.equal(

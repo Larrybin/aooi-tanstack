@@ -77,6 +77,9 @@ test('run-with-site 对 lint 使用内部 dev-local site fallback', async () => 
     ],
     {
       SITE: '',
+      AUTH_SECRET: '',
+      BETTER_AUTH_SECRET: '',
+      STORAGE_PUBLIC_BASE_URL: '',
     }
   );
 

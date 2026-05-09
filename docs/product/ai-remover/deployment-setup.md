@@ -40,6 +40,13 @@ BETTER_AUTH_SECRET="use-a-generated-local-secret"
 AUTH_SECRET="use-the-same-generated-local-secret"
 ```
 
+Do not put a Cloudflare Hyperdrive ID in `sites/ai-remover/.env.local`.
+That file is for local Node.js commands such as `SITE=ai-remover pnpm dev` and
+`SITE=ai-remover pnpm db:migrate`, which need a direct PostgreSQL
+`DATABASE_URL`. Hyperdrive is a Cloudflare Worker binding and is selected by
+`deploy.settings.json` or `deploy.preview.settings.json` only when deployed to
+Cloudflare.
+
 Generate a local auth secret:
 
 ```bash
@@ -267,6 +274,18 @@ Before the first preview deploy, replace
 `sites/ai-remover/deploy.preview.settings.json` with the preview Hyperdrive ID.
 The file intentionally contains only the preview Hyperdrive overlay; preview
 worker names, R2 bucket names, and app origin are derived automatically.
+This ID must be the Cloudflare Hyperdrive config ID, not the Supabase/Postgres
+connection string. If you are using Supabase, create a Hyperdrive configuration
+that points at the Supabase direct connection string, then copy the returned
+32-character Hyperdrive ID into `deploy.preview.settings.json`.
+
+Keep the split explicit:
+
+| Environment                 | Config file                                     | Database value                           |
+| --------------------------- | ----------------------------------------------- | ---------------------------------------- |
+| Local dev / local migration | `sites/ai-remover/.env.local`                   | `DATABASE_URL=postgresql://...`          |
+| Cloudflare preview          | `sites/ai-remover/deploy.preview.settings.json` | `resources.hyperdriveId=<preview ID>`    |
+| Cloudflare production       | `sites/ai-remover/deploy.settings.json`         | `resources.hyperdriveId=<production ID>` |
 
 First preview deploy:
 

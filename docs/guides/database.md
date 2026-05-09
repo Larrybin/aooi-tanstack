@@ -277,6 +277,15 @@ id = "hyperdrive-id"
 
 The `db()` function automatically detects and uses Hyperdrive.
 
+Hyperdrive IDs belong in deploy settings, not local env files:
+
+- Local Node.js development and Drizzle commands use a direct `DATABASE_URL`.
+- Cloudflare preview uses
+  `sites/<site-key>/deploy.preview.settings.json`
+  `resources.hyperdriveId`.
+- Cloudflare production uses `sites/<site-key>/deploy.settings.json`
+  `resources.hyperdriveId`.
+
 Tracked Wrangler configs are templates. Keep every checked-in `localConnectionString = ""` and generate a temporary Wrangler config when local Hyperdrive access is needed.
 
 Cloudflare helper commands:
