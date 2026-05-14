@@ -45,10 +45,6 @@ bucket_name = "placeholder-cache"
 binding = "APP_STORAGE_R2_BUCKET"
 bucket_name = "placeholder-storage"
 
-[[services]]
-binding = "WORKER_SELF_REFERENCE"
-service = "placeholder-router"
-
 [[hyperdrive]]
 binding = "HYPERDRIVE"
 id = "d208cd72765b46a7b0849fc687e2fb61"
@@ -257,6 +253,69 @@ STORAGE_PUBLIC_BASE_URL = ""
   assert.match(config, /workers_dev = false/);
   assert.match(config, /preview_urls = false/);
   assert.doesNotMatch(config, /\[\[routes\]\]/);
+  assert.doesNotMatch(config, /binding = "WORKER_SELF_REFERENCE"/);
+});
+
+test('buildCloudflareWranglerConfig 为 admin worker 注入 auth diagnostics 服务绑定', () => {
+  const template = `
+name = "admin-template"
+main = "workers/server-admin.ts"
+workers_dev = true
+preview_urls = true
+
+[assets]
+directory = "../.open-next/assets"
+
+[[r2_buckets]]
+binding = "NEXT_INC_CACHE_R2_BUCKET"
+bucket_name = "placeholder-cache"
+
+[[r2_buckets]]
+binding = "APP_STORAGE_R2_BUCKET"
+bucket_name = "placeholder-storage"
+
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "d208cd72765b46a7b0849fc687e2fb61"
+localConnectionString = ""
+
+[[durable_objects.bindings]]
+name = "STATEFUL_LIMITERS"
+class_name = "StatefulLimitersDurableObject"
+script_name = "placeholder-state"
+
+[observability]
+enabled = true
+
+[vars]
+DEPLOY_TARGET = "cloudflare"
+NEXT_PUBLIC_APP_URL = "https://example.com"
+STORAGE_PUBLIC_BASE_URL = ""
+`;
+
+  const config = buildCloudflareWranglerConfig({
+    template,
+    contract,
+    workerSlot: 'admin',
+    templatePath: '/repo/cloudflare/wrangler.server-admin.toml',
+    outputPath: '/repo/.tmp/admin.toml',
+  });
+
+  assert.match(config, /binding = "PUBLIC_WEB_WORKER"/);
+  assert.match(
+    config,
+    new RegExp(
+      `service = "${escapeRegExp(contract.serverWorkers['public-web'].workerName)}"`
+    )
+  );
+  assert.match(config, /binding = "AUTH_WORKER"/);
+  assert.match(
+    config,
+    new RegExp(
+      `service = "${escapeRegExp(contract.serverWorkers.auth.workerName)}"`
+    )
+  );
+  assert.doesNotMatch(config, /binding = "WORKER_SELF_REFERENCE"/);
 });
 
 test('buildCloudflareWranglerConfig 为 server 模板重写相对 main 与 assets 路径', () => {
@@ -274,10 +333,6 @@ bucket_name = "placeholder-cache"
 [[r2_buckets]]
 binding = "APP_STORAGE_R2_BUCKET"
 bucket_name = "placeholder-storage"
-
-[[services]]
-binding = "WORKER_SELF_REFERENCE"
-service = "placeholder-router"
 
 [[hyperdrive]]
 binding = "HYPERDRIVE"
@@ -327,6 +382,7 @@ STORAGE_PUBLIC_BASE_URL = ""
     )
   );
   assert.match(config, /\[images\]\nbinding = "IMAGES"/);
+  assert.doesNotMatch(config, /binding = "WORKER_SELF_REFERENCE"/);
 });
 
 test('buildCloudflareWranglerConfig 为需要 Workers AI 的 server worker 注入 [ai] binding', () => {
@@ -344,10 +400,6 @@ bucket_name = "placeholder-cache"
 [[r2_buckets]]
 binding = "APP_STORAGE_R2_BUCKET"
 bucket_name = "placeholder-storage"
-
-[[services]]
-binding = "WORKER_SELF_REFERENCE"
-service = "placeholder-router"
 
 [[hyperdrive]]
 binding = "HYPERDRIVE"
@@ -378,6 +430,7 @@ STORAGE_PUBLIC_BASE_URL = ""
 
   assert.match(config, /\[ai\]\nbinding = "AI"/);
   assert.match(config, /\[images\]\nbinding = "IMAGES"/);
+  assert.doesNotMatch(config, /binding = "WORKER_SELF_REFERENCE"/);
 
   const authConfig = buildCloudflareWranglerConfig({
     template,
@@ -389,6 +442,7 @@ STORAGE_PUBLIC_BASE_URL = ""
 
   assert.doesNotMatch(authConfig, /\[ai\]\nbinding = "AI"/);
   assert.doesNotMatch(authConfig, /\[images\]\nbinding = "IMAGES"/);
+  assert.doesNotMatch(authConfig, /binding = "WORKER_SELF_REFERENCE"/);
 });
 
 test('buildCloudflareWranglerConfig 为 AI Remover public-web 注入 cleanup cron', () => {
@@ -406,10 +460,6 @@ bucket_name = "placeholder-cache"
 [[r2_buckets]]
 binding = "APP_STORAGE_R2_BUCKET"
 bucket_name = "placeholder-storage"
-
-[[services]]
-binding = "WORKER_SELF_REFERENCE"
-service = "placeholder-router"
 
 [[hyperdrive]]
 binding = "HYPERDRIVE"
@@ -439,6 +489,7 @@ STORAGE_PUBLIC_BASE_URL = ""
   });
 
   assert.match(config, /\[triggers\]\ncrons = \["17 3 \* \* \*"\]/);
+  assert.doesNotMatch(config, /binding = "WORKER_SELF_REFERENCE"/);
 
   const authConfig = buildCloudflareWranglerConfig({
     template,
@@ -522,10 +573,6 @@ test('buildCloudflareWranglerConfig 支持 state 模板且不强制要求 R2 buc
   const template = `
 name = "state-template"
 main = "workers/state.ts"
-
-[[services]]
-binding = "WORKER_SELF_REFERENCE"
-service = "placeholder-router"
 
 [[durable_objects.bindings]]
 name = "STATEFUL_LIMITERS"

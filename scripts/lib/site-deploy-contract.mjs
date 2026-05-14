@@ -353,7 +353,6 @@ export function resolveSiteDeployContractFromSources({
       workerEntryRelativePath: CLOUDFLARE_STATE_WORKER.workerEntryRelativePath,
       wranglerConfigRelativePath:
         CLOUDFLARE_STATE_WORKER.wranglerConfigRelativePath,
-      selfReferenceService: effectiveDeploySettings.workers.router,
       durableObjects: Object.fromEntries(
         Object.entries(CLOUDFLARE_DURABLE_OBJECT_BINDINGS).map(
           ([bindingName, className]) => [bindingName, { className }]

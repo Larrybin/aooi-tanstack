@@ -30,6 +30,12 @@ export type CloudflareBindings = {
   NEXT_CACHE_DO_QUEUE?: unknown;
   NEXT_TAG_CACHE_DO_SHARDED?: unknown;
   STATEFUL_LIMITERS?: unknown;
+  PUBLIC_WEB_WORKER?: Fetcher;
+  AUTH_WORKER?: Fetcher;
+  PAYMENT_WORKER?: Fetcher;
+  MEMBER_WORKER?: Fetcher;
+  CHAT_WORKER?: Fetcher;
+  ADMIN_WORKER?: Fetcher;
   BETTER_AUTH_SECRET?: string;
   AUTH_SECRET?: string;
   GOOGLE_CLIENT_ID?: string;

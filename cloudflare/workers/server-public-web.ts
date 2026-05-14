@@ -1,3 +1,4 @@
+import { maybeHandleAuthRuntimeDiagnosticsRequest } from './auth-runtime-diagnostics';
 import { createServerWorker } from './create-server-worker';
 
 type PublicWebEnv = Record<string, unknown> & {
@@ -14,7 +15,16 @@ const publicWebWorker = createServerWorker<PublicWebEnv>(
         ctx: ExecutionContext,
         signal?: AbortSignal
       ) => Promise<Response> | Response;
-    }>
+    }>,
+  {
+    beforeFetch(request) {
+      return maybeHandleAuthRuntimeDiagnosticsRequest({
+        request,
+        workerTarget: 'public-web',
+        role: 'auth-ui',
+      });
+    },
+  }
 );
 
 function getStringBinding(env: PublicWebEnv, key: keyof PublicWebEnv) {

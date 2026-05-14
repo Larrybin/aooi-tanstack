@@ -20,10 +20,6 @@ bucket_name = "roller-rabbit-opennext-cache"
 binding = "APP_STORAGE_R2_BUCKET"
 bucket_name = "roller-rabbit-storage"
 
-[[services]]
-binding = "WORKER_SELF_REFERENCE"
-service = "roller-rabbit"
-
 [[hyperdrive]]
 binding = "HYPERDRIVE"
 id = "d208cd72765b46a7b0849fc687e2fb61"

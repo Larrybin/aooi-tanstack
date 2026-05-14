@@ -385,12 +385,7 @@ function applyWorkerSpecificBindings(content, contract, workerSlot) {
       contract.router.durableObjects
     );
   } else if (workerSlot === 'state') {
-    nextContent = replaceOrInsertArrayTable(nextContent, 'services', [
-      {
-        binding: 'WORKER_SELF_REFERENCE',
-        service: contract.stateWorker.selfReferenceService,
-      },
-    ]);
+    nextContent = replaceOrInsertArrayTable(nextContent, 'services', []);
     nextContent = replaceOrInsertDurableObjectBindings(
       nextContent,
       contract.stateWorker.durableObjects
@@ -400,12 +395,16 @@ function applyWorkerSpecificBindings(content, contract, workerSlot) {
       contract.stateWorker.migrations
     );
   } else {
-    nextContent = replaceOrInsertArrayTable(nextContent, 'services', [
-      {
-        binding: 'WORKER_SELF_REFERENCE',
-        service: contract.workers.router,
-      },
-    ]);
+    nextContent = replaceOrInsertArrayTable(
+      nextContent,
+      'services',
+      workerSlot === 'admin'
+        ? ['public-web', 'auth'].map((target) => ({
+            binding: contract.serverWorkers[target].serviceBinding,
+            service: contract.serverWorkers[target].workerName,
+          }))
+        : []
+    );
     nextContent = replaceOrInsertDurableObjectBindings(
       nextContent,
       contract.router.durableObjects

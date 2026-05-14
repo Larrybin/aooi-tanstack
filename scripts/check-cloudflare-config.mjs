@@ -612,25 +612,6 @@ function assertStateConfig(content, contract, requiredBindingsByWorker) {
     fail(`state.main must equal ${expectedMain}`);
   }
 
-  const serviceTables = readArrayTable(content, 'services');
-  const selfReference = serviceTables.find((table) =>
-    /^\s*binding\s*=\s*"WORKER_SELF_REFERENCE"/m.test(table)
-  );
-  if (!selfReference) {
-    fail('state missing [[services]] binding = "WORKER_SELF_REFERENCE"');
-  }
-
-  const service = readQuotedValue(
-    selfReference,
-    'state.services.WORKER_SELF_REFERENCE.service',
-    /^\s*service\s*=\s*"([^"\n]+)"/m
-  );
-  if (service !== contract.router.workerName) {
-    fail(
-      `state.services.WORKER_SELF_REFERENCE.service must equal ${contract.router.workerName}`
-    );
-  }
-
   const doTables = readArrayTable(content, 'durable_objects.bindings');
   for (const [bindingName, className] of Object.entries(
     CLOUDFLARE_DURABLE_OBJECT_BINDINGS
@@ -722,22 +703,42 @@ function assertServerConfig(
   }
 
   const serviceTables = readArrayTable(content, 'services');
-  const selfReference = serviceTables.find((table) =>
-    /^\s*binding\s*=\s*"WORKER_SELF_REFERENCE"/m.test(table)
-  );
-  if (!selfReference) {
-    fail(`${target} missing [[services]] binding = "WORKER_SELF_REFERENCE"`);
+  const expectedServices =
+    target === 'admin'
+      ? new Map(
+          ['public-web', 'auth'].map((serviceTarget) => [
+            CLOUDFLARE_SERVICE_BINDINGS[serviceTarget],
+            contract.serverWorkers[serviceTarget].workerName,
+          ])
+        )
+      : new Map();
+
+  if (serviceTables.length !== expectedServices.size) {
+    fail(
+      expectedServices.size > 0
+        ? `${target} must define exactly ${expectedServices.size} [[services]] bindings`
+        : `${target} must not define [[services]]`
+    );
   }
 
-  const service = readQuotedValue(
-    selfReference,
-    `${target}.services.WORKER_SELF_REFERENCE.service`,
-    /^\s*service\s*=\s*"([^"\n]+)"/m
-  );
-  if (service !== contract.router.workerName) {
-    fail(
-      `${target}.services.WORKER_SELF_REFERENCE.service must equal ${contract.router.workerName}`
+  for (const [binding, expectedService] of expectedServices) {
+    const table = serviceTables.find((entry) =>
+      new RegExp(`^\\s*binding\\s*=\\s*"${binding}"`, 'm').test(entry)
     );
+    if (!table) {
+      fail(`${target} missing [[services]] binding = "${binding}"`);
+    }
+
+    const service = readQuotedValue(
+      table,
+      `${target}.services.${binding}.service`,
+      /^\s*service\s*=\s*"([^"\n]+)"/m
+    );
+    if (service !== expectedService) {
+      fail(
+        `${target}.services.${binding}.service must equal ${expectedService}`
+      );
+    }
   }
 
   const imagesSection = readOptionalSection(content, 'images');
