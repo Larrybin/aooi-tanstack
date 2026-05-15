@@ -79,7 +79,7 @@ Storage-related runtime bindings:
 
 - `NEXT_INC_CACHE_R2_BUCKET`: shared OpenNext ISR/data cache bucket
 - `APP_STORAGE_R2_BUCKET`: business upload bucket
-- `IMAGES`: router-side Cloudflare Images binding
+- `IMAGES`: router/public-web Cloudflare Images binding
 - `STORAGE_PUBLIC_BASE_URL`: public base URL for uploaded assets
 
 Do not put real database DSNs or secrets into tracked Wrangler templates.
@@ -135,6 +135,51 @@ SITE=<site-key> pnpm cf:deploy
 
 `pnpm cf:deploy` is an alias for `pnpm cf:deploy:app`. App deploys do not
 bootstrap missing state/router/server topology.
+
+### Preview Profile
+
+Preview is a Cloudflare deploy profile, not a separate site. Keep using the
+real product `SITE=<site-key>` and set `CF_DEPLOY_PROFILE=preview` when you want
+the same app topology on workers.dev instead of the production custom domain.
+
+Preview reuses `site.config.json` and `deploy.settings.json`, then applies
+`sites/<site-key>/deploy.preview.settings.json` for the preview Hyperdrive ID.
+Worker and bucket names are derived automatically:
+
+- workers: `aooi-<site-key>-preview-<slot>`
+- buckets: `aooi-<site-key>-preview-opennext-cache` and
+  `aooi-<site-key>-preview-storage`
+- router origin:
+  `https://aooi-<site-key>-preview-router.<CF_WORKERS_DEV_SUBDOMAIN>.workers.dev`
+
+The preview Hyperdrive value is not a database URL. It is the Cloudflare
+Hyperdrive config ID that Wrangler binds as `env.HYPERDRIVE`. Local Node.js
+commands still use a direct PostgreSQL `DATABASE_URL` from `.env.development`,
+`sites/<site-key>/.env.local`, or an explicit shell env.
+
+| Runtime / command             | Database configuration source                         |
+| ----------------------------- | ----------------------------------------------------- |
+| `SITE=<site> pnpm dev`        | direct `DATABASE_URL` from local env files            |
+| `SITE=<site> pnpm db:migrate` | direct `DATABASE_URL` from env or shell               |
+| `CF_DEPLOY_PROFILE=preview`   | `deploy.preview.settings.json.resources.hyperdriveId` |
+| production Cloudflare deploy  | `deploy.settings.json.resources.hyperdriveId`         |
+
+First preview deploy:
+
+```bash
+SITE=<site-key> CF_WORKERS_DEV_SUBDOMAIN=<subdomain> CF_PREVIEW_ALLOW_PLACEHOLDER_SECRETS=true pnpm cf:preview:deploy:state
+SITE=<site-key> CF_WORKERS_DEV_SUBDOMAIN=<subdomain> CF_PREVIEW_ALLOW_PLACEHOLDER_SECRETS=true pnpm cf:preview:bootstrap
+```
+
+Later preview updates:
+
+```bash
+SITE=<site-key> CF_WORKERS_DEV_SUBDOMAIN=<subdomain> pnpm cf:preview:deploy
+```
+
+`CF_DEPLOY_BOOTSTRAP_MISSING=true` is only valid for preview. Production keeps
+the strict state-first, app-second release path and never bootstraps missing app
+workers from `pnpm cf:deploy`.
 
 ## Migrations
 

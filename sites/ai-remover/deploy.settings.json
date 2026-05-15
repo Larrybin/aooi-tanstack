@@ -1,0 +1,35 @@
+{
+  "configVersion": 1,
+  "bindingRequirements": {
+    "bindings": {
+      "workersAi": true
+    },
+    "secrets": {
+      "authSharedSecret": true,
+      "googleOauth": true,
+      "githubOauth": false,
+      "removerCleanup": true
+    },
+    "vars": {
+      "storagePublicBaseUrl": true
+    }
+  },
+  "workers": {
+    "router": "aooi-ai-remover-router",
+    "state": "aooi-ai-remover-state",
+    "public-web": "aooi-ai-remover-public-web",
+    "auth": "aooi-ai-remover-auth",
+    "payment": "aooi-ai-remover-payment",
+    "member": "aooi-ai-remover-member",
+    "chat": "aooi-ai-remover-chat",
+    "admin": "aooi-ai-remover-admin"
+  },
+  "resources": {
+    "incrementalCacheBucket": "aooi-ai-remover-opennext-cache",
+    "appStorageBucket": "aooi-ai-remover-storage",
+    "hyperdriveId": "00000000000000000000000000000002"
+  },
+  "state": {
+    "schemaVersion": 1
+  }
+}

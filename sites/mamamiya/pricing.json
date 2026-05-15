@@ -1,0 +1,423 @@
+{
+  "metadata": {
+    "title": "Pricing",
+    "description": "Start with a plan"
+  },
+  "pricing": {
+    "id": "pricing",
+    "sr_only_title": "Roller Rabbit Pricing",
+    "title": "Pricing",
+    "description": "Choose how you want to buy Roller Rabbit. Every plan starts from the same working product surface, then adds more leverage.",
+    "groups": [
+      {
+        "name": "one-time",
+        "title": "Pay as you go"
+      },
+      {
+        "name": "monthly",
+        "title": "Monthly",
+        "is_featured": true,
+        "label": "save 15%"
+      },
+      {
+        "name": "yearly",
+        "title": "Annually"
+      }
+    ],
+    "items": [
+      {
+        "title": "Starter",
+        "description": "Best for validating the first version quickly.",
+        "features_title": "Includes",
+        "features": [
+          "100 credits, valid for 1 month",
+          "NextJS boilerplate",
+          "SEO-friendly structure",
+          "Payment with Stripe",
+          "Data storage with Supabase",
+          "Google Oauth & One-Tap Login",
+          "i18n support"
+        ],
+        "interval": "one-time",
+        "amount": 9900,
+        "currency": "USD",
+        "price": "$99",
+        "original_price": "$199",
+        "unit": "",
+        "is_featured": false,
+        "tip": "One-time purchase. Good for solo builders who want the base layer done.",
+        "button": {
+          "title": "Get Roller Rabbit",
+          "url": "/#pricing",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "starter",
+        "product_name": "Roller Rabbit Starter",
+        "credits": 100,
+        "valid_days": 30,
+        "group": "one-time"
+      },
+      {
+        "title": "Standard",
+        "description": "Best for teams that want more launch surface with less setup.",
+        "label": "Popular",
+        "features_title": "Everything in Starter, plus",
+        "features": [
+          "200 credits, valid for 3 month",
+          "Deploy with Cloudflare",
+          "Generation of Privacy & Terms",
+          "Google Analytics Integration",
+          "Google Search Console Integration",
+          "Discord community",
+          "Technical support for your first launch",
+          "Lifetime updates"
+        ],
+        "interval": "one-time",
+        "amount": 19900,
+        "currency": "USD",
+        "price": "$199",
+        "original_price": "$299",
+        "unit": "",
+        "is_featured": true,
+        "tip": "One-time purchase with the most balanced feature set.",
+        "button": {
+          "title": "Get Roller Rabbit",
+          "url": "/#pricing",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "standard",
+        "product_name": "Roller Rabbit Standard",
+        "credits": 200,
+        "valid_days": 90,
+        "group": "one-time"
+      },
+      {
+        "title": "Premium",
+        "description": "Best for heavier products with admin, API sales, and credits.",
+        "features_title": "Everything in Standard, plus",
+        "features": [
+          "300 credits, valid for 1 year",
+          "Business Functions with AI",
+          "User Center",
+          "Credits System",
+          "API Sales for your SaaS",
+          "Admin System",
+          "Priority Technical Support"
+        ],
+        "interval": "one-time",
+        "amount": 29900,
+        "currency": "USD",
+        "price": "$299",
+        "original_price": "$399",
+        "unit": "",
+        "is_featured": false,
+        "tip": "One-time purchase for teams that want the whole stack up front.",
+        "button": {
+          "title": "Get Roller Rabbit",
+          "url": "/#pricing",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "premium",
+        "product_name": "Roller Rabbit Premium",
+        "credits": 300,
+        "valid_days": 365,
+        "group": "one-time"
+      },
+      {
+        "title": "Starter",
+        "description": "Best for trying Roller Rabbit without a bigger upfront spend.",
+        "features_title": "Includes",
+        "features": [
+          "100 credits, valid for 1 month",
+          "NextJS boilerplate",
+          "SEO-friendly structure",
+          "Payment with Stripe",
+          "Data storage with Supabase",
+          "Google Oauth & One-Tap Login",
+          "i18n support"
+        ],
+        "interval": "month",
+        "amount": 8900,
+        "currency": "USD",
+        "price": "$89",
+        "original_price": "$99",
+        "unit": "/ month",
+        "is_featured": false,
+        "tip": "Monthly billing for teams that want to start lean.",
+        "button": {
+          "title": "Get Roller Rabbit",
+          "url": "/#pricing",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "starter-monthly",
+        "product_name": "Roller Rabbit Starter Monthly",
+        "credits": 100,
+        "valid_days": 30,
+        "group": "monthly",
+        "plan_name": "Starter"
+      },
+      {
+        "title": "Standard",
+        "description": "A balanced monthly plan for teams already shipping.",
+        "label": "Popular",
+        "features_title": "Everything in Starter, plus",
+        "features": [
+          "200 credits, valid for 1 month",
+          "Deploy with Cloudflare",
+          "Generation of Privacy & Terms",
+          "Google Analytics Integration",
+          "Google Search Console Integration",
+          "Discord community",
+          "Technical support for your first launch",
+          "Lifetime updates"
+        ],
+        "interval": "month",
+        "amount": 16900,
+        "currency": "USD",
+        "price": "$169",
+        "original_price": "$199",
+        "unit": "/ month",
+        "is_featured": true,
+        "tip": "Monthly billing with the strongest value-to-speed ratio.",
+        "button": {
+          "title": "Get Roller Rabbit",
+          "url": "/#pricing",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "standard-monthly",
+        "product_name": "Roller Rabbit Standard Monthly",
+        "credits": 200,
+        "valid_days": 30,
+        "group": "monthly",
+        "plan_name": "Standard"
+      },
+      {
+        "title": "Premium",
+        "description": "For products that need the full toolkit and ongoing support.",
+        "features_title": "Everything in Standard, plus",
+        "features": [
+          "300 credits, valid for 1 month",
+          "Business Functions with AI",
+          "User Center",
+          "Credits System",
+          "API Sales for your SaaS",
+          "Admin System",
+          "Priority Technical Support"
+        ],
+        "interval": "month",
+        "amount": 24900,
+        "currency": "USD",
+        "price": "$249",
+        "original_price": "$299",
+        "unit": "/ month",
+        "is_featured": false,
+        "tip": "Monthly billing for higher-volume product teams.",
+        "button": {
+          "title": "Get Roller Rabbit",
+          "url": "/#pricing",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "premium-monthly",
+        "product_name": "Roller Rabbit Premium Monthly",
+        "credits": 300,
+        "valid_days": 30,
+        "group": "monthly",
+        "plan_name": "Premium"
+      },
+      {
+        "title": "Starter",
+        "description": "Get started with your first SaaS startup.",
+        "features_title": "Includes",
+        "features": [
+          "100 credits, valid for 1 year",
+          "NextJS boilerplate",
+          "SEO-friendly structure",
+          "Payment with Stripe",
+          "Data storage with Supabase",
+          "Google Oauth & One-Tap Login",
+          "i18n support"
+        ],
+        "interval": "year",
+        "amount": 82800,
+        "currency": "USD",
+        "price": "$69",
+        "original_price": "$89",
+        "unit": "/ month",
+        "is_featured": false,
+        "tip": "Pay annually. Build unlimited projects!",
+        "button": {
+          "title": "Get Roller Rabbit",
+          "url": "/#pricing",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "starter-yearly",
+        "product_name": "Roller Rabbit Starter Annually",
+        "credits": 1200,
+        "valid_days": 365,
+        "group": "yearly",
+        "plan_name": "Starter"
+      },
+      {
+        "title": "Standard",
+        "description": "Launch fast with your SaaS startups.",
+        "label": "Popular",
+        "features_title": "Everything in Starter, plus",
+        "features": [
+          "200 credits, valid for 1 year",
+          "Deploy with Cloudflare",
+          "Generation of Privacy & Terms",
+          "Google Analytics Integration",
+          "Google Search Console Integration",
+          "Discord community",
+          "Technical support for your first launch",
+          "Lifetime updates"
+        ],
+        "interval": "year",
+        "amount": 154800,
+        "currency": "USD",
+        "price": "$129",
+        "original_price": "$169",
+        "unit": "/ month",
+        "is_featured": true,
+        "tip": "Pay annually. Launch fast with your SaaS startups.",
+        "button": {
+          "title": "Get Roller Rabbit",
+          "url": "/#pricing",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "standard-yearly",
+        "product_name": "Roller Rabbit Standard Annually",
+        "credits": 2400,
+        "valid_days": 365,
+        "group": "yearly",
+        "plan_name": "Standard"
+      },
+      {
+        "title": "Premium",
+        "description": "Launch AI SaaS startups.",
+        "features_title": "Everything in Standard, plus",
+        "features": [
+          "300 credits, valid for 1 year",
+          "Business Functions with AI",
+          "User Center",
+          "Credits System",
+          "API Sales for your SaaS",
+          "Admin System",
+          "Priority Technical Support"
+        ],
+        "interval": "year",
+        "amount": 226800,
+        "currency": "USD",
+        "price": "$189",
+        "original_price": "$249",
+        "unit": "/ month",
+        "is_featured": false,
+        "tip": "Pay annually. Launch AI SaaS startups.",
+        "button": {
+          "title": "Get Roller Rabbit",
+          "url": "/#pricing",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "premium-yearly",
+        "product_name": "Roller Rabbit Premium Annually",
+        "credits": 3600,
+        "valid_days": 365,
+        "group": "yearly",
+        "plan_name": "Premium"
+      }
+    ]
+  },
+  "faq": {
+    "id": "faq",
+    "title": "Questions founders usually ask before buying",
+    "description": "If you still need details, ask before you lose a week rebuilding the obvious parts.",
+    "tip": "Can't find what you're looking for? Contact our <a href='https://discord.gg/HQNnrzjZQS' target='_blank' rel='nofollow noopener noreferrer' class='text-primary font-medium hover:underline'>customer support team</a>",
+    "items": [
+      {
+        "question": "What exactly is Roller Rabbit and how does it work?",
+        "answer": "Roller Rabbit is a comprehensive Next.js boilerplate designed specifically for building AI SaaS startups. It provides ready-to-use templates, infrastructure setup, and deployment tools that help you launch your AI business in hours instead of days."
+      },
+      {
+        "question": "Do I need advanced technical skills to use Roller Rabbit?",
+        "answer": "While basic programming knowledge is helpful, Roller Rabbit is designed to be developer-friendly. Our templates and documentation make it easy to get started, even if you're not an expert in AI or cloud infrastructure."
+      },
+      {
+        "question": "What types of AI SaaS can I build with Roller Rabbit?",
+        "answer": "Roller Rabbit supports a wide range of AI applications, from content generation to data analysis tools. Our templates cover popular use cases like AI chatbots, content generators, image processing apps, and more."
+      },
+      {
+        "question": "How long does it typically take to launch with Roller Rabbit?",
+        "answer": "With Roller Rabbit, you can have a working prototype in hours and a production-ready application in hours. Our one-click deployment and pre-configured infrastructure significantly reduce the traditional months-long development cycle."
+      },
+      {
+        "question": "What's included in the Roller Rabbit infrastructure?",
+        "answer": "Roller Rabbit provides a complete infrastructure stack including authentication, database setup, API integration, payment processing, and scalable cloud deployment. Everything is pre-configured following industry best practices."
+      },
+      {
+        "question": "Can I customize the templates to match my brand?",
+        "answer": "Absolutely! All Roller Rabbit templates are fully customizable. You can modify the design, features, and functionality to match your brand identity and specific business requirements while maintaining the robust underlying infrastructure."
+      }
+    ]
+  },
+  "testimonials": {
+    "id": "testimonials",
+    "title": "What teams say after launch",
+    "description": "Founders use Roller Rabbit when they want the first shipped version to feel real, not provisional.",
+    "items": [
+      {
+        "name": "David Chen",
+        "role": "Founder of AIWallpaper.shop",
+        "quote": "Roller Rabbit saved us months of development time. We launched our AI wallpaper business in just 2 days and got our first paying customer within a week!",
+        "image": {
+          "src": "/imgs/avatars/1.png",
+          "alt": "david"
+        }
+      },
+      {
+        "name": "Rachel Kim",
+        "role": "CTO at HeyBeauty.ai",
+        "quote": "The pre-built AI infrastructure is a game-changer. We didn't have to worry about architecture - just focused on our AI beauty tech and went live fast.",
+        "image": {
+          "src": "/imgs/avatars/2.png",
+          "alt": "rachel"
+        }
+      },
+      {
+        "name": "Marcus Thompson",
+        "role": "Solo Developer",
+        "quote": "As a solo developer, Roller Rabbit gave me everything I needed - auth, payments, AI integration, and beautiful UI. Launched my SaaS in a weekend!",
+        "image": {
+          "src": "/imgs/avatars/3.png",
+          "alt": "marcus"
+        }
+      },
+      {
+        "name": "Sofia Garcia",
+        "role": "CEO of Melodisco",
+        "quote": "The templates are production-ready and highly customizable. We built our AI music platform in hours instead of months. Incredible time-to-market!",
+        "image": {
+          "src": "/imgs/avatars/4.png",
+          "alt": "sofia"
+        }
+      },
+      {
+        "name": "James Wilson",
+        "role": "Tech Lead at GPTs.works",
+        "quote": "Roller Rabbit's infrastructure is rock-solid. We scaled from 0 to 10k users without touching the backend. Best investment for our AI startup.",
+        "image": {
+          "src": "/imgs/avatars/5.png",
+          "alt": "james"
+        }
+      },
+      {
+        "name": "Anna Zhang",
+        "role": "Startup Founder",
+        "quote": "From idea to launch in 3 days! Roller Rabbit's templates and deployment tools made it possible to test our AI business concept incredibly fast.",
+        "image": {
+          "src": "/imgs/avatars/6.png",
+          "alt": "anna"
+        }
+      }
+    ]
+  }
+}

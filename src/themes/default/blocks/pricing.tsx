@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { Check, Loader2 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 
@@ -34,7 +35,6 @@ import {
   getRequestIdFromError,
   RequestIdError,
 } from '@/shared/lib/api/request-id';
-import { getCookie } from '@/shared/lib/cookie';
 import { cn } from '@/shared/lib/utils';
 import type { SelfUserDetails } from '@/shared/types/auth-session';
 import type {
@@ -70,6 +70,10 @@ function getInitialCurrency(
   );
 }
 
+function isCheckoutEnabled(item: PricingItem): boolean {
+  return item.checkout_enabled !== false && item.amount > 0;
+}
+
 export function Pricing({
   pricing,
   className,
@@ -79,8 +83,7 @@ export function Pricing({
 }) {
   const locale = useLocale();
   const t = useTranslations('pricing.page');
-  const { setIsShowSignModal, billingSettings, uiConfig } =
-    usePublicAppContext();
+  const { setIsShowSignModal } = usePublicAppContext();
   const {
     data: details,
     error: detailsError,
@@ -209,37 +212,6 @@ export function Pricing({
     void handleCheckout(displayedItem, accountDetails);
   };
 
-  const getAffiliateMetadata = ({
-    paymentProvider,
-  }: {
-    paymentProvider: string;
-  }) => {
-    const affiliateMetadata: Record<string, string> = {};
-
-    // get Affonso referral
-    if (
-      uiConfig.affiliate.affonsoEnabled &&
-      ['stripe', 'creem'].includes(paymentProvider)
-    ) {
-      const affonsoReferral = getCookie('affonso_referral') || '';
-      affiliateMetadata.affonso_referral = affonsoReferral;
-    }
-
-    // get PromoteKit referral
-    if (
-      uiConfig.affiliate.promotekitEnabled &&
-      ['stripe'].includes(paymentProvider)
-    ) {
-      const promotekitReferral =
-        typeof window !== 'undefined' && window.promotekit_referral
-          ? window.promotekit_referral
-          : getCookie('promotekit_referral') || '';
-      affiliateMetadata.promotekit_referral = promotekitReferral;
-    }
-
-    return affiliateMetadata;
-  };
-
   const handleCheckout = async (
     item: PricingItem,
     accountDetails?: SelfUserDetails
@@ -255,16 +227,10 @@ export function Pricing({
         return;
       }
 
-      const affiliateMetadata = getAffiliateMetadata({
-        paymentProvider:
-          billingSettings.provider === 'none' ? '' : billingSettings.provider,
-      });
-
       const params = {
         product_id: item.product_id,
         currency: item.currency,
         locale: locale || 'en',
-        metadata: affiliateMetadata,
       };
 
       setIsLoading(true);
@@ -497,6 +463,22 @@ export function Pricing({
                       <span className="hidden text-sm md:block">
                         {t('current_plan')}
                       </span>
+                    </Button>
+                  ) : !isCheckoutEnabled(item) && item.button?.url ? (
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="mt-2 h-11 w-full rounded-full px-4 py-2"
+                    >
+                      <Link href={item.button.url}>
+                        {item.button?.icon && (
+                          <SmartIcon
+                            name={item.button?.icon as string}
+                            className="size-4"
+                          />
+                        )}
+                        <span className="block">{item.button?.title}</span>
+                      </Link>
                     </Button>
                   ) : (
                     <Button

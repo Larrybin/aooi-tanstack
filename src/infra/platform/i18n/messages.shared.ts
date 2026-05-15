@@ -259,14 +259,14 @@ function resolveTerminalNamespaces(pathname: string): {
 export function getRequestNamespaces(pathname: string): string[] {
   const normalizedPathname = normalizeAppPathname(pathname);
 
-  if (normalizedPathname === '/api/payment/checkout') {
-    return ['pricing'];
-  }
-
   const namespaces: string[] = [];
 
   if (!normalizedPathname.startsWith('/api/')) {
     pushNamespace(namespaces, 'common.metadata');
+  }
+
+  if (normalizedPathname.startsWith('/api/')) {
+    return namespaces;
   }
 
   if (normalizedPathname === '/') {

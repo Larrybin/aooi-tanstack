@@ -1,0 +1,137 @@
+{
+  "metadata": {
+    "title": "AI Remover Pricing - Free, Pro, and Studio Plans",
+    "description": "Choose an AI Remover plan for object removal, high-res downloads, and longer image history."
+  },
+  "pricing": {
+    "id": "pricing",
+    "sr_only_title": "AI Remover Pricing",
+    "title": "AI Remover Pricing",
+    "description": "Choose the image cleanup volume and high-res download quota that fits your workflow.",
+    "items": [
+      {
+        "title": "Free",
+        "description": "Try AI Object Remover before creating an account.",
+        "features_title": "Includes",
+        "features": [
+          "Guest daily limit: 2 images",
+          "Logged-in free daily limit: 5 images",
+          "3 high-res downloads after sign-up",
+          "Low-res downloads for guest results",
+          "7-day signed-in image history"
+        ],
+        "interval": "month",
+        "amount": 0,
+        "currency": "USD",
+        "price": "$0",
+        "unit": "",
+        "button": {
+          "title": "Start removing objects",
+          "url": "/",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "free",
+        "product_name": "AI Remover Free",
+        "plan_name": "Free",
+        "checkout_enabled": false,
+        "entitlements": {
+          "guest_daily_removals": 2,
+          "low_res_download": true,
+          "daily_removals": 5,
+          "signup_high_res_downloads": 3,
+          "retention_days": 7
+        }
+      },
+      {
+        "title": "Pro",
+        "description": "For creators who clean up images every week.",
+        "label": "Popular",
+        "features_title": "Everything in Free, plus",
+        "features": [
+          "500 removals per month",
+          "300 high-res downloads per month",
+          "Advanced removal mode",
+          "20MB upload limit",
+          "30-day image history"
+        ],
+        "interval": "month",
+        "amount": 999,
+        "currency": "USD",
+        "price": "$9.99",
+        "unit": "/ month",
+        "is_featured": true,
+        "button": {
+          "title": "Upgrade to Pro",
+          "url": "/pricing",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "pro-monthly",
+        "product_name": "AI Remover Pro Monthly",
+        "plan_name": "Pro",
+        "checkout_enabled": true,
+        "entitlements": {
+          "monthly_removals": 500,
+          "monthly_high_res_downloads": 300,
+          "advanced_mode": true,
+          "max_upload_mb": 20,
+          "retention_days": 30
+        }
+      },
+      {
+        "title": "Studio",
+        "description": "For heavier creator, design, and photography workflows.",
+        "features_title": "Everything in Pro, plus",
+        "features": [
+          "2,000 removals per month",
+          "1,500 high-res downloads per month",
+          "Priority queue",
+          "20MB upload limit",
+          "30-day image history"
+        ],
+        "interval": "month",
+        "amount": 2999,
+        "currency": "USD",
+        "price": "$29.99",
+        "unit": "/ month",
+        "button": {
+          "title": "Upgrade to Studio",
+          "url": "/pricing",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "studio-monthly",
+        "product_name": "AI Remover Studio Monthly",
+        "plan_name": "Studio",
+        "checkout_enabled": true,
+        "entitlements": {
+          "monthly_removals": 2000,
+          "monthly_high_res_downloads": 1500,
+          "priority_queue": true,
+          "max_upload_mb": 20,
+          "retention_days": 30
+        }
+      }
+    ]
+  },
+  "faq": {
+    "id": "pricing-faq",
+    "title": "Pricing questions before you upgrade.",
+    "items": [
+      {
+        "question": "Can I use AI Remover for free?",
+        "answer": "Yes. Guests can try low-res results before signing up. Creating an account unlocks the default free high-res allowance."
+      },
+      {
+        "question": "Do paid plans include high-res downloads?",
+        "answer": "Yes. Pro includes 300 high-res downloads per month, and Studio includes 1,500 high-res downloads per month."
+      },
+      {
+        "question": "What happens when I cancel?",
+        "answer": "Subscription benefits downgrade at the end of the active billing period. Your image retention and quota limits return to the free plan."
+      },
+      {
+        "question": "Can I remove watermarks or logos?",
+        "answer": "No. AI Remover is for legitimate photo cleanup and must not be used to remove copyright watermarks, brand logos, or authorization marks."
+      }
+    ]
+  }
+}

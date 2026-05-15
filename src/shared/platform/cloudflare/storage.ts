@@ -52,3 +52,37 @@ export async function uploadFileToCloudflareR2({
     location: url,
   };
 }
+
+export async function deleteFilesFromCloudflareR2(keys: string[]) {
+  const bucket = getCloudflareStorageBucket();
+  if (!bucket) {
+    throw new ServiceUnavailableError(
+      'APP_STORAGE_R2_BUCKET binding is missing'
+    );
+  }
+
+  const normalizedKeys = keys
+    .map((key) => key.replace(/^\/+/, '').trim())
+    .filter(Boolean);
+  if (!normalizedKeys.length) {
+    return;
+  }
+
+  await bucket.delete(normalizedKeys);
+}
+
+export async function getFileFromCloudflareR2(key: string) {
+  const bucket = getCloudflareStorageBucket();
+  if (!bucket) {
+    throw new ServiceUnavailableError(
+      'APP_STORAGE_R2_BUCKET binding is missing'
+    );
+  }
+
+  const normalizedKey = key.replace(/^\/+/, '').trim();
+  if (!normalizedKey) {
+    throw new ServiceUnavailableError('storage object key is required');
+  }
+
+  return bucket.get(normalizedKey);
+}

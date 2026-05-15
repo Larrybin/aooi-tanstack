@@ -208,6 +208,9 @@ sites/my-site/content/pages/
 {
   "configVersion": 1,
   "bindingRequirements": {
+    "bindings": {
+      "workersAi": false
+    },
     "secrets": {
       "authSharedSecret": true,
       "googleOauth": false,
@@ -240,6 +243,7 @@ sites/my-site/content/pages/
 
 字段规则：
 
+- `bindingRequirements.bindings.workersAi` 表示 app server workers 是否需要 Cloudflare Workers AI `[ai] binding = "AI"`。
 - `bindingRequirements.secrets.authSharedSecret`、`googleOauth`、`githubOauth` 是 operator-declared deploy requirements。
 - Email provider secret requirement 由 `site.config.json.capabilities.auth` 派生，不允许在 `deploy.settings.json` 里手写 `emailProvider`。
 - AI provider secret requirement 由 `site.config.json.capabilities.ai` 派生，不允许在 `deploy.settings.json` 里手写 `openrouter`。
@@ -298,6 +302,7 @@ SITE=my-site pnpm exec tsx scripts/upsert-configs.ts \
 | `bindingRequirements.secrets.authSharedSecret=true`  | `BETTER_AUTH_SECRET` 或 `AUTH_SECRET`                                  |
 | `capabilities.auth=true`                             | `RESEND_API_KEY`                                                       |
 | `bindingRequirements.vars.storagePublicBaseUrl=true` | `STORAGE_PUBLIC_BASE_URL`                                              |
+| `bindingRequirements.bindings.workersAi=true`        | Cloudflare Workers AI `[ai] binding = "AI"`                            |
 | `capabilities.ai=true`                               | `OPENROUTER_API_KEY`                                                   |
 | `capabilities.payment=stripe`                        | `STRIPE_PUBLISHABLE_KEY`、`STRIPE_SECRET_KEY`、`STRIPE_SIGNING_SECRET` |
 | `capabilities.payment=creem`                         | `CREEM_API_KEY`、`CREEM_SIGNING_SECRET`                                |
@@ -360,6 +365,16 @@ SITE=my-site pnpm test:cf-admin-settings-smoke
 SITE=my-site pnpm cf:deploy:state
 SITE=my-site pnpm cf:deploy
 SITE=my-site pnpm test:cf-app-smoke
+```
+
+如果需要 workers.dev staging runtime，不要创建 `my-site-preview` 站点。添加
+`sites/my-site/deploy.preview.settings.json`，只放 preview Hyperdrive ID，然
+后使用 preview profile：
+
+```bash
+SITE=my-site CF_WORKERS_DEV_SUBDOMAIN=<subdomain> CF_PREVIEW_ALLOW_PLACEHOLDER_SECRETS=true pnpm cf:preview:deploy:state
+SITE=my-site CF_WORKERS_DEV_SUBDOMAIN=<subdomain> CF_PREVIEW_ALLOW_PLACEHOLDER_SECRETS=true pnpm cf:preview:bootstrap
+SITE=my-site CF_WORKERS_DEV_SUBDOMAIN=<subdomain> pnpm cf:preview:deploy
 ```
 
 部署前需要确保：

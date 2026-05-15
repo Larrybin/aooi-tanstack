@@ -9,6 +9,7 @@ import {
   readCloudflareDeployRequirements,
   resolveCloudflareWorkerKeys,
 } from './lib/cloudflare-runtime-bindings.mjs';
+import { resolveCloudflareDeployProfile } from './lib/site-deploy-profile.mjs';
 
 const envContractModule = envContractNamespace.default ?? envContractNamespace;
 const { assertAllowedEnvKeys, CLOUDFLARE_SECRET_ENV_KEYS } = envContractModule;
@@ -72,6 +73,17 @@ function resolveRequiredSecretValue(processEnv, name, fallbackValue) {
   throw new Error(`${name} is required to build Cloudflare secrets`);
 }
 
+function allowsPreviewPlaceholderSecrets(processEnv) {
+  return (
+    resolveCloudflareDeployProfile(processEnv) === 'preview' &&
+    processEnv.CF_PREVIEW_ALLOW_PLACEHOLDER_SECRETS?.trim() === 'true'
+  );
+}
+
+function buildPreviewPlaceholderSecret(name) {
+  return `preview-placeholder-${name.toLowerCase().replaceAll('_', '-')}-not-for-production`;
+}
+
 /**
  * @param {EnvLike} processEnv
  * @param {string[]} workerKeys
@@ -92,6 +104,7 @@ function buildCloudflareContext(processEnv, workerKeys) {
  */
 function buildSecretFallbacks(requiredRequirements, processEnv, options) {
   const secretFallbacks = new Map();
+  const allowPreviewPlaceholders = allowsPreviewPlaceholderSecrets(processEnv);
   const needsAuthSecret = requiredRequirements.some((requirement) =>
     (requirement.names ?? [requirement.name]).some(
       (name) => name === 'BETTER_AUTH_SECRET' || name === 'AUTH_SECRET'
@@ -102,7 +115,15 @@ function buildSecretFallbacks(requiredRequirements, processEnv, options) {
     return secretFallbacks;
   }
 
-  const authSecret = resolveCloudflareAuthSecretValue(processEnv, options);
+  let authSecret;
+  try {
+    authSecret = resolveCloudflareAuthSecretValue(processEnv, options);
+  } catch (error) {
+    if (!allowPreviewPlaceholders) {
+      throw error;
+    }
+    authSecret = buildPreviewPlaceholderSecret('AUTH_SHARED_SECRET');
+  }
   secretFallbacks.set('BETTER_AUTH_SECRET', authSecret);
   secretFallbacks.set('AUTH_SECRET', authSecret);
   return secretFallbacks;
@@ -142,6 +163,7 @@ export function buildCloudflareSecretsEnv(
     processEnv,
     options
   );
+  const allowPreviewPlaceholders = allowsPreviewPlaceholderSecrets(processEnv);
   const resolvedSecrets = Object.fromEntries(
     requiredSecretNames.map((name) => {
       try {
@@ -154,6 +176,9 @@ export function buildCloudflareSecretsEnv(
           ),
         ];
       } catch (error) {
+        if (allowPreviewPlaceholders) {
+          return [name, buildPreviewPlaceholderSecret(name)];
+        }
         const context = buildCloudflareContext(processEnv, workerKeys);
         throw new Error(
           `[cf:secrets] missing required secret ${name} for SITE=${context.site} NODE_ENV=${context.nodeEnv} DEPLOY_TARGET=${context.deployTarget} workers=${context.workerScope}: ${error instanceof Error ? error.message : String(error)}`

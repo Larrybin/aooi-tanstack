@@ -12,7 +12,7 @@ Storage adds managed asset upload and retrieval paths:
 
 - Cloudflare Wrangler binding `APP_STORAGE_R2_BUCKET`
 - Cloudflare Wrangler binding `NEXT_INC_CACHE_R2_BUCKET`
-- Router Cloudflare Images binding `IMAGES`
+- Router/public-web Cloudflare Images binding `IMAGES`
 - Runtime binding `STORAGE_PUBLIC_BASE_URL`
 
 ## External Services

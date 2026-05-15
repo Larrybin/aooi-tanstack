@@ -8,18 +8,33 @@ import {
   requireActionUser,
 } from '@/app/access-control/action-guard';
 import {
-  getSettingGroups,
-  getSettings,
-} from '@/domains/settings/site-aware';
+  buildAuthRuntimeDiagnostics,
+  type AuthHandlerWorkerDiagnosticsSnapshot,
+  type AuthUiWorkerDiagnosticsSnapshot,
+} from '@/domains/settings/application/auth-runtime-diagnostics';
+import { buildAuthUiRuntimeSettings } from '@/domains/settings/application/settings-runtime.builders';
+import { readAuthUiRuntimeSettingsCached } from '@/domains/settings/application/settings-runtime.query';
 import {
+  readSettingsFresh,
   readSettingsSafe,
   saveSettings,
 } from '@/domains/settings/application/settings-store';
 import { mapSettingsToForms } from '@/domains/settings/settings-form-mapper';
 import { normalizeSettingOverrides } from '@/domains/settings/settings-normalizers';
 import { mergeRegisteredSettingValues } from '@/domains/settings/settings-submit-merge';
+import {
+  getAvailableSettingTabs,
+  getSettingGroups,
+  getSettings,
+} from '@/domains/settings/site-aware';
 import { isSettingTabName } from '@/domains/settings/tab-names';
 import { getSettingTabs } from '@/domains/settings/tabs';
+import { getAuthServerBindings } from '@/infra/platform/auth/server-bindings';
+import {
+  getCloudflareBindings,
+  getRuntimeEnvString,
+  type CloudflareBindings,
+} from '@/infra/runtime/env.server';
 import { getSettingsModuleContractRows } from '@/surfaces/admin/settings/module-contract';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { z } from 'zod';
@@ -27,14 +42,166 @@ import { z } from 'zod';
 import { FormCard } from '@/shared/blocks/form';
 import { Header, Main, MainHeader } from '@/shared/blocks/workspace';
 import { Badge } from '@/shared/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/shared/components/ui/table';
+import {
+  AUTH_RUNTIME_DIAGNOSTICS_PATH,
+  AUTH_RUNTIME_DIAGNOSTICS_SECRET_HEADER,
+  type AuthHandlerWorkerBindingsSnapshot,
+  type AuthUiWorkerBindingsSnapshot,
+} from '@/shared/config/auth-runtime-diagnostics';
+import {
+  AUTH_HANDLER_WORKER_TARGETS,
+  AUTH_UI_WORKER_TARGETS,
+  CLOUDFLARE_SERVICE_BINDINGS,
+  type CloudflareServerWorkerTarget,
+} from '@/shared/config/cloudflare-worker-splits';
 import { PERMISSIONS } from '@/shared/constants/rbac-permissions';
 import { parseFormData } from '@/shared/lib/action/form';
 import { actionErr, actionOk } from '@/shared/lib/action/result';
 import { withAction } from '@/shared/lib/action/with-action';
 import type { Crumb } from '@/shared/types/blocks/common';
-import { getAvailableSettingTabs } from '@/domains/settings/site-aware';
 
 const SETTINGS_FORM_VALUES_SCHEMA = z.record(z.string(), z.string());
+
+function getAuthDiagnosticsSecret() {
+  return (
+    getRuntimeEnvString('BETTER_AUTH_SECRET')?.trim() ||
+    getRuntimeEnvString('AUTH_SECRET')?.trim() ||
+    ''
+  );
+}
+
+function getServiceBindingFetcher(
+  bindings: CloudflareBindings | null,
+  target: CloudflareServerWorkerTarget
+) {
+  const bindingName = CLOUDFLARE_SERVICE_BINDINGS[target];
+  const value = bindings?.[bindingName];
+  return value && typeof value === 'object' && 'fetch' in value
+    ? (value as Fetcher)
+    : null;
+}
+
+async function fetchWorkerSnapshot<T>({
+  bindings,
+  target,
+}: {
+  bindings: CloudflareBindings | null;
+  target: CloudflareServerWorkerTarget;
+}) {
+  const fetcher = getServiceBindingFetcher(bindings, target);
+  const secret = getAuthDiagnosticsSecret();
+  if (!fetcher || !secret) {
+    return null;
+  }
+
+  const response = await fetcher.fetch(
+    `https://${target}${AUTH_RUNTIME_DIAGNOSTICS_PATH}`,
+    {
+      headers: {
+        [AUTH_RUNTIME_DIAGNOSTICS_SECRET_HEADER]: secret,
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error(
+      `failed to read auth runtime diagnostics from ${target}: ${response.status}`
+    );
+  }
+
+  return (await response.json()) as T;
+}
+
+function buildFallbackAuthUiWorkerBindingsSnapshot(
+  workerTarget: CloudflareServerWorkerTarget
+): AuthUiWorkerBindingsSnapshot {
+  const runtimeBindings = getAuthServerBindings();
+  return {
+    role: 'auth-ui',
+    workerTarget,
+    googleClientIdPresent: runtimeBindings.googleClientId.trim().length > 0,
+  };
+}
+
+function buildFallbackAuthHandlerWorkerBindingsSnapshot(
+  workerTarget: CloudflareServerWorkerTarget
+): AuthHandlerWorkerBindingsSnapshot {
+  const runtimeBindings = getAuthServerBindings();
+  return {
+    role: 'auth-handler',
+    workerTarget,
+    googleClientIdPresent: runtimeBindings.googleClientId.trim().length > 0,
+    googleClientSecretPresent:
+      runtimeBindings.googleClientSecret.trim().length > 0,
+    githubClientIdPresent: runtimeBindings.githubClientId.trim().length > 0,
+    githubClientSecretPresent:
+      runtimeBindings.githubClientSecret.trim().length > 0,
+  };
+}
+
+async function readAuthUiWorkerDiagnosticsSnapshot(
+  freshConfigs: Record<string, string>
+) {
+  const workerTarget = AUTH_UI_WORKER_TARGETS[0];
+  const bindings = getCloudflareBindings();
+  const fetched = await fetchWorkerSnapshot<AuthUiWorkerBindingsSnapshot>({
+    bindings,
+    target: workerTarget,
+  });
+  const workerBindings =
+    fetched ?? buildFallbackAuthUiWorkerBindingsSnapshot(workerTarget);
+  const cached = await readAuthUiRuntimeSettingsCached();
+  const fresh = buildAuthUiRuntimeSettings(freshConfigs, {
+    googleClientId: workerBindings.googleClientIdPresent
+      ? 'google-client-id'
+      : '',
+    googleClientSecret: '',
+    githubClientId: '',
+    githubClientSecret: '',
+  });
+
+  return {
+    role: 'auth-ui',
+    workerTarget,
+    cached,
+    fresh,
+    googleClientIdPresent: workerBindings.googleClientIdPresent,
+    googleButtonRenderable: cached.googleAuthEnabled,
+    githubButtonRenderable: cached.githubAuthEnabled,
+    googleOneTapRenderable:
+      cached.googleAuthEnabled &&
+      cached.googleOneTapEnabled &&
+      cached.googleClientId.trim().length > 0,
+  } satisfies AuthUiWorkerDiagnosticsSnapshot;
+}
+
+async function readAuthHandlerWorkerDiagnosticsSnapshot() {
+  const workerTarget = AUTH_HANDLER_WORKER_TARGETS[0];
+  const bindings = getCloudflareBindings();
+  const fetched = await fetchWorkerSnapshot<AuthHandlerWorkerBindingsSnapshot>({
+    bindings,
+    target: workerTarget,
+  });
+  const workerBindings =
+    fetched ?? buildFallbackAuthHandlerWorkerBindingsSnapshot(workerTarget);
+  return {
+    role: 'auth-handler',
+    workerTarget,
+    googleCredentialsReady:
+      workerBindings.googleClientIdPresent &&
+      workerBindings.googleClientSecretPresent,
+    githubCredentialsReady:
+      workerBindings.githubClientIdPresent &&
+      workerBindings.githubClientSecretPresent,
+  } satisfies AuthHandlerWorkerDiagnosticsSnapshot;
+}
 
 export default async function SettingsPage({
   params,
@@ -79,6 +246,17 @@ export default async function SettingsPage({
   });
   const hasConfigsError = Boolean(configsError);
   const moduleContractRows = getSettingsModuleContractRows(settingsTab);
+  const freshConfigs =
+    settingsTab === 'auth' && !hasConfigsError
+      ? await readSettingsFresh()
+      : null;
+  const authRuntimeDiagnostics = freshConfigs
+    ? buildAuthRuntimeDiagnostics({
+        freshConfigs,
+        authUiWorker: await readAuthUiWorkerDiagnosticsSnapshot(freshConfigs),
+        authHandlerWorker: await readAuthHandlerWorkerDiagnosticsSnapshot(),
+      })
+    : null;
   const handleSubmit = async (data: FormData) => {
     'use server';
 
@@ -235,6 +413,188 @@ export default async function SettingsPage({
             />
           </div>
         ))}
+        {authRuntimeDiagnostics ? (
+          <div
+            className="bg-card mb-8 max-w-4xl rounded-lg border p-6"
+            data-testid="admin-auth-runtime-diagnostics"
+          >
+            <div className="mb-4 flex flex-wrap items-center gap-3">
+              <div>
+                <h2 className="text-lg font-semibold">
+                  Auth Runtime Diagnostics
+                </h2>
+                <p className="text-muted-foreground text-sm">
+                  This compares the cached auth projection used by
+                  <code className="bg-muted mx-1 rounded px-1 py-0.5 text-xs">
+                    /sign-in
+                  </code>
+                  with the current auth UI worker and auth handler worker
+                  contract.
+                </p>
+              </div>
+              <Badge
+                variant={
+                  authRuntimeDiagnostics.summary.status === 'ready'
+                    ? 'secondary'
+                    : authRuntimeDiagnostics.summary.status === 'cached-stale'
+                      ? 'outline'
+                      : 'destructive'
+                }
+              >
+                {authRuntimeDiagnostics.summary.title}
+              </Badge>
+            </div>
+            <p className="text-muted-foreground mb-4 text-sm">
+              {authRuntimeDiagnostics.summary.description}
+            </p>
+            <div className="space-y-6">
+              <div>
+                <h3 className="mb-2 text-sm font-medium">Settings view</h3>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Check</TableHead>
+                      <TableHead>Value</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>google_auth_enabled</TableCell>
+                      <TableCell>
+                        {String(
+                          authRuntimeDiagnostics.settings.googleAuthRequested
+                        )}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>github_auth_enabled</TableCell>
+                      <TableCell>
+                        {String(
+                          authRuntimeDiagnostics.settings.githubAuthRequested
+                        )}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>google_one_tap_enabled</TableCell>
+                      <TableCell>
+                        {String(
+                          authRuntimeDiagnostics.settings.googleOneTapRequested
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+
+              <div>
+                <h3 className="mb-2 text-sm font-medium">
+                  Auth UI worker:{' '}
+                  {authRuntimeDiagnostics.authUiWorker.workerTarget}
+                </h3>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Check</TableHead>
+                      <TableHead>Cached</TableHead>
+                      <TableHead>Fresh</TableHead>
+                      <TableHead>Worker binding</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>google button renderable</TableCell>
+                      <TableCell>
+                        {String(
+                          authRuntimeDiagnostics.authUiWorker
+                            .googleButtonRenderable
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {String(
+                          authRuntimeDiagnostics.authUiWorker.fresh
+                            .googleAuthEnabled
+                        )}
+                      </TableCell>
+                      <TableCell>-</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>github button renderable</TableCell>
+                      <TableCell>
+                        {String(
+                          authRuntimeDiagnostics.authUiWorker
+                            .githubButtonRenderable
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {String(
+                          authRuntimeDiagnostics.authUiWorker.fresh
+                            .githubAuthEnabled
+                        )}
+                      </TableCell>
+                      <TableCell>-</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>google one tap renderable</TableCell>
+                      <TableCell>
+                        {String(
+                          authRuntimeDiagnostics.authUiWorker.cached
+                            .googleOneTapEnabled
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {String(
+                          authRuntimeDiagnostics.authUiWorker.fresh
+                            .googleOneTapEnabled
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {String(
+                          authRuntimeDiagnostics.authUiWorker
+                            .googleClientIdPresent
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+
+              <div>
+                <h3 className="mb-2 text-sm font-medium">
+                  Auth handler worker:{' '}
+                  {authRuntimeDiagnostics.authHandlerWorker.workerTarget}
+                </h3>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Check</TableHead>
+                      <TableHead>Ready</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>google credentials ready</TableCell>
+                      <TableCell>
+                        {String(
+                          authRuntimeDiagnostics.authHandlerWorker
+                            .googleCredentialsReady
+                        )}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>github credentials ready</TableCell>
+                      <TableCell>
+                        {String(
+                          authRuntimeDiagnostics.authHandlerWorker
+                            .githubCredentialsReady
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </Main>
     </>
   );

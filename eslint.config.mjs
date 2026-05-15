@@ -233,6 +233,7 @@ const eslintConfig = [
       'src/config/load-dotenv.ts',
       'src/config/public-env.ts',
       'src/config/server-auth-base-url.ts',
+      'src/infra/adapters/db/config.ts',
       'src/infra/runtime/env.server.ts',
       'cloudflare/workers/create-server-worker.ts',
     ],

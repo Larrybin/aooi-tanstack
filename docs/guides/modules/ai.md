@@ -15,15 +15,23 @@ AI is an optional product module layered on top of the mainline shell:
 
 ## External Services
 
+- Cloudflare Workers AI
 - OpenRouter
 - Replicate
 - Fal
 - Kie
 
+## Credit Refund Boundary
+
+- Failed task refunds are handled in AI application/API orchestration before the task status update is written.
+- Normal AI task updates must not pass `creditId`; the infra update fallback is transitional protection for stale untyped callers only.
+
 ## Minimum Verification Commands
 
 - `pnpm test`
 - `pnpm test:cf-app-smoke`
+- AI Remover Workers AI runtime spike:
+  `SITE=ai-remover pnpm test:remover-workers-ai-spike`
 
 ## Common Failure Modes
 

@@ -4,6 +4,7 @@
 import { notFound } from 'next/navigation';
 import { getDocsPage } from '@/domains/content/application/public-content.query';
 import { buildCanonicalUrl } from '@/infra/url/canonical';
+import { site } from '@/site';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import PageDetailPageView from '@/themes/default/pages/page-detail';
@@ -13,12 +14,26 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: string; slug: string }>;
 }) {
-  const t = await getTranslations('common.metadata');
-
   const { locale, slug } = await params;
   const canonicalUrl = buildCanonicalUrl(`/${slug}`, locale);
+  const siteKey: string = site.key;
 
   const page = await getDocsPage({ slug, locale });
+  if (siteKey === 'ai-remover') {
+    const title = `${page?.title ?? slug} | AI Remover`;
+
+    return {
+      title: {
+        absolute: title,
+      },
+      description: page?.description ?? 'AI Remover legal information',
+      alternates: {
+        canonical: canonicalUrl,
+      },
+    };
+  }
+
+  const t = await getTranslations('common.metadata');
   if (!page) {
     return {
       title: `${slug} | ${t('title')}`,

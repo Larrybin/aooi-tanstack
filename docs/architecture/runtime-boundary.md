@@ -8,6 +8,7 @@ Allowed modules:
   - `getRuntimePlatform()`
   - `isCloudflareWorkersRuntime()`
   - `getCloudflareBindings()`
+  - `getCloudflareAIBinding()`
 - `runtime/request-body`
   - `readRequestTextWithLimit()`
   - `readRequestBodyByteCountUpTo()`

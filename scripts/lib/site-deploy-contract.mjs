@@ -7,10 +7,18 @@ import {
   resolveRequiredSiteKey,
 } from './site-config.mjs';
 import {
+  buildPreviewBucketName,
+  buildPreviewRouterOrigin,
+  buildPreviewWorkerName,
+  CLOUDFLARE_DEPLOY_PROFILES,
+  resolveCloudflareDeployProfile,
+} from './site-deploy-profile.mjs';
+import {
   CLOUDFLARE_RESOURCE_SLOT_KEYS,
   CLOUDFLARE_STATE_SLOT_KEYS,
   CLOUDFLARE_WORKER_SLOT_KEYS,
   readSiteDeploySettings,
+  readSitePreviewDeploySettings,
 } from './site-deploy-settings.mjs';
 
 const {
@@ -27,6 +35,8 @@ const {
 const CLOUDFLARE_ROUTER_SLOT = 'router';
 const CLOUDFLARE_STATE_SLOT = 'state';
 const ROUTE_CUSTOM_DOMAIN = true;
+const ROUTE_MODE_CUSTOM_DOMAIN = 'custom-domain';
+const ROUTE_MODE_WORKERS_DEV = 'workers-dev';
 const paymentCapabilityModule =
   paymentCapabilityNamespace.default ?? paymentCapabilityNamespace;
 const { assertPaymentCapabilityContract, resolvePaymentHealth } =
@@ -52,6 +62,12 @@ function sortObject(value) {
 function buildCanonicalBindingShape(contract) {
   return {
     bindingRequirements: {
+      bindings: Object.fromEntries(
+        Object.keys(contract.bindingRequirements.bindings).map((key) => [
+          key,
+          'boolean',
+        ])
+      ),
       secrets: Object.fromEntries(
         Object.keys(contract.bindingRequirements.secrets).map((key) => [
           key,
@@ -149,6 +165,27 @@ function buildServerWorkers(deploySettings) {
   );
 }
 
+function buildPreviewDeploySettings({
+  siteKey,
+  productionDeploySettings,
+  previewSettings,
+}) {
+  return {
+    ...productionDeploySettings,
+    workers: Object.fromEntries(
+      CLOUDFLARE_WORKER_SLOT_KEYS.map((slot) => [
+        slot,
+        buildPreviewWorkerName(siteKey, slot),
+      ])
+    ),
+    resources: {
+      incrementalCacheBucket: buildPreviewBucketName(siteKey, 'opennext-cache'),
+      appStorageBucket: buildPreviewBucketName(siteKey, 'storage'),
+      hyperdriveId: previewSettings.resources.hyperdriveId,
+    },
+  };
+}
+
 function buildTopologySignature(contract) {
   return JSON.stringify(
     sortObject({
@@ -156,6 +193,11 @@ function buildTopologySignature(contract) {
       resources: Object.keys(contract.resources),
       state: Object.keys(contract.state),
       workers: Object.keys(contract.workers),
+      route: {
+        customDomain: 'boolean',
+        mode: contract.route.mode,
+        pattern: 'string',
+      },
       router: {
         bindings: Object.keys(contract.router.serviceBindings),
         durableObjects: Object.keys(contract.router.durableObjects),
@@ -204,45 +246,77 @@ export function resolveSiteDeployContractFromSources({
   site,
   siteKey,
   deploySettings,
+  deployProfile = 'production',
+  previewSettings = null,
+  processEnv = process.env,
 }) {
+  if (!CLOUDFLARE_DEPLOY_PROFILES.includes(deployProfile)) {
+    throw new Error(
+      `CF_DEPLOY_PROFILE must be one of: ${CLOUDFLARE_DEPLOY_PROFILES.join(', ')}`
+    );
+  }
+
+  if (deployProfile === 'preview' && !previewSettings) {
+    throw new Error(`preview deploy settings are required for SITE=${siteKey}`);
+  }
+
+  const effectiveDeploySettings =
+    deployProfile === 'preview'
+      ? buildPreviewDeploySettings({
+          siteKey,
+          productionDeploySettings: deploySettings,
+          previewSettings,
+        })
+      : deploySettings;
   const derivedBindingRequirements = buildDerivedBindingRequirements(site);
-  const serverWorkers = buildServerWorkers(deploySettings);
-  const stateMigrationTag = `${deploySettings.workers.state}-v${deploySettings.state.schemaVersion}`;
-  const appUrl = site.brand.appUrl;
+  const serverWorkers = buildServerWorkers(effectiveDeploySettings);
+  const stateMigrationTag = `${effectiveDeploySettings.workers.state}-v${effectiveDeploySettings.state.schemaVersion}`;
+  const appUrl =
+    deployProfile === 'preview'
+      ? buildPreviewRouterOrigin(siteKey, processEnv)
+      : site.brand.appUrl;
   const appOrigin = new URL(appUrl).origin;
+  const routeMode =
+    deployProfile === 'preview'
+      ? ROUTE_MODE_WORKERS_DEV
+      : ROUTE_MODE_CUSTOM_DOMAIN;
 
   const contract = {
     site,
     siteKey,
+    deployProfile,
     appUrl,
     appOrigin,
     route: {
-      pattern: site.domain,
-      customDomain: ROUTE_CUSTOM_DOMAIN,
+      mode: routeMode,
+      pattern:
+        deployProfile === 'preview' ? new URL(appUrl).hostname : site.domain,
+      customDomain:
+        routeMode === ROUTE_MODE_CUSTOM_DOMAIN ? ROUTE_CUSTOM_DOMAIN : false,
     },
     bindingRequirements: {
-      ...deploySettings.bindingRequirements,
+      ...effectiveDeploySettings.bindingRequirements,
       secrets: {
-        ...deploySettings.bindingRequirements.secrets,
+        ...effectiveDeploySettings.bindingRequirements.secrets,
         ...derivedBindingRequirements.secrets,
       },
       payment: derivedBindingRequirements.payment,
     },
-    workers: deploySettings.workers,
-    resources: deploySettings.resources,
-    state: deploySettings.state,
+    workers: effectiveDeploySettings.workers,
+    resources: effectiveDeploySettings.resources,
+    state: effectiveDeploySettings.state,
     router: {
       slot: CLOUDFLARE_ROUTER_SLOT,
-      workerName: deploySettings.workers.router,
+      workerName: effectiveDeploySettings.workers.router,
       workerEntryRelativePath: CLOUDFLARE_ROUTER_WORKER.workerEntryRelativePath,
       wranglerConfigRelativePath:
         CLOUDFLARE_ROUTER_WORKER.wranglerConfigRelativePath,
       serviceBindings: {
-        WORKER_SELF_REFERENCE: deploySettings.workers.router,
+        WORKER_SELF_REFERENCE: effectiveDeploySettings.workers.router,
         ...Object.fromEntries(
           CLOUDFLARE_ALL_SERVER_WORKER_TARGETS.map((target) => [
             CLOUDFLARE_SERVICE_BINDINGS[target],
-            deploySettings.workers[target],
+            effectiveDeploySettings.workers[target],
           ])
         ),
       },
@@ -255,7 +329,10 @@ export function resolveSiteDeployContractFromSources({
       workerNameVars: Object.fromEntries(
         CLOUDFLARE_ALL_SERVER_WORKER_TARGETS.map((target) => {
           const metadata = getServerWorkerMetadata(target);
-          return [metadata.workerNameVar, deploySettings.workers[target]];
+          return [
+            metadata.workerNameVar,
+            effectiveDeploySettings.workers[target],
+          ];
         })
       ),
       durableObjects: Object.fromEntries(
@@ -264,7 +341,7 @@ export function resolveSiteDeployContractFromSources({
             bindingName,
             {
               className,
-              scriptName: deploySettings.workers.state,
+              scriptName: effectiveDeploySettings.workers.state,
             },
           ]
         )
@@ -272,11 +349,10 @@ export function resolveSiteDeployContractFromSources({
     },
     stateWorker: {
       slot: CLOUDFLARE_STATE_SLOT,
-      workerName: deploySettings.workers.state,
+      workerName: effectiveDeploySettings.workers.state,
       workerEntryRelativePath: CLOUDFLARE_STATE_WORKER.workerEntryRelativePath,
       wranglerConfigRelativePath:
         CLOUDFLARE_STATE_WORKER.wranglerConfigRelativePath,
-      selfReferenceService: deploySettings.workers.router,
       durableObjects: Object.fromEntries(
         Object.entries(CLOUDFLARE_DURABLE_OBJECT_BINDINGS).map(
           ([bindingName, className]) => [bindingName, { className }]
@@ -313,24 +389,39 @@ export function listSiteKeys({ rootDir = process.cwd() } = {}) {
 export function resolveSiteDeployContract({
   rootDir = process.cwd(),
   siteKey = resolveRequiredSiteKey(),
+  deployProfile,
+  processEnv = process.env,
 } = {}) {
+  const resolvedDeployProfile =
+    deployProfile ?? resolveCloudflareDeployProfile(processEnv);
   const site = readCurrentSiteConfig({ rootDir, siteKey });
   const deploySettings = readSiteDeploySettings({ rootDir, siteKey });
+  const previewSettings =
+    resolvedDeployProfile === 'preview'
+      ? readSitePreviewDeploySettings({ rootDir, siteKey })
+      : null;
   return resolveSiteDeployContractFromSources({
     site,
     siteKey,
     deploySettings,
+    deployProfile: resolvedDeployProfile,
+    previewSettings,
+    processEnv,
   });
 }
 
 export function resolveAllSiteDeployContracts({
   rootDir = process.cwd(),
+  deployProfile = 'production',
+  processEnv = process.env,
 } = {}) {
   const siteKeys = listSiteKeys({ rootDir });
   const contracts = siteKeys.map((siteKey) =>
     resolveSiteDeployContract({
       rootDir,
       siteKey,
+      deployProfile,
+      processEnv,
     })
   );
   assertUniqueSiteRoutePatterns(contracts);

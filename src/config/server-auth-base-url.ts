@@ -1,6 +1,6 @@
-import { site } from '@/site';
-
 import type { EnvLike } from '@/config/env-contract';
+
+import { resolveRuntimeAppUrl } from './runtime-app-url';
 
 function normalizeOrigin(value: string, label: string): string {
   try {
@@ -15,14 +15,16 @@ function normalizeOrigin(value: string, label: string): string {
 }
 
 type ServerAuthBaseUrlEnv = Partial<
-  Pick<EnvLike, 'BETTER_AUTH_URL' | 'AUTH_URL'>
+  Pick<EnvLike, 'BETTER_AUTH_URL' | 'AUTH_URL' | 'NEXT_PUBLIC_APP_URL'>
 >;
 
 export function resolveServerAuthBaseUrl(env?: ServerAuthBaseUrlEnv): string {
   const runtimeEnv = env ?? process.env;
   const rawBetterAuthUrl = runtimeEnv.BETTER_AUTH_URL?.trim() || '';
   const rawAuthUrl = runtimeEnv.AUTH_URL?.trim() || '';
-  const siteOrigin = normalizeOrigin(site.brand.appUrl, 'site.brand.appUrl');
+  const runtimeOrigin = resolveRuntimeAppUrl({
+    NEXT_PUBLIC_APP_URL: runtimeEnv.NEXT_PUBLIC_APP_URL,
+  });
 
   for (const [label, value] of [
     ['BETTER_AUTH_URL', rawBetterAuthUrl],
@@ -33,12 +35,12 @@ export function resolveServerAuthBaseUrl(env?: ServerAuthBaseUrlEnv): string {
     }
 
     const authOrigin = normalizeOrigin(value, label);
-    if (authOrigin !== siteOrigin) {
+    if (authOrigin !== runtimeOrigin) {
       throw new Error(
-        `${label} must share the same origin as site.brand.appUrl (expected ${siteOrigin}, got ${authOrigin})`
+        `${label} must share the same origin as the runtime app URL (expected ${runtimeOrigin}, got ${authOrigin})`
       );
     }
   }
 
-  return siteOrigin;
+  return runtimeOrigin;
 }

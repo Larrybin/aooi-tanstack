@@ -7,7 +7,10 @@ import { fileURLToPath } from 'node:url';
 
 import { writeCloudflareSecretsFile } from './create-cf-secrets-file.mjs';
 import { buildCloudflareWranglerConfig } from './create-cf-wrangler-config.mjs';
-import { CLOUDFLARE_APP_WORKER_SCOPE } from './lib/cloudflare-runtime-bindings.mjs';
+import {
+  CLOUDFLARE_APP_WORKER_SCOPE,
+  resolveCloudflareWorkerKeys,
+} from './lib/cloudflare-runtime-bindings.mjs';
 import { resolveRequiredSiteKey } from './lib/site-config.mjs';
 import { resolveSiteDeployContract } from './lib/site-deploy-contract.mjs';
 
@@ -24,7 +27,16 @@ function resolveDeployContract({
   });
 }
 
-function buildUploadTargets(contract, rootPath = rootDir) {
+export function resolveBuildWorkerKeys(args = process.argv.slice(2)) {
+  const workersArg = args.find((arg) => arg.startsWith('--workers='));
+  const workerKeys = workersArg
+    ? resolveCloudflareWorkerKeys(workersArg.split('=')[1])
+    : CLOUDFLARE_APP_WORKER_SCOPE;
+  return workerKeys.filter((workerKey) => workerKey !== 'state');
+}
+
+function buildUploadTargets(contract, rootPath = rootDir, workerKeys) {
+  const selectedWorkers = new Set(workerKeys);
   return [
     {
       label: 'router',
@@ -42,7 +54,7 @@ function buildUploadTargets(contract, rootPath = rootDir) {
       workerSlot: target,
       bundleEntryRelativePath: worker.bundleEntryRelativePath,
     })),
-  ];
+  ].filter((target) => selectedWorkers.has(target.label));
 }
 
 function fail(message) {
@@ -197,7 +209,13 @@ async function readServerBundleDiagnostics(target) {
 
 async function main() {
   const contract = resolveDeployContract();
-  const uploadTargets = buildUploadTargets(contract);
+  const workerKeys = resolveBuildWorkerKeys();
+  if (workerKeys.length === 0) {
+    fail(
+      'cf:build worker scope must include router or at least one app worker'
+    );
+  }
+  const uploadTargets = buildUploadTargets(contract, rootDir, workerKeys);
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'cf-build-dry-run-'));
   const emptyAssetsDir = path.join(tempDir, 'assets');
   const secretsPath = path.join(tempDir, 'cloudflare.secrets.env');
@@ -207,7 +225,7 @@ async function main() {
     await writeCloudflareSecretsFile({
       outputPath: secretsPath,
       fallbackAuthSecret: fallbackBuildSecret,
-      workerKeys: CLOUDFLARE_APP_WORKER_SCOPE,
+      workerKeys,
     });
 
     for (const target of uploadTargets) {

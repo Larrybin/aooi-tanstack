@@ -6,6 +6,8 @@ export const LimiterBucket = {
   API_VERIFY_EMAIL_CODE: 'api.verify-email-code',
   API_EMAIL_TEST: 'api.email-test',
   API_STORAGE_UPLOAD: 'api.storage-upload',
+  API_REMOVER_GUEST_UPLOAD: 'api.remover.guest-upload',
+  API_REMOVER_GUEST_JOB: 'api.remover.guest-job',
   AUTH_RESET_PASSWORD: 'auth.reset-password',
 } as const;
 
@@ -42,4 +44,18 @@ export const STORAGE_UPLOAD_CONCURRENCY_LIMIT_CONFIG = {
   maxGlobal: 4,
   maxPerKey: 2,
   leaseMs: 15 * 60 * 1000,
+} as const;
+
+export const REMOVER_GUEST_UPLOAD_LIMIT_CONFIG = {
+  bucket: LimiterBucket.API_REMOVER_GUEST_UPLOAD,
+  windowMs: 24 * 60 * 60 * 1000,
+  maxAttempts: 4,
+  maxConcurrent: 4,
+} as const;
+
+export const REMOVER_GUEST_JOB_LIMIT_CONFIG = {
+  bucket: LimiterBucket.API_REMOVER_GUEST_JOB,
+  windowMs: 24 * 60 * 60 * 1000,
+  maxAttempts: 2,
+  maxConcurrent: 2,
 } as const;

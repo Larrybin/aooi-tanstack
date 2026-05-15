@@ -44,6 +44,9 @@ export const CLOUDFLARE_ALL_SERVER_WORKER_TARGETS = [
   ...CLOUDFLARE_SPLIT_WORKER_TARGETS,
 ] as const;
 
+export const AUTH_UI_WORKER_TARGETS = ['public-web'] as const;
+export const AUTH_HANDLER_WORKER_TARGETS = ['auth'] as const;
+
 export type CloudflareSplitWorkerTarget =
   (typeof CLOUDFLARE_SPLIT_WORKER_TARGETS)[number];
 
@@ -154,6 +157,8 @@ const cloudflareWorkerTopology = {
   CLOUDFLARE_LOCAL_WORKER_URL_VARS,
   CLOUDFLARE_SPLIT_WORKER_TARGETS,
   CLOUDFLARE_ALL_SERVER_WORKER_TARGETS,
+  AUTH_UI_WORKER_TARGETS,
+  AUTH_HANDLER_WORKER_TARGETS,
   getServerWorkerMetadata,
   buildVersionOverridesHeader,
 };

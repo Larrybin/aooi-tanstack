@@ -1,0 +1,20 @@
+{
+  "key": "ai-remover",
+  "domain": "airemover.example.com",
+  "brand": {
+    "appName": "AI Remover",
+    "appUrl": "https://airemover.example.com",
+    "supportEmail": "support@airemover.example.com",
+    "logo": "/logo.png",
+    "favicon": "/favicon.ico",
+    "previewImage": "/logo.png"
+  },
+  "capabilities": {
+    "auth": true,
+    "payment": "creem",
+    "ai": true,
+    "docs": false,
+    "blog": false
+  },
+  "configVersion": 1
+}

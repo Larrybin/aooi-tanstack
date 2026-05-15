@@ -1,5 +1,9 @@
 import { loadEnvConfig } from '@next/env';
 
+import siteEnvModule from './site-env.cjs';
+
+const { applySiteLocalEnvOverlay } = siteEnvModule;
+
 function shouldLoadDotenvForScripts(): boolean {
   return (
     typeof process !== 'undefined' &&
@@ -20,8 +24,14 @@ export function loadDotenvForScripts() {
   }
 
   try {
+    const originalEnv = { ...process.env };
     const isDev = process.env.NODE_ENV !== 'production';
     loadEnvConfig(process.cwd(), isDev);
+    applySiteLocalEnvOverlay({
+      env: process.env,
+      originalEnv,
+      siteKey: process.env.SITE,
+    });
   } catch {
     // Silently fail - env loading is optional in some environments
   }

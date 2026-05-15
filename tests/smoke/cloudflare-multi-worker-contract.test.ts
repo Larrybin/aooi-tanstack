@@ -9,10 +9,13 @@ import { promisify } from 'node:util';
 import { resolveSiteDeployContract } from '../../scripts/lib/site-deploy-contract.mjs';
 import { readOpenNextGeneratedModules } from '../../scripts/sync-open-next-generated-types.mjs';
 import {
+  AUTH_HANDLER_WORKER_TARGETS,
+  AUTH_UI_WORKER_TARGETS,
   CLOUDFLARE_ALL_SERVER_WORKER_TARGETS,
   CLOUDFLARE_SERVICE_BINDINGS,
   CLOUDFLARE_SPLIT_WORKER_TARGETS,
   getServerWorkerMetadata,
+  resolveWorkerTarget,
 } from '../../src/shared/config/cloudflare-worker-splits';
 
 const rootDir = path.resolve(
@@ -39,6 +42,16 @@ test('router worker 不直接 import server handler', async () => {
   assert.ok(!routerSource.includes('server-functions/chat/handler.mjs'));
   assert.ok(!routerSource.includes('server-functions/admin/handler.mjs'));
   assert.ok(!routerSource.includes('server-functions/member/handler.mjs'));
+});
+
+test('auth worker roles stay aligned with current split routing', () => {
+  assert.deepEqual(AUTH_UI_WORKER_TARGETS, ['public-web']);
+  assert.deepEqual(AUTH_HANDLER_WORKER_TARGETS, ['auth']);
+  assert.equal(resolveWorkerTarget('/sign-in'), 'public-web');
+  assert.equal(resolveWorkerTarget('/sign-up'), 'public-web');
+  assert.equal(resolveWorkerTarget('/forgot-password'), 'public-web');
+  assert.equal(resolveWorkerTarget('/reset-password'), 'public-web');
+  assert.equal(resolveWorkerTarget('/api/auth/get-session'), 'auth');
 });
 
 test('server workers 不包含 middleware 或分发逻辑', async () => {
@@ -211,32 +224,49 @@ test('router 与 server worker 的 Durable Object bindings 全部指向 state wo
   }
 });
 
-test('state-first app-second 兼容窗口依赖同一 state owner 与同一路由回指契约', async () => {
-  const stateSource = await fs.readFile(
-    path.join(rootDir, 'cloudflare/wrangler.state.toml'),
-    'utf8'
-  );
-  assert.match(
-    stateSource,
-    new RegExp(`service = "${contract.router.workerName}"`),
-    'state worker 必须通过 WORKER_SELF_REFERENCE 回指当前 router'
-  );
-
+test('state-first app-second 兼容窗口依赖同一 state owner 且 server worker 不回指 router', async () => {
   for (const target of CLOUDFLARE_ALL_SERVER_WORKER_TARGETS) {
     const source = await fs.readFile(
       path.join(rootDir, `cloudflare/wrangler.server-${target}.toml`),
       'utf8'
     );
-    assert.match(
+    assert.doesNotMatch(
       source,
-      new RegExp(`service = "${contract.router.workerName}"`),
-      `${target} worker 必须通过 WORKER_SELF_REFERENCE 回指当前 router`
+      /binding = "WORKER_SELF_REFERENCE"/,
+      `${target} worker 不应再声明 WORKER_SELF_REFERENCE`
     );
     assert.match(
       source,
       new RegExp(`script_name = "${contract.stateWorker.workerName}"`),
       `${target} worker 必须继续绑定同一个 state DO owner`
     );
+
+    if (target === 'admin') {
+      for (const serviceTarget of AUTH_UI_WORKER_TARGETS.concat(
+        AUTH_HANDLER_WORKER_TARGETS
+      )) {
+        assert.match(
+          source,
+          new RegExp(
+            `binding = "${CLOUDFLARE_SERVICE_BINDINGS[serviceTarget]}"`
+          ),
+          'admin worker 必须能读取 auth diagnostics worker snapshot'
+        );
+        assert.match(
+          source,
+          new RegExp(
+            `service = "${contract.serverWorkers[serviceTarget].workerName}"`
+          ),
+          'admin worker diagnostics service binding 必须指向实际 server worker'
+        );
+      }
+    } else {
+      assert.doesNotMatch(
+        source,
+        /\[\[services\]\]/,
+        `${target} worker 不应声明跨 worker service binding`
+      );
+    }
   }
 });
 

@@ -1,16 +1,10 @@
-import {
-  mkdir,
-  mkdtemp,
-  readFile,
-  rm,
-  stat,
-  writeFile,
-} from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import net from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { buildCloudflareWranglerConfig } from '../create-cf-wrangler-config.mjs';
+import { assertCloudflareBuildArtifactsReady } from './cloudflare-build-artifacts.mjs';
 import {
   createWranglerMultiConfigDevManager,
   ensureCiDevVars,
@@ -28,15 +22,6 @@ const rootDir = path.resolve(
 const DEFAULT_ROUTER_BASE_URL = 'http://localhost:8787';
 const DEFAULT_ROUTER_PORT = 8787;
 const TOPOLOGY_MANAGER_LABEL = 'Cloudflare local topology';
-const ROUTER_RUNTIME_ARTIFACTS = [
-  '.open-next/worker.js',
-  '.open-next/cloudflare/images.js',
-  '.open-next/cloudflare/init.js',
-  '.open-next/middleware/handler.mjs',
-  '.open-next/.build/durable-objects/queue.js',
-  '.open-next/.build/durable-objects/sharded-tag-cache.js',
-];
-
 /**
  * @typedef {Record<string, string | undefined>} EnvLike
  */
@@ -114,31 +99,6 @@ export async function resolveCloudflareLocalTopologyPorts({
   };
 }
 
-function resolveServerWorkerHandlerPath(target, processEnv = process.env) {
-  const contract = resolveSiteDeployContract({
-    rootDir,
-    siteKey: resolveRequiredSiteKey(processEnv),
-  });
-  const metadata = contract.serverWorkers[target];
-  return path.join(
-    path.dirname(metadata.bundleEntryRelativePath),
-    'handler.mjs'
-  );
-}
-
-function getRequiredLocalBuildArtifactPaths(processEnv = process.env) {
-  const contract = resolveSiteDeployContract({
-    rootDir,
-    siteKey: resolveRequiredSiteKey(processEnv),
-  });
-  return [
-    ...ROUTER_RUNTIME_ARTIFACTS,
-    ...Object.keys(contract.serverWorkers).map((target) =>
-      resolveServerWorkerHandlerPath(target, processEnv)
-    ),
-  ];
-}
-
 /**
  * @param {{rootPath?: string, processEnv?: EnvLike}} [options]
  */
@@ -146,27 +106,14 @@ export async function assertCloudflareLocalBuildArtifactsReady({
   rootPath = rootDir,
   processEnv = process.env,
 } = {}) {
-  const missingPaths = [];
-
-  for (const relativePath of getRequiredLocalBuildArtifactPaths(processEnv)) {
-    try {
-      await stat(path.resolve(rootPath, relativePath));
-    } catch {
-      missingPaths.push(relativePath);
-    }
-  }
-
-  if (missingPaths.length === 0) {
-    return;
-  }
-
-  throw new Error(
-    [
+  await assertCloudflareBuildArtifactsReady({
+    rootPath,
+    processEnv,
+    contextMessage:
       'Cloudflare local topology requires built OpenNext artifacts.',
+    nextStepMessage:
       'Run `pnpm cf:build` before starting Cloudflare local smoke or spikes.',
-      `Missing artifacts: ${missingPaths.join(', ')}`,
-    ].join(' ')
-  );
+  });
 }
 
 /**
@@ -234,6 +181,27 @@ export async function prepareCloudflareLocalTopologyArtifacts({
   await writeFile(routerConfigPath, routerConfig, 'utf8');
   await mkdir(persistDir, { recursive: true });
 
+  const stateTemplatePath = path.resolve(
+    rootDir,
+    contract.stateWorker.wranglerConfigRelativePath
+  );
+  const stateTemplate = await readFile(stateTemplatePath, 'utf8');
+  const stateConfigPath = path.join(tempDir, 'wrangler.state.local.toml');
+  const stateConfig = buildCloudflareWranglerConfig({
+    template: stateTemplate,
+    contract,
+    workerSlot: 'state',
+    appUrl: ports.routerBaseUrl,
+    storagePublicBaseUrl,
+    deployTarget: 'cloudflare',
+    devHost: routerDevOrigin.hostname,
+    devUpstreamProtocol: routerDevOrigin.protocol.replace(/:$/, ''),
+    templatePath: stateTemplatePath,
+    outputPath: stateConfigPath,
+    validateTemplateContract: true,
+  });
+  await writeFile(stateConfigPath, stateConfig, 'utf8');
+
   const serverWorkers = [];
   for (const [target, metadata] of Object.entries(contract.serverWorkers)) {
     const templatePath = path.resolve(
@@ -286,9 +254,15 @@ export async function prepareCloudflareLocalTopologyArtifacts({
       port: ports.routerPort,
       baseUrl: ports.routerBaseUrl,
     },
+    stateWorker: {
+      label: 'Cloudflare state worker',
+      configPath: stateConfigPath,
+      workerName: contract.stateWorker.workerName,
+    },
     serverWorkers,
     wranglerConfigPaths: [
       routerConfigPath,
+      stateConfigPath,
       ...serverWorkers.map((worker) => worker.configPath),
     ],
     devVars,

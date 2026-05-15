@@ -141,7 +141,7 @@
 
 - Checkout：`src/app/api/payment/checkout/route.ts`
   - 使用 zod schema 校验请求体（`PaymentCheckoutBodySchema`）
-  - 金额由服务端 pricing 数据计算（不信任客户端传入金额）
+  - 金额由 `sites/<site-key>/pricing.json` 生成到 `@/site.sitePricing` 后在服务端计算（不信任客户端传入金额）
   - active provider 由 `site.capabilities.payment` 派生，checkout 不再接受 provider 选择输入
 - Webhook notify：`src/app/api/payment/notify/route.ts`
   - provider event 获取异常分类映射为 401/400/配置错误

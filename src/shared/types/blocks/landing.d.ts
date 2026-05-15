@@ -19,11 +19,11 @@ export interface Section {
   title?: string;
   description?: string;
   tip?: string;
-  buttons?: Button[];
+  buttons?: readonly Button[];
   icon?: string | ReactNode;
   image?: Image;
   image_invert?: Image;
-  items?: SectionItem[];
+  items?: readonly SectionItem[];
   image_position?: 'left' | 'right' | 'top' | 'bottom' | 'center';
   text_align?: 'left' | 'center' | 'right';
   className?: string;
@@ -34,7 +34,7 @@ export interface Header {
   id?: string;
   brand?: Brand;
   nav?: Nav;
-  buttons?: Button[];
+  buttons?: readonly Button[];
   user_nav?: UserNav;
   show_locale?: boolean;
   show_sign?: boolean;
@@ -76,7 +76,7 @@ export interface FAQItem extends SectionItem {
 }
 
 export interface FAQ extends Section {
-  items?: FAQItem[];
+  items?: readonly FAQItem[];
 }
 
 export interface CTA extends Section {}
@@ -93,7 +93,7 @@ export interface TestimonialsItem extends SectionItem {
 }
 
 export interface Testimonials extends Section {
-  items?: TestimonialsItem[];
+  items?: readonly TestimonialsItem[];
 }
 
 // landing props for landing page component
@@ -111,5 +111,5 @@ export interface Landing {
   cta?: CTA;
   testimonials?: Testimonials;
   footer?: Footer;
-  sections?: Section[];
+  sections?: readonly Section[];
 }

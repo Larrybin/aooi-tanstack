@@ -1,5 +1,6 @@
 import type {
   AITask,
+  failAITaskByIdAndRefundCredit,
   findAITaskById,
   UpdateAITask,
   updateAITaskById,
@@ -10,7 +11,11 @@ import { AITaskStatus, type AIProvider } from '@/extensions/ai';
 type RefreshMemberAiTaskDeps = {
   findAITaskById: typeof findAITaskById;
   updateAITaskById: typeof updateAITaskById;
+  failAITaskByIdAndRefundCredit: typeof failAITaskByIdAndRefundCredit;
   getProvider: (name: string) => Promise<AIProvider | undefined>;
+  log: {
+    error: (message: string, meta?: unknown) => void;
+  };
 };
 
 export async function refreshMemberAiTaskUseCase(
@@ -72,27 +77,32 @@ export async function refreshMemberAiTaskUseCase(
     return { status: 'query_failed' };
   }
 
-  const update = buildTaskUpdate(task, result);
+  const update = buildTaskUpdate(result);
   if (shouldUpdateTask(task, update)) {
-    await resolvedDeps.updateAITaskById(task.id, update);
+    if (update.status === AITaskStatus.FAILED) {
+      await resolvedDeps.failAITaskByIdAndRefundCredit({
+        id: task.id,
+        updateAITask: update,
+        creditId: task.creditId,
+        refundLog: resolvedDeps.log,
+      });
+    } else {
+      await resolvedDeps.updateAITaskById(task.id, update);
+    }
   }
 
   return { status: 'ok' };
 }
 
-function buildTaskUpdate(
-  task: Pick<AITask, 'creditId'>,
-  result: {
-    taskStatus: string;
-    taskInfo?: unknown;
-    taskResult?: unknown;
-  }
-): UpdateAITask {
+function buildTaskUpdate(result: {
+  taskStatus: string;
+  taskInfo?: unknown;
+  taskResult?: unknown;
+}): UpdateAITask {
   return {
     status: result.taskStatus,
     taskInfo: result.taskInfo ? JSON.stringify(result.taskInfo) : null,
     taskResult: result.taskResult ? JSON.stringify(result.taskResult) : null,
-    creditId: task.creditId ?? undefined,
   };
 }
 
@@ -116,9 +126,10 @@ function hasRefreshableTaskTarget(task: AITask | undefined): task is AITask & {
 }
 
 async function getRefreshMemberAiTaskDeps(): Promise<RefreshMemberAiTaskDeps> {
-  const [aiTaskModule, serviceModule] = await Promise.all([
+  const [aiTaskModule, serviceModule, loggerModule] = await Promise.all([
     import('@/domains/ai/infra/ai-task'),
     import('@/domains/ai/application/service'),
+    import('@/infra/platform/logging/logger.server'),
   ]);
   const [{ readAiRuntimeSettingsCached }, { getAiProviderBindings }] =
     await Promise.all([
@@ -129,6 +140,7 @@ async function getRefreshMemberAiTaskDeps(): Promise<RefreshMemberAiTaskDeps> {
   return {
     findAITaskById: aiTaskModule.findAITaskById,
     updateAITaskById: aiTaskModule.updateAITaskById,
+    failAITaskByIdAndRefundCredit: aiTaskModule.failAITaskByIdAndRefundCredit,
     getProvider: async (name) => {
       const aiService = serviceModule.getAIService({
         settings: await readAiRuntimeSettingsCached(),
@@ -136,5 +148,9 @@ async function getRefreshMemberAiTaskDeps(): Promise<RefreshMemberAiTaskDeps> {
       });
       return aiService.getProvider(name);
     },
+    log: loggerModule.createUseCaseLogger({
+      domain: 'ai',
+      useCase: 'refresh-member-ai-task',
+    }),
   };
 }

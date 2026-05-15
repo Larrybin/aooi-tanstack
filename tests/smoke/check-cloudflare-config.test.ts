@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import os from 'node:os';
@@ -35,6 +36,7 @@ const requiredSecretEnvNames = [
   'REPLICATE_API_TOKEN',
   'FAL_API_KEY',
   'KIE_API_KEY',
+  'REMOVER_CLEANUP_SECRET',
 ] as const;
 
 async function copyCloudflareConfigFixture(tempDir: string) {
@@ -70,6 +72,18 @@ async function copySiteFixture(tempDir: string, siteKey: string) {
     path.join(rootDir, 'sites', siteKey, 'deploy.settings.json'),
     path.join(targetDir, 'deploy.settings.json')
   );
+  const previewSettingsPath = path.join(
+    rootDir,
+    'sites',
+    siteKey,
+    'deploy.preview.settings.json'
+  );
+  if (existsSync(previewSettingsPath)) {
+    await cp(
+      previewSettingsPath,
+      path.join(targetDir, 'deploy.preview.settings.json')
+    );
+  }
 }
 
 async function withFixture(
@@ -227,6 +241,31 @@ test('cf:check 在仅设置 BETTER_AUTH_SECRET 时通过 auth shared secret requ
     });
 
     assert.equal(result.ok, true, result.stderr);
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test('cf:check preview profile 使用 workers.dev router 且允许 placeholder secrets', async () => {
+  const fixture = await withFixture(async (fixtureDir) => {
+    await copySiteFixture(fixtureDir, 'ai-remover');
+  });
+
+  try {
+    const result = await runCheckCloudflareConfig({
+      cwd: fixture.fixtureDir,
+      args: ['--workers=router,public-web'],
+      env: {
+        SITE: 'ai-remover',
+        CF_DEPLOY_PROFILE: 'preview',
+        CF_WORKERS_DEV_SUBDOMAIN: 'aooi-preview',
+        CF_PREVIEW_ALLOW_PLACEHOLDER_SECRETS: 'true',
+        [storagePublicBaseUrlName]: 'https://assets.example.com/',
+      },
+    });
+
+    assert.equal(result.ok, true, result.stderr);
+    assert.match(result.stdout, /workers: router, public-web/);
   } finally {
     await fixture.cleanup();
   }
@@ -412,6 +451,31 @@ test('cf:check 接受显式 storage public runtime binding', async () => {
   }
 });
 
+test('cf:check 对 AI Remover public-web 要求 cleanup secret', async () => {
+  const fixture = await withFixture(async (fixtureDir) => {
+    await copySiteFixture(fixtureDir, 'ai-remover');
+  });
+
+  try {
+    const result = await runCheckCloudflareConfig({
+      cwd: fixture.fixtureDir,
+      args: ['--workers=public-web'],
+      env: {
+        SITE: 'ai-remover',
+        [storagePublicBaseUrlName]: 'https://assets.example.com/',
+        BETTER_AUTH_SECRET: 'better-secret',
+        GOOGLE_CLIENT_ID: 'google-client-id',
+      },
+    });
+
+    assert.equal(result.ok, false);
+    assert.match(result.stderr, /REMOVER_CLEANUP_SECRET/);
+    assert.match(result.stderr, /AI Remover expiration cleanup/i);
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
 test('cf:check 拒绝任意两个已配置 site 复用同一 domain', async () => {
   const fixture = await withFixture(async (fixtureDir) => {
     await copySiteFixture(fixtureDir, 'dev-local');
@@ -504,6 +568,7 @@ test('cf:check 仅对已启用 auth provider 要求对应 bindings', async () =>
         [storagePublicBaseUrlName]: 'https://assets.example.com/',
         BETTER_AUTH_SECRET: 'better-secret',
         RESEND_API_KEY: 'resend-key',
+        GOOGLE_CLIENT_ID: 'google-client-id',
         GITHUB_CLIENT_ID: 'github-client-id',
         GITHUB_CLIENT_SECRET: 'github-client-secret',
       },
@@ -512,6 +577,42 @@ test('cf:check 仅对已启用 auth provider 要求对应 bindings', async () =>
     assert.equal(result.ok, false);
     assert.match(result.stderr, /GOOGLE_CLIENT_ID|GOOGLE_CLIENT_SECRET/);
     assert.match(result.stderr, /Google auth provider/);
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test('cf:check 在 public-web worker 场景只要求 Google client id，不要求 Google secret', async () => {
+  const fixture = await withFixture(async (fixtureDir) => {
+    await writeDeploySettings(fixtureDir, (current) => ({
+      ...current,
+      bindingRequirements: {
+        ...(current.bindingRequirements as Record<string, unknown>),
+        secrets: {
+          ...((
+            current.bindingRequirements as DeployBindingRequirements | undefined
+          )?.secrets ?? {}),
+          googleOauth: true,
+          githubOauth: false,
+        },
+      },
+    }));
+  });
+
+  try {
+    const result = await runCheckCloudflareConfig({
+      cwd: fixture.fixtureDir,
+      args: ['--workers=public-web'],
+      env: {
+        [storagePublicBaseUrlName]: 'https://assets.example.com/',
+        BETTER_AUTH_SECRET: 'better-secret',
+      },
+    });
+
+    assert.equal(result.ok, false);
+    assert.match(result.stderr, /GOOGLE_CLIENT_ID/);
+    assert.doesNotMatch(result.stderr, /GOOGLE_CLIENT_SECRET/);
+    assert.match(result.stderr, /Google One Tap auth UI/);
   } finally {
     await fixture.cleanup();
   }

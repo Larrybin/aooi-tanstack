@@ -1,10 +1,14 @@
 {
   "configVersion": 1,
   "bindingRequirements": {
+    "bindings": {
+      "workersAi": false
+    },
     "secrets": {
       "authSharedSecret": true,
       "googleOauth": false,
-      "githubOauth": false
+      "githubOauth": false,
+      "removerCleanup": false
     },
     "vars": {
       "storagePublicBaseUrl": true

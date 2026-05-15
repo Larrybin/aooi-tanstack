@@ -4,9 +4,13 @@ import test from 'node:test';
 import {
   buildAdsRuntimeSettings,
   buildAffiliateRuntimeSettings,
+  buildAiRuntimeSettings,
   buildAnalyticsRuntimeSettings,
+  buildAuthUiRuntimeSettings,
+  buildBillingRuntimeSettings,
   buildCustomerServiceRuntimeSettings,
   buildEmailRuntimeSettings,
+  buildPublicUiConfig,
 } from './settings-runtime.builders';
 
 test('typed runtime builders 返回 closed subsets，不暴露 raw/configs 后门', () => {
@@ -61,4 +65,21 @@ test('buildAdsRuntimeSettings 对非法 provider 收敛为空字符串', () => {
   });
 
   assert.equal(settings.adsProvider, '');
+});
+
+test('only auth ui runtime builder accepts worker-side bindings', () => {
+  assert.equal(buildAuthUiRuntimeSettings.length, 2);
+
+  for (const builder of [
+    buildPublicUiConfig,
+    buildBillingRuntimeSettings,
+    buildAiRuntimeSettings,
+    buildAnalyticsRuntimeSettings,
+    buildAffiliateRuntimeSettings,
+    buildCustomerServiceRuntimeSettings,
+    buildAdsRuntimeSettings,
+    buildEmailRuntimeSettings,
+  ]) {
+    assert.equal(builder.length, 1);
+  }
 });

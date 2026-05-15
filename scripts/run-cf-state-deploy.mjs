@@ -6,6 +6,10 @@ import { pathToFileURL } from 'node:url';
 
 import { writeCloudflareSecretsFile } from './create-cf-secrets-file.mjs';
 import { buildCloudflareWranglerConfig } from './create-cf-wrangler-config.mjs';
+import {
+  assertCloudflareBuildArtifactsReady,
+  getRequiredCloudflareStateBuildArtifactPaths,
+} from './lib/cloudflare-build-artifacts.mjs';
 import { CLOUDFLARE_STATE_WORKER_SCOPE } from './lib/cloudflare-runtime-bindings.mjs';
 import { resolveRequiredSiteKey } from './lib/site-config.mjs';
 import { resolveSiteDeployContract } from './lib/site-deploy-contract.mjs';
@@ -26,7 +30,7 @@ export function buildStateDeployWranglerArgs({
   secretsPath,
   message = createDeployMessage(),
 }) {
-  return [
+  const args = [
     'deploy',
     '--config',
     configPath,
@@ -36,9 +40,13 @@ export function buildStateDeployWranglerArgs({
     message,
     '--experimental-autoconfig=false',
     '--keep-vars',
-    '--secrets-file',
-    secretsPath,
   ];
+
+  if (secretsPath) {
+    args.push('--secrets-file', secretsPath);
+  }
+
+  return args;
 }
 
 function runWrangler(args) {
@@ -103,7 +111,7 @@ async function createStateDeployArtifacts() {
   });
 
   await writeFile(tempConfigPath, content, 'utf8');
-  await writeCloudflareSecretsFile({
+  const { content: secretsContent } = await writeCloudflareSecretsFile({
     outputPath: secretsPath,
     workerKeys: CLOUDFLARE_STATE_WORKER_SCOPE,
   });
@@ -111,7 +119,8 @@ async function createStateDeployArtifacts() {
   return {
     workerName: contract.stateWorker.workerName,
     configPath: tempConfigPath,
-    secretsPath,
+    secretsFilePath: secretsPath,
+    secretsPath: secretsContent.trim() ? secretsPath : null,
     async cleanup() {
       await rm(tempDir, { recursive: true, force: true });
     },
@@ -121,7 +130,18 @@ async function createStateDeployArtifacts() {
 export async function deployCloudflareState({
   createArtifacts = createStateDeployArtifacts,
   runWranglerCommand = runWrangler,
+  assertBuildArtifactsReadyImpl = () =>
+    assertCloudflareBuildArtifactsReady({
+      rootPath: rootDir,
+      processEnv: process.env,
+      artifactPaths: getRequiredCloudflareStateBuildArtifactPaths(),
+      contextMessage:
+        'Cloudflare state deploy requires built Durable Object artifacts.',
+      nextStepMessage:
+        'Run `pnpm cf:build` if the state Durable Object artifacts are missing.',
+    }),
 } = {}) {
+  await assertBuildArtifactsReadyImpl();
   const artifacts = await createArtifacts();
 
   try {

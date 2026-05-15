@@ -116,7 +116,7 @@ const mergeDeep = (base: unknown, override: unknown): unknown => {
 const assignMessagesAtPath = (
   messages: Messages,
   messagePath: string,
-  value: Messages
+  value: unknown
 ) => {
   const keys = messagePath.split('/');
   let current = messages;
@@ -133,6 +133,26 @@ const assignMessagesAtPath = (
   }
 
   current[keys[keys.length - 1]] = value;
+};
+
+const readMessagesAtPath = (
+  messages: Messages,
+  relativePath: string
+): unknown => {
+  if (!relativePath) {
+    return messages;
+  }
+
+  return relativePath
+    .split('/')
+    .filter(Boolean)
+    .reduce<unknown>((current, key) => {
+      if (!isPlainObject(current)) {
+        return undefined;
+      }
+
+      return current[key];
+    }, messages);
 };
 
 async function loadMergedMessagesForPath(
@@ -159,29 +179,52 @@ export async function getScopedMessages(
   locale: Locale,
   namespaces: string[]
 ): Promise<Messages> {
+  const normalizedNamespaces = Array.from(
+    new Set(namespaces.map((namespace) => namespace.replace(/\./g, '/')))
+  );
   const messagePaths = Array.from(
-    new Set(namespaces.map((namespace) => resolveMessagePath(namespace)))
+    new Set(
+      normalizedNamespaces.map((namespace) => resolveMessagePath(namespace))
+    )
   );
 
   if (!messagePaths.length) {
     return {};
   }
 
-  const cacheKey = `${locale}:${messagePaths.join('|')}`;
+  const cacheKey = `${locale}:${normalizedNamespaces.join('|')}`;
   if (shouldCacheMessages && scopedMessagesCache.has(cacheKey)) {
     return scopedMessagesCache.get(cacheKey) as Messages;
   }
 
-  const segments = await Promise.all(
-    messagePaths.map(async (messagePath) => ({
-      messagePath,
-      messages: await loadMergedMessagesForPath(locale, messagePath),
-    }))
+  const loadedMessages = new Map(
+    await Promise.all(
+      messagePaths.map(async (messagePath) => [
+        messagePath,
+        await loadMergedMessagesForPath(locale, messagePath),
+      ] as const)
+    )
   );
+
+  const segments = normalizedNamespaces.map((namespace) => {
+    const messagePath = resolveMessagePath(namespace);
+    const messages = loadedMessages.get(messagePath);
+    const relativePath =
+      namespace === messagePath && messages
+        ? ''
+        : namespace.slice(messagePath.length + 1);
+
+    return {
+      namespace,
+      messages: messages
+        ? readMessagesAtPath(messages, relativePath)
+        : undefined,
+    };
+  });
 
   const scopedMessages: Messages = {};
   for (const segment of segments) {
-    assignMessagesAtPath(scopedMessages, segment.messagePath, segment.messages);
+    assignMessagesAtPath(scopedMessages, segment.namespace, segment.messages);
   }
 
   if (shouldCacheMessages) {

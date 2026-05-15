@@ -3,6 +3,8 @@ import { execFile } from 'node:child_process';
 import test from 'node:test';
 import { promisify } from 'node:util';
 
+import { buildSiteEnv } from '../../scripts/run-with-site.mjs';
+
 const execFileAsync = promisify(execFile);
 
 async function runWithSite(
@@ -75,6 +77,9 @@ test('run-with-site 对 lint 使用内部 dev-local site fallback', async () => 
     ],
     {
       SITE: '',
+      AUTH_SECRET: '',
+      BETTER_AUTH_SECRET: '',
+      STORAGE_PUBLIC_BASE_URL: '',
     }
   );
 
@@ -100,6 +105,35 @@ test('run-with-site 尊重显式 SITE', async () => {
   assert.equal(result.stdout.trimEnd().split('\n').at(-1), 'mamamiya');
 });
 
+test('run-with-site buildSiteEnv applies selected site local env without overriding shell env', () => {
+  const env = {
+    SITE: 'ai-remover',
+    DATABASE_URL: 'postgresql://root-db',
+    CREEM_API_KEY: 'shell-creem',
+  };
+  const originalEnv = {
+    SITE: 'ai-remover',
+    CREEM_API_KEY: 'shell-creem',
+  };
+
+  const result = buildSiteEnv(['node', '-p', 'process.env.DATABASE_URL'], env, {
+    originalEnv,
+    rootDir: '/repo',
+    readFileSyncImpl() {
+      return `
+DATABASE_URL=postgresql://site-db
+CREEM_API_KEY=site-creem
+REMOVER_AI_PROVIDER=cloudflare-workers-ai
+`;
+    },
+  });
+
+  assert.equal(result.SITE, 'ai-remover');
+  assert.equal(result.DATABASE_URL, 'postgresql://site-db');
+  assert.equal(result.CREEM_API_KEY, 'shell-creem');
+  assert.equal(result.REMOVER_AI_PROVIDER, 'cloudflare-workers-ai');
+});
+
 test('run-with-site 对未知 SITE 输出可修复的配置错误', async () => {
   const result = await runWithSite(['node', '-p', 'process.env.SITE || ""'], {
     SITE: '__missing_site__',
@@ -111,7 +145,10 @@ test('run-with-site 对未知 SITE 输出可修复的配置错误', async () => 
     result.stderr,
     /missing sites\/__missing_site__\/site\.config\.json/
   );
-  assert.match(result.stderr, /set SITE to one of: dev-local, mamamiya/);
+  assert.match(
+    result.stderr,
+    /set SITE to one of: ai-remover, dev-local, mamamiya/
+  );
   assert.doesNotMatch(result.stderr, /ENOENT/);
   assert.doesNotMatch(result.stderr, /Error: site "__missing_site__"/);
   assert.doesNotMatch(result.stderr, /at readCurrentSiteConfig/);

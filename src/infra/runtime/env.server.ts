@@ -11,15 +11,31 @@ import { isCloudflareWorker } from '@/shared/lib/env';
 
 export type RuntimePlatform = 'node' | 'cloudflare-workers';
 
+export type CloudflareAIBinding = {
+  run(
+    model: string,
+    inputs: Record<string, unknown>,
+    options?: Record<string, unknown>
+  ): Promise<unknown>;
+};
+
 export type CloudflareBindings = {
   HYPERDRIVE?: {
     connectionString?: string;
   };
+  AI?: CloudflareAIBinding;
+  IMAGES?: ImagesBinding;
   NEXT_INC_CACHE_R2_BUCKET?: R2Bucket;
   APP_STORAGE_R2_BUCKET?: R2Bucket;
   NEXT_CACHE_DO_QUEUE?: unknown;
   NEXT_TAG_CACHE_DO_SHARDED?: unknown;
   STATEFUL_LIMITERS?: unknown;
+  PUBLIC_WEB_WORKER?: Fetcher;
+  AUTH_WORKER?: Fetcher;
+  PAYMENT_WORKER?: Fetcher;
+  MEMBER_WORKER?: Fetcher;
+  CHAT_WORKER?: Fetcher;
+  ADMIN_WORKER?: Fetcher;
   BETTER_AUTH_SECRET?: string;
   AUTH_SECRET?: string;
   GOOGLE_CLIENT_ID?: string;
@@ -64,6 +80,16 @@ export function getCloudflareBindings(): CloudflareBindings | null {
   }
 }
 
+export function getCloudflareAIBinding(): CloudflareAIBinding | null {
+  const binding = getCloudflareBindings()?.AI;
+  return binding && typeof binding.run === 'function' ? binding : null;
+}
+
+export function getCloudflareImagesBinding(): ImagesBinding | null {
+  const binding = getCloudflareBindings()?.IMAGES;
+  return binding && typeof binding.input === 'function' ? binding : null;
+}
+
 function getBindingsValue(
   name: string,
   bindings: CloudflareBindings | null
@@ -97,6 +123,7 @@ export function getServerRuntimeEnv(
   options: RuntimeEnvOptions = {}
 ): ServerRuntimeEnv {
   const envLike = {
+    NEXT_PUBLIC_APP_URL: getRuntimeEnvString('NEXT_PUBLIC_APP_URL', options),
     BETTER_AUTH_URL: getRuntimeEnvString('BETTER_AUTH_URL', options),
     AUTH_URL: getRuntimeEnvString('AUTH_URL', options),
   };

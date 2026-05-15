@@ -83,6 +83,30 @@ test('非 API 请求会带全局安全响应头', async () => {
   assertSecurityHeaders(response);
 });
 
+test('根路径内部 rewrite 到默认语言时不会暴露 redirect header', async () => {
+  const middlewareModule = await import('./middleware');
+  const middleware = middlewareModule.middleware;
+
+  const response = await middleware(new NextRequest('https://example.com/'));
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('location'), null);
+  assert.match(response.headers.get('x-middleware-rewrite') ?? '', /\/en$/);
+  assertSecurityHeaders(response);
+});
+
+test('默认语言路径不会被 middleware canonical redirect 回根路径', async () => {
+  const middlewareModule = await import('./middleware');
+  const middleware = middlewareModule.middleware;
+
+  const response = await middleware(new NextRequest('https://example.com/en'));
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('location'), null);
+  assert.equal(response.headers.get('x-middleware-next'), '1');
+  assertSecurityHeaders(response);
+});
+
 test('middleware matcher 不处理静态资源路径', async () => {
   const middlewareModule = await import('./middleware');
 

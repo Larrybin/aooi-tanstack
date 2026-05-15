@@ -9,6 +9,9 @@ preview_urls = false
 binding = "ASSETS"
 directory = "../.open-next/assets"
 
+[images]
+binding = "IMAGES"
+
 [[r2_buckets]]
 binding = "NEXT_INC_CACHE_R2_BUCKET"
 bucket_name = "roller-rabbit-opennext-cache"
@@ -16,10 +19,6 @@ bucket_name = "roller-rabbit-opennext-cache"
 [[r2_buckets]]
 binding = "APP_STORAGE_R2_BUCKET"
 bucket_name = "roller-rabbit-storage"
-
-[[services]]
-binding = "WORKER_SELF_REFERENCE"
-service = "roller-rabbit"
 
 [[hyperdrive]]
 binding = "HYPERDRIVE"

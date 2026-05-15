@@ -169,13 +169,18 @@ Deployment flow:
 
 ## Feature Configuration
 
-After deploying, configure features in `/admin/settings/*`. Most third-party integration configs are stored in the `config` table (not environment variables).
+After deploying, configure feature switches and operator-managed values in `/admin/settings/*`.
+
+Use this boundary when deciding where a value belongs:
+
+- Runtime env, secrets, and Cloudflare bindings wire the app and carry credentials. Configure these before the related Admin Settings can work: `DATABASE_URL` or Hyperdrive, `BETTER_AUTH_SECRET` / `AUTH_SECRET`, OAuth client IDs/secrets, payment provider API keys/webhook secrets, R2 bucket bindings, `STORAGE_PUBLIC_BASE_URL`, Images, and Workers AI bindings.
+- Admin Settings stores non-secret operational settings and mappings: auth provider enablement, Google One Tap enablement, Creem environment, Creem product ID mapping, sender email, analytics IDs, and public feature switches.
 
 Common tabs:
 
 - Auth providers: `/admin/settings/auth`
 - Payments (Stripe/PayPal/Creem): `/admin/settings/payment`
-- Storage (Cloudflare R2): configure runtime binding `STORAGE_PUBLIC_BASE_URL`
+- Storage (Cloudflare R2): configure R2 bindings and `STORAGE_PUBLIC_BASE_URL` as runtime inputs before using storage-backed uploads
 - Email (Resend): `/admin/settings/email`
 
 For deeper engineering docs, see `docs/guides/*.md`.

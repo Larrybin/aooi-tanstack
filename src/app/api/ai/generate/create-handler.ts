@@ -3,6 +3,7 @@ import type { getAiProviderBindings } from '@/domains/ai/application/provider-bi
 import type { getAIService } from '@/domains/ai/application/service';
 import type {
   createAITask,
+  failAITaskByIdAndRefundCredit,
   NewAITask,
   updateAITaskById,
 } from '@/domains/ai/infra/ai-task';
@@ -58,6 +59,7 @@ export type AiGenerateRouteDeps = {
   resolveConfiguredAICapability: typeof resolveConfiguredAICapability;
   createAITask: typeof createAITask;
   updateAITaskById: typeof updateAITaskById;
+  failAITaskByIdAndRefundCredit: typeof failAITaskByIdAndRefundCredit;
   getUuid: typeof getUuid;
   getAiNotifyWebhookSecret: () => string;
   signAiNotifyCallback: (input: {
@@ -156,10 +158,14 @@ export function createAiGeneratePostAction(deps: AiGenerateRouteDeps) {
         dbTaskId: task.id,
         error,
       });
-      await deps.updateAITaskById(task.id, {
-        status: AITaskStatus.FAILED,
-        taskInfo: JSON.stringify({ errorMessage: 'ai generate failed' }),
+      await deps.failAITaskByIdAndRefundCredit({
+        id: task.id,
         creditId: task.creditId,
+        refundLog: log,
+        updateAITask: {
+          status: AITaskStatus.FAILED,
+          taskInfo: JSON.stringify({ errorMessage: 'ai generate failed' }),
+        },
       });
       throw new UpstreamError(502, 'ai generate failed');
     }
@@ -172,10 +178,14 @@ export function createAiGeneratePostAction(deps: AiGenerateRouteDeps) {
         dbTaskId: task.id,
         hasTaskId: Boolean(result?.taskId),
       });
-      await deps.updateAITaskById(task.id, {
-        status: AITaskStatus.FAILED,
-        taskInfo: JSON.stringify({ errorMessage: 'ai generate failed' }),
+      await deps.failAITaskByIdAndRefundCredit({
+        id: task.id,
         creditId: task.creditId,
+        refundLog: log,
+        updateAITask: {
+          status: AITaskStatus.FAILED,
+          taskInfo: JSON.stringify({ errorMessage: 'ai generate failed' }),
+        },
       });
       throw new UpstreamError(502, 'ai generate failed');
     }

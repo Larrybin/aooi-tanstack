@@ -11,6 +11,12 @@ type CloudflareFetchModule<Env> = {
   handler: CloudflareFetchHandler<Env>;
 };
 
+type BeforeFetchHook<Env> = (
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext
+) => Promise<Response | null> | Response | null;
+
 type RuntimeEnvOptions = Parameters<typeof isRuntimeEnvEnabled>[1];
 
 type RunWithCloudflareRequestContext = <Env>(
@@ -74,7 +80,10 @@ function printServerWorkerAuthDebug(request: Request) {
 }
 
 export function createServerWorker<Env>(
-  loadModule: () => Promise<CloudflareFetchModule<Env>>
+  loadModule: () => Promise<CloudflareFetchModule<Env>>,
+  options: {
+    beforeFetch?: BeforeFetchHook<Env>;
+  } = {}
 ) {
   let handlerPromise: Promise<CloudflareFetchHandler<Env>> | undefined;
 
@@ -88,6 +97,15 @@ export function createServerWorker<Env>(
         await loadRunWithCloudflareRequestContext();
 
       return runWithCloudflareRequestContext(request, env, ctx, async () => {
+        const beforeFetchResponse = await options.beforeFetch?.(
+          request,
+          env,
+          ctx
+        );
+        if (beforeFetchResponse) {
+          return beforeFetchResponse;
+        }
+
         printServerWorkerAuthDebug(request);
         return (await handler)(request, env, ctx, request.signal);
       });

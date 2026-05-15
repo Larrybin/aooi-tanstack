@@ -21,7 +21,13 @@ export type AITask = typeof aiTask.$inferSelect & {
   user?: User;
 };
 export type NewAITask = typeof aiTask.$inferInsert;
-export type UpdateAITask = Partial<Omit<NewAITask, 'id' | 'createdAt'>>;
+export type UpdateAITask = Partial<
+  Omit<NewAITask, 'id' | 'createdAt' | 'creditId'>
+>;
+
+type AiTaskCreditRefundLog = {
+  error: (message: string, meta?: unknown) => void;
+};
 
 export async function createAITask(newAITask: NewAITask) {
   const result = await db().transaction(async (tx) => {
@@ -64,30 +70,50 @@ export async function findAITaskById(id: string) {
 }
 
 export async function updateAITaskById(id: string, updateAITask: UpdateAITask) {
-  const result = await db().transaction(async (tx) => {
-    // task failed, Revoke credit consumption record
-    if (updateAITask.status === AITaskStatus.FAILED && updateAITask.creditId) {
-      const refund = await refundConsumedCreditById(updateAITask.creditId, tx);
+  const [result] = await db()
+    .update(aiTask)
+    .set(updateAITask)
+    .where(eq(aiTask.id, id))
+    .returning();
+
+  return result;
+}
+
+export async function failAITaskByIdAndRefundCredit({
+  id,
+  updateAITask,
+  creditId,
+  refundLog = log,
+}: {
+  id: string;
+  updateAITask: UpdateAITask;
+  creditId?: string | null;
+  refundLog?: AiTaskCreditRefundLog;
+}) {
+  return db().transaction(async (tx) => {
+    const trimmedCreditId = creditId?.trim();
+    if (trimmedCreditId) {
+      const refund = await refundConsumedCreditById(trimmedCreditId, tx);
       if (!refund.refunded && refund.reason === 'invalid_consumed_detail') {
-        log.error('credit: invalid consumedDetail payload, skip refund', {
+        refundLog.error('credit: invalid consumedDetail payload, skip refund', {
           operation: 'refund-failed-task-credit',
           aiTaskId: id,
-          creditId: updateAITask.creditId,
+          creditId: trimmedCreditId,
         });
       }
     }
 
-    // update task
     const [result] = await tx
       .update(aiTask)
-      .set(updateAITask)
+      .set({
+        ...updateAITask,
+        status: AITaskStatus.FAILED,
+      })
       .where(eq(aiTask.id, id))
       .returning();
 
     return result;
   });
-
-  return result;
 }
 
 export async function getAITasksCount({

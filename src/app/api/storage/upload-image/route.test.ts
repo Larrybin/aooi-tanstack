@@ -199,6 +199,35 @@ test('readUploadRequestInput 在解析 multipart 前拒绝超大 Content-Length'
   );
 });
 
+test('readUploadRequestInput 支持路由传入更高的请求上限', async () => {
+  const formData = new FormData();
+  formData.append('files', createPngFile());
+  const requestBody = new Request('http://localhost/upload', {
+    method: 'POST',
+    body: formData,
+  });
+  const bodyText = await requestBody.text();
+
+  const request = new Request('http://localhost/api/remover/upload', {
+    method: 'POST',
+    headers: {
+      'content-type':
+        requestBody.headers.get('content-type') ?? 'multipart/form-data',
+      'content-length': String(20 * 1024 * 1024 + 1),
+    },
+    body: bodyText,
+  });
+
+  const input = await readUploadRequestInput(
+    request,
+    'files',
+    22 * 1024 * 1024
+  );
+
+  assert.equal(input.entries.length, 1);
+  assert.equal(input.files.length, 1);
+});
+
 test('readUploadRequestInput 接受小 multipart 请求', async () => {
   const formData = new FormData();
   formData.append('files', createPngFile());

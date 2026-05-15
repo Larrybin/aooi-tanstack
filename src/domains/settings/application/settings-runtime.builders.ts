@@ -81,15 +81,14 @@ export function buildAuthUiRuntimeSettings(
   const githubRequested = isEnabled(
     configs[AUTH_RUNTIME_SETTING_KEYS.githubAuthEnabled]
   );
-  const googleBindingsReady = !!(
-    bindings.googleClientId.trim() && bindings.googleClientSecret.trim()
-  );
-  const githubBindingsReady = !!(
-    bindings.githubClientId.trim() && bindings.githubClientSecret.trim()
-  );
-  const googleAuthEnabled = googleRequested && googleBindingsReady;
-  const githubAuthEnabled = githubRequested && githubBindingsReady;
-  const googleClientId = googleAuthEnabled
+  const googleClientIdPresent = bindings.googleClientId.trim().length > 0;
+  const googleAuthEnabled = googleRequested;
+  const githubAuthEnabled = githubRequested;
+  const googleOneTapEnabled =
+    googleAuthEnabled &&
+    googleClientIdPresent &&
+    isEnabled(configs[AUTH_RUNTIME_SETTING_KEYS.googleOneTapEnabled]);
+  const googleClientId = googleOneTapEnabled
     ? readString(bindings.googleClientId)
     : '';
 
@@ -98,10 +97,7 @@ export function buildAuthUiRuntimeSettings(
       isEnabled(configs[AUTH_RUNTIME_SETTING_KEYS.emailAuthEnabled], true) ||
       (!googleAuthEnabled && !githubAuthEnabled),
     googleAuthEnabled,
-    googleOneTapEnabled:
-      googleAuthEnabled &&
-      !!googleClientId &&
-      isEnabled(configs[AUTH_RUNTIME_SETTING_KEYS.googleOneTapEnabled]),
+    googleOneTapEnabled,
     googleClientId,
     githubAuthEnabled,
   };

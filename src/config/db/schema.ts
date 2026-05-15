@@ -558,6 +558,122 @@ export const aiTask = pgTable(
   ]
 );
 
+export const removerImageAsset = pgTable(
+  'remover_image_asset',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').references(() => user.id, { onDelete: 'cascade' }),
+    anonymousSessionId: text('anonymous_session_id'),
+    kind: text('kind').notNull(),
+    storageKey: text('storage_key').notNull(),
+    url: text('url').notNull(),
+    mimeType: text('mime_type').notNull(),
+    byteSize: integer('byte_size').notNull(),
+    width: integer('width'),
+    height: integer('height'),
+    status: text('status').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+    deletedAt: timestamp('deleted_at'),
+    expiresAt: timestamp('expires_at').notNull(),
+  },
+  (table) => [
+    index('idx_remover_asset_user_created').on(table.userId, table.createdAt),
+    index('idx_remover_asset_anonymous_created').on(
+      table.anonymousSessionId,
+      table.createdAt
+    ),
+    index('idx_remover_asset_expires').on(table.expiresAt),
+  ]
+);
+
+export const removerQuotaReservation = pgTable(
+  'remover_quota_reservation',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').references(() => user.id, { onDelete: 'cascade' }),
+    anonymousSessionId: text('anonymous_session_id'),
+    productId: text('product_id').notNull(),
+    quotaType: text('quota_type').notNull(),
+    units: integer('units').notNull(),
+    status: text('status').notNull(),
+    idempotencyKey: text('idempotency_key').notNull(),
+    jobId: text('job_id'),
+    reason: text('reason'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+    committedAt: timestamp('committed_at'),
+    refundedAt: timestamp('refunded_at'),
+    expiresAt: timestamp('expires_at').notNull(),
+  },
+  (table) => [
+    uniqueIndex('uq_remover_quota_idempotency').on(table.idempotencyKey),
+    index('idx_remover_quota_user_type_created').on(
+      table.userId,
+      table.quotaType,
+      table.createdAt
+    ),
+    index('idx_remover_quota_anonymous_type_created').on(
+      table.anonymousSessionId,
+      table.quotaType,
+      table.createdAt
+    ),
+    index('idx_remover_quota_status_expires').on(table.status, table.expiresAt),
+  ]
+);
+
+export const removerJob = pgTable(
+  'remover_job',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').references(() => user.id, { onDelete: 'cascade' }),
+    anonymousSessionId: text('anonymous_session_id'),
+    provider: text('provider').notNull(),
+    model: text('model').notNull(),
+    providerTaskId: text('provider_task_id'),
+    status: text('status').notNull(),
+    inputImageAssetId: text('input_image_asset_id')
+      .notNull()
+      .references(() => removerImageAsset.id),
+    maskImageAssetId: text('mask_image_asset_id')
+      .notNull()
+      .references(() => removerImageAsset.id),
+    inputImageKey: text('input_image_key').notNull(),
+    maskImageKey: text('mask_image_key').notNull(),
+    outputImageKey: text('output_image_key'),
+    thumbnailKey: text('thumbnail_key'),
+    costUnits: integer('cost_units').notNull().default(1),
+    quotaReservationId: text('quota_reservation_id')
+      .notNull()
+      .references(() => removerQuotaReservation.id),
+    errorCode: text('error_code'),
+    errorMessage: text('error_message'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+    deletedAt: timestamp('deleted_at'),
+    expiresAt: timestamp('expires_at').notNull(),
+  },
+  (table) => [
+    index('idx_remover_job_user_created').on(table.userId, table.createdAt),
+    index('idx_remover_job_anonymous_created').on(
+      table.anonymousSessionId,
+      table.createdAt
+    ),
+    index('idx_remover_job_status_created').on(table.status, table.createdAt),
+    index('idx_remover_job_provider_task').on(
+      table.provider,
+      table.providerTaskId
+    ),
+    index('idx_remover_job_expires').on(table.expiresAt),
+  ]
+);
+
 export const chat = pgTable(
   'chat',
   {

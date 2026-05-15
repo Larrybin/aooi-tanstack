@@ -277,6 +277,15 @@ id = "hyperdrive-id"
 
 The `db()` function automatically detects and uses Hyperdrive.
 
+Hyperdrive IDs belong in deploy settings, not local env files:
+
+- Local Node.js development and Drizzle commands use a direct `DATABASE_URL`.
+- Cloudflare preview uses
+  `sites/<site-key>/deploy.preview.settings.json`
+  `resources.hyperdriveId`.
+- Cloudflare production uses `sites/<site-key>/deploy.settings.json`
+  `resources.hyperdriveId`.
+
 Tracked Wrangler configs are templates. Keep every checked-in `localConnectionString = ""` and generate a temporary Wrangler config when local Hyperdrive access is needed.
 
 Cloudflare helper commands:
@@ -296,7 +305,7 @@ Smoke commands keep their public package names, but they now route through `scri
 
 `SITE=<site-key> pnpm test:cf-admin-settings-smoke` is intentionally a smaller local acceptance chain: it seeds the required settings rows directly in Postgres, uploads through the real Cloudflare runtime API, and then validates public config projection plus the missing-`STORAGE_PUBLIC_BASE_URL` failure path inside the same generated local Cloudflare runtime session.
 
-`pnpm cf:build` now validates the router/app workers through `wrangler versions upload --dry-run` instead of trusting raw intermediate `handler.mjs` file size. State preflight is owned by `pnpm cf:check -- --workers=state` and `pnpm cf:deploy:state`.
+`pnpm cf:build` now validates the router/app workers through `wrangler versions upload --dry-run` instead of trusting raw intermediate `handler.mjs` file size. State preflight is owned by `pnpm cf:check -- --workers=state` and `pnpm cf:deploy:state`; it only verifies the Durable Object artifacts imported by the state worker, not router/server worker bundles.
 
 `SITE=<site-key> pnpm test:cf-app-smoke` is the Cloudflare full-app smoke: landing, sign-in, sign-up, docs, public config API, sitemap, robots, and same-origin protected-route redirects back to `/sign-in`.
 

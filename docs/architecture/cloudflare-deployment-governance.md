@@ -8,9 +8,9 @@
 
 ## Canonical Origin Rules
 
-- `site.brand.appUrl` is the canonical app origin.
-- `AUTH_URL` and `BETTER_AUTH_URL` may exist only as same-origin mirrors of `site.brand.appUrl`.
-- `NEXT_PUBLIC_APP_URL` is a generated deploy artifact derived from `site.brand.appUrl`.
+- `site.brand.appUrl` is the canonical production app origin.
+- `NEXT_PUBLIC_APP_URL` is a generated deploy artifact derived from the resolved deploy contract app origin: production uses `site.brand.appUrl`; preview uses the workers.dev router origin.
+- `AUTH_URL` and `BETTER_AUTH_URL` may exist only as same-origin mirrors of the runtime app origin.
 - In production, any request-derived auth origin that differs from `site.brand.appUrl` is a hard failure.
 - In preview/local, request-derived auth origin may override the canonical origin only when it is `localhost` or `127.0.0.1`.
 
@@ -25,7 +25,7 @@
 - GitHub Actions is the acceptance gate only. It must not deploy production.
 - The local release command may deploy only the current `main` head whose `Cloudflare Deploy Acceptance` run succeeded.
 - Manual lower-level Wrangler deploy commands are diagnostics and emergency procedures; they must follow the same site-resolved contract and post-deploy smoke requirement.
-- Cloudflare preview is removed from the supported contract as a user-facing deploy command.
+- Cloudflare preview is supported only as `CF_DEPLOY_PROFILE=preview` on the real product `SITE`; preview must not be modeled as a separate site.
 - `CF_FALLBACK_ORIGIN` is forbidden.
 - Any protected route redirecting to another origin is a failure.
 - `pnpm cf:build` is authoritative for app size governance: it must pass `wrangler versions upload --dry-run` for router and every app Worker, and every deployable app gzip bundle must stay below `3 MiB`.
@@ -34,10 +34,11 @@
 - Router and all app workers must bind Durable Objects from the resolved `workers.state` in the current site deploy contract.
 - State/app releases use an additive compatibility window: state-first changes may add fields or actions, but must not rename or redefine existing semantics in the same release.
 - Release input checks enforce schema/migration pairing before deploy; they must not create a parallel release metadata authority.
-- `pnpm cf:deploy:app` and `pnpm cf:deploy` are pure app release commands. They must not bootstrap a missing router/server topology.
+- `pnpm cf:deploy:app` and `pnpm cf:deploy` are pure production app release commands. They must not bootstrap a missing router/server topology.
 - For brand-new or partially initialized production environments, the only valid release order is `pnpm cf:deploy:state` first and `pnpm cf:deploy` second.
 - If app deploy detects a missing router/server deployment, it must fail fast and instruct the operator to run `pnpm cf:deploy:state` first.
-- `pnpm cf:deploy:state` runs a state-scoped preflight only. It must not be blocked by `public-web/auth/payment/member/chat/admin` secrets, and it must not run the full OpenNext app build.
+- Preview bootstrap is the only exception: `CF_DEPLOY_PROFILE=preview CF_DEPLOY_BOOTSTRAP_MISSING=true pnpm cf:deploy` may initialize missing preview app workers after preview state has been deployed.
+- `pnpm cf:deploy:state` runs a state-scoped preflight only. It may verify the Durable Object artifacts imported by the state worker, but it must not be blocked by `public-web/auth/payment/member/chat/admin` secrets or router/server worker bundles, and it must not run the full OpenNext app build.
 
 ## Test Gates
 

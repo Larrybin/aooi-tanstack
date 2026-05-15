@@ -8,6 +8,7 @@ import topology from '../src/shared/config/cloudflare-worker-topology.ts';
 import { createCanonicalTypegenWranglerConfig } from './check-cf-typegen.mjs';
 import { writeCloudflareSecretsFile } from './create-cf-secrets-file.mjs';
 import { buildCloudflareWranglerConfig } from './create-cf-wrangler-config.mjs';
+import { assertCloudflareBuildArtifactsReady } from './lib/cloudflare-build-artifacts.mjs';
 import { resolveRequiredSiteKey } from './lib/site-config.mjs';
 import { resolveSiteDeployContract } from './lib/site-deploy-contract.mjs';
 
@@ -285,7 +286,7 @@ export function buildRouterDirectDeployArgs({
   secretsPath,
   message = createDeployMessage('app-router-deploy'),
 }) {
-  return [
+  const args = [
     'deploy',
     '--config',
     configPath,
@@ -295,9 +296,13 @@ export function buildRouterDirectDeployArgs({
     message,
     '--experimental-autoconfig=false',
     '--keep-vars',
-    '--secrets-file',
-    secretsPath,
   ];
+
+  if (secretsPath) {
+    args.push('--secrets-file', secretsPath);
+  }
+
+  return args;
 }
 
 export function determineDeployMode(currentVersions) {
@@ -308,6 +313,10 @@ export function determineDeployMode(currentVersions) {
   return uploadOrder.some((target) => !currentVersions.servers[target])
     ? 'missing-deployments'
     : 'steady-state';
+}
+
+function isBootstrapMissingEnabled(processEnv = process.env) {
+  return processEnv.CF_DEPLOY_BOOTSTRAP_MISSING?.trim() === 'true';
 }
 
 export async function createTempDeployArtifacts({
@@ -347,7 +356,7 @@ export async function createTempDeployArtifacts({
   });
 
   await writeFile(tempConfigPath, content, 'utf8');
-  await writeCloudflareSecretsFile({
+  const { content: secretsContent } = await writeCloudflareSecretsFile({
     outputPath: secretsPath,
     workerKeys,
   });
@@ -355,7 +364,8 @@ export async function createTempDeployArtifacts({
   return {
     tempDir,
     tempConfigPath,
-    secretsPath,
+    secretsFilePath: secretsPath,
+    secretsPath: secretsContent.trim() ? secretsPath : null,
     async cleanup() {
       await rm(tempDir, { recursive: true, force: true });
     },
@@ -375,7 +385,7 @@ async function deployRouterDirect({ name, configPath, secretsPath }) {
 
 async function uploadWorkerVersion({ name, configPath, secretsPath }) {
   log(`uploading version for ${name}`);
-  const result = await runWrangler([
+  const args = [
     'versions',
     'upload',
     '--config',
@@ -384,9 +394,11 @@ async function uploadWorkerVersion({ name, configPath, secretsPath }) {
     name,
     '--message',
     createDeployMessage('app-version-upload'),
-    '--secrets-file',
-    secretsPath,
-  ]);
+  ];
+  if (secretsPath) {
+    args.push('--secrets-file', secretsPath);
+  }
+  const result = await runWrangler(args);
   const versionId = parseUploadedVersionId(
     `${result.stdout}\n${result.stderr}`
   );
@@ -451,10 +463,15 @@ function buildMissingDeploymentsError(currentVersions, contract) {
     }
   }
 
+  const setupMessage =
+    contract.deployProfile === 'preview'
+      ? 'Run "pnpm cf:preview:deploy:state" first, then run "pnpm cf:preview:bootstrap".'
+      : 'Run "pnpm cf:deploy:state" first, then run "pnpm cf:deploy:app" or "pnpm cf:deploy".';
+
   return new Error(
     `Cloudflare app deploy requires an existing state-initialized topology. Missing deployed workers: ${missingWorkers.join(
       ', '
-    )}. Run "pnpm cf:deploy:state" first, then run "pnpm cf:deploy:app" or "pnpm cf:deploy".`
+    )}. ${setupMessage}`
   );
 }
 
@@ -551,17 +568,106 @@ async function deploySteadyState(
   }
 }
 
+async function deployInitialAppTopology(contract = resolveDeployContract()) {
+  const routerConfigPath = resolveRouterConfigPath(contract);
+  const serverConfigPaths = resolveServerConfigPaths(contract);
+  const serverArtifacts = [];
+  let targetRouterArtifacts = null;
+
+  try {
+    for (const target of uploadOrder) {
+      const name = contract.serverWorkers[target].workerName;
+      const artifacts = await createTempDeployArtifacts({
+        name,
+        templatePath: serverConfigPaths[target],
+        workerKeys: [target],
+        contract,
+      });
+      serverArtifacts.push({ target, ...artifacts });
+    }
+
+    for (const { target, tempConfigPath, secretsPath } of serverArtifacts) {
+      await deployRouterDirect({
+        name: contract.serverWorkers[target].workerName,
+        configPath: tempConfigPath,
+        secretsPath,
+      });
+    }
+
+    const currentVersions = await collectCurrentVersions(contract);
+    const targetRouterVersionIds = {};
+    for (const target of uploadOrder) {
+      const versionId = currentVersions.servers[target];
+      if (!versionId) {
+        throw new Error(
+          `Cloudflare preview bootstrap could not read version id for ${contract.serverWorkers[target].workerName}`
+        );
+      }
+      targetRouterVersionIds[target] = versionId;
+    }
+
+    targetRouterArtifacts = await createTempDeployArtifacts({
+      name: contract.router.workerName,
+      templatePath: routerConfigPath,
+      workerKeys: ['router'],
+      versionIds: targetRouterVersionIds,
+      contract,
+    });
+    await deployRouterDirect({
+      name: contract.router.workerName,
+      configPath: targetRouterArtifacts.tempConfigPath,
+      secretsPath: targetRouterArtifacts.secretsPath,
+    });
+
+    await refreshCloudflareTypes();
+  } finally {
+    for (const artifacts of serverArtifacts) {
+      await artifacts.cleanup();
+    }
+
+    if (targetRouterArtifacts) {
+      await targetRouterArtifacts.cleanup();
+    }
+  }
+}
+
 export async function deployCloudflareApp({
   contract = resolveDeployContract(),
   collectCurrentVersionsImpl = (resolvedContract) =>
     collectCurrentVersions(resolvedContract),
   deploySteadyStateImpl = (currentVersions, resolvedContract) =>
     deploySteadyState(currentVersions, resolvedContract),
+  deployInitialAppTopologyImpl = (resolvedContract) =>
+    deployInitialAppTopology(resolvedContract),
+  assertBuildArtifactsReadyImpl = () =>
+    assertCloudflareBuildArtifactsReady({
+      rootPath: rootDir,
+      processEnv: process.env,
+      contextMessage:
+        'Cloudflare app deploy requires built OpenNext artifacts.',
+      nextStepMessage:
+        'Run `pnpm cf:build` before `pnpm cf:preview:deploy`, `pnpm cf:preview:bootstrap`, `pnpm cf:deploy`, or `pnpm cf:deploy:app`.',
+    }),
+  processEnv = process.env,
 } = {}) {
+  await assertBuildArtifactsReadyImpl();
+  const bootstrapMissing = isBootstrapMissingEnabled(processEnv);
+  if (bootstrapMissing && contract.deployProfile !== 'preview') {
+    throw new Error(
+      'CF_DEPLOY_BOOTSTRAP_MISSING=true is only allowed with CF_DEPLOY_PROFILE=preview'
+    );
+  }
+
   const currentVersions = await collectCurrentVersionsImpl(contract);
   const deployMode = determineDeployMode(currentVersions);
 
   if (deployMode === 'missing-deployments') {
+    if (bootstrapMissing) {
+      log('missing preview app workers detected; bootstrapping app topology');
+      await deployInitialAppTopologyImpl(contract);
+      return;
+    }
+
     throw buildMissingDeploymentsError(currentVersions, contract);
   }
 

@@ -116,6 +116,70 @@ test('buildCloudflareSecretsEnv 在 server worker 缺少 auth secret 时失败',
   );
 });
 
+test('buildCloudflareSecretsEnv 仅在 preview profile 允许缺失 secret 占位', () => {
+  const runtimeSettings = {
+    secrets: {
+      authSharedSecret: true,
+      googleOauth: true,
+      githubOauth: false,
+      emailProvider: true,
+      openrouter: false,
+      removerCleanup: false,
+    },
+    vars: {
+      storagePublicBaseUrl: false,
+    },
+    payment: {
+      provider: null,
+    },
+  };
+
+  const content = buildCloudflareSecretsEnv(
+    {
+      SITE: 'ai-remover',
+      CF_DEPLOY_PROFILE: 'preview',
+      CF_PREVIEW_ALLOW_PLACEHOLDER_SECRETS: 'true',
+    },
+    {
+      workerKeys: ['auth'],
+      runtimeSettings,
+    }
+  );
+
+  assert.match(
+    content,
+    /BETTER_AUTH_SECRET=preview-placeholder-auth-shared-secret-not-for-production/
+  );
+  assert.match(
+    content,
+    /AUTH_SECRET=preview-placeholder-auth-shared-secret-not-for-production/
+  );
+  assert.match(
+    content,
+    /GOOGLE_CLIENT_ID=preview-placeholder-google-client-id-not-for-production/
+  );
+  assert.match(
+    content,
+    /RESEND_API_KEY=preview-placeholder-resend-api-key-not-for-production/
+  );
+
+  assert.throws(
+    () =>
+      buildCloudflareSecretsEnv(
+        {
+          SITE: 'ai-remover',
+          CF_DEPLOY_PROFILE: 'production',
+          CF_PREVIEW_ALLOW_PLACEHOLDER_SECRETS: 'true',
+        },
+        {
+          workerKeys: ['auth'],
+          runtimeSettings,
+        }
+      ),
+    /BETTER_AUTH_SECRET or AUTH_SECRET/i
+  );
+});
+
 test('buildCloudflareSecretsEnv 在 auth/admin worker 缺少 RESEND_API_KEY 时失败', () => {
   assert.throws(
     () =>
@@ -145,6 +209,56 @@ test('buildCloudflareSecretsEnv 不会把 RESEND_API_KEY 扩散到非 allowlist 
   );
 
   assert.doesNotMatch(content, /RESEND_API_KEY=/);
+});
+
+test('buildCloudflareSecretsEnv 只向 public-web 输出 remover cleanup secret', () => {
+  const publicWebContent = buildCloudflareSecretsEnv(
+    {
+      SITE: 'ai-remover',
+      BETTER_AUTH_SECRET: 'better-secret',
+      GOOGLE_CLIENT_ID: 'google-id',
+      REMOVER_CLEANUP_SECRET: 'cleanup-secret',
+    },
+    {
+      workerKeys: ['public-web'],
+    }
+  );
+
+  assert.match(publicWebContent, /GOOGLE_CLIENT_ID=google-id/);
+  assert.match(publicWebContent, /REMOVER_CLEANUP_SECRET=cleanup-secret/);
+
+  const authContent = buildCloudflareSecretsEnv(
+    {
+      SITE: 'ai-remover',
+      BETTER_AUTH_SECRET: 'better-secret',
+      RESEND_API_KEY: 'resend-key',
+      GOOGLE_CLIENT_ID: 'google-id',
+      GOOGLE_CLIENT_SECRET: 'google-secret',
+      REMOVER_CLEANUP_SECRET: 'cleanup-secret',
+    },
+    {
+      workerKeys: ['auth'],
+    }
+  );
+
+  assert.doesNotMatch(authContent, /REMOVER_CLEANUP_SECRET=/);
+});
+
+test('buildCloudflareSecretsEnv 缺少 remover cleanup secret 时失败', () => {
+  assert.throws(
+    () =>
+      buildCloudflareSecretsEnv(
+        {
+          SITE: 'ai-remover',
+          BETTER_AUTH_SECRET: 'better-secret',
+          GOOGLE_CLIENT_ID: 'google-id',
+        },
+        {
+          workerKeys: ['public-web'],
+        }
+      ),
+    /REMOVER_CLEANUP_SECRET is required/
+  );
 });
 
 test('buildCloudflareSecretsEnv 仅输出当前启用能力所需 secrets', () => {
@@ -257,6 +371,99 @@ test('buildCloudflareSecretsEnv 按 deploy.settings.json 与 workerKeys 限定 s
       assert.match(content, /GOOGLE_CLIENT_SECRET=google-secret/);
       assert.doesNotMatch(content, /STRIPE_PUBLISHABLE_KEY=pk/);
       assert.doesNotMatch(content, /STRIPE_SECRET_KEY=sk/);
+    } finally {
+      process.chdir(originalCwd);
+      if (originalSite === undefined) {
+        delete process.env.SITE;
+      } else {
+        process.env.SITE = originalSite;
+      }
+    }
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('buildCloudflareSecretsEnv 对 public-web 仅输出 Google One Tap 所需 client id', async () => {
+  const tempDir = await mkdtemp(
+    path.join(os.tmpdir(), 'cf-secrets-site-public-web-')
+  );
+  const sourcePath = resolveSiteDeploySettingsPath({
+    rootDir: process.cwd(),
+    siteKey: 'mamamiya',
+  });
+  const targetDir = path.join(tempDir, 'sites/mamamiya');
+  const targetPath = path.join(targetDir, 'deploy.settings.json');
+
+  try {
+    await mkdir(targetDir, { recursive: true });
+    await writeFile(
+      path.join(targetDir, 'site.config.json'),
+      JSON.stringify(
+        {
+          ...readCurrentSiteConfig({ siteKey: 'mamamiya' }),
+          capabilities: {
+            ...readCurrentSiteConfig({ siteKey: 'mamamiya' }).capabilities,
+            auth: true,
+            ai: false,
+            payment: 'none',
+          },
+        },
+        null,
+        2
+      ) + '\n',
+      'utf8'
+    );
+    await writeFile(
+      targetPath,
+      JSON.stringify(
+        {
+          ...readSiteDeploySettings({ siteKey: 'mamamiya' }),
+          bindingRequirements: {
+            ...readSiteDeploySettings({ siteKey: 'mamamiya' })
+              .bindingRequirements,
+            secrets: {
+              ...readSiteDeploySettings({ siteKey: 'mamamiya' })
+                .bindingRequirements.secrets,
+              googleOauth: true,
+            },
+          },
+        },
+        null,
+        2
+      ) + '\n',
+      'utf8'
+    );
+  } catch {
+    await rm(tempDir, { recursive: true, force: true });
+    throw new Error(
+      `failed to prepare deploy settings fixture from ${sourcePath}`
+    );
+  }
+
+  try {
+    const originalSite = process.env.SITE;
+    delete process.env.SITE;
+    const originalCwd = process.cwd();
+    process.chdir(tempDir);
+
+    try {
+      const content = buildCloudflareSecretsEnv(
+        {
+          BETTER_AUTH_SECRET: 'better-secret',
+          SITE: 'mamamiya',
+          GOOGLE_CLIENT_ID: 'google-id',
+          GOOGLE_CLIENT_SECRET: 'google-secret',
+        },
+        {
+          workerKeys: ['public-web'],
+        }
+      );
+
+      assert.match(content, /GOOGLE_CLIENT_ID=google-id/);
+      assert.doesNotMatch(content, /GOOGLE_CLIENT_SECRET=google-secret/);
+      assert.doesNotMatch(content, /GITHUB_CLIENT_ID=/);
+      assert.doesNotMatch(content, /GITHUB_CLIENT_SECRET=/);
     } finally {
       process.chdir(originalCwd);
       if (originalSite === undefined) {

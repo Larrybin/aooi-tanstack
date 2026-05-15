@@ -9,6 +9,12 @@ import { upsertMiddlewareRequestHeader } from '@/shared/lib/middleware-request-h
 
 const intlMiddleware = createIntlMiddleware(routing);
 
+function removeRedirectHeaderFromRewrite(response: NextResponse): void {
+  if (response.headers.has('x-middleware-rewrite')) {
+    response.headers.delete('location');
+  }
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -25,8 +31,13 @@ export async function proxy(request: NextRequest) {
   const shouldRewriteDocsIndex =
     pathWithoutLocale === '/docs' || pathWithoutLocale === '/docs/';
 
-  // Handle internationalization first
-  let response = intlMiddleware(request);
+  // Handle internationalization first. Default-locale paths may be reached by
+  // an internal rewrite from unprefixed URLs, so let them continue directly
+  // instead of canonicalizing them back to the unprefixed URL.
+  let response =
+    isValidLocale && localeSegment === defaultLocale
+      ? NextResponse.next()
+      : intlMiddleware(request);
 
   // Only check authentication for protected routes (admin/settings/activity).
   if (
@@ -56,26 +67,19 @@ export async function proxy(request: NextRequest) {
     // will be done in the layout or individual pages using requirePermission()
   }
 
-  // When `localeDetection=false`, unprefixed routes (e.g. /pricing) don't carry locale information.
-  // Our app routes are rooted under `app/[locale]`, so we internally rewrite to the default locale
-  // while keeping the URL unchanged for the user.
+  // `/docs` needs an explicit index rewrite because the docs route is catch-all based.
+  // Other unprefixed routes are handled by next-intl according to `localePrefix`.
   if (shouldRewriteDocsIndex) {
     const rewriteTo = request.nextUrl.clone();
     rewriteTo.pathname = isValidLocale
       ? `/${localeSegment}/docs/index`
       : `/${defaultLocale}/docs/index`;
 
-    response = NextResponse.rewrite(rewriteTo, { headers: response.headers });
-    response.headers.set('x-rewrite-to', rewriteTo.pathname);
-  } else if (!isValidLocale) {
-    const rewriteTo = request.nextUrl.clone();
-    rewriteTo.pathname =
-      pathname === '/' ? `/${defaultLocale}` : `/${defaultLocale}${pathname}`;
-
-    response = NextResponse.rewrite(rewriteTo, { headers: response.headers });
+    response = NextResponse.rewrite(rewriteTo);
     response.headers.set('x-rewrite-to', rewriteTo.pathname);
   }
 
+  removeRedirectHeaderFromRewrite(response);
   response.headers.set('x-pathname', request.nextUrl.pathname);
   response.headers.set('x-url', request.url);
   upsertMiddlewareRequestHeader(response.headers, 'x-pathname', pathname);

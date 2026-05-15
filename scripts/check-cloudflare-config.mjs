@@ -12,6 +12,7 @@ import {
   resolveAllSiteDeployContracts,
   resolveSiteDeployContract,
 } from './lib/site-deploy-contract.mjs';
+import { resolveCloudflareDeployProfile } from './lib/site-deploy-profile.mjs';
 
 const {
   CLOUDFLARE_ALL_SERVER_WORKER_TARGETS,
@@ -151,6 +152,13 @@ function assertRequiredRuntimeBindings(
     const value = names.find(
       (name) => (process.env[name]?.trim() || '').length > 0
     );
+    const allowPreviewPlaceholderSecret =
+      requirement.kind === 'runtime-secret' &&
+      resolveCloudflareDeployProfile(process.env) === 'preview' &&
+      process.env.CF_PREVIEW_ALLOW_PLACEHOLDER_SECRETS?.trim() === 'true';
+    if (!value && allowPreviewPlaceholderSecret) {
+      continue;
+    }
     if (!value) {
       const displayName = names.join(' or ');
       const site = process.env.SITE?.trim() || 'unknown';
@@ -173,6 +181,9 @@ function assertSharedSettings(content, label, options = {}) {
     requiresR2Buckets = true,
     requiresHyperdrive = true,
     requiresStoragePublicBaseUrl = true,
+    requiresWorkersAi = false,
+    expectedWorkersDev = false,
+    expectedPreviewUrls = false,
     expectedAppOrigin,
     expectedIncrementalCacheBucket,
     expectedAppStorageBucket,
@@ -199,12 +210,12 @@ function assertSharedSettings(content, label, options = {}) {
     fail(`${label}.compatibility_date must equal 2025-03-01`);
   }
 
-  if (workersDev !== 'false') {
-    fail(`${label}.workers_dev must be false`);
+  if (workersDev !== String(expectedWorkersDev)) {
+    fail(`${label}.workers_dev must be ${String(expectedWorkersDev)}`);
   }
 
-  if (previewUrls !== 'false') {
-    fail(`${label}.preview_urls must be false`);
+  if (previewUrls !== String(expectedPreviewUrls)) {
+    fail(`${label}.preview_urls must be ${String(expectedPreviewUrls)}`);
   }
 
   const expectedFlags = ['global_fetch_strictly_public', 'nodejs_compat'];
@@ -304,6 +315,24 @@ function assertSharedSettings(content, label, options = {}) {
     fail(`${label} must not define [[hyperdrive]]`);
   }
 
+  const aiSection = readOptionalSection(content, 'ai');
+  if (requiresWorkersAi) {
+    if (!aiSection) {
+      fail(`${label} missing [ai] binding = "AI"`);
+    }
+
+    const aiBinding = readQuotedValue(
+      aiSection,
+      `${label}.ai.binding`,
+      /^\s*binding\s*=\s*"([^"\n]+)"/m
+    );
+    if (aiBinding !== 'AI') {
+      fail(`${label}.ai.binding must equal AI`);
+    }
+  } else if (aiSection) {
+    fail(`${label} must not define [ai]`);
+  }
+
   const varsSection = readSection(content, 'vars');
   const deployTarget = readQuotedValue(
     varsSection,
@@ -325,7 +354,7 @@ function assertSharedSettings(content, label, options = {}) {
     expectedAppOrigin
   ) {
     fail(
-      `${label}.vars.NEXT_PUBLIC_APP_URL must share the same origin as site.brand.appUrl (${expectedAppOrigin})`
+      `${label}.vars.NEXT_PUBLIC_APP_URL must share the same origin as the deploy contract app origin (${expectedAppOrigin})`
     );
   }
 
@@ -383,6 +412,8 @@ function buildEffectiveWorkerConfig(contract, workerKey) {
 
 function assertRouterConfig(content, contract, requiredBindingsByWorker) {
   assertSharedSettings(content, 'router', {
+    expectedWorkersDev: contract.route.mode === 'workers-dev',
+    expectedPreviewUrls: contract.route.mode === 'workers-dev',
     expectedAppOrigin: contract.appOrigin,
     expectedIncrementalCacheBucket: contract.resources.incrementalCacheBucket,
     expectedAppStorageBucket: contract.resources.appStorageBucket,
@@ -432,30 +463,36 @@ function assertRouterConfig(content, contract, requiredBindingsByWorker) {
   ]);
 
   const routeTables = readArrayTable(content, 'routes');
-  if (routeTables.length !== 1) {
-    fail('router must define exactly one [[routes]] table');
-  }
-  const routePattern = readQuotedValue(
-    routeTables[0],
-    'router.routes.pattern',
-    /^\s*pattern\s*=\s*"([^"\n]+)"/m
-  );
-  const routeCustomDomain = readBooleanValue(
-    routeTables[0],
-    'router.routes.custom_domain',
-    /^\s*custom_domain\s*=\s*(true|false)/m
-  );
-
-  if (routePattern !== contract.site.domain) {
-    fail(
-      `router.routes.pattern must equal site.domain (${contract.site.domain})`
+  if (contract.route.mode === 'workers-dev') {
+    if (routeTables.length > 0) {
+      fail('preview router must not define [[routes]]');
+    }
+  } else {
+    if (routeTables.length !== 1) {
+      fail('router must define exactly one [[routes]] table');
+    }
+    const routePattern = readQuotedValue(
+      routeTables[0],
+      'router.routes.pattern',
+      /^\s*pattern\s*=\s*"([^"\n]+)"/m
     );
-  }
-
-  if (routeCustomDomain !== String(contract.route.customDomain)) {
-    fail(
-      `router.routes.custom_domain must equal ${String(contract.route.customDomain)}`
+    const routeCustomDomain = readBooleanValue(
+      routeTables[0],
+      'router.routes.custom_domain',
+      /^\s*custom_domain\s*=\s*(true|false)/m
     );
+
+    if (routePattern !== contract.site.domain) {
+      fail(
+        `router.routes.pattern must equal site.domain (${contract.site.domain})`
+      );
+    }
+
+    if (routeCustomDomain !== String(contract.route.customDomain)) {
+      fail(
+        `router.routes.custom_domain must equal ${String(contract.route.customDomain)}`
+      );
+    }
   }
 
   for (const [binding, expectedService] of expectedServices) {
@@ -575,25 +612,6 @@ function assertStateConfig(content, contract, requiredBindingsByWorker) {
     fail(`state.main must equal ${expectedMain}`);
   }
 
-  const serviceTables = readArrayTable(content, 'services');
-  const selfReference = serviceTables.find((table) =>
-    /^\s*binding\s*=\s*"WORKER_SELF_REFERENCE"/m.test(table)
-  );
-  if (!selfReference) {
-    fail('state missing [[services]] binding = "WORKER_SELF_REFERENCE"');
-  }
-
-  const service = readQuotedValue(
-    selfReference,
-    'state.services.WORKER_SELF_REFERENCE.service',
-    /^\s*service\s*=\s*"([^"\n]+)"/m
-  );
-  if (service !== contract.router.workerName) {
-    fail(
-      `state.services.WORKER_SELF_REFERENCE.service must equal ${contract.router.workerName}`
-    );
-  }
-
   const doTables = readArrayTable(content, 'durable_objects.bindings');
   for (const [bindingName, className] of Object.entries(
     CLOUDFLARE_DURABLE_OBJECT_BINDINGS
@@ -646,6 +664,9 @@ function assertServerConfig(
     expectedAppOrigin: contract.appOrigin,
     expectedIncrementalCacheBucket: contract.resources.incrementalCacheBucket,
     expectedAppStorageBucket: contract.resources.appStorageBucket,
+    requiresWorkersAi:
+      target === 'public-web' &&
+      contract.bindingRequirements.bindings?.workersAi === true,
   });
   assertRequiredRuntimeBindings(`${target}`, target, requiredBindingsByWorker);
 
@@ -682,27 +703,76 @@ function assertServerConfig(
   }
 
   const serviceTables = readArrayTable(content, 'services');
-  const selfReference = serviceTables.find((table) =>
-    /^\s*binding\s*=\s*"WORKER_SELF_REFERENCE"/m.test(table)
-  );
-  if (!selfReference) {
-    fail(`${target} missing [[services]] binding = "WORKER_SELF_REFERENCE"`);
-  }
+  const expectedServices =
+    target === 'admin'
+      ? new Map(
+          ['public-web', 'auth'].map((serviceTarget) => [
+            CLOUDFLARE_SERVICE_BINDINGS[serviceTarget],
+            contract.serverWorkers[serviceTarget].workerName,
+          ])
+        )
+      : new Map();
 
-  const service = readQuotedValue(
-    selfReference,
-    `${target}.services.WORKER_SELF_REFERENCE.service`,
-    /^\s*service\s*=\s*"([^"\n]+)"/m
-  );
-  if (service !== contract.router.workerName) {
+  if (serviceTables.length !== expectedServices.size) {
     fail(
-      `${target}.services.WORKER_SELF_REFERENCE.service must equal ${contract.router.workerName}`
+      expectedServices.size > 0
+        ? `${target} must define exactly ${expectedServices.size} [[services]] bindings`
+        : `${target} must not define [[services]]`
     );
   }
 
+  for (const [binding, expectedService] of expectedServices) {
+    const table = serviceTables.find((entry) =>
+      new RegExp(`^\\s*binding\\s*=\\s*"${binding}"`, 'm').test(entry)
+    );
+    if (!table) {
+      fail(`${target} missing [[services]] binding = "${binding}"`);
+    }
+
+    const service = readQuotedValue(
+      table,
+      `${target}.services.${binding}.service`,
+      /^\s*service\s*=\s*"([^"\n]+)"/m
+    );
+    if (service !== expectedService) {
+      fail(
+        `${target}.services.${binding}.service must equal ${expectedService}`
+      );
+    }
+  }
+
   const imagesSection = readOptionalSection(content, 'images');
-  if (imagesSection) {
+  if (target === 'public-web') {
+    if (!imagesSection) {
+      fail(`${target} missing [images] binding = "IMAGES"`);
+    }
+    const imagesBinding = readQuotedValue(
+      imagesSection,
+      `${target}.images.binding`,
+      /^\s*binding\s*=\s*"([^"\n]+)"/m
+    );
+    if (imagesBinding !== 'IMAGES') {
+      fail(`${target}.images.binding must equal IMAGES`);
+    }
+  } else if (imagesSection) {
     fail(`${target} must not define [images]`);
+  }
+
+  const triggersSection = readOptionalSection(content, 'triggers');
+  const requiresRemoverCleanup =
+    target === 'public-web' &&
+    contract.bindingRequirements.secrets?.removerCleanup === true;
+  if (requiresRemoverCleanup) {
+    if (!triggersSection) {
+      fail(`${target} missing [triggers] cleanup cron`);
+    }
+    if (
+      !/^\s*crons\s*=\s*\[[^\]]*"17 3 \* \* \*"[^\]]*\]/m.test(triggersSection)
+    ) {
+      fail(`${target}.triggers.crons must include AI Remover cleanup cron`);
+    }
+  } else if (triggersSection) {
+    fail(`${target} must not define [triggers]`);
   }
 
   const doTables = readArrayTable(content, 'durable_objects.bindings');
@@ -765,7 +835,10 @@ function main() {
     contract.bindingRequirements
   );
 
-  if (contract.route.pattern !== contract.site.domain) {
+  if (
+    contract.route.mode === 'custom-domain' &&
+    contract.route.pattern !== contract.site.domain
+  ) {
     fail(
       `site domain and router route pattern must match exactly: ${contract.site.domain} vs ${contract.route.pattern}`
     );

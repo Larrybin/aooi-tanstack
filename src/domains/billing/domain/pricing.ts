@@ -3,6 +3,7 @@ import type {
   PricingCurrency,
   PricingItem,
 } from '@/shared/types/blocks/pricing';
+import { sitePricing } from '@/site';
 
 import { PaymentInterval, PaymentType } from './payment';
 
@@ -12,6 +13,23 @@ export function findPricingItemByProductId(
 ): PricingItem | undefined {
   const items = pricing.items ?? [];
   return items.find((item) => item.product_id === productId);
+}
+
+export function isPricingItemCheckoutEnabled(
+  pricingItem: PricingItem
+): boolean {
+  return pricingItem.checkout_enabled !== false && pricingItem.amount > 0;
+}
+
+export function resolvePricingEntitlements(
+  productId: string,
+  pricing: Pricing | null | undefined = sitePricing?.pricing
+): Record<string, string | number | boolean> | undefined {
+  if (!pricing) {
+    return;
+  }
+
+  return findPricingItemByProductId(pricing, productId)?.entitlements;
 }
 
 export type CheckoutPricingContext = {

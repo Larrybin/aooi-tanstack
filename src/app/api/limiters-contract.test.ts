@@ -283,6 +283,80 @@ test('ai/query 路由按一致性模式切换 cached/fresh settings reader', asy
   assert.equal(freshResponse.status, 200);
   assert.deepEqual(modes, ['cached', 'fresh']);
 });
+
+test('ai/query provider 返回 failed 时显式退款且更新不携带 creditId', async () => {
+  const refunds: string[] = [];
+  const updates: Array<Record<string, unknown>> = [];
+  const handler = createAiQueryPostHandler({
+    resolveConfigConsistencyMode: () => 'cached',
+    requireAiEnabled: async () => undefined,
+    getApiContext: () =>
+      createApiContextStub({
+        body: { taskId: 'task-1' },
+        userId: 'u1',
+      }),
+    findAITaskById: async () => ({
+      id: 'task-1',
+      taskId: 'provider-task-1',
+      userId: 'u1',
+      provider: 'mock-provider',
+      status: AITaskStatus.PROCESSING,
+      model: null,
+      prompt: null,
+      taskInfo: null,
+      taskResult: null,
+      creditId: 'credit-1',
+    }),
+    updateAITaskById: async () => {
+      throw new Error('failed tasks should use atomic refund update');
+    },
+    failAITaskByIdAndRefundCredit: async ({ updateAITask, creditId }) => {
+      if (creditId) {
+        refunds.push(creditId);
+      }
+      updates.push(updateAITask as Record<string, unknown>);
+      return { id: 'task-1', ...updateAITask } as never;
+    },
+    readAiRuntimeSettings: async () => ({ aiEnabled: true }),
+    readAiProviderBindings: () => ({
+      openrouterApiKey: '',
+      replicateApiToken: 'replicate-token',
+      falApiKey: '',
+      kieApiKey: '',
+    }),
+    getAIService: async () => ({
+      getProvider: () =>
+        createAiQueryProvider(async () => ({
+          taskStatus: AITaskStatus.FAILED,
+          taskId: 'provider-task-1',
+        })),
+      getDefaultProvider: () => undefined,
+      getMediaTypes: () => [],
+    }),
+    rateLimiter: new CooldownLimiter({
+      bucket: LimiterBucket.API_AI_QUERY,
+      minIntervalMs: 0,
+      ttlMs: 60 * 60 * 1000,
+      store: createMemoryRateLimitStore(),
+    }),
+    now: () => 1_000,
+  });
+
+  const response = await handler(
+    new Request('http://localhost/api/ai/query', { method: 'POST' })
+  );
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(refunds, ['credit-1']);
+  assert.deepEqual(updates, [
+    {
+      status: AITaskStatus.FAILED,
+      taskInfo: null,
+      taskResult: null,
+    },
+  ]);
+});
+
 test('verify-code 路由限流契约: 达到失败上限后返回 429', async () => {
   const handler = createVerifyCodePostHandler({
     getApiContext: () =>

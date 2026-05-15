@@ -1,10 +1,18 @@
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import * as nextEnvModule from '@next/env';
+
+import siteEnvModule from '../src/config/site-env.cjs';
 
 const args = process.argv.slice(2);
 const TEST_SITE_KEY = 'dev-local';
 const TEST_AUTH_SHARED_SECRET = 'dev-local-auth-secret-dev-local-auth-secret';
 const TEST_STORAGE_PUBLIC_BASE_URL = 'http://127.0.0.1:9787/assets/';
+const { applySiteLocalEnvOverlay } = siteEnvModule;
+const loadEnvConfig =
+  nextEnvModule.loadEnvConfig || nextEnvModule.default?.loadEnvConfig;
 const SITE_REQUIRED_COMMANDS = [
   'pnpm exec next',
   'node scripts/next-build.mjs',
@@ -23,13 +31,6 @@ const CONTENT_GENERATION_REQUIRED_COMMANDS = [
   'node --import tsx scripts/run-cf-app-deploy.mjs',
   'node --import tsx scripts/run-cf-state-deploy.mjs',
 ];
-
-if (args.length === 0) {
-  process.stderr.write(
-    'Usage: node scripts/run-with-site.mjs <command> [...args]\n'
-  );
-  process.exit(1);
-}
 
 const generateScript = resolve(
   process.cwd(),
@@ -60,9 +61,32 @@ function requiresContentGeneration(commandParts) {
   );
 }
 
-function buildSiteEnv(commandParts, env = process.env) {
-  const siteKey = env.SITE?.trim();
+function loadRootDotenv(env = process.env) {
+  try {
+    const isDev = env.NODE_ENV !== 'production';
+    loadEnvConfig(process.cwd(), isDev);
+  } catch {
+    // optional for scripts that run before local env files exist
+  }
+}
+
+export function buildSiteEnv(
+  commandParts,
+  env = process.env,
+  { originalEnv = env, rootDir = process.cwd(), readFileSyncImpl } = {}
+) {
+  const explicitSiteKey = originalEnv.SITE?.trim() || '';
+  const siteKey = explicitSiteKey;
   if (siteKey) {
+    env.SITE = siteKey;
+    applySiteLocalEnvOverlay({
+      env,
+      originalEnv,
+      rootDir,
+      siteKey,
+      readFileSyncImpl,
+    });
+
     if (siteKey !== TEST_SITE_KEY) {
       return env;
     }
@@ -91,10 +115,22 @@ function buildSiteEnv(commandParts, env = process.env) {
   const nextEnv = {
     ...env,
     SITE: TEST_SITE_KEY,
-    STORAGE_PUBLIC_BASE_URL: TEST_STORAGE_PUBLIC_BASE_URL,
-    BETTER_AUTH_SECRET: TEST_AUTH_SHARED_SECRET,
-    AUTH_SECRET: TEST_AUTH_SHARED_SECRET,
   };
+
+  applySiteLocalEnvOverlay({
+    env: nextEnv,
+    originalEnv,
+    rootDir,
+    siteKey: TEST_SITE_KEY,
+    readFileSyncImpl,
+  });
+
+  nextEnv.STORAGE_PUBLIC_BASE_URL =
+    nextEnv.STORAGE_PUBLIC_BASE_URL?.trim() || TEST_STORAGE_PUBLIC_BASE_URL;
+  if (!nextEnv.BETTER_AUTH_SECRET?.trim() && !nextEnv.AUTH_SECRET?.trim()) {
+    nextEnv.BETTER_AUTH_SECRET = TEST_AUTH_SHARED_SECRET;
+    nextEnv.AUTH_SECRET = TEST_AUTH_SHARED_SECRET;
+  }
 
   return nextEnv;
 }
@@ -121,9 +157,20 @@ function runNodeScript(scriptPath, scriptArgs = [], env = process.env) {
 }
 
 async function main() {
+  if (args.length === 0) {
+    process.stderr.write(
+      'Usage: node scripts/run-with-site.mjs <command> [...args]\n'
+    );
+    process.exit(1);
+  }
+
   const command = args[0];
   const commandArgs = args.slice(1);
-  const siteEnv = buildSiteEnv([command, ...commandArgs]);
+  const originalEnv = { ...process.env };
+  loadRootDotenv(process.env);
+  const siteEnv = buildSiteEnv([command, ...commandArgs], process.env, {
+    originalEnv,
+  });
   const generateExitCode = await runNodeScript(generateScript, [], siteEnv);
   if (generateExitCode !== 0) {
     process.exit(generateExitCode);
@@ -159,4 +206,15 @@ async function main() {
   });
 }
 
-await main();
+if (
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  main().catch((error) => {
+    process.stderr.write(
+      error instanceof Error ? error.stack || error.message : String(error)
+    );
+    process.stderr.write('\n');
+    process.exit(1);
+  });
+}

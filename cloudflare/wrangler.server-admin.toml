@@ -18,8 +18,12 @@ binding = "APP_STORAGE_R2_BUCKET"
 bucket_name = "roller-rabbit-storage"
 
 [[services]]
-binding = "WORKER_SELF_REFERENCE"
-service = "roller-rabbit"
+binding = "PUBLIC_WEB_WORKER"
+service = "roller-rabbit-public-web"
+
+[[services]]
+binding = "AUTH_WORKER"
+service = "roller-rabbit-auth"
 
 [[hyperdrive]]
 binding = "HYPERDRIVE"

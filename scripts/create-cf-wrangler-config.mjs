@@ -10,7 +10,11 @@ const rootDir = process.cwd();
 const REQUIRED_INCREMENTAL_CACHE_BINDING = 'NEXT_INC_CACHE_R2_BUCKET';
 const REQUIRED_APP_STORAGE_BINDING = 'APP_STORAGE_R2_BUCKET';
 const REQUIRED_STATEFUL_LIMITERS_BINDING = 'STATEFUL_LIMITERS';
+const REQUIRED_WORKERS_AI_BINDING = 'AI';
+const REQUIRED_IMAGES_BINDING = 'IMAGES';
+const REMOVER_CLEANUP_CRON = '17 3 * * *';
 const STATE_TEMPLATE_NAME = 'wrangler.state.toml';
+const PUBLIC_WEB_TEMPLATE_NAME = 'wrangler.server-public-web.toml';
 
 function readArrayTables(content, tableName) {
   const pattern = new RegExp(
@@ -110,6 +114,26 @@ function upsertTomlTableStringValue(content, tableName, key, value) {
   return lines.join('\n');
 }
 
+function upsertTopLevelBooleanValue(content, key, value) {
+  const entryLine = `${key} = ${value ? 'true' : 'false'}`;
+  const pattern = new RegExp(`^\\s*${key}\\s*=\\s*(true|false)`, 'm');
+  if (pattern.test(content)) {
+    return content.replace(pattern, entryLine);
+  }
+
+  const lines = content.split('\n');
+  const firstTableIndex = lines.findIndex((line) =>
+    line.trim().startsWith('[')
+  );
+  if (firstTableIndex === -1) {
+    lines.push(entryLine);
+    return lines.join('\n');
+  }
+
+  lines.splice(firstTableIndex, 0, entryLine);
+  return lines.join('\n');
+}
+
 function replaceOrInsertArrayTable(content, tableName, rows) {
   const pattern = new RegExp(
     String.raw`\n?\[\[${tableName}\]\]\s*[\s\S]*?(?=\n\[\[|\n\[[^\[]|$)`,
@@ -172,12 +196,67 @@ function replaceOrInsertMigrations(content, migrations) {
   return cleaned.trimEnd().concat('\n\n', block, '\n');
 }
 
+function replaceOrInsertAiBinding(content, enabled) {
+  const pattern = /\n?\[ai\]\s*[\s\S]*?(?=\n\[\[|\n\[[^\[]|$)/g;
+  const cleaned = content.replace(pattern, '').replace(/\n{3,}/g, '\n\n');
+
+  if (!enabled) {
+    return cleaned;
+  }
+
+  return cleaned
+    .trimEnd()
+    .concat(
+      `\n\n[ai]\nbinding = "${escapeTomlBasicString(REQUIRED_WORKERS_AI_BINDING)}"\n`
+    );
+}
+
+function replaceOrInsertImagesBinding(content, enabled) {
+  const pattern = /\n?\[images\]\s*[\s\S]*?(?=\n\[\[|\n\[[^\[]|$)/g;
+  const cleaned = content.replace(pattern, '').replace(/\n{3,}/g, '\n\n');
+
+  if (!enabled) {
+    return cleaned;
+  }
+
+  return cleaned
+    .trimEnd()
+    .concat(
+      `\n\n[images]\nbinding = "${escapeTomlBasicString(REQUIRED_IMAGES_BINDING)}"\n`
+    );
+}
+
+function replaceOrInsertCronTriggers(content, crons) {
+  const pattern = /\n?\[triggers\]\s*[\s\S]*?(?=\n\[\[|\n\[[^\[]|$)/g;
+  const cleaned = content.replace(pattern, '').replace(/\n{3,}/g, '\n\n');
+
+  if (crons.length === 0) {
+    return cleaned;
+  }
+
+  const entries = crons
+    .map((cron) => `"${escapeTomlBasicString(cron)}"`)
+    .join(', ');
+  return cleaned.trimEnd().concat(`\n\n[triggers]\ncrons = [${entries}]\n`);
+}
+
+function requiresRemoverCleanupCron(contract, workerSlot) {
+  return (
+    workerSlot === 'public-web' &&
+    contract.bindingRequirements.secrets?.removerCleanup === true
+  );
+}
+
 function assertTemplateContract(content, templatePath) {
   const label = path.relative(rootDir, templatePath) || templatePath;
   const r2Buckets = readArrayTables(content, 'r2_buckets');
   const doBindings = readArrayTables(content, 'durable_objects.bindings');
   const imagesSection = readSection(content, 'images');
   const isStateTemplate = path.basename(templatePath) === STATE_TEMPLATE_NAME;
+  const isPublicWebTemplate =
+    path.basename(templatePath) === PUBLIC_WEB_TEMPLATE_NAME;
+  const isRouterTemplate =
+    path.basename(templatePath) === 'wrangler.cloudflare.toml';
 
   if (!isStateTemplate) {
     if (
@@ -233,9 +312,17 @@ function assertTemplateContract(content, templatePath) {
     throw new Error(`${label} must pin DEPLOY_TARGET = "cloudflare"`);
   }
 
+  if (imagesSection && !isRouterTemplate && !isPublicWebTemplate) {
+    throw new Error(`${label} must not declare [images]`);
+  }
+
   if (imagesSection) {
     if (
-      !hasQuotedValue(imagesSection, /^\s*binding\s*=\s*"([^"\n]+)"/m, 'IMAGES')
+      !hasQuotedValue(
+        imagesSection,
+        /^\s*binding\s*=\s*"([^"\n]+)"/m,
+        REQUIRED_IMAGES_BINDING
+      )
     ) {
       throw new Error(`${label} must declare [images] binding = "IMAGES"`);
     }
@@ -257,6 +344,12 @@ function resolveWorkerContract(contract, workerSlot) {
 function applyWorkerSpecificBindings(content, contract, workerSlot) {
   let nextContent = content;
   const worker = resolveWorkerContract(contract, workerSlot);
+  const requiresWorkersAi =
+    workerSlot === 'public-web' &&
+    contract.bindingRequirements.bindings?.workersAi === true;
+  const cleanupCrons = requiresRemoverCleanupCron(contract, workerSlot)
+    ? [REMOVER_CLEANUP_CRON]
+    : [];
 
   nextContent = replaceQuotedValue(
     nextContent,
@@ -266,12 +359,15 @@ function applyWorkerSpecificBindings(content, contract, workerSlot) {
   );
 
   if (workerSlot === 'router') {
-    nextContent = replaceOrInsertArrayTable(nextContent, 'routes', [
-      {
-        pattern: contract.route.pattern,
-        custom_domain: String(contract.route.customDomain),
-      },
-    ]).replace(/custom_domain = "true"/g, 'custom_domain = true');
+    nextContent =
+      contract.route.mode === 'workers-dev'
+        ? replaceOrInsertArrayTable(nextContent, 'routes', [])
+        : replaceOrInsertArrayTable(nextContent, 'routes', [
+            {
+              pattern: contract.route.pattern,
+              custom_domain: String(contract.route.customDomain),
+            },
+          ]).replace(/custom_domain = "true"/g, 'custom_domain = true');
 
     nextContent = replaceOrInsertArrayTable(
       nextContent,
@@ -289,12 +385,7 @@ function applyWorkerSpecificBindings(content, contract, workerSlot) {
       contract.router.durableObjects
     );
   } else if (workerSlot === 'state') {
-    nextContent = replaceOrInsertArrayTable(nextContent, 'services', [
-      {
-        binding: 'WORKER_SELF_REFERENCE',
-        service: contract.stateWorker.selfReferenceService,
-      },
-    ]);
+    nextContent = replaceOrInsertArrayTable(nextContent, 'services', []);
     nextContent = replaceOrInsertDurableObjectBindings(
       nextContent,
       contract.stateWorker.durableObjects
@@ -304,12 +395,16 @@ function applyWorkerSpecificBindings(content, contract, workerSlot) {
       contract.stateWorker.migrations
     );
   } else {
-    nextContent = replaceOrInsertArrayTable(nextContent, 'services', [
-      {
-        binding: 'WORKER_SELF_REFERENCE',
-        service: contract.workers.router,
-      },
-    ]);
+    nextContent = replaceOrInsertArrayTable(
+      nextContent,
+      'services',
+      workerSlot === 'admin'
+        ? ['public-web', 'auth'].map((target) => ({
+            binding: contract.serverWorkers[target].serviceBinding,
+            service: contract.serverWorkers[target].workerName,
+          }))
+        : []
+    );
     nextContent = replaceOrInsertDurableObjectBindings(
       nextContent,
       contract.router.durableObjects
@@ -336,6 +431,23 @@ function applyWorkerSpecificBindings(content, contract, workerSlot) {
       '[[hyperdrive]].id'
     );
   }
+
+  nextContent = replaceOrInsertImagesBinding(
+    nextContent,
+    workerSlot === 'router' || workerSlot === 'public-web'
+  );
+  nextContent = replaceOrInsertAiBinding(nextContent, requiresWorkersAi);
+  nextContent = replaceOrInsertCronTriggers(nextContent, cleanupCrons);
+  nextContent = upsertTopLevelBooleanValue(
+    nextContent,
+    'workers_dev',
+    workerSlot === 'router' && contract.route.mode === 'workers-dev'
+  );
+  nextContent = upsertTopLevelBooleanValue(
+    nextContent,
+    'preview_urls',
+    workerSlot === 'router' && contract.route.mode === 'workers-dev'
+  );
 
   return nextContent;
 }

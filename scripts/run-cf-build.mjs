@@ -13,6 +13,15 @@ export function buildOpenNextBuildArgs() {
   ];
 }
 
+export function buildMultiBuildCheckArgs(scriptArgs = process.argv.slice(2)) {
+  return [
+    '--import',
+    'tsx',
+    'scripts/run-cf-multi-build-check.mjs',
+    ...scriptArgs,
+  ];
+}
+
 function runCommand(command, args) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
@@ -44,11 +53,7 @@ async function main() {
     'tsx',
     'scripts/bundle-cf-server-functions.mjs',
   ]);
-  await runCommand('node', [
-    '--import',
-    'tsx',
-    'scripts/run-cf-multi-build-check.mjs',
-  ]);
+  await runCommand('node', buildMultiBuildCheckArgs());
 }
 
 if (

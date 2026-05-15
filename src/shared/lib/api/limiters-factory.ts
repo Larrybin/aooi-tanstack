@@ -10,6 +10,8 @@ import {
   AI_QUERY_RATE_LIMIT_CONFIG,
   EMAIL_TEST_QUOTA_LIMIT_CONFIG,
   LimiterBucket,
+  REMOVER_GUEST_JOB_LIMIT_CONFIG,
+  REMOVER_GUEST_UPLOAD_LIMIT_CONFIG,
   SEND_EMAIL_RATE_LIMIT_CONFIG,
   STORAGE_UPLOAD_CONCURRENCY_LIMIT_CONFIG,
   VERIFY_CODE_ATTEMPT_LIMIT_CONFIG,
@@ -93,6 +95,20 @@ function createStoreBackedFactory(
         store,
       });
     },
+    createRemoverGuestUploadLimiter() {
+      return new FixedWindowQuotaLimiter({
+        ...REMOVER_GUEST_UPLOAD_LIMIT_CONFIG,
+        now,
+        store,
+      });
+    },
+    createRemoverGuestJobLimiter() {
+      return new FixedWindowQuotaLimiter({
+        ...REMOVER_GUEST_JOB_LIMIT_CONFIG,
+        now,
+        store,
+      });
+    },
   };
 }
 
@@ -124,6 +140,12 @@ function createCloudflareFactory(
         STORAGE_UPLOAD_CONCURRENCY_LIMIT_CONFIG,
         now
       );
+    },
+    createRemoverGuestUploadLimiter() {
+      return new CloudflareQuotaLimiter(REMOVER_GUEST_UPLOAD_LIMIT_CONFIG, now);
+    },
+    createRemoverGuestJobLimiter() {
+      return new CloudflareQuotaLimiter(REMOVER_GUEST_JOB_LIMIT_CONFIG, now);
     },
   };
 }

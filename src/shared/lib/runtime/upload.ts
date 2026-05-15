@@ -13,14 +13,15 @@ export function isFileUploadValue(value: FormDataEntryValue): value is File {
 
 export async function readUploadRequestInput(
   req: Request,
-  fieldName = 'files'
+  fieldName = 'files',
+  maxBytes = MAX_UPLOAD_REQUEST_BYTES
 ): Promise<{
   runtimePlatform: RuntimePlatform;
   formData: FormData;
   entries: FormDataEntryValue[];
   files: File[];
 }> {
-  const formData = await readRequestFormData(req, MAX_UPLOAD_REQUEST_BYTES);
+  const formData = await readRequestFormData(req, maxBytes);
   const entries = formData.getAll(fieldName);
 
   return {

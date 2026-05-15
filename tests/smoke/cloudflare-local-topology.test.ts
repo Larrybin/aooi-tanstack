@@ -89,8 +89,9 @@ test('prepareCloudflareLocalTopologyArtifacts 会生成 router 和全部 server 
       );
       assert.equal(
         artifacts.wranglerConfigPaths.length,
-        CLOUDFLARE_ALL_SERVER_WORKER_TARGETS.length + 1
+        CLOUDFLARE_ALL_SERVER_WORKER_TARGETS.length + 2
       );
+      assert.equal(artifacts.stateWorker.workerName, 'roller-rabbit-state');
       assert.equal(artifacts.persistDir, path.join(artifacts.tempDir, 'state'));
       await assert.doesNotReject(fs.stat(artifacts.persistDir));
 
@@ -108,6 +109,17 @@ test('prepareCloudflareLocalTopologyArtifacts 会生成 router 和全部 server 
       );
       assert.match(routerConfig, /\[dev\][\s\S]*host = "127\.0\.0\.1"/);
       assert.match(routerConfig, /\[dev\][\s\S]*upstream_protocol = "http"/);
+
+      const stateConfig = await fs.readFile(
+        artifacts.stateWorker.configPath,
+        'utf8'
+      );
+      assert.match(stateConfig, /name = "roller-rabbit-state"/);
+      assert.match(
+        stateConfig,
+        /NEXT_PUBLIC_APP_URL = "http:\/\/127\.0\.0\.1:9787"/
+      );
+      assert.match(stateConfig, /\[dev\][\s\S]*host = "127\.0\.0\.1"/);
 
       for (const worker of artifacts.serverWorkers) {
         const config = await fs.readFile(worker.configPath, 'utf8');
@@ -198,6 +210,11 @@ test('startCloudflareLocalDevTopology 只创建一个 unified manager，并在 s
             baseUrl: 'http://127.0.0.1:8787',
             port: 8787,
           },
+          stateWorker: {
+            label: 'Cloudflare state worker',
+            configPath: '/tmp/state.toml',
+            workerName: 'state',
+          },
           serverWorkers: CLOUDFLARE_ALL_SERVER_WORKER_TARGETS.map((target) => ({
             target,
             label: `Cloudflare server worker ${target}`,
@@ -206,6 +223,7 @@ test('startCloudflareLocalDevTopology 只创建一个 unified manager，并在 s
           })),
           wranglerConfigPaths: [
             '/tmp/router.toml',
+            '/tmp/state.toml',
             ...CLOUDFLARE_ALL_SERVER_WORKER_TARGETS.map(
               (target) => `/tmp/${target}.toml`
             ),
@@ -252,6 +270,7 @@ test('startCloudflareLocalDevTopology 只创建一个 unified manager，并在 s
     'create:Cloudflare local topology',
     `configs:${[
       '/tmp/router.toml',
+      '/tmp/state.toml',
       ...CLOUDFLARE_ALL_SERVER_WORKER_TARGETS.map(
         (target) => `/tmp/${target}.toml`
       ),

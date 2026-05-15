@@ -35,7 +35,7 @@ test('getRequestNamespaces 会按路由收敛服务端消息集', () => {
     'admin.sidebar',
     'admin.settings',
   ]);
-  assert.deepEqual(getRequestNamespaces('/api/payment/checkout'), ['pricing']);
+  assert.deepEqual(getRequestNamespaces('/api/payment/checkout'), []);
 });
 
 test('getRequestNamespaces: admin/settings/activity 分支遵循固定规则优先级', () => {
@@ -93,7 +93,24 @@ test('getScopedMessages 只加载当前请求需要的 namespace', async () => {
 
   assert.equal(typeof messages.common, 'object');
   assert.equal(typeof messages.pricing, 'object');
+  assert.deepEqual(Object.keys(messages.common as object), ['metadata']);
   assert.equal('landing' in messages, false);
   assert.equal('admin' in messages, false);
   assert.equal('settings' in messages, false);
+});
+
+test('getScopedMessages 对同一文件内的 common 子 namespace 做精确裁剪', async () => {
+  const messages = await getScopedMessages('en', ['common.sign']);
+  const common = messages.common as Record<string, unknown>;
+
+  assert.equal(typeof common.sign, 'object');
+  assert.equal('metadata' in common, false);
+  assert.equal('payment' in common, false);
+});
+
+test('getRequestNamespaces: checkout API 不再加载全局 pricing 翻译', () => {
+  assert.equal(
+    getRequestNamespaces('/api/payment/checkout').includes('pricing'),
+    false
+  );
 });

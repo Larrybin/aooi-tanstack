@@ -10,8 +10,9 @@ import type {
   readBillingRuntimeSettingsFresh,
 } from '@/domains/settings/application/settings-runtime.query';
 import type { getPaymentService } from '@/infra/adapters/payment/service';
-import { site } from '@/site';
+import { getRuntimeEnvString } from '@/infra/runtime/env.server';
 
+import { resolveRuntimeAppUrl } from '@/config/runtime-app-url';
 import {
   BadRequestError,
   ForbiddenError,
@@ -161,7 +162,9 @@ export async function confirmPaymentCallbackUseCase(
 async function resolveAppUrl(
   _deps: Pick<PaymentCallbackDeps, 'readBillingRuntimeSettingsCached'>
 ) {
-  return site.brand.appUrl;
+  return resolveRuntimeAppUrl({
+    NEXT_PUBLIC_APP_URL: getRuntimeEnvString('NEXT_PUBLIC_APP_URL'),
+  });
 }
 
 function appendOrderNoToUrl(

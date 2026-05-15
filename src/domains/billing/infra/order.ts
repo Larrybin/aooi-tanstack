@@ -32,7 +32,7 @@ export enum OrderStatus {
   PENDING = 'pending', // order saved, waiting for checkout
   CREATED = 'created', // checkout success
   // final status
-  COMPLETED = 'completed', // checkout completed, but failed
+  COMPLETED = 'completed', // checkout completed
   PAID = 'paid', // order paid success
   FAILED = 'failed', // order paid, but failed
 }

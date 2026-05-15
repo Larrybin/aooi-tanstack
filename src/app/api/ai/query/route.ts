@@ -1,6 +1,9 @@
 import type { createApiContext } from '@/app/api/_lib/context';
 import type { getAIService as getAIServiceFn } from '@/domains/ai/application/service';
-import type { UpdateAITask } from '@/domains/ai/infra/ai-task';
+import type {
+  failAITaskByIdAndRefundCredit,
+  UpdateAITask,
+} from '@/domains/ai/infra/ai-task';
 import type {
   AiProviderBindings,
   AiRuntimeSettings,
@@ -52,6 +55,7 @@ type AiQueryRouteDeps = {
     id: string,
     updateAITask: UpdateAITask
   ) => Promise<unknown>;
+  failAITaskByIdAndRefundCredit: typeof failAITaskByIdAndRefundCredit;
   readAiRuntimeSettings: (
     mode: ConfigConsistencyMode
   ) => Promise<AiRuntimeSettings>;
@@ -91,6 +95,10 @@ function getDefaultAiQueryRouteDeps(): AiQueryRouteDeps {
     updateAITaskById: async (id, updateAITask) => {
       const mod = await import('@/domains/ai/infra/ai-task');
       return await mod.updateAITaskById(id, updateAITask);
+    },
+    failAITaskByIdAndRefundCredit: async (input) => {
+      const mod = await import('@/domains/ai/infra/ai-task');
+      return await mod.failAITaskByIdAndRefundCredit(input);
     },
     readAiRuntimeSettings: async (_mode) => {
       const mod =
@@ -217,7 +225,6 @@ function buildAiQueryPostLogic(overrides: Partial<AiQueryRouteDeps> = {}) {
       status: result.taskStatus,
       taskInfo: nextTaskInfo,
       taskResult: nextTaskResult,
-      creditId: task.creditId, // credit consumption record id
     };
 
     const shouldUpdate =
@@ -226,7 +233,16 @@ function buildAiQueryPostLogic(overrides: Partial<AiQueryRouteDeps> = {}) {
       updateAITask.taskResult !== task.taskResult;
 
     if (shouldUpdate) {
-      await deps.updateAITaskById(task.id, updateAITask);
+      if (updateAITask.status === AITaskStatus.FAILED) {
+        await deps.failAITaskByIdAndRefundCredit({
+          id: task.id,
+          updateAITask,
+          creditId: task.creditId,
+          refundLog: log,
+        });
+      } else {
+        await deps.updateAITaskById(task.id, updateAITask);
+      }
     }
 
     task.status = updateAITask.status || '';

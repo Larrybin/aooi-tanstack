@@ -5,9 +5,14 @@ import {
   readCurrentSiteConfig,
   resolveRequiredSiteKey,
 } from './lib/site-config.mjs';
+import { readCurrentSitePricing } from './lib/site-pricing.mjs';
 
-function toModuleSource(site) {
-  return `export const site = ${JSON.stringify(site, null, 2)} as const;\n`;
+function toModuleSource({ site, sitePricing }) {
+  return [
+    `export const site = ${JSON.stringify(site, null, 2)} as const;`,
+    `export const sitePricing = ${JSON.stringify(sitePricing, null, 2)} as const;`,
+    '',
+  ].join('\n');
 }
 
 async function main() {
@@ -17,9 +22,14 @@ async function main() {
     rootDir: process.cwd(),
     siteKey,
   });
+  const sitePricing = readCurrentSitePricing({
+    rootDir: process.cwd(),
+    site,
+    siteKey,
+  });
 
   await mkdir(dirname(targetPath), { recursive: true });
-  await writeFile(targetPath, toModuleSource(site), 'utf8');
+  await writeFile(targetPath, toModuleSource({ site, sitePricing }), 'utf8');
 
   process.stdout.write(`[site] generated ${siteKey}\n`);
 }

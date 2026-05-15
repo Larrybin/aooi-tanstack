@@ -160,13 +160,18 @@ pnpm rbac:assign -- --email="admin@your-domain.com" --role="super_admin"
 
 ## 功能配置
 
-项目发布上线后，通过 `/admin/settings/*` 进入管理后台按需开启与配置功能。多数第三方集成（支付/邮件/存储/AI/统计等）会写入 `config` 表，而不是放在环境变量里。
+项目发布上线后，通过 `/admin/settings/*` 进入管理后台按需开启功能开关并配置运营值。
+
+判断一个值应该放在哪里时，按这个边界处理：
+
+- Runtime env、secrets、Cloudflare bindings 负责应用接线和凭据。相关 Admin Settings 生效前，先配置这些值：`DATABASE_URL` 或 Hyperdrive、`BETTER_AUTH_SECRET` / `AUTH_SECRET`、OAuth client ID/secret、支付 provider API key/webhook secret、R2 bucket bindings、`STORAGE_PUBLIC_BASE_URL`、Images 和 Workers AI bindings。
+- Admin Settings 保存非 secret 的运营配置与映射：登录方式开关、Google One Tap 开关、Creem environment、Creem product ID 映射、发件邮箱、统计 ID、公开功能开关等。
 
 常见配置入口：
 
 - 登录与三方 OAuth：`/admin/settings/auth`
 - 支付（Stripe/PayPal/Creem）：`/admin/settings/payment`
-- 文件存储（Cloudflare R2）：配置 runtime binding `STORAGE_PUBLIC_BASE_URL`
+- 文件存储（Cloudflare R2）：先通过 runtime 输入配置 R2 bindings 和 `STORAGE_PUBLIC_BASE_URL`，再使用基于存储的上传能力
 - 邮件（Resend）：`/admin/settings/email`
 
 更详细的工程文档见：`docs/guides/*.md`。

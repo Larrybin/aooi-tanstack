@@ -32,3 +32,13 @@ test('PaymentCheckoutBodySchema 接受最小 checkout body', () => {
 
   assert.equal(result.success, true);
 });
+
+test('PaymentCheckoutBodySchema 接受 pricing client 的 checkout body', () => {
+  const result = PaymentCheckoutBodySchema.safeParse({
+    product_id: 'pro-monthly',
+    currency: 'USD',
+    locale: 'en',
+  });
+
+  assert.equal(result.success, true);
+});

@@ -4,10 +4,20 @@ import { defineConfig } from 'drizzle-kit';
 
 import { getTrimmedEnvValue, isProductionEnv } from '@/config/env-contract';
 
+import siteEnvModule from '@/config/site-env.cjs';
+
+const { applySiteLocalEnvOverlay } = siteEnvModule;
+
 function loadDotenvForDrizzleKit() {
   try {
+    const originalEnv = { ...process.env };
     const isDev = !isProductionEnv();
     loadEnvConfig(process.cwd(), isDev);
+    applySiteLocalEnvOverlay({
+      env: process.env,
+      originalEnv,
+      siteKey: process.env.SITE,
+    });
   } catch {
     // optional
   }

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { site } from '@/site';
 
 import {
   getRuntimeEnvString,
@@ -111,8 +112,27 @@ test('getServerRuntimeEnv 会从 runtime env 解析数据库和 auth 配置', ()
     databaseUrl: 'postgres://binding-db',
     dbSingletonEnabled: true,
     authSecret: 'binding-secret',
-    authBaseUrl: 'https://mamamiya.pdfreprinting.net',
+    authBaseUrl: site.brand.appUrl,
   });
+});
+
+test('getServerRuntimeEnv 使用 runtime NEXT_PUBLIC_APP_URL 作为 auth base URL', () => {
+  const runtimeEnv = getServerRuntimeEnv({
+    env: createEnv({
+      DATABASE_PROVIDER: 'postgresql',
+      AUTH_SECRET: 'env-secret',
+    }),
+    bindings: {
+      DATABASE_PROVIDER: 'postgresql',
+      NEXT_PUBLIC_APP_URL:
+        'https://aooi-ai-remover-preview-router.example.workers.dev',
+    } as CloudflareBindings,
+  });
+
+  assert.equal(
+    runtimeEnv.authBaseUrl,
+    'https://aooi-ai-remover-preview-router.example.workers.dev'
+  );
 });
 
 test('Node 运行时不会因为存在 Cloudflare bindings 误判为 Workers', () => {

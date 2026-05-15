@@ -120,6 +120,29 @@ test('resolvePaymentCallbackPricingFallbackUrl 不再读取 settings/env appUrl 
   assert.equal(result, `${site.brand.appUrl}/pricing`);
 });
 
+test('resolvePaymentCallbackPricingFallbackUrl 使用 preview runtime app URL', async () => {
+  const previousAppUrl = process.env.NEXT_PUBLIC_APP_URL;
+  process.env.NEXT_PUBLIC_APP_URL =
+    'https://aooi-ai-remover-preview-router.example.workers.dev';
+
+  try {
+    const result = await resolvePaymentCallbackPricingFallbackUrl({
+      readBillingRuntimeSettingsCached: async () => BILLING_SETTINGS,
+    });
+
+    assert.equal(
+      result,
+      'https://aooi-ai-remover-preview-router.example.workers.dev/pricing'
+    );
+  } finally {
+    if (previousAppUrl === undefined) {
+      delete process.env.NEXT_PUBLIC_APP_URL;
+    } else {
+      process.env.NEXT_PUBLIC_APP_URL = previousAppUrl;
+    }
+  }
+});
+
 test('confirmPaymentCallbackUseCase 覆盖 invalid order 与成功确认支付', async () => {
   await assert.rejects(
     () =>
