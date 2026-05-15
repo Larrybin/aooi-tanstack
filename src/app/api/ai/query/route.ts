@@ -1,10 +1,9 @@
 import type { createApiContext } from '@/app/api/_lib/context';
 import type { getAIService as getAIServiceFn } from '@/domains/ai/application/service';
-import {
-  refundFailedAITaskCredit,
-  type RefundConsumedCreditById,
-} from '@/domains/ai/application/task-credit-refund';
-import type { UpdateAITask } from '@/domains/ai/infra/ai-task';
+import type {
+  failAITaskByIdAndRefundCredit,
+  UpdateAITask,
+} from '@/domains/ai/infra/ai-task';
 import type {
   AiProviderBindings,
   AiRuntimeSettings,
@@ -56,7 +55,7 @@ type AiQueryRouteDeps = {
     id: string,
     updateAITask: UpdateAITask
   ) => Promise<unknown>;
-  refundConsumedCreditById: RefundConsumedCreditById;
+  failAITaskByIdAndRefundCredit: typeof failAITaskByIdAndRefundCredit;
   readAiRuntimeSettings: (
     mode: ConfigConsistencyMode
   ) => Promise<AiRuntimeSettings>;
@@ -97,9 +96,9 @@ function getDefaultAiQueryRouteDeps(): AiQueryRouteDeps {
       const mod = await import('@/domains/ai/infra/ai-task');
       return await mod.updateAITaskById(id, updateAITask);
     },
-    refundConsumedCreditById: async (creditId) => {
-      const mod = await import('@/domains/account/infra/credit');
-      return await mod.refundConsumedCreditById(creditId);
+    failAITaskByIdAndRefundCredit: async (input) => {
+      const mod = await import('@/domains/ai/infra/ai-task');
+      return await mod.failAITaskByIdAndRefundCredit(input);
     },
     readAiRuntimeSettings: async (_mode) => {
       const mod =
@@ -235,12 +234,15 @@ function buildAiQueryPostLogic(overrides: Partial<AiQueryRouteDeps> = {}) {
 
     if (shouldUpdate) {
       if (updateAITask.status === AITaskStatus.FAILED) {
-        await refundFailedAITaskCredit(
-          { taskId: task.id, creditId: task.creditId, log },
-          { refundConsumedCreditById: deps.refundConsumedCreditById }
-        );
+        await deps.failAITaskByIdAndRefundCredit({
+          id: task.id,
+          updateAITask,
+          creditId: task.creditId,
+          refundLog: log,
+        });
+      } else {
+        await deps.updateAITaskById(task.id, updateAITask);
       }
-      await deps.updateAITaskById(task.id, updateAITask);
     }
 
     task.status = updateAITask.status || '';

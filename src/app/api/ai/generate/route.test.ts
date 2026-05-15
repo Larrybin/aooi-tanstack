@@ -87,11 +87,36 @@ function createAiNotifyDeps(secret = '') {
   };
 }
 
-function createAiCreditRefundDeps(refunds: string[] = []) {
+function createAiCreditRefundDeps(
+  refunds: string[] = [],
+  failedUpdates: UpdateAiTaskPatch[] = []
+) {
   return {
-    refundConsumedCreditById: async (creditId: string) => {
-      refunds.push(creditId);
-      return { refunded: true as const };
+    failAITaskByIdAndRefundCredit: async ({
+      id,
+      creditId,
+      updateAITask,
+    }: {
+      id: string;
+      creditId?: string | null;
+      updateAITask: UpdateAiTaskPatch;
+    }) => {
+      if (creditId) {
+        refunds.push(creditId);
+      }
+      failedUpdates.push(updateAITask);
+      return createAiTaskRecord(
+        {
+          id,
+          userId: 'user_1',
+          mediaType: AIMediaType.IMAGE,
+          provider: 'replicate',
+          model: 'google/nano-banana',
+          prompt: 'hello',
+          status: AITaskStatus.PENDING,
+        },
+        updateAITask
+      );
     },
   };
 }
@@ -407,22 +432,10 @@ test('ai/generate provider 抛错时显式退款且失败更新不携带 creditI
     getUuid: () => 'db-task-1',
     createAITask: async (task) =>
       createAiTaskRecord(task, { creditId: 'credit-1' }),
-    updateAITaskById: async (_id, patch) => {
-      updates.push(patch);
-      return createAiTaskRecord(
-        {
-          id: 'db-task-1',
-          userId: 'user_1',
-          mediaType: AIMediaType.IMAGE,
-          provider: 'replicate',
-          model: 'google/nano-banana',
-          prompt: 'hello',
-          status: AITaskStatus.PENDING,
-        },
-        patch
-      );
+    updateAITaskById: async () => {
+      throw new Error('failed tasks should use atomic refund update');
     },
-    ...createAiCreditRefundDeps(refunds),
+    ...createAiCreditRefundDeps(refunds, updates),
     ...createAiNotifyDeps(),
   });
 

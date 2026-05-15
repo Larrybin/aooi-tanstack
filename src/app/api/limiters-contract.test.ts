@@ -307,12 +307,15 @@ test('ai/query provider 返回 failed 时显式退款且更新不携带 creditId
       taskResult: null,
       creditId: 'credit-1',
     }),
-    updateAITaskById: async (_id, update) => {
-      updates.push(update as Record<string, unknown>);
+    updateAITaskById: async () => {
+      throw new Error('failed tasks should use atomic refund update');
     },
-    refundConsumedCreditById: async (creditId) => {
-      refunds.push(creditId);
-      return { refunded: true };
+    failAITaskByIdAndRefundCredit: async ({ updateAITask, creditId }) => {
+      if (creditId) {
+        refunds.push(creditId);
+      }
+      updates.push(updateAITask as Record<string, unknown>);
+      return { id: 'task-1', ...updateAITask } as never;
     },
     readAiRuntimeSettings: async () => ({ aiEnabled: true }),
     readAiProviderBindings: () => ({

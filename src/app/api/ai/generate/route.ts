@@ -1,10 +1,13 @@
 import { createApiContext } from '@/app/api/_lib/context';
 import { requireAiEnabled } from '@/app/api/ai/_lib/guard';
-import { refundConsumedCreditById } from '@/domains/account/infra/credit';
 import { resolveConfiguredAICapability } from '@/domains/ai/application/capabilities';
 import { getAiProviderBindings } from '@/domains/ai/application/provider-bindings';
 import { getAIService } from '@/domains/ai/application/service';
-import { createAITask, updateAITaskById } from '@/domains/ai/infra/ai-task';
+import {
+  createAITask,
+  failAITaskByIdAndRefundCredit,
+  updateAITaskById,
+} from '@/domains/ai/infra/ai-task';
 import { readAiRuntimeSettingsCached } from '@/domains/settings/application/settings-runtime.query';
 
 import { withApi } from '@/shared/lib/api/route';
@@ -26,7 +29,7 @@ export const POST = withApi(
     resolveConfiguredAICapability,
     createAITask,
     updateAITaskById,
-    refundConsumedCreditById,
+    failAITaskByIdAndRefundCredit,
     getUuid,
     getAiNotifyWebhookSecret,
     signAiNotifyCallback,

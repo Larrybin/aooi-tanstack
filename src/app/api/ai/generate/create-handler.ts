@@ -1,12 +1,9 @@
 import type { resolveConfiguredAICapability } from '@/domains/ai/application/capabilities';
 import type { getAiProviderBindings } from '@/domains/ai/application/provider-bindings';
 import type { getAIService } from '@/domains/ai/application/service';
-import {
-  refundFailedAITaskCredit,
-  type RefundConsumedCreditById,
-} from '@/domains/ai/application/task-credit-refund';
 import type {
   createAITask,
+  failAITaskByIdAndRefundCredit,
   NewAITask,
   updateAITaskById,
 } from '@/domains/ai/infra/ai-task';
@@ -62,7 +59,7 @@ export type AiGenerateRouteDeps = {
   resolveConfiguredAICapability: typeof resolveConfiguredAICapability;
   createAITask: typeof createAITask;
   updateAITaskById: typeof updateAITaskById;
-  refundConsumedCreditById: RefundConsumedCreditById;
+  failAITaskByIdAndRefundCredit: typeof failAITaskByIdAndRefundCredit;
   getUuid: typeof getUuid;
   getAiNotifyWebhookSecret: () => string;
   signAiNotifyCallback: (input: {
@@ -161,13 +158,14 @@ export function createAiGeneratePostAction(deps: AiGenerateRouteDeps) {
         dbTaskId: task.id,
         error,
       });
-      await refundFailedAITaskCredit(
-        { taskId: task.id, creditId: task.creditId, log },
-        { refundConsumedCreditById: deps.refundConsumedCreditById }
-      );
-      await deps.updateAITaskById(task.id, {
-        status: AITaskStatus.FAILED,
-        taskInfo: JSON.stringify({ errorMessage: 'ai generate failed' }),
+      await deps.failAITaskByIdAndRefundCredit({
+        id: task.id,
+        creditId: task.creditId,
+        refundLog: log,
+        updateAITask: {
+          status: AITaskStatus.FAILED,
+          taskInfo: JSON.stringify({ errorMessage: 'ai generate failed' }),
+        },
       });
       throw new UpstreamError(502, 'ai generate failed');
     }
@@ -180,13 +178,14 @@ export function createAiGeneratePostAction(deps: AiGenerateRouteDeps) {
         dbTaskId: task.id,
         hasTaskId: Boolean(result?.taskId),
       });
-      await refundFailedAITaskCredit(
-        { taskId: task.id, creditId: task.creditId, log },
-        { refundConsumedCreditById: deps.refundConsumedCreditById }
-      );
-      await deps.updateAITaskById(task.id, {
-        status: AITaskStatus.FAILED,
-        taskInfo: JSON.stringify({ errorMessage: 'ai generate failed' }),
+      await deps.failAITaskByIdAndRefundCredit({
+        id: task.id,
+        creditId: task.creditId,
+        refundLog: log,
+        updateAITask: {
+          status: AITaskStatus.FAILED,
+          taskInfo: JSON.stringify({ errorMessage: 'ai generate failed' }),
+        },
       });
       throw new UpstreamError(502, 'ai generate failed');
     }

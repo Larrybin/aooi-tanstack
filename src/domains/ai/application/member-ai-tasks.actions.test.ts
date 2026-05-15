@@ -1,13 +1,31 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import type { UpdateAITask } from '@/domains/ai/infra/ai-task';
 
 import { refreshMemberAiTaskUseCase } from './member-ai-tasks.actions';
 
-function createTaskCreditDeps(refunds: string[] = []) {
+function createTaskCreditDeps(
+  refunds: string[] = [],
+  failedUpdates: Array<{ id: string; update: Record<string, unknown> }> = []
+) {
   return {
-    refundConsumedCreditById: async (creditId: string) => {
-      refunds.push(creditId);
-      return { refunded: true as const };
+    failAITaskByIdAndRefundCredit: async ({
+      id,
+      updateAITask,
+      creditId,
+    }: {
+      id: string;
+      updateAITask: UpdateAITask;
+      creditId?: string | null;
+    }) => {
+      if (creditId) {
+        refunds.push(creditId);
+      }
+      failedUpdates.push({
+        id,
+        update: updateAITask as Record<string, unknown>,
+      });
+      return { id, ...updateAITask } as never;
     },
     log: {
       error: () => undefined,
@@ -224,7 +242,7 @@ test('refreshMemberAiTaskUseCase 在 provider 失败状态下显式退款且更�
         actorUserId: 'user_1',
       },
       {
-        ...createTaskCreditDeps(refunds),
+        ...createTaskCreditDeps(refunds, updates),
         findAITaskById: async () =>
           ({
             id: 'task_1',
@@ -236,9 +254,8 @@ test('refreshMemberAiTaskUseCase 在 provider 失败状态下显式退款且更�
             taskResult: null,
             creditId: 'credit_1',
           }) as never,
-        updateAITaskById: async (id, update) => {
-          updates.push({ id, update: update as Record<string, unknown> });
-          return { id, ...update } as never;
+        updateAITaskById: async () => {
+          throw new Error('failed tasks should use atomic refund update');
         },
         getProvider: async () =>
           ({

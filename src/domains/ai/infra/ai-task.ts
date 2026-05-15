@@ -25,8 +25,8 @@ export type UpdateAITask = Partial<
   Omit<NewAITask, 'id' | 'createdAt' | 'creditId'>
 >;
 
-type TransitionalUpdateAITask = UpdateAITask & {
-  creditId?: string | null;
+type AiTaskCreditRefundLog = {
+  error: (message: string, meta?: unknown) => void;
 };
 
 export async function createAITask(newAITask: NewAITask) {
@@ -70,34 +70,50 @@ export async function findAITaskById(id: string) {
 }
 
 export async function updateAITaskById(id: string, updateAITask: UpdateAITask) {
-  const result = await db().transaction(async (tx) => {
-    const transitionalCreditId = (updateAITask as TransitionalUpdateAITask)
-      .creditId;
+  const [result] = await db()
+    .update(aiTask)
+    .set(updateAITask)
+    .where(eq(aiTask.id, id))
+    .returning();
 
-    // Transitional fallback for stale untyped callers. New typed callers cannot
-    // pass creditId here; failed-task refunds belong in application orchestration.
-    if (updateAITask.status === AITaskStatus.FAILED && transitionalCreditId) {
-      const refund = await refundConsumedCreditById(transitionalCreditId, tx);
+  return result;
+}
+
+export async function failAITaskByIdAndRefundCredit({
+  id,
+  updateAITask,
+  creditId,
+  refundLog = log,
+}: {
+  id: string;
+  updateAITask: UpdateAITask;
+  creditId?: string | null;
+  refundLog?: AiTaskCreditRefundLog;
+}) {
+  return db().transaction(async (tx) => {
+    const trimmedCreditId = creditId?.trim();
+    if (trimmedCreditId) {
+      const refund = await refundConsumedCreditById(trimmedCreditId, tx);
       if (!refund.refunded && refund.reason === 'invalid_consumed_detail') {
-        log.error('credit: invalid consumedDetail payload, skip refund', {
+        refundLog.error('credit: invalid consumedDetail payload, skip refund', {
           operation: 'refund-failed-task-credit',
           aiTaskId: id,
-          creditId: transitionalCreditId,
+          creditId: trimmedCreditId,
         });
       }
     }
 
-    // update task
     const [result] = await tx
       .update(aiTask)
-      .set(updateAITask)
+      .set({
+        ...updateAITask,
+        status: AITaskStatus.FAILED,
+      })
       .where(eq(aiTask.id, id))
       .returning();
 
     return result;
   });
-
-  return result;
 }
 
 export async function getAITasksCount({
