@@ -33,6 +33,7 @@
     "test:remover-workers-ai-spike": "SITE=ai-remover pnpm cf:build -- --workers=router,public-web && SITE=ai-remover node scripts/run-with-site.mjs node --import tsx scripts/run-remover-workers-ai-spike.mjs",
     "test:r2-upload-spike": "node --test --import tsx \"src/app/api/storage/upload-image/route.test.ts\"",
     "test:coverage": "node scripts/run-with-site.mjs node scripts/run-tests.mjs --coverage",
+    "contract:check": "node scripts/check-saas-product-contract.mjs",
     "lint": "node scripts/run-with-site.mjs pnpm exec eslint . --report-unused-disable-directives",
     "lint:deps": "node scripts/run-with-site.mjs pnpm exec depcruise --config dependency-cruiser.cjs --output-type err-long src cloudflare scripts tests",
     "arch:graph": "pnpm lint:deps",
