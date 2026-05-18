@@ -13,6 +13,10 @@ export type ContractSourceKind =
   | 'product_modules'
   | 'settings_definition'
   | 'runtime_env'
+  | 'billing_domain'
+  | 'billing_application'
+  | 'billing_infra'
+  | 'billing_test'
   | 'derived';
 
 export type ContractIssueLevel = 'blocker' | 'warning';
@@ -93,11 +97,55 @@ export interface RuntimeOwnershipSummary {
   }>;
 }
 
+export type BillingReversalSupportStatus =
+  | 'handled'
+  | 'partially_handled'
+  | 'unsupported'
+  | 'unknown';
+
+export type BillingReversalEffectStatus =
+  | 'changes'
+  | 'no_change'
+  | 'missing'
+  | 'unknown'
+  | 'grants'
+  | 'revokes'
+  | 'downgrades'
+  | 'reverses'
+  | 'refunds'
+  | 'expires'
+  | 'writes_audit'
+  | 'logs_only'
+  | 'explicit'
+  | 'fallback'
+  | 'required'
+  | 'not_required';
+
+export interface BillingReversalEventSummary {
+  eventName: string;
+  representedBy?: string;
+  supportStatus: BillingReversalSupportStatus;
+  sources: ContractSourceRef[];
+  subscriptionStateEffect: BillingReversalEffectStatus;
+  entitlementEffect: BillingReversalEffectStatus;
+  creditEffect: BillingReversalEffectStatus;
+  usageEffect: BillingReversalEffectStatus;
+  auditEffect: BillingReversalEffectStatus;
+  idempotency: BillingReversalEffectStatus;
+  operatorAction: BillingReversalEffectStatus;
+  issues: ContractValidationIssue[];
+}
+
+export interface BillingReversalSummary {
+  events: BillingReversalEventSummary[];
+}
+
 export interface ContractAuditReport {
   site: ContractSection<SiteSummary>;
   commercial: ContractSection<CommercialSummary>;
   entitlementKeys: ContractSection<EntitlementKeySummary>;
   runtimeOwnership: ContractSection<RuntimeOwnershipSummary>;
+  billingReversal: ContractSection<BillingReversalSummary>;
   launch: {
     blockers: ContractValidationIssue[];
     warnings: ContractValidationIssue[];

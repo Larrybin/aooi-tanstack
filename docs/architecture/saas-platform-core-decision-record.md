@@ -2,7 +2,7 @@
 
 Date: 2026-05-18
 
-Status: accepted for stage-one planning
+Status: accepted for staged contract audit work
 
 ## Context
 
@@ -73,7 +73,7 @@ enforcement and metering mechanisms.
 Stage one should define a controlled entitlement vocabulary and allow
 product-specific keys only through explicit namespacing.
 
-### 5. Billing Reversal Must Become Explicit Later
+### 5. Billing Reversal Must Become Explicit After The First Skeleton
 
 Accepted.
 
@@ -87,8 +87,10 @@ adjustments must be described as business events with clear effects:
 - audit record
 - operator action requirement
 
-Scattered one-off refund logic is not a complete platform contract, but billing
-reversal is deferred out of the first Contract Audit Skeleton PR.
+Scattered one-off refund logic is not a complete platform contract. Billing
+reversal is deferred out of the first Contract Audit Skeleton PR, then added as
+a report-only audit section in PR 2. PR 2 must not implement real refund,
+cancel, chargeback, or compensation runtime behavior.
 
 ### 6. Provider/Model Config Is A Later Platform Primitive
 
@@ -169,20 +171,21 @@ until the contract is validated and another product confirms the shared shape.
 ## Deferred Work
 
 1. Usage and credits mapping.
-2. Billing reversal report sections for refunds, cancellations, chargebacks,
-   failed-job compensation, and manual adjustments.
-3. Provider readiness report and ProviderCapabilityMatrix.
+2. Provider readiness report and ProviderCapabilityMatrix.
+3. Runtime billing reversal implementation for refunds, chargebacks,
+   compensation, and entitlement revocation.
 4. Product template generator.
 5. Generic quota or usage table migration.
 
 ## Next Assignment
 
-Implement the first report-only contract pass:
+After the first report-only contract pass, extend the same audit with Billing
+Reversal Report:
 
 ```text
 src/config/saas-product-contract/**
 scripts/check-saas-product-contract.mjs
 ```
 
-The first check should run against `SITE=ai-remover` and must not change runtime
+The check should run against `SITE=ai-remover` and must not change runtime
 behavior.

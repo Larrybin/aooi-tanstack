@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
@@ -19,6 +19,161 @@ async function writeJson(filePath: string, value: unknown) {
 async function writeText(filePath: string, value: string) {
   await mkdir(path.dirname(filePath), { recursive: true });
   await writeFile(filePath, value, 'utf8');
+}
+
+async function writeBillingSourceFiles(rootDir: string) {
+  await writeText(
+    path.join(rootDir, 'src/domains/billing/domain/payment.ts'),
+    [
+      'export enum PaymentEventType {',
+      "  CHECKOUT_SUCCESS = 'checkout.success',",
+      "  PAYMENT_SUCCESS = 'payment.success',",
+      "  PAYMENT_FAILED = 'payment.failed',",
+      "  PAYMENT_REFUNDED = 'payment.refunded',",
+      "  SUBSCRIBE_UPDATED = 'subscribe.updated',",
+      "  SUBSCRIBE_CANCELED = 'subscribe.canceled',",
+      "  UNKNOWN = 'unknown',",
+      '}',
+      'export enum SubscriptionCycleType {',
+      "  RENEWAL = 'renewal',",
+      '}',
+      'export enum SubscriptionStatus {',
+      "  CANCELED = 'canceled',",
+      "  EXPIRED = 'expired',",
+      '}',
+      '',
+    ].join('\n')
+  );
+  await writeText(
+    path.join(
+      rootDir,
+      'src/domains/billing/application/process-payment-notify.ts'
+    ),
+    [
+      "import { PaymentEventType, SubscriptionCycleType } from '../domain/payment';",
+      'import { recordUnknownWebhookEvent } from "../infra/payment-webhook-audit";',
+      'const PAYMENT_NOTIFY_EVENT_HANDLERS = {',
+      '  [PaymentEventType.UNKNOWN]: handleUnknownEvent,',
+      '  [PaymentEventType.CHECKOUT_SUCCESS]: handleCheckoutSuccessEvent,',
+      '  [PaymentEventType.PAYMENT_SUCCESS]: handlePaymentSuccessEvent,',
+      '  [PaymentEventType.SUBSCRIBE_UPDATED]: handleSubscriptionUpdatedEvent,',
+      '  [PaymentEventType.SUBSCRIBE_CANCELED]: handleSubscriptionCanceledEvent,',
+      '};',
+      'function handleUnknownEvent() { recordUnknownWebhookEvent(); }',
+      'function handleCheckoutSuccessEvent() {}',
+      'function handlePaymentSuccessEvent(event) {',
+      '  if (event.subscriptionCycleType === SubscriptionCycleType.RENEWAL) return;',
+      '}',
+      'function handleSubscriptionUpdatedEvent() {}',
+      'function handleSubscriptionCanceledEvent() {}',
+      '',
+    ].join('\n')
+  );
+  await writeText(
+    path.join(rootDir, 'src/domains/billing/application/flows.ts'),
+    [
+      'export function handleCheckoutSuccess() {}',
+      'export function handleSubscriptionUpdated() {}',
+      'export function handleSubscriptionCanceled() {',
+      '  const status = SubscriptionStatus.CANCELED;',
+      '  const canceledEndAt = new Date();',
+      '  return { status, canceledEndAt };',
+      '}',
+      'export function handleSubscriptionRenewal() {}',
+      '',
+    ].join('\n')
+  );
+  await writeText(
+    path.join(
+      rootDir,
+      'src/domains/billing/application/payment-notify-flow.ts'
+    ),
+    [
+      'export function isFinalizedInboxStatus() { return true; }',
+      'export function markPaymentWebhookInboxProcessFailed() {}',
+      '',
+    ].join('\n')
+  );
+  await writeText(
+    path.join(
+      rootDir,
+      'src/domains/billing/application/admin-payment-replay.ts'
+    ),
+    [
+      'export const PaymentReplayActionSchema = { operationKind: true };',
+      'export function executeAdminPaymentReplay() {}',
+      '',
+    ].join('\n')
+  );
+  await writeText(
+    path.join(rootDir, 'src/domains/billing/infra/payment-webhook-inbox.ts'),
+    [
+      'export const rawDigest = "rawDigest";',
+      'export const insert = { onConflictDoNothing: true };',
+      '',
+    ].join('\n')
+  );
+  await writeText(
+    path.join(
+      rootDir,
+      'src/domains/billing/infra/payment-webhook-inbox.shared.ts'
+    ),
+    [
+      'export const PAYMENT_WEBHOOK_OPERATION_KIND = {',
+      "  COMPENSATION: 'compensation',",
+      '};',
+      '',
+    ].join('\n')
+  );
+  await writeText(
+    path.join(rootDir, 'src/domains/billing/infra/payment-webhook-audit.ts'),
+    [
+      'export function recordPaymentWebhookAudit() {}',
+      'export function recordUnknownWebhookEvent() { recordPaymentWebhookAudit(); }',
+      '',
+    ].join('\n')
+  );
+  await writeText(
+    path.join(rootDir, 'src/domains/billing/infra/order.ts'),
+    [
+      'export function updateOrderInTransaction() {}',
+      'export function updateSubscriptionInTransaction() {}',
+      'export function findOrderByTransactionId() {}',
+      'export function findOrderByInvoiceId() {}',
+      'export const lock = "pg_advisory_xact_lock";',
+      '',
+    ].join('\n')
+  );
+  await writeText(
+    path.join(rootDir, 'src/domains/billing/infra/subscription.ts'),
+    [
+      'export function updateSubscriptionBySubscriptionNoIfNotCanceled() {}',
+      'export function updateSubscriptionBySubscriptionNo() {}',
+      'export const canceled = SubscriptionStatus.CANCELED;',
+      '',
+    ].join('\n')
+  );
+  await writeText(
+    path.join(rootDir, 'src/domains/billing/domain/credit.ts'),
+    [
+      'export enum BillingCreditTransactionType {',
+      "  GRANT = 'grant',",
+      '}',
+      'export enum BillingCreditTransactionScene {',
+      "  RENEWAL = 'renewal',",
+      '}',
+      'export function buildGrantCreditForOrder() {}',
+      '',
+    ].join('\n')
+  );
+  await writeText(
+    path.join(rootDir, 'tests/contract/payment-notify.test.ts'),
+    [
+      'test("PAYMENT_FAILED fallback", () => {});',
+      'test("renewal webhook", () => {});',
+      '',
+    ].join('\n')
+  );
 }
 
 async function createFixtureRoot(pricing: unknown) {
@@ -102,6 +257,7 @@ async function createFixtureRoot(pricing: unknown) {
       '',
     ].join('\n')
   );
+  await writeBillingSourceFiles(rootDir);
   return rootDir;
 }
 
@@ -367,6 +523,204 @@ test('contract audit converts site config validation errors into source-mapped b
   assert.match(
     result.stdout,
     /source  site_config:sites\/ai-remover\/site\.config\.json:brand\.logo/
+  );
+  assert.doesNotMatch(result.stderr, /SaaS contract audit failed/);
+});
+
+test('contract audit prints billing reversal event report', async () => {
+  const rootDir = await createFixtureRoot({
+    pricing: {
+      items: [
+        {
+          title: 'Free',
+          product_id: 'free',
+          interval: 'month',
+          amount: 0,
+          currency: 'USD',
+          checkout_enabled: false,
+          entitlements: {
+            low_res_download: true,
+          },
+        },
+      ],
+    },
+  });
+
+  const result = runAudit(rootDir);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Billing reversal:/);
+  assert.match(result.stdout, /checkout\.success: handled/);
+  assert.match(result.stdout, /payment\.refunded: unsupported/);
+  assert.match(result.stdout, /manual compensation: partially_handled/);
+});
+
+test('contract audit reports missing payment failed and refunded handlers with sources', async () => {
+  const rootDir = await createFixtureRoot({
+    pricing: {
+      items: [
+        {
+          title: 'Free',
+          product_id: 'free',
+          interval: 'month',
+          amount: 0,
+          currency: 'USD',
+          checkout_enabled: false,
+          entitlements: {
+            low_res_download: true,
+          },
+        },
+      ],
+    },
+  });
+
+  const result = runAudit(rootDir);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /warning  payment\.failed is canonical/);
+  assert.match(
+    result.stdout,
+    /source  billing_domain:src\/domains\/billing\/domain\/payment\.ts:PaymentEventType\.PAYMENT_FAILED/
+  );
+  assert.match(result.stdout, /warning  payment\.refunded is canonical/);
+  assert.match(
+    result.stdout,
+    /source  billing_application:src\/domains\/billing\/application\/process-payment-notify\.ts:PAYMENT_NOTIFY_EVENT_HANDLERS/
+  );
+});
+
+test('contract audit keeps refund reversal warnings after placeholder handler exists', async () => {
+  const rootDir = await createFixtureRoot({
+    pricing: {
+      items: [
+        {
+          title: 'Free',
+          product_id: 'free',
+          interval: 'month',
+          amount: 0,
+          currency: 'USD',
+          checkout_enabled: false,
+          entitlements: {
+            low_res_download: true,
+          },
+        },
+      ],
+    },
+  });
+  await writeText(
+    path.join(
+      rootDir,
+      'src/domains/billing/application/process-payment-notify.ts'
+    ),
+    [
+      "import { PaymentEventType, SubscriptionCycleType } from '../domain/payment';",
+      'import { recordUnknownWebhookEvent } from "../infra/payment-webhook-audit";',
+      'const PAYMENT_NOTIFY_EVENT_HANDLERS = {',
+      '  [PaymentEventType.UNKNOWN]: handleUnknownEvent,',
+      '  [PaymentEventType.CHECKOUT_SUCCESS]: handleCheckoutSuccessEvent,',
+      '  [PaymentEventType.PAYMENT_SUCCESS]: handlePaymentSuccessEvent,',
+      '  [PaymentEventType.PAYMENT_FAILED]: handlePaymentFailedEvent,',
+      '  [PaymentEventType.PAYMENT_REFUNDED]: handlePaymentRefundedEvent,',
+      '  [PaymentEventType.SUBSCRIBE_UPDATED]: handleSubscriptionUpdatedEvent,',
+      '  [PaymentEventType.SUBSCRIBE_CANCELED]: handleSubscriptionCanceledEvent,',
+      '};',
+      'function handleUnknownEvent() { recordUnknownWebhookEvent(); }',
+      'function handleCheckoutSuccessEvent() {}',
+      'function handlePaymentSuccessEvent(event) {',
+      '  if (event.subscriptionCycleType === SubscriptionCycleType.RENEWAL) return;',
+      '}',
+      'function handlePaymentFailedEvent() {}',
+      'function handlePaymentRefundedEvent() {}',
+      'function handleSubscriptionUpdatedEvent() {}',
+      'function handleSubscriptionCanceledEvent() {}',
+      '',
+    ].join('\n')
+  );
+
+  const result = runAudit(rootDir);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /payment\.failed: handled/);
+  assert.match(result.stdout, /payment\.refunded: partially_handled/);
+  assert.doesNotMatch(result.stdout, /payment\.failed is canonical/);
+  assert.doesNotMatch(result.stdout, /payment\.refunded is canonical/);
+  assert.match(
+    result.stdout,
+    /warning  payment\.refunded has a notify handler but no source-mapped reversal coverage/
+  );
+  assert.match(
+    result.stdout,
+    /source  billing_domain:src\/domains\/billing\/domain\/payment\.ts:PaymentEventType\.PAYMENT_REFUNDED/
+  );
+});
+
+test('contract audit maps renewal to payment success with renewal cycle type', async () => {
+  const rootDir = await createFixtureRoot({
+    pricing: {
+      items: [
+        {
+          title: 'Free',
+          product_id: 'free',
+          interval: 'month',
+          amount: 0,
+          currency: 'USD',
+          checkout_enabled: false,
+          entitlements: {
+            low_res_download: true,
+          },
+        },
+      ],
+    },
+  });
+
+  const result = runAudit(rootDir);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(
+    result.stdout,
+    /subscription\.renewed: handled \(payment\.success \+ SubscriptionCycleType\.RENEWAL\)/
+  );
+  assert.match(
+    result.stdout,
+    /source  billing_domain:src\/domains\/billing\/domain\/payment\.ts:SubscriptionCycleType\.RENEWAL/
+  );
+});
+
+test('contract audit degrades missing billing source files into source-mapped warnings', async () => {
+  const rootDir = await createFixtureRoot({
+    pricing: {
+      items: [
+        {
+          title: 'Free',
+          product_id: 'free',
+          interval: 'month',
+          amount: 0,
+          currency: 'USD',
+          checkout_enabled: false,
+          entitlements: {
+            low_res_download: true,
+          },
+        },
+      ],
+    },
+  });
+  await rm(
+    path.join(
+      rootDir,
+      'src/domains/billing/application/process-payment-notify.ts'
+    )
+  );
+
+  const result = runAudit(rootDir);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(
+    result.stdout,
+    /warning  Billing reversal audit source is missing: payment notify process/
+  );
+  assert.match(
+    result.stdout,
+    /source  billing_application:src\/domains\/billing\/application\/process-payment-notify\.ts/
   );
   assert.doesNotMatch(result.stderr, /SaaS contract audit failed/);
 });

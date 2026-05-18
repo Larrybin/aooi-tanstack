@@ -2,9 +2,10 @@
 
 Date: 2026-05-18
 
-Historical office-hours note. The executable PR 1 scope is superseded by
-`saas-platform-core-contract-implementation-plan.md` and is limited to the
-Contract Audit Skeleton.
+Historical office-hours note. Executable PR scopes are superseded by
+`saas-platform-core-contract-implementation-plan.md`; PR 1 is limited to the
+Contract Audit Skeleton, and PR 2 is limited to the report-only Billing
+Reversal Audit.
 
 ## Goal
 
