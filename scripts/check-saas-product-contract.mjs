@@ -167,6 +167,10 @@ function sourceTextMatches(sourcePath, pattern) {
   return pattern.test(readTextIfExists(sourcePath));
 }
 
+function envContractHasKey(sourcePath, key) {
+  return collectStringLiterals(sourcePath).has(key);
+}
+
 function collectEntitlementKeys(items) {
   const keys = new Set();
   for (const item of items) {
@@ -1363,6 +1367,563 @@ function auditBillingReversal(paths) {
   );
 }
 
+function providerRequirement({ name, owner, status, sources }) {
+  return { name, owner, status, sources };
+}
+
+function providerModel({ modelId, source: modelSource, sources }) {
+  return { modelId, source: modelSource, sources };
+}
+
+function providerFallback({ status, description, sources }) {
+  return { status, description, sources };
+}
+
+function providerReadinessEntry({
+  providerId,
+  sourceOwner,
+  supportStatus,
+  taskMode,
+  inputMedia,
+  inputDetail,
+  outputMedia,
+  defaultModel,
+  modelSource,
+  requiredBindings = [],
+  requiredSecrets = [],
+  requiredVars = [],
+  fallbackPolicy,
+  sources,
+  issues = [],
+}) {
+  return {
+    providerId,
+    sourceOwner,
+    supportStatus,
+    taskMode,
+    inputMedia,
+    inputDetail,
+    outputMedia,
+    defaultModel,
+    modelSource,
+    requiredBindings,
+    requiredSecrets,
+    requiredVars,
+    fallbackPolicy,
+    sources,
+    issues,
+  };
+}
+
+function providerWarning(code, message, sources) {
+  return issue(ISSUE_LEVEL.WARNING, code, message, sources);
+}
+
+function collectMissingProviderSourceIssues(sourceEntries) {
+  return sourceEntries
+    .filter((entry) => !existsSync(entry.path))
+    .map((entry) =>
+      providerWarning(
+        'missing_provider_audit_source',
+        `Provider readiness audit source is missing: ${entry.label}`,
+        [source(entry.kind, entry.path)]
+      )
+    );
+}
+
+function envKeyRequirement({
+  key,
+  owner = 'runtime_owned',
+  envContractPath,
+  usageSource,
+  usageKind = 'provider_application',
+  usageKey = key,
+  bindingDefined = false,
+}) {
+  const inEnvContract = envContractHasKey(envContractPath, key);
+  const hasUsage = usageSource
+    ? sourceTextIncludes(usageSource, key) || bindingDefined
+    : bindingDefined;
+  const status =
+    inEnvContract && hasUsage
+      ? owner === 'runtime_owned'
+        ? 'runtime_owned'
+        : 'binding_defined'
+      : inEnvContract
+        ? 'binding_defined'
+        : 'missing';
+
+  return providerRequirement({
+    name: key,
+    owner,
+    status,
+    sources: [
+      source('runtime_env', envContractPath, key),
+      usageSource ? source(usageKind, usageSource, usageKey) : undefined,
+    ].filter(Boolean),
+  });
+}
+
+function providerRegistrationStatus(servicePath, providerClassName) {
+  return sourceTextIncludes(servicePath, providerClassName) &&
+    sourceTextIncludes(servicePath, 'registry.addUnique')
+    ? 'partial'
+    : 'missing';
+}
+
+function providerEntryIssueForMissingRegistration({
+  providerId,
+  bindingPath,
+  servicePath,
+  key,
+}) {
+  return providerWarning(
+    'provider_registration_missing',
+    `Provider ${providerId} has binding definitions but no registered provider implementation`,
+    [
+      source('provider_application', bindingPath, key),
+      source('provider_application', servicePath, 'getAIService'),
+    ]
+  );
+}
+
+function auditProviderReadiness({
+  paths,
+  deploySettings,
+  deploySettingsPath,
+  envContractPath,
+}) {
+  const sourceIssues = collectMissingProviderSourceIssues([
+    {
+      label: 'AI Remover provider adapter',
+      kind: 'provider_route',
+      path: paths.removerProviderAdapter,
+    },
+    {
+      label: 'AI Remover provider domain',
+      kind: 'provider_domain',
+      path: paths.removerProvider,
+    },
+    {
+      label: 'AI service registration',
+      kind: 'provider_application',
+      path: paths.aiService,
+    },
+    {
+      label: 'AI provider bindings',
+      kind: 'provider_application',
+      path: paths.providerBindings,
+    },
+    {
+      label: 'AI settings runtime contracts',
+      kind: 'provider_application',
+      path: paths.settingsRuntimeContracts,
+    },
+    {
+      label: 'AI extension provider exports',
+      kind: 'provider_extension',
+      path: paths.aiProviders,
+    },
+    {
+      label: 'Kie provider',
+      kind: 'provider_extension',
+      path: paths.kieProvider,
+    },
+    {
+      label: 'Replicate provider',
+      kind: 'provider_extension',
+      path: paths.replicateProvider,
+    },
+    {
+      label: 'runtime env helpers',
+      kind: 'provider_runtime',
+      path: paths.runtimeEnv,
+    },
+    {
+      label: 'AI notify route',
+      kind: 'provider_route',
+      path: paths.aiNotifyRoute,
+    },
+    {
+      label: 'AI notify signature',
+      kind: 'provider_route',
+      path: paths.aiNotifySignature,
+    },
+    {
+      label: 'AI generate handler',
+      kind: 'provider_route',
+      path: paths.aiGenerateHandler,
+    },
+  ]);
+
+  const selectedProviderDefaulted =
+    sourceTextIncludes(paths.removerProviderAdapter, 'REMOVER_AI_PROVIDER') &&
+    sourceTextIncludes(
+      paths.removerProviderAdapter,
+      'CLOUDFLARE_WORKERS_AI_PROVIDER'
+    );
+  const selectedModelDefaulted =
+    sourceTextIncludes(paths.removerProviderAdapter, 'REMOVER_AI_MODEL') &&
+    sourceTextIncludes(
+      paths.removerProvider,
+      'DEFAULT_CLOUDFLARE_INPAINTING_MODEL'
+    );
+  const workersAiBindingReady =
+    deployRequirementStatus(deploySettings, 'bindings', 'workersAi') ===
+      'runtime_owned' &&
+    sourceTextIncludes(paths.runtimeEnv, 'getCloudflareAIBinding') &&
+    sourceTextIncludes(paths.removerProviderAdapter, 'getCloudflareAIBinding');
+  const workersAiSync =
+    sourceTextIncludes(paths.removerProvider, 'ai.run') &&
+    sourceTextIncludes(
+      paths.removerProvider,
+      'Workers AI remover tasks complete during submit'
+    );
+  const notifyRouteAvailable =
+    sourceTextIncludes(paths.aiNotifyRoute, 'POST') &&
+    sourceTextIncludes(paths.aiNotifySignature, 'AI_NOTIFY_WEBHOOK_SECRET') &&
+    sourceTextIncludes(paths.aiGenerateHandler, '/api/ai/notify/');
+
+  const selectedProductProvider = providerModel({
+    modelId: 'cloudflare-workers-ai',
+    source: selectedProviderDefaulted ? 'defaulted' : 'unknown',
+    sources: [
+      source(
+        'provider_route',
+        paths.removerProviderAdapter,
+        'REMOVER_AI_PROVIDER'
+      ),
+      source(
+        'provider_domain',
+        paths.removerProvider,
+        'CLOUDFLARE_WORKERS_AI_PROVIDER'
+      ),
+    ],
+  });
+  const selectedProductModel = providerModel({
+    modelId: '@cf/runwayml/stable-diffusion-v1-5-inpainting',
+    source: selectedModelDefaulted ? 'defaulted' : 'unknown',
+    sources: [
+      source(
+        'provider_route',
+        paths.removerProviderAdapter,
+        'REMOVER_AI_MODEL'
+      ),
+      source(
+        'provider_domain',
+        paths.removerProvider,
+        'DEFAULT_CLOUDFLARE_INPAINTING_MODEL'
+      ),
+    ],
+  });
+
+  const removerProviderVar = envKeyRequirement({
+    key: 'REMOVER_AI_PROVIDER',
+    envContractPath,
+    usageSource: paths.removerProviderAdapter,
+    usageKind: 'provider_route',
+  });
+  const removerModelVar = envKeyRequirement({
+    key: 'REMOVER_AI_MODEL',
+    envContractPath,
+    usageSource: paths.removerProviderAdapter,
+    usageKind: 'provider_route',
+  });
+  const workersAiBinding = providerRequirement({
+    name: 'workersAi',
+    owner: 'runtime_owned',
+    status: workersAiBindingReady ? 'runtime_owned' : 'missing',
+    sources: [
+      source('deploy_settings', deploySettingsPath, 'bindings.workersAi'),
+      source('provider_runtime', paths.runtimeEnv, 'getCloudflareAIBinding'),
+      source(
+        'provider_route',
+        paths.removerProviderAdapter,
+        'getCloudflareAIBinding'
+      ),
+    ],
+  });
+  const notifySecret = envKeyRequirement({
+    key: 'AI_NOTIFY_WEBHOOK_SECRET',
+    envContractPath,
+    usageSource: paths.aiNotifySignature,
+    usageKind: 'provider_route',
+  });
+
+  const cloudflareIssues = [
+    workersAiBinding.status === 'missing'
+      ? providerWarning(
+          'workers_ai_binding_missing',
+          'Cloudflare Workers AI provider requires the workersAi binding',
+          workersAiBinding.sources
+        )
+      : undefined,
+    providerWarning(
+      'provider_fallback_policy_missing',
+      'Provider fallback policy is limited to defaulting REMOVER_AI_PROVIDER to cloudflare-workers-ai; no cross-provider fallback is source-mapped',
+      [
+        source(
+          'provider_route',
+          paths.removerProviderAdapter,
+          'CLOUDFLARE_WORKERS_AI_PROVIDER'
+        ),
+      ]
+    ),
+  ].filter(Boolean);
+
+  const kieSecret = envKeyRequirement({
+    key: 'KIE_API_KEY',
+    envContractPath,
+    usageSource: paths.providerBindings,
+  });
+  const replicateSecret = envKeyRequirement({
+    key: 'REPLICATE_API_TOKEN',
+    envContractPath,
+    usageSource: paths.providerBindings,
+  });
+  const openrouterSecret = envKeyRequirement({
+    key: 'OPENROUTER_API_KEY',
+    owner: 'unknown',
+    envContractPath,
+    usageSource: paths.providerBindings,
+  });
+  const falSecret = envKeyRequirement({
+    key: 'FAL_API_KEY',
+    owner: 'unknown',
+    envContractPath,
+    usageSource: paths.providerBindings,
+  });
+
+  const kieRegistration = providerRegistrationStatus(
+    paths.aiService,
+    'KieProvider'
+  );
+  const replicateRegistration = providerRegistrationStatus(
+    paths.aiService,
+    'ReplicateProvider'
+  );
+  const openrouterRegistration = providerRegistrationStatus(
+    paths.aiService,
+    'OpenRouter'
+  );
+  const falRegistration = providerRegistrationStatus(paths.aiService, 'Fal');
+
+  const entries = [
+    providerReadinessEntry({
+      providerId: 'cloudflare-workers-ai',
+      sourceOwner: 'product_owned',
+      supportStatus:
+        workersAiBindingReady && workersAiSync ? 'ready' : 'partial',
+      taskMode: workersAiSync ? 'sync' : 'unknown',
+      inputMedia: ['image'],
+      inputDetail: 'image+mask',
+      outputMedia: ['image'],
+      defaultModel: selectedProductModel,
+      modelSource: selectedProductModel,
+      requiredBindings: [workersAiBinding],
+      requiredSecrets: [],
+      requiredVars: [removerProviderVar, removerModelVar],
+      fallbackPolicy: providerFallback({
+        status: selectedProviderDefaulted ? 'explicit_default' : 'unknown',
+        description:
+          'REMOVER_AI_PROVIDER defaults to cloudflare-workers-ai; cross-provider fallback is not source-mapped',
+        sources: [
+          source(
+            'provider_route',
+            paths.removerProviderAdapter,
+            'CLOUDFLARE_WORKERS_AI_PROVIDER'
+          ),
+        ],
+      }),
+      sources: [
+        source('provider_domain', paths.removerProvider),
+        source('provider_route', paths.removerProviderAdapter),
+        source('provider_runtime', paths.runtimeEnv),
+        source('deploy_settings', deploySettingsPath, 'bindings.workersAi'),
+      ],
+      issues: cloudflareIssues,
+    }),
+    providerReadinessEntry({
+      providerId: 'kie',
+      sourceOwner: 'platform',
+      supportStatus: kieRegistration === 'partial' ? 'partial' : 'missing',
+      taskMode: 'async',
+      inputMedia: ['audio'],
+      outputMedia: ['audio'],
+      requiredBindings: [],
+      requiredSecrets: [kieSecret],
+      requiredVars: [],
+      fallbackPolicy: providerFallback({
+        status: 'missing',
+        description: 'No fallback policy is source-mapped for Kie',
+        sources: [
+          source('provider_application', paths.aiService, 'getAIService'),
+        ],
+      }),
+      sources: [
+        source('provider_application', paths.aiService, 'KieProvider'),
+        source('provider_extension', paths.kieProvider, 'KieProvider'),
+        source('provider_application', paths.providerBindings, 'KIE_API_KEY'),
+      ],
+      issues: [],
+    }),
+    providerReadinessEntry({
+      providerId: 'replicate',
+      sourceOwner: 'platform',
+      supportStatus:
+        replicateRegistration === 'partial' ? 'partial' : 'missing',
+      taskMode: notifyRouteAvailable ? 'async' : 'mixed',
+      inputMedia: ['text', 'image'],
+      outputMedia: ['image'],
+      requiredBindings: [],
+      requiredSecrets: [replicateSecret, notifySecret],
+      requiredVars: [],
+      fallbackPolicy: providerFallback({
+        status: 'missing',
+        description: 'No fallback policy is source-mapped for Replicate',
+        sources: [
+          source('provider_application', paths.aiService, 'getAIService'),
+        ],
+      }),
+      sources: [
+        source('provider_application', paths.aiService, 'ReplicateProvider'),
+        source(
+          'provider_extension',
+          paths.replicateProvider,
+          'ReplicateProvider'
+        ),
+        source(
+          'provider_application',
+          paths.providerBindings,
+          'REPLICATE_API_TOKEN'
+        ),
+        source('provider_route', paths.aiNotifyRoute, 'POST'),
+      ],
+      issues: [],
+    }),
+    providerReadinessEntry({
+      providerId: 'openrouter',
+      sourceOwner: 'platform',
+      supportStatus:
+        openrouterSecret.status !== 'missing' &&
+        openrouterRegistration === 'missing'
+          ? 'partial'
+          : openrouterRegistration,
+      taskMode: 'unknown',
+      inputMedia: ['unknown'],
+      outputMedia: ['unknown'],
+      requiredBindings: [],
+      requiredSecrets: [openrouterSecret],
+      requiredVars: [],
+      fallbackPolicy: providerFallback({
+        status: 'missing',
+        description: 'No fallback policy is source-mapped for OpenRouter',
+        sources: [
+          source('provider_application', paths.aiService, 'getAIService'),
+        ],
+      }),
+      sources: [
+        source(
+          'provider_application',
+          paths.providerBindings,
+          'OPENROUTER_API_KEY'
+        ),
+        source(
+          'provider_application',
+          paths.settingsRuntimeContracts,
+          'openrouterApiKey'
+        ),
+        source('provider_application', paths.aiService, 'getAIService'),
+      ],
+      issues:
+        openrouterSecret.status !== 'missing' &&
+        openrouterRegistration === 'missing'
+          ? [
+              providerEntryIssueForMissingRegistration({
+                providerId: 'openrouter',
+                bindingPath: paths.providerBindings,
+                servicePath: paths.aiService,
+                key: 'OPENROUTER_API_KEY',
+              }),
+            ]
+          : [],
+    }),
+    providerReadinessEntry({
+      providerId: 'fal',
+      sourceOwner: 'platform',
+      supportStatus:
+        falSecret.status !== 'missing' && falRegistration === 'missing'
+          ? 'partial'
+          : falRegistration,
+      taskMode: 'unknown',
+      inputMedia: ['unknown'],
+      outputMedia: ['unknown'],
+      requiredBindings: [],
+      requiredSecrets: [falSecret],
+      requiredVars: [],
+      fallbackPolicy: providerFallback({
+        status: 'missing',
+        description: 'No fallback policy is source-mapped for Fal',
+        sources: [
+          source('provider_application', paths.aiService, 'getAIService'),
+        ],
+      }),
+      sources: [
+        source('provider_application', paths.providerBindings, 'FAL_API_KEY'),
+        source(
+          'provider_application',
+          paths.settingsRuntimeContracts,
+          'falApiKey'
+        ),
+        source('provider_application', paths.aiService, 'getAIService'),
+      ],
+      issues:
+        falSecret.status !== 'missing' && falRegistration === 'missing'
+          ? [
+              providerEntryIssueForMissingRegistration({
+                providerId: 'fal',
+                bindingPath: paths.providerBindings,
+                servicePath: paths.aiService,
+                key: 'FAL_API_KEY',
+              }),
+            ]
+          : [],
+    }),
+  ];
+
+  const missingRuntimeRequirements = entries.flatMap((entry) =>
+    [
+      ...entry.requiredBindings,
+      ...entry.requiredSecrets,
+      ...entry.requiredVars,
+    ].filter((requirement) => requirement.status === 'missing')
+  );
+  const entryIssues = entries.flatMap((entry) => entry.issues);
+  const warnings = [...sourceIssues, ...entryIssues];
+
+  return section(
+    warnings.length === 0 && missingRuntimeRequirements.length === 0
+      ? 'resolved'
+      : 'partial',
+    {
+      selectedProductProvider,
+      selectedProductModel,
+      providers: entries,
+      missingRuntimeRequirements,
+      warnings,
+    },
+    [
+      source('provider_route', paths.removerProviderAdapter),
+      source('provider_domain', paths.removerProvider),
+      source('provider_application', paths.aiService),
+      source('provider_application', paths.providerBindings),
+      source('provider_runtime', paths.runtimeEnv),
+      source('deploy_settings', deploySettingsPath, 'bindings.workersAi'),
+    ],
+    warnings
+  );
+}
+
 function collectLaunch(report) {
   const issues = [
     report.site,
@@ -1370,6 +1931,7 @@ function collectLaunch(report) {
     report.entitlementKeys,
     report.runtimeOwnership,
     report.billingReversal,
+    report.providerReadiness,
   ].flatMap((item) => item.issues);
 
   return {
@@ -1436,6 +1998,41 @@ function buildAuditReport(siteKey) {
       'tests/contract/payment-notify.test.ts'
     ),
   };
+  const providerPaths = {
+    removerProvider: path.resolve(
+      ROOT_DIR,
+      'src/domains/remover/application/provider.ts'
+    ),
+    removerProviderAdapter: path.resolve(
+      ROOT_DIR,
+      'src/app/api/remover/provider-adapter.server.ts'
+    ),
+    aiService: path.resolve(ROOT_DIR, 'src/domains/ai/application/service.ts'),
+    providerBindings: path.resolve(
+      ROOT_DIR,
+      'src/domains/ai/application/provider-bindings.ts'
+    ),
+    settingsRuntimeContracts: path.resolve(
+      ROOT_DIR,
+      'src/domains/settings/application/settings-runtime.contracts.ts'
+    ),
+    aiProviders: path.resolve(ROOT_DIR, 'src/extensions/ai/providers.ts'),
+    kieProvider: path.resolve(ROOT_DIR, 'src/extensions/ai/kie.ts'),
+    replicateProvider: path.resolve(ROOT_DIR, 'src/extensions/ai/replicate.ts'),
+    runtimeEnv: path.resolve(ROOT_DIR, 'src/infra/runtime/env.server.ts'),
+    aiNotifyRoute: path.resolve(
+      ROOT_DIR,
+      'src/app/api/ai/notify/[provider]/route.ts'
+    ),
+    aiNotifySignature: path.resolve(
+      ROOT_DIR,
+      'src/app/api/ai/notify/signature.ts'
+    ),
+    aiGenerateHandler: path.resolve(
+      ROOT_DIR,
+      'src/app/api/ai/generate/create-handler.ts'
+    ),
+  };
 
   const { site, issues: siteIssues } = readSiteForReport({
     rootDir: ROOT_DIR,
@@ -1476,6 +2073,12 @@ function buildAuditReport(siteKey) {
       envContractPath,
     }),
     billingReversal: auditBillingReversal(billingPaths),
+    providerReadiness: auditProviderReadiness({
+      paths: providerPaths,
+      deploySettings,
+      deploySettingsPath,
+      envContractPath,
+    }),
   };
 
   return {
@@ -1514,11 +2117,23 @@ function formatSectionSources(label, sources) {
   return `  ${label}: ${refs}`;
 }
 
+function formatRequirement(prefix, requirement) {
+  return `    ${prefix}=${requirement.name} ${requirement.status}`;
+}
+
+function appendRequirement(lines, prefix, requirement) {
+  lines.push(formatRequirement(prefix, requirement));
+  for (const requirementSource of requirement.sources) {
+    lines.push(`      source  ${formatSourceRef(requirementSource)}`);
+  }
+}
+
 function formatAuditReport(report) {
   const siteValue = report.site.value;
   const commercialValue = report.commercial.value;
   const entitlementKeys = report.entitlementKeys.value.keys;
   const runtimeFields = report.runtimeOwnership.value.fields;
+  const providerReadiness = report.providerReadiness.value;
   const lines = [
     'SaaS Contract Audit',
     '',
@@ -1561,6 +2176,47 @@ function formatAuditReport(report) {
     }
   }
 
+  lines.push('', 'Provider readiness:');
+  lines.push(
+    `  selected provider: ${providerReadiness.selectedProductProvider.modelId} (${providerReadiness.selectedProductProvider.source})`
+  );
+  for (const providerSource of providerReadiness.selectedProductProvider
+    .sources) {
+    lines.push(`    source  ${formatSourceRef(providerSource)}`);
+  }
+  lines.push(
+    `  selected model: ${providerReadiness.selectedProductModel.modelId} (${providerReadiness.selectedProductModel.source})`
+  );
+  for (const modelSource of providerReadiness.selectedProductModel.sources) {
+    lines.push(`    source  ${formatSourceRef(modelSource)}`);
+  }
+  for (const provider of providerReadiness.providers) {
+    const input =
+      provider.inputDetail ?? provider.inputMedia.filter(Boolean).join('+');
+    lines.push(
+      `  ${provider.providerId}: ${provider.supportStatus} (${provider.sourceOwner})`
+    );
+    lines.push(
+      `    taskMode=${provider.taskMode} input=${input} output=${provider.outputMedia.join('+')}`
+    );
+    if (provider.defaultModel) {
+      lines.push(`    defaultModel=${provider.defaultModel.modelId}`);
+    }
+    for (const requirement of provider.requiredBindings) {
+      appendRequirement(lines, 'binding', requirement);
+    }
+    for (const requirement of provider.requiredSecrets) {
+      appendRequirement(lines, 'secret', requirement);
+    }
+    for (const requirement of provider.requiredVars) {
+      appendRequirement(lines, 'var', requirement);
+    }
+    lines.push(`    fallback=${provider.fallbackPolicy.status}`);
+    for (const providerSource of provider.sources) {
+      lines.push(`    source  ${formatSourceRef(providerSource)}`);
+    }
+  }
+
   lines.push('', 'Sources:');
   lines.push(formatSectionSources('site', report.site.sources));
   lines.push(formatSectionSources('commercial', report.commercial.sources));
@@ -1572,6 +2228,9 @@ function formatAuditReport(report) {
   );
   lines.push(
     formatSectionSources('billing reversal', report.billingReversal.sources)
+  );
+  lines.push(
+    formatSectionSources('provider readiness', report.providerReadiness.sources)
   );
 
   lines.push(

@@ -7,7 +7,7 @@ Date: 2026-05-18
 Implement the smallest useful contract audit for `aooi`: a source-mapped,
 report-only check that proves whether one site can safely resolve its site
 identity, pricing, plan entitlements, runtime-owned commercial settings, and
-billing reversal readiness.
+billing/provider readiness.
 
 This replaces the broader SaaS Platform Core Contract plan. It must not create
 a full platform contract runtime.
@@ -24,13 +24,22 @@ PR 1 covered:
 6. Launch blockers and warnings.
 7. CLI report for `SITE=ai-remover`.
 
-PR 2 only adds:
+PR 2 covered:
 
 1. Source-mapped Billing Reversal Report section.
 2. Static audit of existing payment notify, webhook inbox, subscription, order,
    credit, and replay sources.
 3. Launch warnings for missing refund, chargeback, expiration, and manual
    compensation contracts.
+
+PR 3 only adds:
+
+1. Source-mapped Provider Readiness Report section.
+2. Static audit of existing AI Remover provider selection, model defaults,
+   Workers AI binding requirements, generic AI provider registration, expected
+   env keys, notify route availability, task mode, and fallback evidence.
+3. Launch warnings for missing provider registration or implicit fallback
+   policy.
 
 Everything else is deferred.
 
@@ -39,12 +48,17 @@ Everything else is deferred.
 - No `UsageContract`.
 - No `CreditsContract`.
 - No `ProviderCapabilityMatrix`.
+- No provider marketplace.
+- No plan-to-provider access policy.
+- No entitlement-to-provider policy.
 - No product template generator.
 - No generic quota table.
 - No Admin pricing or entitlement editor.
 - No real refund, cancel, chargeback, or compensation runtime.
 - No Admin compensation UI.
 - No database schema or migration change.
+- No provider fallback runtime.
+- No new provider adapter.
 - No AI Remover runtime refactor.
 - No changes to runtime routes, webhook handlers, database write paths, billing
   flows, quota reservation paths, or AI provider invocation paths.
@@ -94,6 +108,12 @@ type ContractSourceKind =
   | 'billing_application'
   | 'billing_infra'
   | 'billing_test'
+  | 'provider_route'
+  | 'provider_application'
+  | 'provider_domain'
+  | 'provider_extension'
+  | 'provider_runtime'
+  | 'provider_test'
   | 'derived';
 
 type ContractSection<T> = {
@@ -119,6 +139,7 @@ type ContractAuditReport = {
   entitlementKeys: ContractSection<EntitlementKeySummary>;
   runtimeOwnership: ContractSection<RuntimeOwnershipSummary>;
   billingReversal: ContractSection<BillingReversalSummary>;
+  providerReadiness: ContractSection<ProviderReadinessSummary>;
   launch: {
     blockers: ContractValidationIssue[];
     warnings: ContractValidationIssue[];
@@ -244,6 +265,36 @@ Rules:
 - The audit must not execute webhooks, call payment providers, read secrets, or
   connect to the database.
 
+## PR 3 Provider Readiness Report
+
+The Provider Readiness section is a source-mapped technical audit, not a
+`ProviderCapabilityMatrix`, marketplace, fallback runtime, or commercial access
+policy.
+
+It audits:
+
+1. AI Remover selected provider from `REMOVER_AI_PROVIDER`, including the
+   `cloudflare-workers-ai` default.
+2. AI Remover selected model from `REMOVER_AI_MODEL`, including
+   `DEFAULT_CLOUDFLARE_INPAINTING_MODEL`.
+3. Cloudflare Workers AI binding readiness from
+   `sites/ai-remover/deploy.settings.json` and `getCloudflareAIBinding()`.
+4. Workers AI task mode, input/output media, and inpainting default model.
+5. Generic AI provider registration for Kie and Replicate.
+6. Binding-defined but unregistered OpenRouter and Fal provider evidence.
+7. Expected env/secret keys by name only, without reading or printing values.
+8. AI notify route availability for generic async providers.
+9. Fallback evidence, limited to explicit provider defaulting when source-mapped.
+
+Rules:
+
+- Plan access policy remains out of scope.
+- Missing provider source files should degrade into source-mapped issues when
+  possible.
+- The audit must not import server-only runtime modules, execute provider code,
+  call Cloudflare, call external providers, read secret values, or connect to
+  the database.
+
 ## CLI
 
 Expected usage:
@@ -278,6 +329,21 @@ Billing reversal:
   refund after usage consumed: unsupported
   manual compensation: partially_handled
 
+Provider readiness:
+  selected provider: cloudflare-workers-ai (defaulted)
+  selected model: @cf/runwayml/stable-diffusion-v1-5-inpainting (defaulted)
+  cloudflare-workers-ai: ready
+    taskMode=sync input=image+mask output=image
+    binding=workersAi runtime_owned
+  kie: partial
+    secret=KIE_API_KEY runtime_owned
+  replicate: partial
+    secret=REPLICATE_API_TOKEN runtime_owned
+  openrouter: partial
+    secret=OPENROUTER_API_KEY binding_defined
+  fal: partial
+    secret=FAL_API_KEY binding_defined
+
 Launch blockers:
   none
 ```
@@ -301,7 +367,14 @@ For `SITE=ai-remover`:
 9. Billing reversal events are listed with status and source refs.
 10. `payment.failed`, `payment.refunded`, chargeback, partial refund, refund
     after usage consumed, and manual compensation are not silently ignored.
-11. No runtime route, webhook handler, database write path, billing flow, quota
+11. Provider readiness entries are listed with status and source refs.
+12. Selected provider and model are source-mapped.
+13. Workers AI binding readiness is source-mapped from deploy settings and
+    runtime usage.
+14. Kie, Replicate, OpenRouter, and Fal readiness are classified from existing
+    source evidence.
+15. Plan access policy is explicitly not included.
+16. No runtime route, webhook handler, database write path, billing flow, quota
     reservation path, or AI provider invocation path is modified.
 
 ## Verification Commands
@@ -315,26 +388,13 @@ SITE=ai-remover node scripts/check-saas-product-contract.mjs
 SITE=ai-remover pnpm contract:check
 pnpm exec eslint scripts/check-saas-product-contract.mjs scripts/check-saas-product-contract.test.ts src/config/saas-product-contract/types.ts src/config/saas-product-contract/index.ts --report-unused-disable-directives
 pnpm test src/config/product-modules/index.test.ts src/config/product-modules/doc-links.test.ts
+git diff --name-only -- src/app/api/remover src/domains/remover src/domains/ai src/extensions/ai src/infra/adapters/ai src/config/db
 ```
 
 Do not run `run-with-site` commands in parallel because they generate
 `.generated/site.ts`.
 
 ## Deferred Work
-
-### PR 3: Provider Readiness Report
-
-Audit provider technical readiness only:
-
-- required env
-- required bindings
-- required secrets
-- supported models
-- sync/async mode
-- fallback availability
-
-Plan access policy remains in commercial/entitlement rules, not provider
-technical capability.
 
 ### PR 4: Usage/Credits Mapping
 
@@ -343,7 +403,7 @@ Map existing credit ledger and AI Remover quota reservation semantics.
 Do not migrate to a generic usage table until a second real product proves the
 shared shape.
 
-## PR 2 Boundary
+## PR 3 Boundary
 
 Files likely in scope:
 
@@ -353,20 +413,21 @@ scripts/check-saas-product-contract.mjs
 scripts/check-saas-product-contract.test.ts
 docs/guides/saas-product-contract.md
 docs/architecture/saas-platform-core-contract-implementation-plan.md
+docs/architecture/saas-platform-core-decision-record.md
 ```
 
 Files out of scope for behavior changes:
 
 ```text
 src/app/api/**
-src/domains/billing/application/**
-src/domains/billing/infra/**
-src/domains/billing/domain/**
+src/domains/billing/**
 src/domains/remover/**
+src/domains/ai/**
+src/extensions/ai/**
 src/infra/adapters/payment/**
 src/infra/adapters/ai/**
 src/config/db/**
 ```
 
-These billing runtime files may be read for static source mapping, but PR 2 must
-not change their behavior.
+These billing, remover, and provider runtime files may be read for static source
+mapping, but PR 3 must not change their behavior.

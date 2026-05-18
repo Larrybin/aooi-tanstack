@@ -96,12 +96,18 @@ cancel, chargeback, or compensation runtime behavior.
 
 Accepted.
 
-The platform should describe provider capabilities, required bindings/secrets,
-models, cost mapping, task mode, and plan access policy.
+The platform should eventually describe provider capabilities, required
+bindings/secrets, models, cost mapping, task mode, and plan access policy.
 
 Product prompts, masks, transforms, editors, and workflow-specific parameters
-remain product code. Provider readiness is deferred out of the first Contract
-Audit Skeleton PR.
+remain product code.
+
+PR 3 adds only a report-only Provider Readiness technical audit for existing
+source evidence: selected provider/model, required env keys, Cloudflare
+bindings, runtime secrets, supported models, task mode, notify route evidence,
+fallback evidence, and provider source ownership. It does not implement a
+`ProviderCapabilityMatrix`, provider marketplace, fallback runtime, or
+plan-to-provider policy.
 
 ### 7. Product Workflows Stay Flexible
 
@@ -149,7 +155,9 @@ until the contract is validated and another product confirms the shared shape.
 6. Runtime-owned field report.
 7. Launch blockers and warnings.
 8. CLI contract check for `SITE=ai-remover`.
-9. Documentation updates.
+9. Billing Reversal Report section.
+10. Provider Readiness Report section.
+11. Documentation updates.
 
 ## Guardrails
 
@@ -167,11 +175,12 @@ until the contract is validated and another product confirms the shared shape.
 3. Whether provider/model selection should become admin-editable.
 4. Whether product templates should exist after the next real SaaS product.
 5. Whether generated asset history should become a platform-owned module.
+6. Whether plan access policy should map to provider/model tiers.
 
 ## Deferred Work
 
 1. Usage and credits mapping.
-2. Provider readiness report and ProviderCapabilityMatrix.
+2. ProviderCapabilityMatrix.
 3. Runtime billing reversal implementation for refunds, chargebacks,
    compensation, and entitlement revocation.
 4. Product template generator.
@@ -179,8 +188,8 @@ until the contract is validated and another product confirms the shared shape.
 
 ## Next Assignment
 
-After the first report-only contract pass, extend the same audit with Billing
-Reversal Report:
+After Provider Readiness lands, extend the same audit with Usage/Credits
+Mapping:
 
 ```text
 src/config/saas-product-contract/**

@@ -5,7 +5,9 @@ Date: 2026-05-18
 Historical office-hours note. Executable PR scopes are superseded by
 `saas-platform-core-contract-implementation-plan.md`; PR 1 is limited to the
 Contract Audit Skeleton, and PR 2 is limited to the report-only Billing
-Reversal Audit.
+Reversal Audit. PR 3 is limited to the report-only Provider Readiness technical
+audit and does not implement a ProviderCapabilityMatrix or provider policy
+runtime.
 
 ## Goal
 

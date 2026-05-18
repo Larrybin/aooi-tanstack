@@ -17,6 +17,12 @@ export type ContractSourceKind =
   | 'billing_application'
   | 'billing_infra'
   | 'billing_test'
+  | 'provider_route'
+  | 'provider_application'
+  | 'provider_domain'
+  | 'provider_extension'
+  | 'provider_runtime'
+  | 'provider_test'
   | 'derived';
 
 export type ContractIssueLevel = 'blocker' | 'warning';
@@ -140,12 +146,86 @@ export interface BillingReversalSummary {
   events: BillingReversalEventSummary[];
 }
 
+export type ProviderReadinessStatus =
+  | 'ready'
+  | 'partial'
+  | 'missing'
+  | 'unsupported'
+  | 'unknown';
+
+export type ProviderSourceOwner =
+  | 'platform'
+  | 'product_owned'
+  | 'runtime_owned'
+  | 'unknown';
+
+export type ProviderTaskMode = 'sync' | 'async' | 'mixed' | 'unknown';
+
+export type ProviderMediaType =
+  | 'image'
+  | 'text'
+  | 'audio'
+  | 'video'
+  | 'unknown';
+
+export type ProviderRequirementStatus =
+  | 'runtime_owned'
+  | 'binding_defined'
+  | 'missing'
+  | 'not_applicable';
+
+export interface ProviderBindingRequirement {
+  name: string;
+  owner: ProviderSourceOwner;
+  status: ProviderRequirementStatus;
+  sources: ContractSourceRef[];
+}
+
+export interface ProviderModelSummary {
+  modelId: string;
+  source: 'defaulted' | 'runtime_env' | 'provider_default' | 'unknown';
+  sources: ContractSourceRef[];
+}
+
+export interface ProviderFallbackSummary {
+  status: 'explicit_default' | 'missing' | 'unknown';
+  description: string;
+  sources: ContractSourceRef[];
+}
+
+export interface ProviderReadinessEntry {
+  providerId: string;
+  sourceOwner: ProviderSourceOwner;
+  supportStatus: ProviderReadinessStatus;
+  taskMode: ProviderTaskMode;
+  inputMedia: ProviderMediaType[];
+  inputDetail?: string;
+  outputMedia: ProviderMediaType[];
+  defaultModel?: ProviderModelSummary;
+  modelSource?: ProviderModelSummary;
+  requiredBindings: ProviderBindingRequirement[];
+  requiredSecrets: ProviderBindingRequirement[];
+  requiredVars: ProviderBindingRequirement[];
+  fallbackPolicy: ProviderFallbackSummary;
+  sources: ContractSourceRef[];
+  issues: ContractValidationIssue[];
+}
+
+export interface ProviderReadinessSummary {
+  selectedProductProvider: ProviderModelSummary;
+  selectedProductModel: ProviderModelSummary;
+  providers: ProviderReadinessEntry[];
+  missingRuntimeRequirements: ProviderBindingRequirement[];
+  warnings: ContractValidationIssue[];
+}
+
 export interface ContractAuditReport {
   site: ContractSection<SiteSummary>;
   commercial: ContractSection<CommercialSummary>;
   entitlementKeys: ContractSection<EntitlementKeySummary>;
   runtimeOwnership: ContractSection<RuntimeOwnershipSummary>;
   billingReversal: ContractSection<BillingReversalSummary>;
+  providerReadiness: ContractSection<ProviderReadinessSummary>;
   launch: {
     blockers: ContractValidationIssue[];
     warnings: ContractValidationIssue[];
