@@ -973,8 +973,11 @@ function auditBillingReversal(paths) {
     }),
     billingEvent({
       eventName: 'payment.failed',
-      supportStatus:
-        paymentFailedEnum && !paymentFailedHandled ? 'unsupported' : 'unknown',
+      supportStatus: paymentFailedHandled
+        ? 'handled'
+        : paymentFailedEnum
+          ? 'unsupported'
+          : 'unknown',
       sources: paymentFailedSources,
       subscriptionStateEffect: 'no_change',
       entitlementEffect: 'no_change',
@@ -983,18 +986,22 @@ function auditBillingReversal(paths) {
       auditEffect: 'writes_audit',
       idempotency: 'explicit',
       operatorAction: 'unknown',
-      issues: [
-        billingWarning(
-          'missing_payment_failed_handler',
-          'payment.failed is canonical but has no payment notify handler and falls through unsupported handling',
-          paymentFailedSources
-        ),
-      ],
+      issues:
+        paymentFailedEnum && !paymentFailedHandled
+          ? [
+              billingWarning(
+                'missing_payment_failed_handler',
+                'payment.failed is canonical but has no payment notify handler and falls through unsupported handling',
+                paymentFailedSources
+              ),
+            ]
+          : [],
     }),
     billingEvent({
       eventName: 'payment.refunded',
-      supportStatus:
-        paymentRefundedEnum && !paymentRefundedHandled
+      supportStatus: paymentRefundedHandled
+        ? 'partially_handled'
+        : paymentRefundedEnum
           ? 'unsupported'
           : 'unknown',
       sources: paymentRefundedSources,
@@ -1005,13 +1012,16 @@ function auditBillingReversal(paths) {
       auditEffect: 'writes_audit',
       idempotency: 'explicit',
       operatorAction: 'required',
-      issues: [
-        billingWarning(
-          'missing_payment_refunded_handler',
-          'payment.refunded is canonical but has no reversal handler for subscription, entitlement, credit, or usage effects',
-          paymentRefundedSources
-        ),
-      ],
+      issues:
+        paymentRefundedEnum && !paymentRefundedHandled
+          ? [
+              billingWarning(
+                'missing_payment_refunded_handler',
+                'payment.refunded is canonical but has no reversal handler for subscription, entitlement, credit, or usage effects',
+                paymentRefundedSources
+              ),
+            ]
+          : [],
     }),
     billingEvent({
       eventName: 'subscribe.updated',

@@ -589,6 +589,65 @@ test('contract audit reports missing payment failed and refunded handlers with s
   );
 });
 
+test('contract audit does not keep missing-handler warnings after failed and refunded handlers exist', async () => {
+  const rootDir = await createFixtureRoot({
+    pricing: {
+      items: [
+        {
+          title: 'Free',
+          product_id: 'free',
+          interval: 'month',
+          amount: 0,
+          currency: 'USD',
+          checkout_enabled: false,
+          entitlements: {
+            low_res_download: true,
+          },
+        },
+      ],
+    },
+  });
+  await writeText(
+    path.join(
+      rootDir,
+      'src/domains/billing/application/process-payment-notify.ts'
+    ),
+    [
+      "import { PaymentEventType, SubscriptionCycleType } from '../domain/payment';",
+      'import { recordUnknownWebhookEvent } from "../infra/payment-webhook-audit";',
+      'const PAYMENT_NOTIFY_EVENT_HANDLERS = {',
+      '  [PaymentEventType.UNKNOWN]: handleUnknownEvent,',
+      '  [PaymentEventType.CHECKOUT_SUCCESS]: handleCheckoutSuccessEvent,',
+      '  [PaymentEventType.PAYMENT_SUCCESS]: handlePaymentSuccessEvent,',
+      '  [PaymentEventType.PAYMENT_FAILED]: handlePaymentFailedEvent,',
+      '  [PaymentEventType.PAYMENT_REFUNDED]: handlePaymentRefundedEvent,',
+      '  [PaymentEventType.SUBSCRIBE_UPDATED]: handleSubscriptionUpdatedEvent,',
+      '  [PaymentEventType.SUBSCRIBE_CANCELED]: handleSubscriptionCanceledEvent,',
+      '};',
+      'function handleUnknownEvent() { recordUnknownWebhookEvent(); }',
+      'function handleCheckoutSuccessEvent() {}',
+      'function handlePaymentSuccessEvent(event) {',
+      '  if (event.subscriptionCycleType === SubscriptionCycleType.RENEWAL) return;',
+      '}',
+      'function handlePaymentFailedEvent() {}',
+      'function handlePaymentRefundedEvent() {}',
+      'function handleSubscriptionUpdatedEvent() {}',
+      'function handleSubscriptionCanceledEvent() {}',
+      '',
+    ].join('\n')
+  );
+
+  const result = runAudit(rootDir);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /payment\.failed: handled/);
+  assert.match(result.stdout, /payment\.refunded: partially_handled/);
+  assert.doesNotMatch(result.stdout, /missing_payment_failed_handler/);
+  assert.doesNotMatch(result.stdout, /missing_payment_refunded_handler/);
+  assert.doesNotMatch(result.stdout, /payment\.failed is canonical/);
+  assert.doesNotMatch(result.stdout, /payment\.refunded is canonical/);
+});
+
 test('contract audit maps renewal to payment success with renewal cycle type', async () => {
   const rootDir = await createFixtureRoot({
     pricing: {
