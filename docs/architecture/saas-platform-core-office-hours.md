@@ -2,6 +2,10 @@
 
 Date: 2026-05-18
 
+Historical office-hours note. The executable PR 1 scope is superseded by
+`saas-platform-core-contract-implementation-plan.md` and is limited to the
+Contract Audit Skeleton.
+
 ## Goal
 
 Turn `aooi` into a reusable SaaS platform base where a solo developer can launch
@@ -57,19 +61,19 @@ The practical question is therefore:
 
 ## Capability Audit
 
-| Capability | Current State | Platform Gap |
-| --- | --- | --- |
-| Site Identity | Strong | Need clearer new-site required field checklist. |
-| Auth | Strong | Need one operator checklist for login modes and provider prerequisites. |
-| Admin Settings | Strong | Need module readiness projection tied to launch gates. |
-| Pricing / Plans | Partial platform | Pricing JSON exists, but plan semantics are not a typed platform contract. |
-| Billing | Strong | Checkout/webhook/subscription exist; reversal/refund policy needs a first-class contract. |
-| Entitlements | Partial | Pricing entitlements are raw key/value maps; product-specific resolvers interpret them. |
-| Quota / Usage | Partial | Generic credits exist; AI Remover quota reservation is product-specific. |
-| Credits | Partial | Consume/refund exists; manual compensation UI/write flow is not a complete operator primitive. |
-| Refund / Compensation | Partial | Failed AI task refunds exist in specific paths; payment refunds and entitlement reversal need one contract. |
-| Provider / Model Config | Partial | Provider adapters exist, but admin-facing provider capability matrix is not first-class. |
-| Storage / Assets | Partial | Storage module exists; generated asset lifecycle/history is still product-specific. |
+| Capability              | Current State    | Platform Gap                                                                                                |
+| ----------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------- |
+| Site Identity           | Strong           | Need clearer new-site required field checklist.                                                             |
+| Auth                    | Strong           | Need one operator checklist for login modes and provider prerequisites.                                     |
+| Admin Settings          | Strong           | Need module readiness projection tied to launch gates.                                                      |
+| Pricing / Plans         | Partial platform | Pricing JSON exists, but plan semantics are not a typed platform contract.                                  |
+| Billing                 | Strong           | Checkout/webhook/subscription exist; reversal/refund policy needs a first-class contract.                   |
+| Entitlements            | Partial          | Pricing entitlements are raw key/value maps; product-specific resolvers interpret them.                     |
+| Quota / Usage           | Partial          | Generic credits exist; AI Remover quota reservation is product-specific.                                    |
+| Credits                 | Partial          | Consume/refund exists; manual compensation UI/write flow is not a complete operator primitive.              |
+| Refund / Compensation   | Partial          | Failed AI task refunds exist in specific paths; payment refunds and entitlement reversal need one contract. |
+| Provider / Model Config | Partial          | Provider adapters exist, but admin-facing provider capability matrix is not first-class.                    |
+| Storage / Assets        | Partial          | Storage module exists; generated asset lifecycle/history is still product-specific.                         |
 
 ## Three Possible Routes
 
