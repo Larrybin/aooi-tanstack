@@ -159,6 +159,14 @@ function envContractStatus(sourcePath, keys, match = 'all') {
   return hasKey ? 'runtime_owned' : 'missing';
 }
 
+function sourceTextIncludes(sourcePath, text) {
+  return readTextIfExists(sourcePath).includes(text);
+}
+
+function sourceTextMatches(sourcePath, pattern) {
+  return pattern.test(readTextIfExists(sourcePath));
+}
+
 function collectEntitlementKeys(items) {
   const keys = new Set();
   for (const item of items) {
@@ -688,12 +696,665 @@ function auditRuntimeOwnership({
   );
 }
 
+function billingEvent({
+  eventName,
+  representedBy,
+  supportStatus,
+  sources,
+  subscriptionStateEffect,
+  entitlementEffect,
+  creditEffect,
+  usageEffect,
+  auditEffect,
+  idempotency,
+  operatorAction,
+  issues = [],
+}) {
+  return {
+    eventName,
+    representedBy,
+    supportStatus,
+    sources,
+    subscriptionStateEffect,
+    entitlementEffect,
+    creditEffect,
+    usageEffect,
+    auditEffect,
+    idempotency,
+    operatorAction,
+    issues,
+  };
+}
+
+function billingWarning(code, message, sources) {
+  return issue(ISSUE_LEVEL.WARNING, code, message, sources);
+}
+
+function collectMissingBillingSourceIssues(sourceEntries) {
+  return sourceEntries
+    .filter((entry) => !existsSync(entry.path))
+    .map((entry) =>
+      billingWarning(
+        'missing_billing_audit_source',
+        `Billing reversal audit source is missing: ${entry.label}`,
+        [source(entry.kind, entry.path)]
+      )
+    );
+}
+
+function hasPaymentEventEnum(paymentDomainPath, enumName) {
+  return sourceTextMatches(
+    paymentDomainPath,
+    new RegExp(`\\b${enumName}\\s*=`)
+  );
+}
+
+function hasPaymentNotifyHandler(processNotifyPath, enumName) {
+  return sourceTextMatches(
+    processNotifyPath,
+    new RegExp(`\\[\\s*PaymentEventType\\.${enumName}\\s*\\]`)
+  );
+}
+
+function auditBillingReversal(paths) {
+  const sourceIssues = collectMissingBillingSourceIssues([
+    {
+      label: 'payment domain',
+      kind: 'billing_domain',
+      path: paths.paymentDomain,
+    },
+    {
+      label: 'payment notify process',
+      kind: 'billing_application',
+      path: paths.processNotify,
+    },
+    {
+      label: 'billing flows',
+      kind: 'billing_application',
+      path: paths.flows,
+    },
+    {
+      label: 'payment webhook inbox',
+      kind: 'billing_infra',
+      path: paths.webhookInbox,
+    },
+    {
+      label: 'payment webhook inbox shared contract',
+      kind: 'billing_infra',
+      path: paths.webhookInboxShared,
+    },
+    {
+      label: 'payment webhook audit',
+      kind: 'billing_infra',
+      path: paths.webhookAudit,
+    },
+    {
+      label: 'order infra',
+      kind: 'billing_infra',
+      path: paths.order,
+    },
+    {
+      label: 'subscription infra',
+      kind: 'billing_infra',
+      path: paths.subscription,
+    },
+    {
+      label: 'credit domain',
+      kind: 'billing_domain',
+      path: paths.credit,
+    },
+    {
+      label: 'payment notify flow',
+      kind: 'billing_application',
+      path: paths.paymentNotifyFlow,
+    },
+    {
+      label: 'admin payment replay',
+      kind: 'billing_application',
+      path: paths.adminReplay,
+    },
+    {
+      label: 'payment notify test',
+      kind: 'billing_test',
+      path: paths.paymentNotifyTest,
+    },
+  ]);
+
+  const paymentFailedSources = [
+    source(
+      'billing_domain',
+      paths.paymentDomain,
+      'PaymentEventType.PAYMENT_FAILED'
+    ),
+    source(
+      'billing_application',
+      paths.processNotify,
+      'PAYMENT_NOTIFY_EVENT_HANDLERS'
+    ),
+    source('billing_test', paths.paymentNotifyTest, 'PAYMENT_FAILED fallback'),
+  ];
+  const paymentRefundedSources = [
+    source(
+      'billing_domain',
+      paths.paymentDomain,
+      'PaymentEventType.PAYMENT_REFUNDED'
+    ),
+    source(
+      'billing_application',
+      paths.processNotify,
+      'PAYMENT_NOTIFY_EVENT_HANDLERS'
+    ),
+    source('billing_domain', paths.credit, 'BillingCreditTransactionType'),
+  ];
+  const renewalSources = [
+    source(
+      'billing_domain',
+      paths.paymentDomain,
+      'SubscriptionCycleType.RENEWAL'
+    ),
+    source(
+      'billing_application',
+      paths.processNotify,
+      'handlePaymentSuccessEvent'
+    ),
+    source('billing_application', paths.flows, 'handleSubscriptionRenewal'),
+    source('billing_infra', paths.order, 'updateSubscriptionInTransaction'),
+    source(
+      'billing_domain',
+      paths.credit,
+      'BillingCreditTransactionScene.RENEWAL'
+    ),
+    source('billing_test', paths.paymentNotifyTest, 'renewal webhook'),
+  ];
+  const inboxSources = [
+    source('billing_infra', paths.webhookInbox, 'rawDigest'),
+    source(
+      'billing_application',
+      paths.paymentNotifyFlow,
+      'isFinalizedInboxStatus'
+    ),
+  ];
+
+  const checkoutHandled =
+    hasPaymentEventEnum(paths.paymentDomain, 'CHECKOUT_SUCCESS') &&
+    hasPaymentNotifyHandler(paths.processNotify, 'CHECKOUT_SUCCESS') &&
+    sourceTextIncludes(paths.flows, 'handleCheckoutSuccess');
+  const paymentSuccessHandled =
+    hasPaymentEventEnum(paths.paymentDomain, 'PAYMENT_SUCCESS') &&
+    hasPaymentNotifyHandler(paths.processNotify, 'PAYMENT_SUCCESS');
+  const paymentFailedEnum = hasPaymentEventEnum(
+    paths.paymentDomain,
+    'PAYMENT_FAILED'
+  );
+  const paymentRefundedEnum = hasPaymentEventEnum(
+    paths.paymentDomain,
+    'PAYMENT_REFUNDED'
+  );
+  const paymentFailedHandled = hasPaymentNotifyHandler(
+    paths.processNotify,
+    'PAYMENT_FAILED'
+  );
+  const paymentRefundedHandled = hasPaymentNotifyHandler(
+    paths.processNotify,
+    'PAYMENT_REFUNDED'
+  );
+  const subscriptionUpdatedHandled =
+    hasPaymentEventEnum(paths.paymentDomain, 'SUBSCRIBE_UPDATED') &&
+    hasPaymentNotifyHandler(paths.processNotify, 'SUBSCRIBE_UPDATED') &&
+    sourceTextIncludes(paths.flows, 'handleSubscriptionUpdated');
+  const subscriptionCanceledHandled =
+    hasPaymentEventEnum(paths.paymentDomain, 'SUBSCRIBE_CANCELED') &&
+    hasPaymentNotifyHandler(paths.processNotify, 'SUBSCRIBE_CANCELED') &&
+    sourceTextIncludes(paths.flows, 'handleSubscriptionCanceled');
+  const renewalHandled =
+    paymentSuccessHandled &&
+    sourceTextIncludes(paths.processNotify, 'SubscriptionCycleType.RENEWAL') &&
+    sourceTextIncludes(paths.flows, 'handleSubscriptionRenewal');
+  const unknownAuditHandled =
+    hasPaymentEventEnum(paths.paymentDomain, 'UNKNOWN') &&
+    hasPaymentNotifyHandler(paths.processNotify, 'UNKNOWN') &&
+    sourceTextIncludes(paths.processNotify, 'recordUnknownWebhookEvent') &&
+    sourceTextIncludes(paths.webhookAudit, 'recordPaymentWebhookAudit');
+  const manualCompensationPartial =
+    sourceTextIncludes(paths.webhookInboxShared, 'COMPENSATION') &&
+    sourceTextIncludes(paths.adminReplay, 'operationKind');
+
+  const events = [
+    billingEvent({
+      eventName: 'checkout.success',
+      supportStatus: checkoutHandled ? 'handled' : 'unknown',
+      sources: [
+        source(
+          'billing_domain',
+          paths.paymentDomain,
+          'PaymentEventType.CHECKOUT_SUCCESS'
+        ),
+        source(
+          'billing_application',
+          paths.processNotify,
+          'handleCheckoutSuccessEvent'
+        ),
+        source('billing_application', paths.flows, 'handleCheckoutSuccess'),
+        source('billing_infra', paths.order, 'updateOrderInTransaction'),
+        source('billing_domain', paths.credit, 'buildGrantCreditForOrder'),
+        ...inboxSources,
+      ],
+      subscriptionStateEffect: 'changes',
+      entitlementEffect: 'grants',
+      creditEffect: 'grants',
+      usageEffect: 'no_change',
+      auditEffect: 'writes_audit',
+      idempotency: 'explicit',
+      operatorAction: 'not_required',
+    }),
+    billingEvent({
+      eventName: 'payment.success',
+      supportStatus: paymentSuccessHandled ? 'handled' : 'unknown',
+      sources: [
+        source(
+          'billing_domain',
+          paths.paymentDomain,
+          'PaymentEventType.PAYMENT_SUCCESS'
+        ),
+        source(
+          'billing_application',
+          paths.processNotify,
+          'handlePaymentSuccessEvent'
+        ),
+        ...inboxSources,
+      ],
+      subscriptionStateEffect: 'changes',
+      entitlementEffect: 'grants',
+      creditEffect: 'grants',
+      usageEffect: 'no_change',
+      auditEffect: 'writes_audit',
+      idempotency: 'explicit',
+      operatorAction: 'not_required',
+    }),
+    billingEvent({
+      eventName: 'payment.failed',
+      supportStatus:
+        paymentFailedEnum && !paymentFailedHandled ? 'unsupported' : 'unknown',
+      sources: paymentFailedSources,
+      subscriptionStateEffect: 'no_change',
+      entitlementEffect: 'no_change',
+      creditEffect: 'no_change',
+      usageEffect: 'no_change',
+      auditEffect: 'writes_audit',
+      idempotency: 'explicit',
+      operatorAction: 'unknown',
+      issues: [
+        billingWarning(
+          'missing_payment_failed_handler',
+          'payment.failed is canonical but has no payment notify handler and falls through unsupported handling',
+          paymentFailedSources
+        ),
+      ],
+    }),
+    billingEvent({
+      eventName: 'payment.refunded',
+      supportStatus:
+        paymentRefundedEnum && !paymentRefundedHandled
+          ? 'unsupported'
+          : 'unknown',
+      sources: paymentRefundedSources,
+      subscriptionStateEffect: 'missing',
+      entitlementEffect: 'missing',
+      creditEffect: 'missing',
+      usageEffect: 'missing',
+      auditEffect: 'writes_audit',
+      idempotency: 'explicit',
+      operatorAction: 'required',
+      issues: [
+        billingWarning(
+          'missing_payment_refunded_handler',
+          'payment.refunded is canonical but has no reversal handler for subscription, entitlement, credit, or usage effects',
+          paymentRefundedSources
+        ),
+      ],
+    }),
+    billingEvent({
+      eventName: 'subscribe.updated',
+      supportStatus: subscriptionUpdatedHandled ? 'handled' : 'unknown',
+      sources: [
+        source(
+          'billing_domain',
+          paths.paymentDomain,
+          'PaymentEventType.SUBSCRIBE_UPDATED'
+        ),
+        source(
+          'billing_application',
+          paths.processNotify,
+          'handleSubscriptionUpdatedEvent'
+        ),
+        source('billing_application', paths.flows, 'handleSubscriptionUpdated'),
+        source(
+          'billing_infra',
+          paths.subscription,
+          'updateSubscriptionBySubscriptionNoIfNotCanceled'
+        ),
+        ...inboxSources,
+      ],
+      subscriptionStateEffect: 'changes',
+      entitlementEffect: 'downgrades',
+      creditEffect: 'no_change',
+      usageEffect: 'no_change',
+      auditEffect: 'writes_audit',
+      idempotency: 'explicit',
+      operatorAction: 'not_required',
+    }),
+    billingEvent({
+      eventName: 'subscribe.canceled',
+      supportStatus: subscriptionCanceledHandled ? 'handled' : 'unknown',
+      sources: [
+        source(
+          'billing_domain',
+          paths.paymentDomain,
+          'PaymentEventType.SUBSCRIBE_CANCELED'
+        ),
+        source(
+          'billing_application',
+          paths.processNotify,
+          'handleSubscriptionCanceledEvent'
+        ),
+        source(
+          'billing_application',
+          paths.flows,
+          'handleSubscriptionCanceled'
+        ),
+        source(
+          'billing_infra',
+          paths.subscription,
+          'updateSubscriptionBySubscriptionNo'
+        ),
+        ...inboxSources,
+      ],
+      subscriptionStateEffect: 'changes',
+      entitlementEffect: 'downgrades',
+      creditEffect: 'no_change',
+      usageEffect: 'no_change',
+      auditEffect: 'writes_audit',
+      idempotency: 'explicit',
+      operatorAction: 'not_required',
+      issues: [
+        billingWarning(
+          'unclear_subscription_cancel_downgrade_timing',
+          'subscribe.canceled stores canceledEndAt but sets status canceled immediately; cancel-at-period-end versus immediate downgrade is not explicit',
+          [
+            source(
+              'billing_application',
+              paths.flows,
+              'handleSubscriptionCanceled'
+            ),
+            source(
+              'billing_infra',
+              paths.subscription,
+              'SubscriptionStatus.CANCELED'
+            ),
+          ]
+        ),
+      ],
+    }),
+    billingEvent({
+      eventName: 'subscription.renewed',
+      representedBy: 'payment.success + SubscriptionCycleType.RENEWAL',
+      supportStatus: renewalHandled ? 'handled' : 'unknown',
+      sources: renewalSources,
+      subscriptionStateEffect: 'changes',
+      entitlementEffect: 'grants',
+      creditEffect: 'grants',
+      usageEffect: 'no_change',
+      auditEffect: 'writes_audit',
+      idempotency: 'fallback',
+      operatorAction: 'required',
+      issues: [
+        billingWarning(
+          'renewal_credit_grant_failure_contract_partial',
+          'subscription renewal writes order, subscription, and credit in one transaction, but credit grant failure compensation is only covered by generic webhook process_failed/replay handling',
+          [
+            source(
+              'billing_application',
+              paths.flows,
+              'handleSubscriptionRenewal'
+            ),
+            source(
+              'billing_infra',
+              paths.order,
+              'updateSubscriptionInTransaction'
+            ),
+            source(
+              'billing_application',
+              paths.paymentNotifyFlow,
+              'markPaymentWebhookInboxProcessFailed'
+            ),
+            source(
+              'billing_application',
+              paths.adminReplay,
+              'executeAdminPaymentReplay'
+            ),
+          ]
+        ),
+      ],
+    }),
+    billingEvent({
+      eventName: 'subscription.expired',
+      supportStatus: 'unsupported',
+      sources: [
+        source(
+          'billing_domain',
+          paths.paymentDomain,
+          'SubscriptionStatus.EXPIRED'
+        ),
+        source(
+          'billing_application',
+          paths.processNotify,
+          'PAYMENT_NOTIFY_EVENT_HANDLERS'
+        ),
+      ],
+      subscriptionStateEffect: 'missing',
+      entitlementEffect: 'missing',
+      creditEffect: 'no_change',
+      usageEffect: 'expires',
+      auditEffect: 'unknown',
+      idempotency: 'unknown',
+      operatorAction: 'unknown',
+      issues: [
+        billingWarning(
+          'missing_subscription_expired_event',
+          'subscription.expired has no canonical payment event or notify handler',
+          [
+            source('billing_domain', paths.paymentDomain, 'PaymentEventType'),
+            source(
+              'billing_application',
+              paths.processNotify,
+              'PAYMENT_NOTIFY_EVENT_HANDLERS'
+            ),
+          ]
+        ),
+      ],
+    }),
+    billingEvent({
+      eventName: 'chargeback/dispute',
+      supportStatus: 'unsupported',
+      sources: [
+        source('billing_domain', paths.paymentDomain, 'PaymentEventType'),
+        source(
+          'billing_application',
+          paths.processNotify,
+          'PAYMENT_NOTIFY_EVENT_HANDLERS'
+        ),
+      ],
+      subscriptionStateEffect: 'missing',
+      entitlementEffect: 'missing',
+      creditEffect: 'missing',
+      usageEffect: 'missing',
+      auditEffect: 'unknown',
+      idempotency: 'unknown',
+      operatorAction: 'required',
+      issues: [
+        billingWarning(
+          'missing_chargeback_dispute_event',
+          'chargeback/dispute has no canonical event, handler, or reversal policy',
+          [
+            source('billing_domain', paths.paymentDomain, 'PaymentEventType'),
+            source(
+              'billing_application',
+              paths.processNotify,
+              'PAYMENT_NOTIFY_EVENT_HANDLERS'
+            ),
+          ]
+        ),
+      ],
+    }),
+    billingEvent({
+      eventName: 'partial refund',
+      supportStatus: 'unsupported',
+      sources: paymentRefundedSources,
+      subscriptionStateEffect: 'missing',
+      entitlementEffect: 'missing',
+      creditEffect: 'missing',
+      usageEffect: 'missing',
+      auditEffect: 'unknown',
+      idempotency: 'unknown',
+      operatorAction: 'required',
+      issues: [
+        billingWarning(
+          'missing_partial_refund_policy',
+          'partial refund has no policy for proportional credit reversal, entitlement downgrade, or audit/operator outcome',
+          paymentRefundedSources
+        ),
+      ],
+    }),
+    billingEvent({
+      eventName: 'refund after usage consumed',
+      supportStatus: 'unsupported',
+      sources: paymentRefundedSources,
+      subscriptionStateEffect: 'missing',
+      entitlementEffect: 'missing',
+      creditEffect: 'missing',
+      usageEffect: 'missing',
+      auditEffect: 'unknown',
+      idempotency: 'unknown',
+      operatorAction: 'required',
+      issues: [
+        billingWarning(
+          'missing_refund_after_usage_policy',
+          'refund after usage consumed has no debt, negative-credit, reversal, or audit policy',
+          paymentRefundedSources
+        ),
+      ],
+    }),
+    billingEvent({
+      eventName: 'manual compensation',
+      supportStatus: manualCompensationPartial
+        ? 'partially_handled'
+        : 'unsupported',
+      sources: [
+        source(
+          'billing_infra',
+          paths.webhookInboxShared,
+          'PAYMENT_WEBHOOK_OPERATION_KIND.COMPENSATION'
+        ),
+        source(
+          'billing_application',
+          paths.adminReplay,
+          'executeAdminPaymentReplay'
+        ),
+        source(
+          'billing_domain',
+          paths.credit,
+          'BillingCreditTransactionType.GRANT'
+        ),
+      ],
+      subscriptionStateEffect: 'unknown',
+      entitlementEffect: 'missing',
+      creditEffect: 'missing',
+      usageEffect: 'missing',
+      auditEffect: manualCompensationPartial ? 'writes_audit' : 'missing',
+      idempotency: 'unknown',
+      operatorAction: 'required',
+      issues: [
+        billingWarning(
+          'manual_compensation_contract_partial',
+          'manual compensation has a webhook replay operation kind, but no dedicated operator primitive for credit grant/reversal with a complete compensation contract',
+          [
+            source(
+              'billing_infra',
+              paths.webhookInboxShared,
+              'PAYMENT_WEBHOOK_OPERATION_KIND.COMPENSATION'
+            ),
+            source(
+              'billing_application',
+              paths.adminReplay,
+              'PaymentReplayActionSchema'
+            ),
+            source(
+              'billing_domain',
+              paths.credit,
+              'BillingCreditTransactionType'
+            ),
+          ]
+        ),
+      ],
+    }),
+    billingEvent({
+      eventName: 'unknown/unsupported webhook',
+      supportStatus: unknownAuditHandled ? 'handled' : 'unknown',
+      sources: [
+        source(
+          'billing_domain',
+          paths.paymentDomain,
+          'PaymentEventType.UNKNOWN'
+        ),
+        source(
+          'billing_application',
+          paths.processNotify,
+          'handleUnknownEvent'
+        ),
+        source(
+          'billing_infra',
+          paths.webhookAudit,
+          'recordPaymentWebhookAudit'
+        ),
+        ...inboxSources,
+      ],
+      subscriptionStateEffect: 'no_change',
+      entitlementEffect: 'no_change',
+      creditEffect: 'no_change',
+      usageEffect: 'no_change',
+      auditEffect: unknownAuditHandled ? 'writes_audit' : 'unknown',
+      idempotency: 'explicit',
+      operatorAction: 'not_required',
+    }),
+  ];
+
+  const eventIssues = events.flatMap((event) => event.issues);
+
+  return section(
+    eventIssues.length === 0 && sourceIssues.length === 0
+      ? 'resolved'
+      : 'partial',
+    { events },
+    [
+      source('billing_domain', paths.paymentDomain),
+      source('billing_application', paths.processNotify),
+      source('billing_application', paths.flows),
+      source('billing_infra', paths.webhookInbox),
+      source('billing_infra', paths.order),
+      source('billing_infra', paths.subscription),
+      source('billing_domain', paths.credit),
+    ],
+    [...sourceIssues, ...eventIssues]
+  );
+}
+
 function collectLaunch(report) {
   const issues = [
     report.site,
     report.commercial,
     report.entitlementKeys,
     report.runtimeOwnership,
+    report.billingReversal,
   ].flatMap((item) => item.issues);
 
   return {
@@ -701,6 +1362,7 @@ function collectLaunch(report) {
     warnings: issues.filter((item) => item.level === ISSUE_LEVEL.WARNING),
     recommendedCommands: [
       'SITE=ai-remover node scripts/check-saas-product-contract.mjs',
+      'node --test --import tsx scripts/check-saas-product-contract.test.ts',
       'pnpm test src/config/product-modules/index.test.ts src/config/product-modules/doc-links.test.ts',
     ],
   };
@@ -718,6 +1380,47 @@ function buildAuditReport(siteKey) {
     'src/domains/settings/definitions/payment.ts'
   );
   const envContractPath = path.resolve(ROOT_DIR, 'src/config/env-contract.ts');
+  const billingPaths = {
+    paymentDomain: path.resolve(
+      ROOT_DIR,
+      'src/domains/billing/domain/payment.ts'
+    ),
+    processNotify: path.resolve(
+      ROOT_DIR,
+      'src/domains/billing/application/process-payment-notify.ts'
+    ),
+    flows: path.resolve(ROOT_DIR, 'src/domains/billing/application/flows.ts'),
+    paymentNotifyFlow: path.resolve(
+      ROOT_DIR,
+      'src/domains/billing/application/payment-notify-flow.ts'
+    ),
+    webhookInbox: path.resolve(
+      ROOT_DIR,
+      'src/domains/billing/infra/payment-webhook-inbox.ts'
+    ),
+    webhookInboxShared: path.resolve(
+      ROOT_DIR,
+      'src/domains/billing/infra/payment-webhook-inbox.shared.ts'
+    ),
+    webhookAudit: path.resolve(
+      ROOT_DIR,
+      'src/domains/billing/infra/payment-webhook-audit.ts'
+    ),
+    order: path.resolve(ROOT_DIR, 'src/domains/billing/infra/order.ts'),
+    subscription: path.resolve(
+      ROOT_DIR,
+      'src/domains/billing/infra/subscription.ts'
+    ),
+    credit: path.resolve(ROOT_DIR, 'src/domains/billing/domain/credit.ts'),
+    adminReplay: path.resolve(
+      ROOT_DIR,
+      'src/domains/billing/application/admin-payment-replay.ts'
+    ),
+    paymentNotifyTest: path.resolve(
+      ROOT_DIR,
+      'tests/contract/payment-notify.test.ts'
+    ),
+  };
 
   const { site, issues: siteIssues } = readSiteForReport({
     rootDir: ROOT_DIR,
@@ -757,6 +1460,7 @@ function buildAuditReport(siteKey) {
       paymentSettingsPath,
       envContractPath,
     }),
+    billingReversal: auditBillingReversal(billingPaths),
   };
 
   return {
@@ -829,6 +1533,19 @@ function formatAuditReport(report) {
     );
   }
 
+  lines.push('', 'Billing reversal:');
+  for (const event of report.billingReversal.value.events) {
+    const representedBy = event.representedBy
+      ? ` (${event.representedBy})`
+      : '';
+    lines.push(
+      `  ${event.eventName}: ${event.supportStatus}${representedBy} | subscription=${event.subscriptionStateEffect}, entitlement=${event.entitlementEffect}, credit=${event.creditEffect}, usage=${event.usageEffect}, audit=${event.auditEffect}, idempotency=${event.idempotency}, operator=${event.operatorAction}`
+    );
+    for (const eventSource of event.sources) {
+      lines.push(`    source  ${formatSourceRef(eventSource)}`);
+    }
+  }
+
   lines.push('', 'Sources:');
   lines.push(formatSectionSources('site', report.site.sources));
   lines.push(formatSectionSources('commercial', report.commercial.sources));
@@ -837,6 +1554,9 @@ function formatAuditReport(report) {
   );
   lines.push(
     formatSectionSources('runtime ownership', report.runtimeOwnership.sources)
+  );
+  lines.push(
+    formatSectionSources('billing reversal', report.billingReversal.sources)
   );
 
   lines.push(
@@ -857,7 +1577,7 @@ function main() {
   const siteKey = resolveRequiredSiteKey(process.env);
   if (siteKey !== 'ai-remover') {
     throw new Error(
-      `Contract audit PR 1 only supports SITE=ai-remover; received SITE=${siteKey}`
+      `Contract audit currently only supports SITE=ai-remover; received SITE=${siteKey}`
     );
   }
 

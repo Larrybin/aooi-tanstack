@@ -1,4 +1,8 @@
 export type {
+  BillingReversalEffectStatus,
+  BillingReversalEventSummary,
+  BillingReversalSummary,
+  BillingReversalSupportStatus,
   CommercialPlanSummary,
   CommercialSummary,
   ContractAuditReport,
