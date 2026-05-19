@@ -9,8 +9,10 @@ import {
   type SetStateAction,
 } from 'react';
 import { resolveAICapabilitySelection } from '@/domains/ai/domain/capability-selection';
+import { useLocale } from 'next-intl';
 import { toast } from 'sonner';
 
+import { defaultLocale } from '@/config/locale';
 import { AITaskStatus, type AIMediaType } from '@/extensions/ai';
 import { usePublicAppContext } from '@/shared/contexts/app';
 import { useAIGenerationTask } from '@/shared/hooks/use-ai-generation-task';
@@ -26,6 +28,8 @@ import {
   getRequestIdFromError,
   RequestIdError,
 } from '@/shared/lib/api/request-id';
+import { withCallbackUrl } from '@/shared/lib/callback-url';
+import { localizeCallbackUrl } from '@/shared/lib/localize-callback-url';
 import type { AICapability } from '@/shared/types/ai-capability';
 import type { SelfUserDetails } from '@/shared/types/auth-session';
 
@@ -155,6 +159,31 @@ function getTaskErrorMessage(task: AIGenerationTaskResponse) {
     : undefined;
 }
 
+function getCurrentCallbackUrl(): string {
+  if (typeof window === 'undefined') {
+    return '/';
+  }
+
+  return (
+    `${window.location.pathname}${window.location.search}${window.location.hash}` ||
+    '/'
+  );
+}
+
+export function buildAiSignInUrl({
+  callbackUrl,
+  locale,
+}: {
+  callbackUrl: string;
+  locale: string;
+}): string {
+  return localizeCallbackUrl({
+    callbackUrl: withCallbackUrl('/sign-in', callbackUrl),
+    locale,
+    defaultLocale,
+  });
+}
+
 export function useAiGenerationController<
   TFormState,
   TPayload extends Record<string, unknown> | null = Record<
@@ -168,7 +197,12 @@ export function useAiGenerationController<
   adapter,
   messages,
 }: UseAiGenerationControllerOptions<TFormState, TPayload>) {
-  const { setIsShowSignModal } = usePublicAppContext();
+  const locale = useLocale();
+  const { setIsShowSignModal, authSettings } = usePublicAppContext();
+  const canOpenInlineSignModal =
+    authSettings.emailAuthEnabled ||
+    authSettings.googleAuthEnabled ||
+    authSettings.githubAuthEnabled;
   const {
     data: details,
     error: detailsError,
@@ -259,6 +293,20 @@ export function useAiGenerationController<
     );
   }, [detailsError, messages.loadAccountDetailsFailed]);
 
+  const promptSignIn = useCallback(() => {
+    if (canOpenInlineSignModal) {
+      setIsShowSignModal(true);
+      return;
+    }
+
+    window.location.assign(
+      buildAiSignInUrl({
+        callbackUrl: getCurrentCallbackUrl(),
+        locale,
+      })
+    );
+  }, [canOpenInlineSignModal, locale, setIsShowSignModal]);
+
   const capabilityErrorMessage = useMemo(() => {
     if (!capabilityError) {
       return null;
@@ -275,17 +323,13 @@ export function useAiGenerationController<
       await refreshDetails();
     } catch (error) {
       if (error instanceof RequestIdError && error.status === 401) {
-        setIsShowSignModal(true);
+        promptSignIn();
         return;
       }
 
       toastFetchError(error, messages.refreshAccountDetailsFailed);
     }
-  }, [
-    messages.refreshAccountDetailsFailed,
-    refreshDetails,
-    setIsShowSignModal,
-  ]);
+  }, [messages.refreshAccountDetailsFailed, promptSignIn, refreshDetails]);
 
   const resolveDetailsForGenerate = useCallback(async () => {
     const result = await resolveSelfUserDetailsForAction({
@@ -294,7 +338,7 @@ export function useAiGenerationController<
     });
 
     if (result.status === 'auth_required') {
-      setIsShowSignModal(true);
+      promptSignIn();
       return null;
     }
 
@@ -307,8 +351,8 @@ export function useAiGenerationController<
   }, [
     details,
     messages.loadAccountDetailsFailed,
+    promptSignIn,
     refreshDetails,
-    setIsShowSignModal,
   ]);
 
   const { ensureCredits } = useCreditsGate({
