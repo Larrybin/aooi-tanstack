@@ -51,7 +51,7 @@
 - `SITE=<site-key> pnpm test:cf-app-smoke` validates post-deploy production read-only smoke on the real app origin.
 - Before production deploy, `Cloudflare Deploy Acceptance` must pass its stable `cloudflare acceptance` summary check for the accepted `main` revision. The workflow splits static CI, tests, schema migration guarding, path-aware Cloudflare acceptance, and site-scoped contract checks into separate jobs.
 - Cloudflare acceptance is path-aware but the required `cloudflare acceptance` summary check must always produce a result. It may pass with the heavy Cloudflare matrix skipped when no Cloudflare-relevant paths changed.
-- The Cloudflare matrix is explicit: `mamamiya` and `ai-remover`. Each selected site runs `pnpm cf:check` and `pnpm cf:build` with CI-only placeholder runtime bindings where the site declares runtime-owned provider secrets.
+- The Cloudflare matrix is explicit: `mamamiya` and `ai-remover`. Each selected site runs `pnpm cf:check`, migrates a CI Postgres service, then runs `pnpm cf:build` with CI-only placeholder runtime bindings where the site declares runtime-owned provider secrets. The temporary database is scoped to the matrix job because the current OpenNext build prerenders pages that read runtime settings from the `config` table.
 - AI Remover contract checks are site-scoped and run as `SITE=ai-remover pnpm contract:check` only for AI Remover contract paths or manual workflow dispatch.
 - `SITE=mamamiya pnpm release:cf` must verify `HEAD == origin/main` and a successful `Cloudflare Deploy Acceptance` run for that exact commit before any production mutation.
 - If schema changes are present, the local release input guard must require committed files under `src/config/db/migrations/**` before deploy.

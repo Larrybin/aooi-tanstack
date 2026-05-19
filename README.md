@@ -281,7 +281,9 @@ acceptance:
 - `scripts/check-release-inputs.mjs` enforces DB schema changes shipping with
   migrations.
 - `pnpm cf:check` and `pnpm cf:build` run only for Cloudflare-relevant changes,
-  across the explicit deployable site matrix.
+  across the explicit deployable site matrix. The matrix job owns a migrated CI
+  Postgres service because the current OpenNext build still prerenders pages
+  that read runtime settings from the `config` table.
 - `SITE=ai-remover pnpm contract:check` runs only for AI Remover contract
   changes.
 

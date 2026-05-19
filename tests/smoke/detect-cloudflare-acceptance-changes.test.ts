@@ -50,6 +50,42 @@ test('detect acceptance changes marks AI Remover contract paths separately', () 
   );
 });
 
+test('detect acceptance changes marks AI Remover contract source-map paths', () => {
+  const contractPaths = [
+    'src/app/[locale]/(admin)/admin/credits/page.tsx',
+    'src/app/api/ai/generate/create-handler.ts',
+    'src/app/api/ai/notify/signature.ts',
+    'src/domains/remover/application/jobs.ts',
+    'src/app/api/remover/jobs/action.ts',
+    'src/domains/billing/application/flows.ts',
+    'src/domains/account/application/use-cases.ts',
+    'src/domains/ai/application/service.ts',
+    'src/domains/settings/application/settings-runtime.contracts.ts',
+    'src/domains/settings/definitions/payment.ts',
+    'src/extensions/ai/providers.ts',
+    'src/infra/runtime/env.server.ts',
+    'src/surfaces/admin/schemas/list/credits.ts',
+    'src/config/db/schema.ts',
+    'src/config/db/migrations/0006_ai_remover_jobs.sql',
+    'src/config/env-contract.ts',
+  ];
+
+  for (const changedPath of contractPaths) {
+    assert.deepEqual(classifyChangedPaths([changedPath]), {
+      cloudflareChanged: true,
+      contractAiRemoverChanged: true,
+    });
+  }
+
+  assert.deepEqual(
+    classifyChangedPaths(['tests/contract/payment-notify.test.ts']),
+    {
+      cloudflareChanged: false,
+      contractAiRemoverChanged: true,
+    }
+  );
+});
+
 test('detect acceptance changes forces all checks on workflow_dispatch', () => {
   assert.deepEqual(
     createDetectionReport({

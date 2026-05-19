@@ -102,7 +102,10 @@ stable `cloudflare acceptance` summary in `Cloudflare Deploy Acceptance`.
 That workflow keeps generic CI, schema migration guarding, Cloudflare
 acceptance, and site-scoped contract checks separate. The heavy Cloudflare
 matrix runs only for Cloudflare-relevant changes or manual dispatch, while the
-required summary check always reports pass, skip, or failure.
+required summary check always reports pass, skip, or failure. The Cloudflare
+matrix job owns a migrated CI Postgres service before `pnpm cf:build` because
+the current OpenNext build still prerenders pages that read runtime settings
+from the `config` table.
 
 Create a local `.env.production` file for production-only release inputs:
 

@@ -41,12 +41,32 @@ const deploymentGuideContent = fs.readFileSync(
   'utf8'
 );
 
+function readWorkflowJobBlock(jobKey: string) {
+  const marker = `\n  ${jobKey}:`;
+  const start = acceptanceWorkflowContent.indexOf(marker);
+
+  assert.notEqual(start, -1, `missing workflow job: ${jobKey}`);
+
+  const contentFromJob = acceptanceWorkflowContent.slice(start + 1);
+  const nextJob = contentFromJob.slice(1).match(/\n  [a-zA-Z0-9_-]+:\n/);
+  return nextJob
+    ? contentFromJob.slice(0, (nextJob.index ?? 0) + 1)
+    : contentFromJob;
+}
+
 test('GitHub Actions 不再拥有生产发布 workflow', () => {
   assert.equal(fs.existsSync(productionDeployWorkflowPath), false);
   assert.equal(fs.existsSync(productionMigrateWorkflowPath), false);
 });
 
 test('Cloudflare acceptance 拆分职责并保留稳定 required check', () => {
+  const cloudflareAcceptanceJob = readWorkflowJobBlock('cloudflare-acceptance');
+  const ciStaticJob = readWorkflowJobBlock('ci-static');
+  const testJob = readWorkflowJobBlock('test');
+  const schemaMigrationGuardJob = readWorkflowJobBlock(
+    'schema-migration-guard'
+  );
+
   assert.match(
     acceptanceWorkflowContent,
     /^name:\s*Cloudflare Deploy Acceptance/m
@@ -80,6 +100,21 @@ test('Cloudflare acceptance 拆分职责并保留稳定 required check', () => {
     /Run Cloudflare build gate[\s\S]*?run:\s*pnpm cf:build/
   );
   assert.match(
+    cloudflareAcceptanceJob,
+    /services:\s*[\s\S]*postgres:\s*[\s\S]*POSTGRES_DB:\s*aooi_ci_placeholder/
+  );
+  assert.match(
+    cloudflareAcceptanceJob,
+    /--health-cmd "pg_isready -U postgres -d aooi_ci_placeholder"/
+  );
+  assert.match(
+    cloudflareAcceptanceJob,
+    /Run Cloudflare config gate[\s\S]*?run:\s*pnpm cf:check[\s\S]*?Run database migrations[\s\S]*?run:\s*pnpm db:migrate[\s\S]*?Run Cloudflare build gate[\s\S]*?run:\s*pnpm cf:build/
+  );
+  assert.doesNotMatch(ciStaticJob, /pnpm db:migrate/);
+  assert.doesNotMatch(testJob, /pnpm db:migrate/);
+  assert.doesNotMatch(schemaMigrationGuardJob, /pnpm db:migrate/);
+  assert.match(
     acceptanceWorkflowContent,
     /Checkout repository[\s\S]*?fetch-depth:\s*0/
   );
@@ -106,14 +141,6 @@ test('Cloudflare acceptance 拆分职责并保留稳定 required check', () => {
   assert.match(acceptanceWorkflowContent, /GOOGLE_CLIENT_SECRET:/);
   assert.match(acceptanceWorkflowContent, /OPENROUTER_API_KEY:/);
   assert.match(acceptanceWorkflowContent, /REMOVER_CLEANUP_SECRET:/);
-  assert.doesNotMatch(
-    acceptanceWorkflowContent,
-    /services:\s*[\s\S]*postgres:/
-  );
-  assert.doesNotMatch(
-    acceptanceWorkflowContent,
-    /Run database migrations[\s\S]*?pnpm db:migrate/
-  );
   assert.doesNotMatch(acceptanceWorkflowContent, /release-metadata/);
   assert.doesNotMatch(acceptanceWorkflowContent, /actions\/upload-artifact/);
 });
