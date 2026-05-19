@@ -23,7 +23,6 @@ import {
   SelectValue,
 } from '@/shared/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
-import { usePublicAppContext } from '@/shared/contexts/app';
 import {
   resolveSelfUserDetailsForAction,
   useSelfUserDetails,
@@ -42,6 +41,8 @@ import type {
   PricingItem,
   Pricing as PricingType,
 } from '@/shared/types/blocks/pricing';
+
+import { buildPricingSignInUrl } from './pricing-auth-redirect';
 
 function getCurrenciesFromItem(item: PricingItem | null): PricingCurrency[] {
   if (!item) return [];
@@ -74,6 +75,26 @@ function isCheckoutEnabled(item: PricingItem): boolean {
   return item.checkout_enabled !== false && item.amount > 0;
 }
 
+function getPricingCallbackUrl(): string {
+  if (typeof window === 'undefined') {
+    return '/pricing';
+  }
+
+  return (
+    `${window.location.pathname}${window.location.search}${window.location.hash}` ||
+    '/pricing'
+  );
+}
+
+function redirectToPricingSignIn(locale: string): void {
+  window.location.assign(
+    buildPricingSignInUrl({
+      callbackUrl: getPricingCallbackUrl(),
+      locale,
+    })
+  );
+}
+
 export function Pricing({
   pricing,
   className,
@@ -83,7 +104,6 @@ export function Pricing({
 }) {
   const locale = useLocale();
   const t = useTranslations('pricing.page');
-  const { setIsShowSignModal } = usePublicAppContext();
   const {
     data: details,
     error: detailsError,
@@ -178,7 +198,7 @@ export function Pricing({
     });
 
     if (result.status === 'auth_required') {
-      setIsShowSignModal(true);
+      redirectToPricingSignIn(locale);
       return null;
     }
 
@@ -188,7 +208,7 @@ export function Pricing({
     }
 
     return result.details;
-  }, [details, refreshDetails, setIsShowSignModal]);
+  }, [details, locale, refreshDetails]);
 
   const handlePayment = async (item: PricingItem) => {
     setProductId(item.product_id);
@@ -255,7 +275,7 @@ export function Pricing({
       if (e instanceof RequestIdError && e.status === 401) {
         setIsLoading(false);
         setProductId(null);
-        setIsShowSignModal(true);
+        redirectToPricingSignIn(locale);
         return;
       }
 
@@ -533,7 +553,6 @@ export function Pricing({
           })}
         </div>
       </div>
-
     </section>
   );
 }
