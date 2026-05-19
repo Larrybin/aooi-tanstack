@@ -34,7 +34,6 @@ import {
   getRequestIdFromError,
   RequestIdError,
 } from '@/shared/lib/api/request-id';
-import { withCallbackUrl } from '@/shared/lib/callback-url';
 import { cn } from '@/shared/lib/utils';
 import type { SelfUserDetails } from '@/shared/types/auth-session';
 import type {
@@ -42,6 +41,8 @@ import type {
   PricingItem,
   Pricing as PricingType,
 } from '@/shared/types/blocks/pricing';
+
+import { buildPricingSignInUrl } from './pricing-auth-redirect';
 
 function getCurrenciesFromItem(item: PricingItem | null): PricingCurrency[] {
   if (!item) return [];
@@ -85,8 +86,13 @@ function getPricingCallbackUrl(): string {
   );
 }
 
-function redirectToPricingSignIn(): void {
-  window.location.assign(withCallbackUrl('/sign-in', getPricingCallbackUrl()));
+function redirectToPricingSignIn(locale: string): void {
+  window.location.assign(
+    buildPricingSignInUrl({
+      callbackUrl: getPricingCallbackUrl(),
+      locale,
+    })
+  );
 }
 
 export function Pricing({
@@ -192,7 +198,7 @@ export function Pricing({
     });
 
     if (result.status === 'auth_required') {
-      redirectToPricingSignIn();
+      redirectToPricingSignIn(locale);
       return null;
     }
 
@@ -202,7 +208,7 @@ export function Pricing({
     }
 
     return result.details;
-  }, [details, refreshDetails]);
+  }, [details, locale, refreshDetails]);
 
   const handlePayment = async (item: PricingItem) => {
     setProductId(item.product_id);
@@ -269,7 +275,7 @@ export function Pricing({
       if (e instanceof RequestIdError && e.status === 401) {
         setIsLoading(false);
         setProductId(null);
-        redirectToPricingSignIn();
+        redirectToPricingSignIn(locale);
         return;
       }
 

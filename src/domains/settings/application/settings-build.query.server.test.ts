@@ -128,7 +128,8 @@ test('pricing checkout auth fallback uses the full sign-in page', () => {
 
   assert.equal(content.includes('usePublicAppContext'), false);
   assert.equal(content.includes('setIsShowSignModal'), false);
-  assert.equal(content.includes("withCallbackUrl('/sign-in'"), true);
+  assert.equal(content.includes('buildPricingSignInUrl'), true);
+  assert.equal(content.includes('redirectToPricingSignIn(locale)'), true);
   assert.equal(content.includes('window.location.assign'), true);
 });
 
