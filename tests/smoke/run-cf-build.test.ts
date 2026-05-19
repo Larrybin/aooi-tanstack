@@ -6,6 +6,7 @@ import {
   buildNoDbCloudflareBuildEnv,
   NO_DB_CLOUDFLARE_BUILD_SITES,
   NO_DB_CLOUDFLARE_PLACEHOLDER_ENV,
+  parseNoDbCloudflareBuildCliArgs,
   runNoDbCloudflareBuilds,
 } from '../../scripts/run-cf-build-no-db.mjs';
 import {
@@ -40,6 +41,27 @@ test('cf:build:no-db forwards cf:build args to each site build', () => {
     'cf:build',
     '--workers=app',
   ]);
+});
+
+test('cf:build:no-db can target one explicit matrix site', () => {
+  assert.deepEqual(
+    parseNoDbCloudflareBuildCliArgs([
+      '--site=ai-remover',
+      '--',
+      '--workers=public-web',
+    ]),
+    {
+      sites: ['ai-remover'],
+      scriptArgs: ['--workers=public-web'],
+    }
+  );
+});
+
+test('cf:build:no-db rejects unsupported matrix sites', () => {
+  assert.throws(
+    () => parseNoDbCloudflareBuildCliArgs(['--site=unknown']),
+    /Unsupported no-DB Cloudflare build site: unknown/
+  );
 });
 
 test('cf:build:no-db clears database URLs and keeps Cloudflare build env', () => {

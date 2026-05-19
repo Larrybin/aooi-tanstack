@@ -151,20 +151,6 @@ jobs:
     if: ${{ needs.detect-cloudflare-changes.outputs.cloudflare_changed == 'true' }}
     permissions:
       contents: read
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: aooi_ci_placeholder
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d aooi_ci_placeholder"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
     strategy:
       fail-fast: false
       matrix:
@@ -173,7 +159,8 @@ jobs:
       SITE: ${{ matrix.site }}
       DEPLOY_TARGET: cloudflare
       DATABASE_PROVIDER: postgresql
-      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/aooi_ci_placeholder
+      DATABASE_URL: ''
+      AUTH_SPIKE_DATABASE_URL: ''
       BETTER_AUTH_SECRET: ci-auth-secret-not-for-production
       AUTH_SECRET: ci-auth-secret-not-for-production
       RESEND_API_KEY: ci-resend-api-key-not-for-production
@@ -209,11 +196,8 @@ jobs:
       - name: Run Cloudflare config gate
         run: pnpm cf:check
 
-      - name: Run database migrations
-        run: pnpm db:migrate
-
-      - name: Run Cloudflare build gate
-        run: pnpm cf:build
+      - name: Run no-DB Cloudflare build gate
+        run: pnpm cf:build:no-db --site=${{ matrix.site }}
 
   contract-ai-remover:
     name: contract ai-remover

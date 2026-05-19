@@ -26,6 +26,56 @@ export function buildNoDbCloudflareBuildCommandArgs(scriptArgs = []) {
   return ['cf:build', ...scriptArgs];
 }
 
+export function parseNoDbCloudflareBuildCliArgs(args) {
+  const sites = [];
+  const scriptArgs = [];
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+
+    if (arg === '--') {
+      scriptArgs.push(...args.slice(index + 1));
+      break;
+    }
+
+    if (arg === '--site') {
+      const site = args[index + 1];
+      if (!site) {
+        throw new Error('--site requires a site key');
+      }
+      sites.push(site);
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith('--site=')) {
+      const site = arg.slice('--site='.length);
+      if (!site) {
+        throw new Error('--site requires a site key');
+      }
+      sites.push(site);
+      continue;
+    }
+
+    scriptArgs.push(arg);
+  }
+
+  const selectedSites =
+    sites.length > 0 ? sites : [...NO_DB_CLOUDFLARE_BUILD_SITES];
+  for (const site of selectedSites) {
+    if (!NO_DB_CLOUDFLARE_BUILD_SITES.includes(site)) {
+      throw new Error(
+        `Unsupported no-DB Cloudflare build site: ${site}. Expected one of: ${NO_DB_CLOUDFLARE_BUILD_SITES.join(', ')}`
+      );
+    }
+  }
+
+  return {
+    sites: selectedSites,
+    scriptArgs,
+  };
+}
+
 export function buildNoDbCloudflareBuildEnv(site, baseEnv = process.env) {
   return {
     ...baseEnv,
@@ -107,8 +157,12 @@ export function printNoDbCloudflareBuildSummary(results, logger = console) {
 }
 
 async function main() {
+  const { sites, scriptArgs } = parseNoDbCloudflareBuildCliArgs(
+    process.argv.slice(2)
+  );
   const results = await runNoDbCloudflareBuilds({
-    scriptArgs: process.argv.slice(2),
+    sites,
+    scriptArgs,
   });
   printNoDbCloudflareBuildSummary(results);
 

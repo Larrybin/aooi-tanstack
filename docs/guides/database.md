@@ -316,7 +316,7 @@ The governed deployment posture is now Cloudflare-only: production deploys must 
 State Worker migrations must stay state-safe. Router request dispatch changes belong in `pnpm cf:deploy:app`, while Durable Object owner/migration changes belong in `pnpm cf:deploy:state`.
 `pnpm cf:deploy:app` is a pure app release step. It does not bootstrap missing router/server deployments, so brand-new or partially initialized production environments must run `pnpm cf:deploy:state` first and `pnpm cf:deploy` second.
 
-`Cloudflare Deploy Acceptance` keeps DB schema governance in the schema migration guard, while production migrations remain owned by the local release command before deploy. The split `cloudflare-acceptance` matrix job still starts a temporary Postgres service and runs `pnpm db:migrate` before `pnpm cf:build`, because the current OpenNext build prerenders pages that read runtime settings from the `config` table.
+`Cloudflare Deploy Acceptance` keeps DB schema governance in the schema migration guard, while production migrations remain owned by the local release command before deploy. The split `cloudflare-acceptance` matrix job no longer starts a temporary Postgres service or runs `pnpm db:migrate`; it runs Cloudflare checks and `pnpm cf:build:no-db --site=<site>` with direct database URLs cleared.
 
 ## Best Practices
 

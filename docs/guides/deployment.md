@@ -104,17 +104,16 @@ That workflow keeps generic CI, schema migration guarding, Cloudflare
 acceptance, and site-scoped contract checks separate. The heavy Cloudflare
 matrix runs only for Cloudflare-relevant changes or manual dispatch, while the
 required summary check always reports pass, skip, or failure. The Cloudflare
-matrix job owns a migrated CI Postgres service before `pnpm cf:build` because
-the current OpenNext build still prerenders pages that read runtime settings
-from the `config` table.
+matrix runs `pnpm cf:check` and `pnpm cf:build:no-db --site=<site>` with direct
+database URLs cleared, `DATABASE_PROVIDER=postgresql`, and CI-only placeholder
+runtime bindings.
 
-`pnpm cf:build:no-db` is a local probe for removing that accidental build-time
-database dependency. It runs `mamamiya` and `ai-remover` sequentially, clears
+`pnpm cf:build:no-db` is the local probe for the same no-database build
+contract. It runs `mamamiya` and `ai-remover` sequentially, clears
 `DATABASE_URL` and `AUTH_SPIKE_DATABASE_URL`, keeps
 `DATABASE_PROVIDER=postgresql`, and supplies CI-only placeholder runtime
 bindings for auth, storage, Creem, Google, OpenRouter, and AI Remover cleanup.
-It is not a production release command and it does not replace the current
-Cloudflare acceptance matrix yet.
+It is not a production release command.
 
 Create a local `.env.production` file for production-only release inputs:
 

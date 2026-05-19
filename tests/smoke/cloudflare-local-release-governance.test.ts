@@ -97,19 +97,20 @@ test('Cloudflare acceptance 拆分职责并保留稳定 required check', () => {
   );
   assert.match(
     acceptanceWorkflowContent,
-    /Run Cloudflare build gate[\s\S]*?run:\s*pnpm cf:build/
+    /Run no-DB Cloudflare build gate[\s\S]*?run:\s*pnpm cf:build:no-db --site=\$\{\{ matrix\.site \}\}/
   );
+  assert.doesNotMatch(cloudflareAcceptanceJob, /services:/);
+  assert.doesNotMatch(cloudflareAcceptanceJob, /postgres:/);
+  assert.doesNotMatch(cloudflareAcceptanceJob, /POSTGRES_DB/);
+  assert.doesNotMatch(cloudflareAcceptanceJob, /pg_isready/);
+  assert.doesNotMatch(cloudflareAcceptanceJob, /pnpm db:migrate/);
+  assert.doesNotMatch(cloudflareAcceptanceJob, /DATABASE_URL:\s*postgresql:/);
+  assert.match(cloudflareAcceptanceJob, /DATABASE_PROVIDER:\s*postgresql/);
+  assert.match(cloudflareAcceptanceJob, /DATABASE_URL:\s*''/);
+  assert.match(cloudflareAcceptanceJob, /AUTH_SPIKE_DATABASE_URL:\s*''/);
   assert.match(
     cloudflareAcceptanceJob,
-    /services:\s*[\s\S]*postgres:\s*[\s\S]*POSTGRES_DB:\s*aooi_ci_placeholder/
-  );
-  assert.match(
-    cloudflareAcceptanceJob,
-    /--health-cmd "pg_isready -U postgres -d aooi_ci_placeholder"/
-  );
-  assert.match(
-    cloudflareAcceptanceJob,
-    /Run Cloudflare config gate[\s\S]*?run:\s*pnpm cf:check[\s\S]*?Run database migrations[\s\S]*?run:\s*pnpm db:migrate[\s\S]*?Run Cloudflare build gate[\s\S]*?run:\s*pnpm cf:build/
+    /Run no-DB Cloudflare build gate[\s\S]*?pnpm cf:build:no-db/
   );
   assert.doesNotMatch(ciStaticJob, /pnpm db:migrate/);
   assert.doesNotMatch(testJob, /pnpm db:migrate/);
