@@ -14,6 +14,14 @@ import {
 } from './settings-build.query';
 
 const rootDir = process.cwd();
+const dbFreeForbiddenImportFragments = [
+  'settings-store',
+  'settings-runtime.query',
+  'infra/adapters/db',
+  '/config/db',
+  'infra/runtime/env.server',
+  'config/env-contract',
+];
 
 function readRepoFile(...segments: string[]): string {
   return fs.readFileSync(path.resolve(rootDir, ...segments), 'utf8');
@@ -35,45 +43,41 @@ function collectImportSpecifiers(content: string): string[] {
   return [...specifiers].filter(Boolean).sort();
 }
 
-test('settings-build query keeps a DB-free import boundary', () => {
-  const content = readRepoFile(
-    'src',
-    'domains',
-    'settings',
-    'application',
-    'settings-build.query.ts'
-  );
+function assertDbFreeSettingsFile(relativePath: string): void {
+  const content = readRepoFile(...relativePath.split('/'));
   const imports = collectImportSpecifiers(content);
 
   for (const specifier of imports) {
+    for (const forbidden of dbFreeForbiddenImportFragments) {
+      assert.equal(
+        specifier.includes(forbidden),
+        false,
+        `${specifier} must not be imported by ${relativePath}`
+      );
+    }
+
     assert.equal(
-      specifier.includes('settings-store'),
+      specifier.endsWith('/db'),
       false,
-      `${specifier} must not be imported by settings-build.query.ts`
-    );
-    assert.equal(
-      specifier.includes('settings-runtime.query'),
-      false,
-      `${specifier} must not be imported by settings-build.query.ts`
-    );
-    assert.equal(
-      specifier.includes('infra/adapters/db') ||
-        specifier.includes('/config/db') ||
-        specifier.endsWith('/db'),
-      false,
-      `${specifier} must not be imported by settings-build.query.ts`
-    );
-    assert.equal(
-      specifier.includes('infra/runtime/env.server') ||
-        specifier.includes('config/env-contract'),
-      false,
-      `${specifier} must not be imported by settings-build.query.ts`
+      `${specifier} must not be imported by ${relativePath}`
     );
   }
 
   assert.equal(content.includes('DATABASE_URL'), false);
   assert.equal(content.includes('readSettingsCached'), false);
   assert.equal(content.includes('readSettingsFresh'), false);
+}
+
+test('settings-build query keeps a DB-free import boundary', () => {
+  assertDbFreeSettingsFile(
+    'src/domains/settings/application/settings-build.query.ts'
+  );
+});
+
+test('settings runtime contracts stay DB-free for build-safe imports', () => {
+  assertDbFreeSettingsFile(
+    'src/domains/settings/application/settings-runtime.contracts.ts'
+  );
 });
 
 test('pricing layout no longer imports runtime settings readers', () => {
@@ -104,12 +108,43 @@ test('build auth settings are conservative and do not synthesize Google client i
     },
   });
 
-  assert.equal(settings.emailAuthEnabled, true);
+  assert.equal(settings.emailAuthEnabled, false);
   assert.equal(settings.googleAuthEnabled, false);
   assert.equal(settings.googleOneTapEnabled, false);
   assert.equal(settings.googleClientId, '');
   assert.equal(settings.githubAuthEnabled, false);
+  assert.equal(readBuildAuthUiSettings().emailAuthEnabled, false);
   assert.equal(readBuildAuthUiSettings().googleClientId, '');
+});
+
+test('pricing checkout auth fallback uses the full sign-in page', () => {
+  const content = readRepoFile(
+    'src',
+    'themes',
+    'default',
+    'blocks',
+    'pricing.tsx'
+  );
+
+  assert.equal(content.includes('usePublicAppContext'), false);
+  assert.equal(content.includes('setIsShowSignModal'), false);
+  assert.equal(content.includes("withCallbackUrl('/sign-in'"), true);
+  assert.equal(content.includes('window.location.assign'), true);
+});
+
+test('sign user does not open inline modal without known auth methods', () => {
+  const content = readRepoFile(
+    'src',
+    'domains',
+    'account',
+    'ui',
+    'auth',
+    'sign-user.tsx'
+  );
+
+  assert.equal(content.includes('canOpenInlineSignModal'), true);
+  assert.equal(content.includes('!canOpenInlineSignModal'), true);
+  assert.equal(content.includes('{canOpenInlineSignModal && <SignModal'), true);
 });
 
 test('build billing settings do not evaluate secrets or provider product mapping readiness', () => {

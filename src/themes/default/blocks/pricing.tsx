@@ -23,7 +23,6 @@ import {
   SelectValue,
 } from '@/shared/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
-import { usePublicAppContext } from '@/shared/contexts/app';
 import {
   resolveSelfUserDetailsForAction,
   useSelfUserDetails,
@@ -35,6 +34,7 @@ import {
   getRequestIdFromError,
   RequestIdError,
 } from '@/shared/lib/api/request-id';
+import { withCallbackUrl } from '@/shared/lib/callback-url';
 import { cn } from '@/shared/lib/utils';
 import type { SelfUserDetails } from '@/shared/types/auth-session';
 import type {
@@ -74,6 +74,21 @@ function isCheckoutEnabled(item: PricingItem): boolean {
   return item.checkout_enabled !== false && item.amount > 0;
 }
 
+function getPricingCallbackUrl(): string {
+  if (typeof window === 'undefined') {
+    return '/pricing';
+  }
+
+  return (
+    `${window.location.pathname}${window.location.search}${window.location.hash}` ||
+    '/pricing'
+  );
+}
+
+function redirectToPricingSignIn(): void {
+  window.location.assign(withCallbackUrl('/sign-in', getPricingCallbackUrl()));
+}
+
 export function Pricing({
   pricing,
   className,
@@ -83,7 +98,6 @@ export function Pricing({
 }) {
   const locale = useLocale();
   const t = useTranslations('pricing.page');
-  const { setIsShowSignModal } = usePublicAppContext();
   const {
     data: details,
     error: detailsError,
@@ -178,7 +192,7 @@ export function Pricing({
     });
 
     if (result.status === 'auth_required') {
-      setIsShowSignModal(true);
+      redirectToPricingSignIn();
       return null;
     }
 
@@ -188,7 +202,7 @@ export function Pricing({
     }
 
     return result.details;
-  }, [details, refreshDetails, setIsShowSignModal]);
+  }, [details, refreshDetails]);
 
   const handlePayment = async (item: PricingItem) => {
     setProductId(item.product_id);
@@ -255,7 +269,7 @@ export function Pricing({
       if (e instanceof RequestIdError && e.status === 401) {
         setIsLoading(false);
         setProductId(null);
-        setIsShowSignModal(true);
+        redirectToPricingSignIn();
         return;
       }
 
@@ -533,7 +547,6 @@ export function Pricing({
           })}
         </div>
       </div>
-
     </section>
   );
 }

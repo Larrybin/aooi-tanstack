@@ -48,10 +48,10 @@ export function buildPublicUiConfigFromSite(
 }
 
 export function buildAuthUiSettingsFromSite(
-  siteConfig: BuildSiteInput
+  _siteConfig: BuildSiteInput
 ): AuthUiRuntimeSettings {
   return {
-    emailAuthEnabled: siteConfig.capabilities.auth,
+    emailAuthEnabled: false,
     googleAuthEnabled: false,
     googleOneTapEnabled: false,
     googleClientId: '',

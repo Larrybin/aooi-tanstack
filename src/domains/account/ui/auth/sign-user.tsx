@@ -44,12 +44,16 @@ export function SignUser({
 }) {
   const t = useTranslations('common.sign');
   const snapshot = useAuthSnapshot();
-  const { isShowSignModal, setIsShowSignModal, uiConfig } =
+  const { isShowSignModal, setIsShowSignModal, uiConfig, authSettings } =
     usePublicAppContext();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const userNavItems = filterLandingNavItems(userNav?.items, uiConfig);
+  const canOpenInlineSignModal =
+    authSettings.emailAuthEnabled ||
+    authSettings.googleAuthEnabled ||
+    authSettings.githubAuthEnabled;
 
   const search = searchParams.toString();
   const callbackUrl = normalizeCallbackUrl(
@@ -148,6 +152,10 @@ export function SignUser({
             aria-expanded={isShowSignModal}
             aria-haspopup="dialog"
             onClick={(event) => {
+              if (!canOpenInlineSignModal) {
+                return;
+              }
+
               if (
                 event.defaultPrevented ||
                 event.button !== 0 ||
@@ -167,7 +175,7 @@ export function SignUser({
               <span>{t('sign_in_title')}</span>
             </Link>
           </Button>
-          <SignModal callbackUrl={callbackUrl} />
+          {canOpenInlineSignModal && <SignModal callbackUrl={callbackUrl} />}
         </div>
       )}
     </>
