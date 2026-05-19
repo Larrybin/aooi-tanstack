@@ -1,14 +1,14 @@
-// data: landing translations + runtime public UI config + theme components
+// data: landing translations + build-safe public UI config + theme components
 // cache: default RSC
-// reason: public marketing page; keep AI navigation filtering aligned with runtime module settings
+// reason: public marketing page; keep AI navigation filtering aligned with source-controlled site capabilities
 import type { Metadata } from 'next';
 import { RemoverHome } from '@/domains/remover/ui/remover-home';
 import { buildRemoverHeaderFooter } from '@/domains/remover/ui/remover-shell';
 import {
   readBuildAuthUiSettings,
   readBuildBillingUiSettings,
+  readBuildPublicUiConfig,
 } from '@/domains/settings/application/settings-build.query';
-import { readPublicUiConfigCached } from '@/domains/settings/application/settings-runtime.query';
 import { applyBrandToLandingHeaderFooter } from '@/infra/platform/brand/identity';
 import {
   buildBrandPlaceholderValues,
@@ -97,7 +97,7 @@ export default async function LandingPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const publicUiConfig = await readPublicUiConfigCached();
+  const publicUiConfig = readBuildPublicUiConfig();
   const authSettings = readBuildAuthUiSettings();
   const billingSettings = readBuildBillingUiSettings();
   const brand = buildBrandPlaceholderValues();

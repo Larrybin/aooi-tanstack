@@ -35,7 +35,7 @@ export function buildPublicUiConfigFromSite(
   siteConfig: BuildSiteInput
 ): PublicUiConfig {
   return {
-    aiEnabled: siteConfig.capabilities.ai,
+    aiEnabled: Boolean(siteConfig.capabilities.ai),
     localeSwitcherEnabled: false,
     socialLinksEnabled: false,
     socialLinksJson: BUILD_SOCIAL_LINKS_JSON,

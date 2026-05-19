@@ -1,13 +1,13 @@
-// data: landing translations (header/footer) + theme layout + runtime public UI config
+// data: landing translations (header/footer) + theme layout + build-safe public UI config
 // cache: default (no explicit fetch)
-// reason: shared landing shell; keep AI navigation filtering aligned with runtime module settings
+// reason: shared landing shell; keep AI navigation filtering aligned with source-controlled site capabilities
 import type { ReactNode } from 'react';
 import { buildRemoverHeaderFooter } from '@/domains/remover/ui/remover-shell';
 import {
   readBuildAuthUiSettings,
   readBuildBillingUiSettings,
+  readBuildPublicUiConfig,
 } from '@/domains/settings/application/settings-build.query';
-import { readPublicUiConfigCached } from '@/domains/settings/application/settings-runtime.query';
 import { applyBrandToLandingHeaderFooter } from '@/infra/platform/brand/identity';
 import {
   buildBrandPlaceholderValues,
@@ -34,7 +34,7 @@ export default async function PageDetailLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const publicUiConfig = await readPublicUiConfigCached();
+  const publicUiConfig = readBuildPublicUiConfig();
   const authSettings = readBuildAuthUiSettings();
   const billingSettings = readBuildBillingUiSettings();
   const brand = buildBrandPlaceholderValues();

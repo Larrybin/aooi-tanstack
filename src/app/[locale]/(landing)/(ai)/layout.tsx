@@ -1,14 +1,14 @@
-// data: landing translations (header/footer) + theme layout + runtime AI availability
+// data: landing translations (header/footer) + theme layout + build-safe AI availability
 // cache: default RSC
-// reason: share the landing shell for AI demo pages; gate access via runtime module settings
+// reason: share the landing shell for AI demo pages; gate access via source-controlled site capabilities
 import type { ReactNode } from 'react';
 import { notFound } from 'next/navigation';
 import { isAiEnabled } from '@/domains/ai/domain/enablement';
 import {
   readBuildAuthUiSettings,
   readBuildBillingUiSettings,
+  readBuildPublicUiConfig,
 } from '@/domains/settings/application/settings-build.query';
-import { readPublicUiConfigCached } from '@/domains/settings/application/settings-runtime.query';
 import { applyBrandToLandingHeaderFooter } from '@/infra/platform/brand/identity';
 import {
   buildBrandPlaceholderValues,
@@ -33,7 +33,7 @@ export default async function AiLandingLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const publicUiConfig = await readPublicUiConfigCached();
+  const publicUiConfig = readBuildPublicUiConfig();
   const authSettings = readBuildAuthUiSettings();
   const billingSettings = readBuildBillingUiSettings();
   if (!isAiEnabled(publicUiConfig)) {
