@@ -1,21 +1,25 @@
 # Runtime Boundary
 
-Cloudflare / Node platform branching is restricted to one canonical boundary under `src/shared/lib/runtime/**`.
+Cloudflare / Node platform branching is restricted to two narrow runtime
+boundaries:
+
+- `src/infra/runtime/**` for platform/env detection and Cloudflare bindings.
+- `src/shared/lib/runtime/**` for pure request, crypto, and upload helpers.
 
 Allowed modules:
 
-- `runtime/env.server`
+- `src/infra/runtime/env.server`
   - `getRuntimePlatform()`
   - `isCloudflareWorkersRuntime()`
   - `getCloudflareBindings()`
   - `getCloudflareAIBinding()`
-- `runtime/request-body`
+- `src/shared/lib/runtime/request-body`
   - `readRequestTextWithLimit()`
   - `readRequestBodyByteCountUpTo()`
   - `readRequestFormData()`
-- `runtime/crypto`
+- `src/shared/lib/runtime/crypto`
   - `signHmacSha256Hex()`
-- `runtime/upload`
+- `src/shared/lib/runtime/upload`
   - `readUploadRequestInput()`
 
 ## Rules
@@ -23,8 +27,8 @@ Allowed modules:
 - Feature / route layers must not detect platform directly.
 - Shared business services must not fork on Node vs Workers.
 - Business runtime signing must not depend on `node:crypto`; use `runtime/crypto`.
-- Cloudflare bindings must be read only through `runtime/env.server`.
-- Request body / multipart access that exists because of runtime differences must go through `runtime/request-body` or `runtime/upload`.
+- Cloudflare bindings must be read only through `src/infra/runtime/env.server`.
+- Request body / multipart access that exists because of runtime differences must go through `src/shared/lib/runtime/request-body` or `src/shared/lib/runtime/upload`.
 
 ## Allowed platform differences
 
@@ -39,13 +43,19 @@ Anything else stays runtime-agnostic until a new boundary is explicitly introduc
 
 ## Current callers
 
-- `src/core/db/index.ts`
-- `src/core/auth/config.ts`
-- `src/shared/models/config.ts`
+- `src/infra/adapters/db/index.ts`
+- `src/infra/platform/auth/config.ts`
+- `src/domains/settings/application/settings-store.ts`
 - `src/shared/lib/api/parse.ts`
+- `src/shared/lib/api/limiters-factory.ts`
 - `src/app/api/ai/notify/[provider]/route.ts`
+- `src/app/api/remover/provider-adapter.server.ts`
+- `src/app/api/remover/upload/route.ts`
 - `src/app/api/storage/upload-image/route.ts`
-- `src/core/payment/providers/creem-webhook.ts`
+- `src/domains/billing/application/payment-notify-flow.ts`
+- `src/infra/adapters/payment/creem-webhook.ts`
+- `src/shared/platform/cloudflare/storage.ts`
+- `src/shared/platform/cloudflare/stateful-limiters.ts`
 
 ## Removed paths
 

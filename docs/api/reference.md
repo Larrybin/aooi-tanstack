@@ -159,10 +159,10 @@ Notes:
 
 ### User
 
-| Method | Endpoint                     | Description             |
-| ------ | ---------------------------- | ----------------------- |
-| `POST` | `/api/user/get-user-info`    | Get current user info   |
-| `POST` | `/api/user/get-user-credits` | Get user credit balance |
+| Method | Endpoint                     | Description                                    |
+| ------ | ---------------------------- | ---------------------------------------------- |
+| `POST` | `/api/user/get-user-credits` | Get user credit balance                        |
+| `POST` | `/api/user/self-details`     | Get the current user's public account snapshot |
 
 `POST /api/user/get-user-credits` returns:
 
@@ -177,12 +177,12 @@ Notes:
 
 ### Payment
 
-| Method | Endpoint                         | Description                               |
-| ------ | -------------------------------- | ----------------------------------------- |
-| `POST` | `/api/payment/checkout`          | Create checkout session                   |
-| `GET`  | `/api/payment/callback`          | Legacy: redirect-only checkout callback   |
-| `POST` | `/api/payment/callback`          | Finalize checkout (requires login + CSRF) |
-| `POST` | `/api/payment/notify`            | Webhook notifications                     |
+| Method | Endpoint                | Description                               |
+| ------ | ----------------------- | ----------------------------------------- |
+| `POST` | `/api/payment/checkout` | Create checkout session                   |
+| `GET`  | `/api/payment/callback` | Legacy: redirect-only checkout callback   |
+| `POST` | `/api/payment/callback` | Finalize checkout (requires login + CSRF) |
+| `POST` | `/api/payment/notify`   | Webhook notifications                     |
 
 Notes:
 
@@ -221,6 +221,7 @@ Notes:
 | `POST` | `/api/chat/list`            | List user chats              |
 | `POST` | `/api/chat/info`            | Get chat info                |
 | `POST` | `/api/chat/messages`        | Get chat messages            |
+| `GET`  | `/api/ai/capabilities`      | Get enabled AI capabilities  |
 | `POST` | `/api/ai/generate`          | AI generation                |
 | `POST` | `/api/ai/query`             | AI query                     |
 | `POST` | `/api/ai/notify/[provider]` | AI provider webhook callback |
@@ -248,6 +249,37 @@ Notes:
 Notes:
 
 - Current Cloudflare contract coverage is intentionally narrow: first-class upload acceptance is gated around the **R2** path (`pnpm test:r2-upload-spike`).
+
+### AI Remover
+
+These endpoints are active only for the `ai-remover` site target.
+
+| Method     | Endpoint                         | Description                                     |
+| ---------- | -------------------------------- | ----------------------------------------------- |
+| `POST`     | `/api/remover/upload`            | Upload one original or mask image               |
+| `POST`     | `/api/remover/jobs`              | Create or reuse a remover job                   |
+| `GET`      | `/api/remover/jobs/[id]`         | Read and refresh a remover job                  |
+| `GET/POST` | `/api/remover/download/low-res`  | Download the controlled low-res result          |
+| `POST`     | `/api/remover/download/high-res` | Download the quota-gated high-res result        |
+| `POST`     | `/api/remover/cleanup`           | Delete expired remover storage objects/metadata |
+
+Notes:
+
+- Use `SITE=ai-remover` for local build and Cloudflare checks.
+- `POST /api/remover/upload` accepts exactly one `image` form file plus
+  `kind=original|mask`. It validates the detected image bytes as JPG, PNG, or
+  WebP before storing the object.
+- `POST /api/remover/jobs` accepts `inputImageAssetId`, `maskImageAssetId`,
+  and `idempotencyKey`; the route reserves processing quota and submits the
+  configured remover provider job.
+- `GET /api/remover/jobs/[id]` returns a public job DTO only. It does not
+  expose provider task IDs, storage keys, or raw high-res output URLs.
+- Low-res downloads remain available to the owning anonymous session or signed
+  in user. High-res downloads require a signed-in user and consume
+  `high_res_download` quota idempotently.
+- `/my-images` is a page with server actions, not a REST API route.
+- Runtime provider acceptance is gated by
+  `SITE=ai-remover pnpm test:remover-workers-ai-spike`.
 
 ### Email
 

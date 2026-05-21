@@ -255,12 +255,12 @@ Engineering guides:
 
 Quality references:
 
-| Document                                               | Description                              |
-| ------------------------------------------------------ | ---------------------------------------- |
-| [Conventions Index](docs/CONVENTIONS.md)               | Repository conventions and code patterns |
-| [Code Review](docs/CODE_REVIEW.md)                     | Full code review guide                   |
-| [Architecture Overview](docs/architecture/overview.md) | Current architecture baseline            |
-| [Architecture Review](docs/ARCHITECTURE_REVIEW.md)     | Historical architecture audit snapshot   |
+| Document                                                                | Description                              |
+| ----------------------------------------------------------------------- | ---------------------------------------- |
+| [Conventions Index](docs/CONVENTIONS.md)                                | Repository conventions and code patterns |
+| [Code Review](docs/CODE_REVIEW.md)                                      | Full code review guide                   |
+| [Architecture Overview](docs/architecture/overview.md)                  | Current architecture baseline            |
+| [Architecture Review](docs/archive/architecture/ARCHITECTURE_REVIEW.md) | Historical architecture audit snapshot   |
 
 Module guides:
 
@@ -280,10 +280,9 @@ acceptance:
 - `pnpm test` runs as the default test gate.
 - `scripts/check-release-inputs.mjs` enforces DB schema changes shipping with
   migrations.
-- `pnpm cf:check` and `pnpm cf:build` run only for Cloudflare-relevant changes,
-  across the explicit deployable site matrix. The matrix job owns a migrated CI
-  Postgres service because the current OpenNext build still prerenders pages
-  that read runtime settings from the `config` table.
+- `pnpm cf:check` and `pnpm cf:build:no-db --site=<site>` run only for
+  Cloudflare-relevant changes, across the explicit deployable site matrix, with
+  direct database URLs cleared and CI-only placeholder runtime bindings.
 - `SITE=ai-remover pnpm contract:check` runs only for AI Remover contract
   changes.
 

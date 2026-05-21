@@ -15,13 +15,17 @@ provider abstractions for hypothetical providers.
 
 Goal: make `ai-remover` a real aooi site target.
 
-Tasks:
+Current status:
 
-- Add `sites/ai-remover/site.config.json`.
-- Add `sites/ai-remover/deploy.settings.json`.
-- Add English privacy and terms content.
-- Enable auth, Creem payment, AI, and storage-related deploy requirements.
-- Confirm `SITE=ai-remover pnpm build` can select the site.
+- `sites/ai-remover/site.config.json`,
+  `sites/ai-remover/deploy.settings.json`,
+  `sites/ai-remover/deploy.preview.settings.json`, and
+  `sites/ai-remover/pricing.json` exist.
+- English privacy and terms content exists.
+- Auth, Creem payment, AI, Workers AI, storage, and remover cleanup
+  requirements are declared in the site deploy settings.
+- `SITE=ai-remover` selects the site through the existing site generation
+  workflow.
 
 Done when:
 
@@ -32,14 +36,14 @@ Done when:
 
 Goal: render a credible upload-first homepage before the editor is wired.
 
-Tasks:
+Current status:
 
-- Create AI Object Remover homepage surface.
-- Add metadata title, description, H1, FAQ, and compliance copy.
-- Add before/after example placeholders using real static assets or generated
-  image assets.
-- Add upload card and lazy editor entry point.
-- Keep future tools out of navigation and page copy.
+- The AI Object Remover homepage surface exists.
+- Metadata title, description, H1, FAQ, and compliance copy are wired for the
+  `ai-remover` site.
+- The page includes before/after example content, upload entry, and lazy editor
+  loading after file selection.
+- Future tools are kept out of navigation and page copy.
 
 Done when:
 
@@ -51,14 +55,11 @@ Done when:
 
 Goal: produce original image and mask image client-side.
 
-Tasks:
+Current status:
 
-- Add image preview.
-- Add brush, eraser, undo, reset.
-- Add zoom and pan.
-- Export mask as PNG.
-- Keep controls compact and mobile-usable.
-- Lazy-load editor after upload.
+- The editor supports image preview, brush, eraser, undo, reset, zoom, and pan.
+- The mask is exported as PNG before remover job creation.
+- The editor is lazy-loaded after upload selection.
 
 Done when:
 
@@ -82,14 +83,9 @@ Current status:
   commit/refund transitions.
 - Added controlled low-res/high-res download routes and expiration cleanup.
 
-Tasks:
+Remaining tasks:
 
-- Add remover domain folders.
-- Add migration/schema for image assets, jobs, quota reservations, and usage.
-- Implement upload use case.
-- Implement `/api/remover/upload`.
-- Store original and mask images in R2 through the existing storage module.
-- Add ownership and anonymous session handling.
+- None for the current backend persistence surface.
 
 Done when:
 
@@ -100,22 +96,6 @@ Done when:
 ## Phase 4: AI Job Happy Path
 
 Goal: submit a removal job to one provider and retrieve a result.
-
-Tasks:
-
-- Choose one provider that supports image + mask inpainting/object removal.
-- Add the minimal removal provider adapter.
-- Implement job create use case.
-- Implement job status query use case.
-- Implement `/api/remover/jobs`.
-- Implement `/api/remover/jobs/:id`.
-- Store output and thumbnail assets.
-- Render queued/processing/succeeded/failed states.
-
-Done when:
-
-- One real image can be processed end to end.
-- Provider task ID, provider, model, cost units, and status are recorded.
 
 Current implementation note:
 
@@ -147,6 +127,10 @@ Current implementation note:
   only when running with `SITE=ai-remover`. Do not put the database URL in
   `.dev.vars`.
 
+Remaining tasks:
+
+- Keep the runtime spike green against the chosen Cloudflare Workers AI model.
+
 ## Phase 5: Quota and Download Rules
 
 Goal: make quota behavior correct before paid plans.
@@ -163,10 +147,10 @@ Current status:
 - Free users use lifetime sign-up high-res credits. Paid plans use monthly
   high-res quota from site pricing entitlements.
 
-Tasks:
+Remaining tasks:
 
 - Add real image resizing for low-res output and thumbnails.
-- Add explicit per-IP hourly/daily limits.
+- Add explicit per-IP hourly limits.
 - Add concurrent job limits per plan.
 - Record repeated provider/user failures for abuse review.
 
@@ -191,12 +175,14 @@ Current status:
 - `POST /api/remover/cleanup` deletes expired storage objects and marks expired
   assets/jobs deleted. It requires `Authorization: Bearer
 ${REMOVER_CLEANUP_SECRET}`.
-
-Tasks:
-
-- Show thumbnail, processed time, download action, delete action, and expiration.
+- `/my-images` shows thumbnail, processed time, download action, delete action,
+  and expiration.
 - The AI Remover deploy contract requires `REMOVER_CLEANUP_SECRET` and injects
   a public-web Cloudflare cron trigger for the cleanup route.
+
+Remaining tasks:
+
+- Runtime-verify cleanup secret wiring and the scheduled cleanup route.
 
 Done when:
 
@@ -208,9 +194,15 @@ Done when:
 
 Goal: turn pricing into an actual commercial loop.
 
-Tasks:
+Current status:
 
-- Configure Free, Pro, Studio pricing content.
+- Free, Pro, and Studio pricing content exists in
+  `sites/ai-remover/pricing.json`.
+- Remover plan limits resolve from site pricing entitlements.
+- `/settings/billing` exists through the shared billing settings surface.
+
+Remaining tasks:
+
 - Configure Creem product ID mapping.
 - Confirm checkout creation.
 - Confirm Creem webhook verification and subscription sync.
@@ -227,12 +219,16 @@ Done when:
 
 Goal: close security, reliability, and deploy risks.
 
-Tasks:
+Current status:
 
-- Add CSRF/origin protection to write routes.
-- Add IP, user, and concurrency rate limits.
-- Add user-safe provider errors.
-- Add upload and image dimension limits per plan.
+- Browser write routes use the shared API guard/origin checks.
+- Uploads validate detected image MIME bytes and plan-based file size.
+- Provider errors are mapped to user-safe job error code/message fields.
+
+Remaining tasks:
+
+- Add explicit per-IP hourly limits and per-plan concurrency limits.
+- Add stronger server-side image dimension limits per plan.
 - Add structured logs without private data.
 - Run full verification commands.
 - Browser-test desktop and mobile upload/edit/result flow.

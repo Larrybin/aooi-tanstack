@@ -17,11 +17,13 @@ logic for this product.
 
 ## Site Contract
 
-Add a site instance:
+Current site instance:
 
 ```text
 sites/ai-remover/site.config.json
 sites/ai-remover/deploy.settings.json
+sites/ai-remover/deploy.preview.settings.json
+sites/ai-remover/pricing.json
 sites/ai-remover/content/pages/privacy-policy.mdx
 sites/ai-remover/content/pages/terms-of-service.mdx
 ```
@@ -69,8 +71,9 @@ hold remover-specific asset and anonymous usage state.
 
 ## Data Model
 
-Use explicit product tables. Names below are suggested and can be adjusted to
-match repository conventions.
+Use explicit product tables owned by the remover workflow. Current schema lives
+in `src/config/db/schema.ts`, with repository functions under
+`src/domains/remover/infra/**`.
 
 ### `remover_image_asset`
 
@@ -79,11 +82,12 @@ Tracks all stored objects for a removal workflow.
 Required fields:
 
 - `id`
-- `ownerUserId`
+- `userId`
 - `anonymousSessionId`
 - `kind`: `original`, `mask`, `result`, `thumbnail`
 - `storageKey`
-- `contentType`
+- `url`
+- `mimeType`
 - `byteSize`
 - `width`
 - `height`
@@ -93,7 +97,7 @@ Required fields:
 - `expiresAt`
 - `deletedAt`
 
-At least one of `ownerUserId` or `anonymousSessionId` must be present.
+At least one of `userId` or `anonymousSessionId` must be present.
 
 ### `remover_job`
 
@@ -102,7 +106,7 @@ Tracks the AI removal job.
 Required fields:
 
 - `id`
-- `ownerUserId`
+- `userId`
 - `anonymousSessionId`
 - `provider`
 - `model`
@@ -110,14 +114,17 @@ Required fields:
 - `status`: `queued`, `processing`, `succeeded`, `failed`
 - `inputImageAssetId`
 - `maskImageAssetId`
-- `outputImageAssetId`
-- `thumbnailAssetId`
+- `inputImageKey`
+- `maskImageKey`
+- `outputImageKey`
+- `thumbnailKey`
 - `costUnits`
 - `quotaReservationId`
 - `errorCode`
 - `errorMessage`
 - `createdAt`
 - `updatedAt`
+- `deletedAt`
 - `expiresAt`
 
 ### `remover_quota_reservation`
@@ -127,61 +134,35 @@ Tracks reservation, commit, and refund idempotently.
 Required fields:
 
 - `id`
-- `subjectType`: `guest`, `user`
-- `subjectId`
-- `quotaType`: `process`, `high_res_download`
-- `amount`
+- `userId`
+- `anonymousSessionId`
+- `productId`
+- `quotaType`: `processing`, `high_res_download`, `upload`
+- `units`
 - `status`: `reserved`, `committed`, `refunded`, `expired`
 - `idempotencyKey`
 - `jobId`
+- `reason`
 - `createdAt`
 - `updatedAt`
 - `committedAt`
 - `refundedAt`
+- `expiresAt`
 
 Add a unique constraint on `idempotencyKey`.
 
-### `remover_usage_counter`
+### Quota Windows And Entitlements
 
-Tracks guest and user quota windows.
+There is no `remover_usage_counter` table and no `remover_entitlement` table in
+the current implementation.
 
-Required fields:
-
-- `id`
-- `subjectType`: `ip`, `guest`, `user`
-- `subjectId`
-- `quotaType`
-- `windowStart`
-- `windowEnd`
-- `used`
-- `reserved`
-- `createdAt`
-- `updatedAt`
-
-Use this table for daily guest limits, logged-in daily/monthly limits, and
-IP-based abuse controls.
-
-### `remover_entitlement`
-
-Stores product plan limits or resolved configured defaults.
-
-Required fields:
-
-- `id`
-- `planKey`: `guest`, `free`, `pro`, `studio`
-- `processingLimit`
-- `processingWindow`: `day`, `month`
-- `highResLimit`
-- `maxFileSizeBytes`
-- `retentionHours`
-- `concurrencyLimit`
-- `advancedModeEnabled`
-- `priorityQueueEnabled`
-- `createdAt`
-- `updatedAt`
-
-If a central entitlement/config table already exists when implementing, use it
-directly instead of duplicating this table.
+- Quota windows are computed over `remover_quota_reservation` rows.
+- Guest and free processing limits use day windows.
+- Paid processing and high-res limits use month windows.
+- Free high-res sign-up credits use a lifetime window.
+- Product entitlements come from `sites/ai-remover/pricing.json`, exposed
+  through generated `@/site` pricing data and resolved in
+  `src/domains/remover/domain/plan.ts`.
 
 ## API Routes
 
@@ -211,7 +192,7 @@ Responsibilities:
 
 - Validate uploaded image and mask ownership.
 - Check CSRF/origin for browser writes.
-- Check rate limits and concurrency.
+- Check quota availability.
 - Reserve processing quota.
 - Submit provider task.
 - Create `remover_job`.
@@ -261,15 +242,17 @@ Responsibilities:
 ### My Images
 
 ```text
-GET /api/my-images
-DELETE /api/my-images/:id
+GET /my-images
+POST /my-images delete server action
 ```
 
 Responsibilities:
 
 - Require logged-in user.
 - List only the current user's non-deleted jobs/assets.
-- Delete only current user's assets and mark metadata deleted.
+- Claim matching anonymous-session jobs after sign-in.
+- Delete only current user's assets and mark metadata deleted through a server
+  action.
 
 ### Expiration Cleanup
 
@@ -286,18 +269,21 @@ Responsibilities:
 
 ## Provider Adapter
 
-MVP needs one external inpainting/object-removal provider and no fallback.
+The current provider adapter defaults to Cloudflare Workers AI through the
+`AI` binding. `REMOVER_AI_PROVIDER` defaults to `cloudflare-workers-ai`, and
+`REMOVER_AI_MODEL` defaults to
+`@cf/runwayml/stable-diffusion-v1-5-inpainting`.
 
-Use a small product adapter:
+The product adapter stays small:
 
 ```ts
 type RemovalProvider = {
-  name: string;
+  config: {
+    provider: string;
+    model: string;
+  };
   submitTask(input: RemovalSubmitInput): Promise<RemovalSubmitResult>;
   getTaskStatus(input: RemovalStatusInput): Promise<RemovalStatusResult>;
-  getResult(input: RemovalResultInput): Promise<RemovalResult>;
-  mapProviderError(error: unknown): RemovalProviderError;
-  estimateCostUnits(input: RemovalSubmitInput): number;
 };
 ```
 
@@ -319,10 +305,14 @@ Use the existing storage module and Cloudflare R2 bindings.
 Storage keys should be isolated by product and owner:
 
 ```text
-remover/guest/<anonymous-session-id>/<job-id>/original.<ext>
-remover/guest/<anonymous-session-id>/<job-id>/mask.png
-remover/user/<user-id>/<job-id>/original.<ext>
-remover/user/<user-id>/<job-id>/result.<ext>
+remover/anonymous/<anonymous-session-id>/original/<asset-id>.<ext>
+remover/anonymous/<anonymous-session-id>/mask/<asset-id>.png
+remover/anonymous/<anonymous-session-id>/output/<asset-id>.png
+remover/anonymous/<anonymous-session-id>/thumbnail/<asset-id>.webp
+remover/users/<user-id>/original/<asset-id>.<ext>
+remover/users/<user-id>/mask/<asset-id>.png
+remover/users/<user-id>/output/<asset-id>.png
+remover/users/<user-id>/thumbnail/<asset-id>.webp
 ```
 
 Rules:
@@ -374,8 +364,12 @@ All write APIs need:
 - Entitlement checks.
 - CSRF/origin protection.
 - Rate limits.
-- Concurrency limits.
 - User or anonymous-session authorization.
+
+Current pending hardening:
+
+- Explicit per-IP hourly limits.
+- Per-plan concurrent job limits.
 
 Do not log:
 

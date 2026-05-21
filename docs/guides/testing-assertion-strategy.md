@@ -65,7 +65,7 @@
 仓库示例：
 
 - [tests/contract/payment-notify.test.ts](/Users/bin/Desktop/project/aooi/tests/contract/payment-notify.test.ts)
-- [src/features/admin/settings/module-contract.test.ts](/Users/bin/Desktop/project/aooi/src/features/admin/settings/module-contract.test.ts)
+- [src/surfaces/admin/settings/module-contract.test.ts](/Users/bin/Desktop/project/aooi/src/surfaces/admin/settings/module-contract.test.ts)
 - [tests/smoke/admin-settings-module-contract.test.ts](/Users/bin/Desktop/project/aooi/tests/smoke/admin-settings-module-contract.test.ts)
 - [tests/smoke/cloudflare-multi-worker-contract.test.ts](/Users/bin/Desktop/project/aooi/tests/smoke/cloudflare-multi-worker-contract.test.ts)
 
@@ -115,8 +115,8 @@
 仓库示例：
 
 - [src/shared/contexts/app-boundaries.test.ts](/Users/bin/Desktop/project/aooi/src/shared/contexts/app-boundaries.test.ts)
-- [src/core/theme/import-contract.test.ts](/Users/bin/Desktop/project/aooi/src/core/theme/import-contract.test.ts)
-- [src/features/web/auth/components/auth-refresh-boundaries.test.ts](/Users/bin/Desktop/project/aooi/src/features/web/auth/components/auth-refresh-boundaries.test.ts)
+- [src/infra/platform/theme-import-contract.test.ts](/Users/bin/Desktop/project/aooi/src/infra/platform/theme-import-contract.test.ts)
+- [src/domains/account/ui/auth/auth-refresh-boundaries.test.ts](/Users/bin/Desktop/project/aooi/src/domains/account/ui/auth/auth-refresh-boundaries.test.ts)
 - [src/instrumentation.test.ts](/Users/bin/Desktop/project/aooi/src/instrumentation.test.ts)
 
 要求：
@@ -155,7 +155,7 @@
 
 - `src/app/api/**/*.test.ts`
 - `src/themes/default/**/*.test.ts*`
-- `src/shared/services/**/*mapper*.test.ts`
+- `src/domains/settings/**/*mapper*.test.ts`
 - `tests/smoke/*.browser.ts`
 - 直接验证请求/响应、渲染结果、提交结果的测试
 
@@ -215,7 +215,7 @@
 
 - 这本质上是内容拆分行为，应该直接验证“前半段包含哪些段、后半段包含哪些段”。
 
-#### [src/shared/services/settings/settings-form-mapper.test.ts](/Users/bin/Desktop/project/aooi/src/shared/services/settings/settings-form-mapper.test.ts)
+#### [src/domains/settings/settings-form-mapper.test.ts](/Users/bin/Desktop/project/aooi/src/domains/settings/settings-form-mapper.test.ts)
 
 现状：
 
@@ -233,7 +233,7 @@
 
 ### P2：需要先抽象可观察边界，再迁移
 
-#### [src/features/web/auth/components/auth-refresh-boundaries.test.ts](/Users/bin/Desktop/project/aooi/src/features/web/auth/components/auth-refresh-boundaries.test.ts)
+#### [src/domains/account/ui/auth/auth-refresh-boundaries.test.ts](/Users/bin/Desktop/project/aooi/src/domains/account/ui/auth/auth-refresh-boundaries.test.ts)
 
 现状：
 
@@ -261,8 +261,8 @@
 
 - [tests/smoke/admin-settings-module-contract.test.ts](/Users/bin/Desktop/project/aooi/tests/smoke/admin-settings-module-contract.test.ts)
 - [tests/smoke/cloudflare-multi-worker-contract.test.ts](/Users/bin/Desktop/project/aooi/tests/smoke/cloudflare-multi-worker-contract.test.ts)
-- [src/core/theme/import-contract.test.ts](/Users/bin/Desktop/project/aooi/src/core/theme/import-contract.test.ts)
-- [src/features/admin/settings/module-contract.test.ts](/Users/bin/Desktop/project/aooi/src/features/admin/settings/module-contract.test.ts)
+- [src/infra/platform/theme-import-contract.test.ts](/Users/bin/Desktop/project/aooi/src/infra/platform/theme-import-contract.test.ts)
+- [src/surfaces/admin/settings/module-contract.test.ts](/Users/bin/Desktop/project/aooi/src/surfaces/admin/settings/module-contract.test.ts)
 
 原因：
 
