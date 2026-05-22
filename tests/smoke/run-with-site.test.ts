@@ -105,6 +105,21 @@ test('run-with-site 尊重显式 SITE', async () => {
   assert.equal(result.stdout.trimEnd().split('\n').at(-1), 'mamamiya');
 });
 
+test('run-with-site 注入当前站点 active OpenNext split workers', async () => {
+  const result = await runWithSite(
+    ['node', '-p', 'process.env.CLOUDFLARE_ACTIVE_SPLIT_WORKERS || ""'],
+    {
+      SITE: 'ai-remover',
+    }
+  );
+
+  assert.equal(result.ok, true, result.stderr);
+  assert.equal(
+    result.stdout.trimEnd().split('\n').at(-1),
+    'auth,payment,member,admin'
+  );
+});
+
 test('run-with-site buildSiteEnv applies selected site local env without overriding shell env', () => {
   const env = {
     SITE: 'ai-remover',

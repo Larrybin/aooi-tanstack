@@ -9,7 +9,11 @@ import doShardedTagCache from '@opennextjs/cloudflare/overrides/tag-cache/do-sha
 import {
   CLOUDFLARE_SPLIT_WORKER_TARGETS,
   getSplitWorker,
+  type CloudflareSplitWorkerTarget,
 } from './src/shared/config/cloudflare-worker-splits';
+
+const ACTIVE_SPLIT_WORKERS_ENV = 'CLOUDFLARE_ACTIVE_SPLIT_WORKERS';
+const splitWorkerSet = new Set<string>(CLOUDFLARE_SPLIT_WORKER_TARGETS);
 
 const baseConfig = defineCloudflareConfig({
   incrementalCache: r2IncrementalCache,
@@ -17,36 +21,66 @@ const baseConfig = defineCloudflareConfig({
   queue: doQueue,
 });
 
-const config = {
-  ...baseConfig,
-  default: {
-    ...baseConfig.default,
-    placement: 'regional',
-    runtime: 'node',
-  },
-  functions: Object.fromEntries(
-    CLOUDFLARE_SPLIT_WORKER_TARGETS.map((target) => {
-      const split = getSplitWorker(target);
+function resolveActiveSplitWorkerTargets() {
+  const rawValue = process.env[ACTIVE_SPLIT_WORKERS_ENV]?.trim();
+  if (!rawValue) {
+    return [...CLOUDFLARE_SPLIT_WORKER_TARGETS];
+  }
 
-      return [
-        target,
-        {
-          ...baseConfig.default,
-          placement: 'regional',
-          runtime: 'node',
-          routes: [...split.routeTemplates],
-          patterns: [...split.patterns],
-        },
-      ];
-    })
-  ),
-  middleware:
-    baseConfig.middleware && 'external' in baseConfig.middleware
-      ? {
-          ...baseConfig.middleware,
-          originResolver: 'pattern-env',
-        }
-      : baseConfig.middleware,
-} as OpenNextConfig;
+  const targets = rawValue
+    .split(',')
+    .map((target) => target.trim())
+    .filter(Boolean);
+  const unknownTargets = targets.filter(
+    (target) => !splitWorkerSet.has(target)
+  );
+  if (unknownTargets.length > 0) {
+    throw new Error(
+      `${ACTIVE_SPLIT_WORKERS_ENV} contains unknown split worker(s): ${unknownTargets.join(', ')}`
+    );
+  }
+
+  return targets as CloudflareSplitWorkerTarget[];
+}
+
+export function buildOpenNextConfig({
+  activeSplitWorkerTargets = resolveActiveSplitWorkerTargets(),
+}: {
+  activeSplitWorkerTargets?: readonly CloudflareSplitWorkerTarget[];
+} = {}) {
+  return {
+    ...baseConfig,
+    default: {
+      ...baseConfig.default,
+      placement: 'regional',
+      runtime: 'node',
+    },
+    functions: Object.fromEntries(
+      activeSplitWorkerTargets.map((target) => {
+        const split = getSplitWorker(target);
+
+        return [
+          target,
+          {
+            ...baseConfig.default,
+            placement: 'regional',
+            runtime: 'node',
+            routes: [...split.routeTemplates],
+            patterns: [...split.patterns],
+          },
+        ];
+      })
+    ),
+    middleware:
+      baseConfig.middleware && 'external' in baseConfig.middleware
+        ? {
+            ...baseConfig.middleware,
+            originResolver: 'pattern-env',
+          }
+        : baseConfig.middleware,
+  } as OpenNextConfig;
+}
+
+const config = buildOpenNextConfig();
 
 export default config;

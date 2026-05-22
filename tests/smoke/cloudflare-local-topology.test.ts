@@ -187,6 +187,29 @@ test('prepareCloudflareLocalTopologyArtifacts 默认在临时 topology 目录内
   }
 });
 
+test('prepareCloudflareLocalTopologyArtifacts 只生成 active server workers', async () => {
+  const artifacts = await prepareCloudflareLocalTopologyArtifacts({
+    databaseUrl: 'postgresql://demo:demo@127.0.0.1:5432/demo',
+    authSecret: 'topology-secret-0123456789abcdef',
+    processEnv: {
+      SITE: 'ai-remover',
+    },
+  });
+
+  try {
+    assert.deepEqual(
+      artifacts.serverWorkers.map((worker) => worker.target),
+      ['public-web', 'auth', 'payment', 'member', 'admin']
+    );
+    assert.equal(
+      artifacts.serverWorkers.some((worker) => worker.target === 'chat'),
+      false
+    );
+  } finally {
+    await artifacts.cleanup();
+  }
+});
+
 test('startCloudflareLocalDevTopology 只创建一个 unified manager，并在 stop 时清理 topology', async () => {
   const events: string[] = [];
   const managerEnvs: Array<Record<string, string | undefined>> = [];

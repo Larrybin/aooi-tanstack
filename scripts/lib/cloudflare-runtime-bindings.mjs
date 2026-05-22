@@ -1,6 +1,11 @@
 import cloudflareWorkerSplits from '../../src/shared/config/cloudflare-worker-splits.ts';
 import { resolveRequiredSiteKey } from './site-config.mjs';
 import { resolveSiteDeployContract } from './site-deploy-contract.mjs';
+import {
+  getActiveAppWorkerSlots,
+  getActiveWorkerSlots,
+  hasActiveWorkerSlot,
+} from './site-deploy-settings.mjs';
 
 const {
   AUTH_HANDLER_WORKER_TARGETS,
@@ -70,6 +75,10 @@ function formatAllowedWorkerKeys() {
   ].join(', ');
 }
 
+function formatWorkerDisabledMessage(workerKey, contract) {
+  return `Cloudflare worker "${workerKey}" is disabled for SITE=${contract.siteKey}`;
+}
+
 function pushRequirement(list, requirement) {
   list.push(requirement);
 }
@@ -94,26 +103,32 @@ function buildRequirementSignature(workerKey, requirement) {
   return `${workerKey}:${names.join('|')}`;
 }
 
-function createRequirementMap() {
-  return new Map([
-    ['router', []],
-    ['auth', []],
-    ['payment', []],
-    ['member', []],
-    ['chat', []],
-    ['admin', []],
-    ['public-web', []],
-    ['state', []],
-  ]);
+function createRequirementMap(contract = null) {
+  const workerKeys = contract
+    ? getActiveWorkerSlots(contract)
+    : CLOUDFLARE_ALL_WORKER_SCOPE;
+  return new Map(workerKeys.map((worker) => [worker, []]));
+}
+
+function addRequirementIfWorkerActive(requirements, worker, requirement) {
+  const workerRequirements = requirements.get(worker);
+  if (!workerRequirements) {
+    return;
+  }
+
+  pushRequirement(workerRequirements, requirement);
 }
 
 function buildDeploySecretRequirementMap(contract) {
-  const requirements = createRequirementMap();
-  const { secrets, vars, payment } = contract.bindingRequirements;
+  const requirements = createRequirementMap(
+    contract?.workers ? contract : null
+  );
+  const bindingRequirements = contract.bindingRequirements ?? contract;
+  const { secrets, vars, payment } = bindingRequirements;
 
   if (vars.storagePublicBaseUrl) {
     for (const worker of ['router', ...SERVER_RUNTIME_WORKER_KEYS]) {
-      pushRequirement(requirements.get(worker), {
+      addRequirementIfWorkerActive(requirements, worker, {
         kind: 'runtime-var',
         worker,
         name: 'STORAGE_PUBLIC_BASE_URL',
@@ -125,7 +140,7 @@ function buildDeploySecretRequirementMap(contract) {
 
   if (secrets.authSharedSecret) {
     for (const worker of SERVER_RUNTIME_WORKER_KEYS) {
-      pushRequirement(requirements.get(worker), {
+      addRequirementIfWorkerActive(requirements, worker, {
         kind: 'runtime-secret',
         worker,
         names: ['BETTER_AUTH_SECRET', 'AUTH_SECRET'],
@@ -140,7 +155,7 @@ function buildDeploySecretRequirementMap(contract) {
     for (const worker of AUTH_HANDLER_WORKER_TARGETS) {
       for (const name of ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET']) {
         assertSecretWorkerAllowed(name, [worker]);
-        pushRequirement(requirements.get(worker), {
+        addRequirementIfWorkerActive(requirements, worker, {
           kind: 'runtime-secret',
           worker,
           name,
@@ -152,7 +167,7 @@ function buildDeploySecretRequirementMap(contract) {
 
     for (const worker of AUTH_UI_WORKER_TARGETS) {
       assertSecretWorkerAllowed('GOOGLE_CLIENT_ID', [worker]);
-      pushRequirement(requirements.get(worker), {
+      addRequirementIfWorkerActive(requirements, worker, {
         kind: 'runtime-secret',
         worker,
         name: 'GOOGLE_CLIENT_ID',
@@ -166,7 +181,7 @@ function buildDeploySecretRequirementMap(contract) {
     for (const worker of AUTH_HANDLER_WORKER_TARGETS) {
       for (const name of ['GITHUB_CLIENT_ID', 'GITHUB_CLIENT_SECRET']) {
         assertSecretWorkerAllowed(name, [worker]);
-        pushRequirement(requirements.get(worker), {
+        addRequirementIfWorkerActive(requirements, worker, {
           kind: 'runtime-secret',
           worker,
           name,
@@ -180,7 +195,7 @@ function buildDeploySecretRequirementMap(contract) {
   if (secrets.emailProvider) {
     assertSecretWorkerAllowed('RESEND_API_KEY', ['auth', 'admin']);
     for (const worker of ['auth', 'admin']) {
-      pushRequirement(requirements.get(worker), {
+      addRequirementIfWorkerActive(requirements, worker, {
         kind: 'runtime-secret',
         worker,
         name: 'RESEND_API_KEY',
@@ -192,7 +207,7 @@ function buildDeploySecretRequirementMap(contract) {
 
   if (secrets.removerCleanup) {
     assertSecretWorkerAllowed('REMOVER_CLEANUP_SECRET', ['public-web']);
-    pushRequirement(requirements.get('public-web'), {
+    addRequirementIfWorkerActive(requirements, 'public-web', {
       kind: 'runtime-secret',
       worker: 'public-web',
       name: 'REMOVER_CLEANUP_SECRET',
@@ -211,7 +226,7 @@ function buildDeploySecretRequirementMap(contract) {
         'STRIPE_SECRET_KEY',
         'STRIPE_SIGNING_SECRET',
       ]) {
-        pushRequirement(requirements.get(worker), {
+        addRequirementIfWorkerActive(requirements, worker, {
           kind: 'runtime-secret',
           worker,
           name,
@@ -227,7 +242,7 @@ function buildDeploySecretRequirementMap(contract) {
     assertSecretWorkerAllowed('CREEM_SIGNING_SECRET', ['payment', 'member']);
     for (const worker of ['payment', 'member']) {
       for (const name of ['CREEM_API_KEY', 'CREEM_SIGNING_SECRET']) {
-        pushRequirement(requirements.get(worker), {
+        addRequirementIfWorkerActive(requirements, worker, {
           kind: 'runtime-secret',
           worker,
           name,
@@ -248,7 +263,7 @@ function buildDeploySecretRequirementMap(contract) {
         'PAYPAL_CLIENT_SECRET',
         'PAYPAL_WEBHOOK_ID',
       ]) {
-        pushRequirement(requirements.get(worker), {
+        addRequirementIfWorkerActive(requirements, worker, {
           kind: 'runtime-secret',
           worker,
           name,
@@ -261,7 +276,7 @@ function buildDeploySecretRequirementMap(contract) {
 
   if (secrets.openrouter) {
     assertSecretWorkerAllowed('OPENROUTER_API_KEY', ['chat']);
-    pushRequirement(requirements.get('chat'), {
+    addRequirementIfWorkerActive(requirements, 'chat', {
       kind: 'runtime-secret',
       worker: 'chat',
       name: 'OPENROUTER_API_KEY',
@@ -273,7 +288,10 @@ function buildDeploySecretRequirementMap(contract) {
   return requirements;
 }
 
-export function normalizeCloudflareWorkerKeys(workerKeys) {
+export function normalizeCloudflareWorkerKeys(
+  workerKeys,
+  { contract = null } = {}
+) {
   if (!Array.isArray(workerKeys) || workerKeys.length === 0) {
     throw new Error(
       `Cloudflare worker scope is required. Use --workers=state|app|all|<comma-list>. Allowed values: ${formatAllowedWorkerKeys()}`
@@ -298,12 +316,18 @@ export function normalizeCloudflareWorkerKeys(workerKeys) {
         `Unknown Cloudflare worker "${workerKey}". Allowed values: ${formatAllowedWorkerKeys()}`
       );
     }
+    if (contract && !hasActiveWorkerSlot(contract, workerKey)) {
+      throw new Error(formatWorkerDisabledMessage(workerKey, contract));
+    }
   }
 
   return normalized;
 }
 
-export function resolveCloudflareWorkerKeys(value = 'all') {
+export function resolveCloudflareWorkerKeys(
+  value = 'all',
+  { contract = null } = {}
+) {
   const rawValue = String(value ?? '').trim();
   if (!rawValue) {
     throw new Error(
@@ -313,10 +337,19 @@ export function resolveCloudflareWorkerKeys(value = 'all') {
 
   const namedScope = CLOUDFLARE_WORKER_SCOPES[rawValue];
   if (namedScope) {
-    return [...namedScope];
+    if (!contract) {
+      return [...namedScope];
+    }
+    if (rawValue === 'state') {
+      return ['state'];
+    }
+    if (rawValue === 'app') {
+      return getActiveAppWorkerSlots(contract);
+    }
+    return ['state', ...getActiveAppWorkerSlots(contract)];
   }
 
-  return normalizeCloudflareWorkerKeys(rawValue.split(','));
+  return normalizeCloudflareWorkerKeys(rawValue.split(','), { contract });
 }
 
 export function readCloudflareDeployRequirements({
@@ -337,13 +370,24 @@ export function getRequiredRuntimeBindingsByWorker(
   });
 }
 
+export function getRequiredRuntimeBindingsByContract(contract) {
+  return buildDeploySecretRequirementMap(contract);
+}
+
 export function collectRequiredRuntimeBindings(
   workerKeys,
-  bindingRequirements = readCloudflareDeployRequirements()
+  bindingRequirements = readCloudflareDeployRequirements(),
+  { contract = null } = {}
 ) {
-  const normalizedWorkerKeys = normalizeCloudflareWorkerKeys(workerKeys);
-  const requirementsByWorker =
-    getRequiredRuntimeBindingsByWorker(bindingRequirements);
+  const normalizedWorkerKeys = normalizeCloudflareWorkerKeys(workerKeys, {
+    contract,
+  });
+  const requirementsByWorker = contract
+    ? getRequiredRuntimeBindingsByContract({
+        ...contract,
+        bindingRequirements,
+      })
+    : getRequiredRuntimeBindingsByWorker(bindingRequirements);
   const collected = [];
   const seen = new Set();
 
@@ -364,9 +408,12 @@ export function collectRequiredRuntimeBindings(
 
 export function collectRequiredSecretNames(
   workerKeys,
-  bindingRequirements = readCloudflareDeployRequirements()
+  bindingRequirements = readCloudflareDeployRequirements(),
+  { contract = null } = {}
 ) {
-  return collectRequiredRuntimeBindings(workerKeys, bindingRequirements)
+  return collectRequiredRuntimeBindings(workerKeys, bindingRequirements, {
+    contract,
+  })
     .filter((requirement) => requirement.kind === 'runtime-secret')
     .flatMap(
       (requirement) =>

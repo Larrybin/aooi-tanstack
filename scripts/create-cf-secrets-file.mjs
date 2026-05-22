@@ -7,9 +7,10 @@ import { shouldWarnOnlyForMissingPreviewSecret } from './lib/cloudflare-preview-
 import {
   collectRequiredRuntimeBindings,
   normalizeCloudflareWorkerKeys,
-  readCloudflareDeployRequirements,
   resolveCloudflareWorkerKeys,
 } from './lib/cloudflare-runtime-bindings.mjs';
+import { resolveRequiredSiteKey } from './lib/site-config.mjs';
+import { resolveSiteDeployContract } from './lib/site-deploy-contract.mjs';
 import { resolveCloudflareDeployProfile } from './lib/site-deploy-profile.mjs';
 
 const envContractModule = envContractNamespace.default ?? envContractNamespace;
@@ -142,16 +143,19 @@ export function buildCloudflareSecretsEnv(
   processEnv = process.env,
   options = {}
 ) {
-  const workerKeys = normalizeCloudflareWorkerKeys(options.workerKeys);
+  const contract = resolveSiteDeployContract({
+    rootDir: options.rootDir ?? process.cwd(),
+    siteKey: resolveRequiredSiteKey(processEnv),
+  });
+  const workerKeys = normalizeCloudflareWorkerKeys(options.workerKeys, {
+    contract,
+  });
   const bindingRequirements =
-    options.runtimeSettings ??
-    readCloudflareDeployRequirements({
-      processEnv,
-      rootDir: options.rootDir ?? process.cwd(),
-    });
+    options.runtimeSettings ?? contract.bindingRequirements;
   const requiredRequirements = collectRequiredRuntimeBindings(
     workerKeys,
-    bindingRequirements
+    bindingRequirements,
+    { contract }
   );
   const requiredSecretNames = Array.from(
     new Set(
@@ -244,7 +248,13 @@ async function main() {
     );
   }
 
-  const workerKeys = resolveCloudflareWorkerKeys(workersArg.split('=')[1]);
+  const contract = resolveSiteDeployContract({
+    rootDir,
+    siteKey: resolveRequiredSiteKey(process.env),
+  });
+  const workerKeys = resolveCloudflareWorkerKeys(workersArg.split('=')[1], {
+    contract,
+  });
   const result = await writeCloudflareSecretsFile({ outputPath, workerKeys });
   process.stdout.write(`${result.outputPath}\n`);
 }

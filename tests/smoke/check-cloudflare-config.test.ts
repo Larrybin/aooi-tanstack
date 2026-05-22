@@ -324,6 +324,7 @@ test('cf:check preview app 缺 CREEM secrets 时只警告不失败', async () =>
     assert.match(result.stderr, /warning:.*CREEM_API_KEY/);
     assert.match(result.stderr, /warning:.*CREEM_SIGNING_SECRET/);
     assert.match(result.stdout, /workers: router, public-web, auth/);
+    assert.doesNotMatch(result.stdout, /\bchat\b/);
   } finally {
     await fixture.cleanup();
   }
@@ -353,6 +354,30 @@ test('cf:check preview app 对 AI Remover 不要求 OPENROUTER_API_KEY', async (
     assert.equal(result.ok, true, result.stderr);
     assert.doesNotMatch(result.stderr, /OPENROUTER_API_KEY/);
     assert.match(result.stdout, /workers: router, public-web, auth/);
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test('cf:check 显式请求 disabled worker 时失败', async () => {
+  const fixture = await withFixture(async (fixtureDir) => {
+    await copySiteFixture(fixtureDir, 'ai-remover');
+  });
+
+  try {
+    const result = await runCheckCloudflareConfig({
+      cwd: fixture.fixtureDir,
+      args: ['--workers=chat'],
+      env: {
+        SITE: 'ai-remover',
+        CF_DEPLOY_PROFILE: 'preview',
+        CF_WORKERS_DEV_SUBDOMAIN: 'aooi-preview',
+        [storagePublicBaseUrlName]: 'https://assets.example.com/',
+      },
+    });
+
+    assert.equal(result.ok, false);
+    assert.match(result.stderr, /Cloudflare worker "chat" is disabled/);
   } finally {
     await fixture.cleanup();
   }

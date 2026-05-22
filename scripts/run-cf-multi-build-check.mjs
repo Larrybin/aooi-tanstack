@@ -7,10 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 import { writeCloudflareSecretsFile } from './create-cf-secrets-file.mjs';
 import { buildCloudflareWranglerConfig } from './create-cf-wrangler-config.mjs';
-import {
-  CLOUDFLARE_APP_WORKER_SCOPE,
-  resolveCloudflareWorkerKeys,
-} from './lib/cloudflare-runtime-bindings.mjs';
+import { resolveCloudflareWorkerKeys } from './lib/cloudflare-runtime-bindings.mjs';
 import { resolveRequiredSiteKey } from './lib/site-config.mjs';
 import { resolveSiteDeployContract } from './lib/site-deploy-contract.mjs';
 
@@ -28,10 +25,11 @@ function resolveDeployContract({
 }
 
 export function resolveBuildWorkerKeys(args = process.argv.slice(2)) {
+  const contract = resolveDeployContract();
   const workersArg = args.find((arg) => arg.startsWith('--workers='));
   const workerKeys = workersArg
-    ? resolveCloudflareWorkerKeys(workersArg.split('=')[1])
-    : CLOUDFLARE_APP_WORKER_SCOPE;
+    ? resolveCloudflareWorkerKeys(workersArg.split('=')[1], { contract })
+    : resolveCloudflareWorkerKeys('app', { contract });
   return workerKeys.filter((workerKey) => workerKey !== 'state');
 }
 

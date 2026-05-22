@@ -5,7 +5,7 @@ import topology from '../src/shared/config/cloudflare-worker-topology.ts';
 import { buildCloudflareWranglerConfig } from './create-cf-wrangler-config.mjs';
 import { shouldWarnOnlyForMissingPreviewSecret } from './lib/cloudflare-preview-optional-secrets.mjs';
 import {
-  getRequiredRuntimeBindingsByWorker,
+  getRequiredRuntimeBindingsByContract,
   resolveCloudflareWorkerKeys,
 } from './lib/cloudflare-runtime-bindings.mjs';
 import { resolveRequiredSiteKey } from './lib/site-config.mjs';
@@ -16,7 +16,6 @@ import {
 import { resolveCloudflareDeployProfile } from './lib/site-deploy-profile.mjs';
 
 const {
-  CLOUDFLARE_ALL_SERVER_WORKER_TARGETS,
   CLOUDFLARE_DURABLE_OBJECT_BINDINGS,
   CLOUDFLARE_SERVICE_BINDINGS,
   CLOUDFLARE_VERSION_ID_VARS,
@@ -126,11 +125,12 @@ function readExpectedRebasedMain(templatePath, workerEntryRelativePath) {
   );
 }
 
-function parseWorkerKeys(args) {
+function parseWorkerKeys(args, contract) {
   const workersArg = args.find((arg) => arg.startsWith('--workers='));
   try {
     return resolveCloudflareWorkerKeys(
-      workersArg ? workersArg.split('=')[1] : 'all'
+      workersArg ? workersArg.split('=')[1] : 'all',
+      { contract }
     );
   } catch (error) {
     fail(error instanceof Error ? error.message : String(error));
@@ -472,7 +472,7 @@ function assertRouterConfig(content, contract, requiredBindingsByWorker) {
   const serviceTables = readArrayTable(content, 'services');
   const expectedServices = new Map([
     ['WORKER_SELF_REFERENCE', contract.router.workerName],
-    ...CLOUDFLARE_ALL_SERVER_WORKER_TARGETS.map((target) => [
+    ...Object.keys(contract.serverWorkers).map((target) => [
       CLOUDFLARE_SERVICE_BINDINGS[target],
       contract.serverWorkers[target].workerName,
     ]),
@@ -530,7 +530,7 @@ function assertRouterConfig(content, contract, requiredBindingsByWorker) {
   }
 
   const varsSection = readSection(content, 'vars');
-  for (const target of CLOUDFLARE_ALL_SERVER_WORKER_TARGETS) {
+  for (const target of Object.keys(contract.serverWorkers)) {
     readMaybeEmptyQuotedValue(
       varsSection,
       `router.vars.${CLOUDFLARE_VERSION_ID_VARS[target]}`,
@@ -836,7 +836,6 @@ function assertServerConfig(
 }
 
 function main() {
-  const workerKeys = parseWorkerKeys(process.argv.slice(2));
   try {
     resolveAllSiteDeployContracts({ rootDir });
   } catch (error) {
@@ -847,9 +846,9 @@ function main() {
     rootDir,
     siteKey: resolveRequiredSiteKey(process.env),
   });
-  const requiredBindingsByWorker = getRequiredRuntimeBindingsByWorker(
-    contract.bindingRequirements
-  );
+  const workerKeys = parseWorkerKeys(process.argv.slice(2), contract);
+  const requiredBindingsByWorker =
+    getRequiredRuntimeBindingsByContract(contract);
 
   if (
     contract.route.mode === 'custom-domain' &&

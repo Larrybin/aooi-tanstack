@@ -3,9 +3,12 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import topology from '../src/shared/config/cloudflare-worker-topology.ts';
 import { resolveRequiredSiteKey } from './lib/site-config.mjs';
 import { resolveSiteDeployContract } from './lib/site-deploy-contract.mjs';
 
+const { CLOUDFLARE_ALL_SERVER_WORKER_TARGETS, CLOUDFLARE_VERSION_ID_VARS } =
+  topology;
 const rootDir = process.cwd();
 const REQUIRED_INCREMENTAL_CACHE_BINDING = 'NEXT_INC_CACHE_R2_BUCKET';
 const REQUIRED_APP_STORAGE_BINDING = 'APP_STORAGE_R2_BUCKET';
@@ -15,6 +18,12 @@ const REQUIRED_IMAGES_BINDING = 'IMAGES';
 const REMOVER_CLEANUP_CRON = '17 3 * * *';
 const STATE_TEMPLATE_NAME = 'wrangler.state.toml';
 const PUBLIC_WEB_TEMPLATE_NAME = 'wrangler.server-public-web.toml';
+const MANAGED_WORKER_VAR_KEYS = new Set([
+  ...Object.values(CLOUDFLARE_VERSION_ID_VARS),
+  ...CLOUDFLARE_ALL_SERVER_WORKER_TARGETS.map(
+    (target) => topology.getServerWorkerMetadata(target).workerNameVar
+  ),
+]);
 
 function readArrayTables(content, tableName) {
   const pattern = new RegExp(
@@ -338,7 +347,13 @@ function resolveWorkerContract(contract, workerSlot) {
     return contract.stateWorker;
   }
 
-  return contract.serverWorkers[workerSlot];
+  const worker = contract.serverWorkers[workerSlot];
+  if (!worker) {
+    throw new Error(
+      `Cloudflare worker "${workerSlot}" is disabled for SITE=${contract.siteKey}`
+    );
+  }
+  return worker;
 }
 
 function applyWorkerSpecificBindings(content, contract, workerSlot) {
@@ -399,10 +414,18 @@ function applyWorkerSpecificBindings(content, contract, workerSlot) {
       nextContent,
       'services',
       workerSlot === 'admin'
-        ? ['public-web', 'auth'].map((target) => ({
-            binding: contract.serverWorkers[target].serviceBinding,
-            service: contract.serverWorkers[target].workerName,
-          }))
+        ? ['public-web', 'auth'].map((target) => {
+            const serviceWorker = contract.serverWorkers[target];
+            if (!serviceWorker) {
+              throw new Error(
+                `Cloudflare worker "admin" requires active "${target}" worker for SITE=${contract.siteKey}`
+              );
+            }
+            return {
+              binding: serviceWorker.serviceBinding,
+              service: serviceWorker.workerName,
+            };
+          })
         : []
     );
     nextContent = replaceOrInsertDurableObjectBindings(
@@ -463,6 +486,20 @@ function replaceVars(content, vars) {
   }
 
   return nextContent;
+}
+
+function removeInactiveManagedVars(content, activeVars) {
+  return content
+    .split('\n')
+    .filter((line) => {
+      const match = line.match(/^\s*([A-Z0-9_]+)\s*=/);
+      return (
+        !match ||
+        !MANAGED_WORKER_VAR_KEYS.has(match[1]) ||
+        match[1] in activeVars
+      );
+    })
+    .join('\n');
 }
 
 /**
@@ -537,6 +574,7 @@ export function buildCloudflareWranglerConfig({
   }
 
   nextContent = replaceVars(nextContent, effectiveVars);
+  nextContent = removeInactiveManagedVars(nextContent, effectiveVars);
 
   if (devHost !== undefined) {
     nextContent = upsertTomlTableStringValue(

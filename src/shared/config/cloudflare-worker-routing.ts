@@ -1,5 +1,6 @@
 import { locales } from '../../config/locale/index';
 import {
+  CLOUDFLARE_ALL_SERVER_WORKER_TARGETS,
   getServerWorkerMetadata,
   type CloudflareServerWorkerTarget,
   type CloudflareSplitWorkerTarget,
@@ -13,6 +14,22 @@ type WorkerRouteDefinition = ReturnType<typeof getServerWorkerMetadata> & {
   readonly pathnamePrefixes?: readonly string[];
   readonly exactPathnames?: readonly string[];
 };
+
+export type WorkerRoutingDecision =
+  | {
+      readonly kind: 'active';
+      readonly target: CloudflareServerWorkerTarget;
+    }
+  | {
+      readonly kind: 'disabled-api';
+      readonly target: 'public-web';
+      readonly disabledTarget: CloudflareSplitWorkerTarget;
+    }
+  | {
+      readonly kind: 'disabled-page';
+      readonly target: 'public-web';
+      readonly disabledTarget: CloudflareSplitWorkerTarget;
+    };
 
 const SPLIT_WORKERS: Record<
   CloudflareSplitWorkerTarget,
@@ -150,20 +167,45 @@ export function stripLocalePrefix(pathname: string) {
   return normalizePathname(withoutLocale || '/');
 }
 
-export function resolveWorkerTarget(
-  pathname: string
-): CloudflareServerWorkerTarget {
+export function resolveWorkerRoutingDecision(
+  pathname: string,
+  activeTargets: readonly CloudflareServerWorkerTarget[] = CLOUDFLARE_ALL_SERVER_WORKER_TARGETS
+): WorkerRoutingDecision {
   const strippedPathname = stripLocalePrefix(pathname);
+  const activeTargetSet = new Set(activeTargets);
 
   for (const [target, split] of Object.entries(SPLIT_WORKERS) as Array<
     [CloudflareSplitWorkerTarget, WorkerRouteDefinition]
   >) {
     if (matchesSplitPathname(split, strippedPathname)) {
-      return target;
+      if (activeTargetSet.has(target)) {
+        return {
+          kind: 'active',
+          target,
+        };
+      }
+
+      return {
+        kind: strippedPathname.startsWith('/api/')
+          ? 'disabled-api'
+          : 'disabled-page',
+        target: 'public-web',
+        disabledTarget: target,
+      };
     }
   }
 
-  return 'public-web';
+  return {
+    kind: 'active',
+    target: 'public-web',
+  };
+}
+
+export function resolveWorkerTarget(
+  pathname: string,
+  activeTargets: readonly CloudflareServerWorkerTarget[] = CLOUDFLARE_ALL_SERVER_WORKER_TARGETS
+): CloudflareServerWorkerTarget {
+  return resolveWorkerRoutingDecision(pathname, activeTargets).target;
 }
 
 export function getSplitWorker(target: CloudflareSplitWorkerTarget) {

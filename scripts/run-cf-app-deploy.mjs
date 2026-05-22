@@ -12,11 +12,9 @@ import { assertCloudflareBuildArtifactsReady } from './lib/cloudflare-build-arti
 import { resolveRequiredSiteKey } from './lib/site-config.mjs';
 import { resolveSiteDeployContract } from './lib/site-deploy-contract.mjs';
 
-const { CLOUDFLARE_ALL_SERVER_WORKER_TARGETS, CLOUDFLARE_VERSION_ID_VARS } =
-  topology;
+const { CLOUDFLARE_VERSION_ID_VARS } = topology;
 
 const rootDir = process.cwd();
-const uploadOrder = [...CLOUDFLARE_ALL_SERVER_WORKER_TARGETS];
 
 function log(message) {
   console.log(`[cf:deploy:app] ${message}`);
@@ -42,7 +40,7 @@ function resolveRouterConfigPath(contract, rootPath = rootDir) {
 
 function resolveServerConfigPaths(contract, rootPath = rootDir) {
   return Object.fromEntries(
-    uploadOrder.map((target) => [
+    getUploadOrder(contract).map((target) => [
       target,
       path.resolve(
         rootPath,
@@ -50,6 +48,10 @@ function resolveServerConfigPaths(contract, rootPath = rootDir) {
       ),
     ])
   );
+}
+
+function getUploadOrder(contract) {
+  return Object.keys(contract.serverWorkers);
 }
 
 function runWrangler(args, { allowFailure = false } = {}) {
@@ -228,9 +230,9 @@ export function buildVersionDeploySpecs(currentVersionId, nextVersionId) {
     : [buildVersionSpec(nextVersionId, 100)];
 }
 
-function normalizeServerVersionIds(versionIds, label) {
+function normalizeServerVersionIds(versionIds, label, targets) {
   return Object.fromEntries(
-    uploadOrder.map((target) => {
+    targets.map((target) => {
       const versionId = versionIds[target];
       if (!versionId) {
         throw new Error(`Missing ${label} version id for ${target}`);
@@ -241,13 +243,23 @@ function normalizeServerVersionIds(versionIds, label) {
   );
 }
 
-export function buildRouterAppVersionIds(currentVersions, nextVersions) {
+export function buildRouterAppVersionIds(
+  currentVersions,
+  nextVersions,
+  contract = null
+) {
+  const targets = contract
+    ? getUploadOrder(contract)
+    : Object.keys(nextVersions).length > 0
+      ? Object.keys(nextVersions)
+      : Object.keys(currentVersions.servers);
   return {
     compatibility: normalizeServerVersionIds(
       currentVersions.servers,
-      'current server'
+      'current server',
+      targets
     ),
-    target: normalizeServerVersionIds(nextVersions, 'next server'),
+    target: normalizeServerVersionIds(nextVersions, 'next server', targets),
   };
 }
 
@@ -271,7 +283,7 @@ export async function buildRouterDeployConfigContent({
     templatePath: routerConfigPath,
     outputPath,
     versionVars: Object.fromEntries(
-      uploadOrder.map((target) => [
+      getUploadOrder(contract).map((target) => [
         CLOUDFLARE_VERSION_ID_VARS[target],
         versionIds[target],
       ])
@@ -305,12 +317,15 @@ export function buildRouterDirectDeployArgs({
   return args;
 }
 
-export function determineDeployMode(currentVersions) {
+export function determineDeployMode(currentVersions, contract = null) {
   if (!currentVersions.router) {
     return 'missing-deployments';
   }
 
-  return uploadOrder.some((target) => !currentVersions.servers[target])
+  const targets = contract
+    ? getUploadOrder(contract)
+    : Object.keys(currentVersions.servers);
+  return targets.some((target) => !currentVersions.servers[target])
     ? 'missing-deployments'
     : 'steady-state';
 }
@@ -434,7 +449,7 @@ async function collectCurrentVersions(contract = resolveDeployContract()) {
   const serverConfigPaths = resolveServerConfigPaths(contract);
   const versions = {};
 
-  for (const target of uploadOrder) {
+  for (const target of getUploadOrder(contract)) {
     versions[target] = await readCurrentVersionId(
       contract.serverWorkers[target].workerName,
       serverConfigPaths[target]
@@ -457,7 +472,7 @@ function buildMissingDeploymentsError(currentVersions, contract) {
     missingWorkers.push(contract.router.workerName);
   }
 
-  for (const target of uploadOrder) {
+  for (const target of getUploadOrder(contract)) {
     if (!currentVersions.servers[target]) {
       missingWorkers.push(contract.serverWorkers[target].workerName);
     }
@@ -509,7 +524,7 @@ async function deploySteadyState(
   try {
     const nextVersions = {};
 
-    for (const target of uploadOrder) {
+    for (const target of getUploadOrder(contract)) {
       const name = contract.serverWorkers[target].workerName;
       const artifacts = await createTempDeployArtifacts({
         name,
@@ -540,7 +555,8 @@ async function deploySteadyState(
 
     const targetRouterVersionIds = buildRouterAppVersionIds(
       currentVersions,
-      nextVersions
+      nextVersions,
+      contract
     ).target;
 
     targetRouterArtifacts = await createTempDeployArtifacts({
@@ -575,7 +591,7 @@ async function deployInitialAppTopology(contract = resolveDeployContract()) {
   let targetRouterArtifacts = null;
 
   try {
-    for (const target of uploadOrder) {
+    for (const target of getUploadOrder(contract)) {
       const name = contract.serverWorkers[target].workerName;
       const artifacts = await createTempDeployArtifacts({
         name,
@@ -596,7 +612,7 @@ async function deployInitialAppTopology(contract = resolveDeployContract()) {
 
     const currentVersions = await collectCurrentVersions(contract);
     const targetRouterVersionIds = {};
-    for (const target of uploadOrder) {
+    for (const target of getUploadOrder(contract)) {
       const versionId = currentVersions.servers[target];
       if (!versionId) {
         throw new Error(
@@ -659,7 +675,7 @@ export async function deployCloudflareApp({
   }
 
   const currentVersions = await collectCurrentVersionsImpl(contract);
-  const deployMode = determineDeployMode(currentVersions);
+  const deployMode = determineDeployMode(currentVersions, contract);
 
   if (deployMode === 'missing-deployments') {
     if (bootstrapMissing) {

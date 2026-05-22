@@ -202,6 +202,7 @@ sites/my-site/content/pages/
 ## 4. Configure Deploy Settings
 
 `deploy.settings.json` 是 repo-controlled、site-scoped、infra-only deploy manifest。
+`workers` 是该 site 的 active Cloudflare topology：存在的 key 会被 build、deploy、绑定和路由；缺少的 optional key 表示该 worker 对这个 site 禁用。
 
 最小形态：
 
@@ -251,7 +252,9 @@ sites/my-site/content/pages/
   要求 Resend。不允许在 `deploy.settings.json` 里手写 `emailProvider`。
 - OpenRouter/chat secret requirement 由 `site.config.json.capabilities.ai` 派生，不允许在 `deploy.settings.json` 里手写 `openrouter`。只使用 Workers AI binding 的产品不要打开 `capabilities.ai`。
 - Payment provider secret requirement 由 `site.config.json.capabilities.payment` 派生，不允许在 `deploy.settings.json.bindingRequirements.secrets` 里手写 `stripe`、`creem` 或 `paypal`。
-- `workers.*` 必须是 Cloudflare-safe worker name。
+- `workers.router`、`workers.state`、`workers.public-web` 必填；当前不支持 pure public-web-only topology。
+- `workers.auth`、`workers.payment`、`workers.member`、`workers.chat`、`workers.admin` 可选。缺少 optional worker 时，该 worker 不会被 build、deploy、service-bind、local topology 启动或要求 secrets。
+- `workers.*` 必须是 Cloudflare-safe worker name；未知 worker key 会被 schema 拒绝。
 - `resources.incrementalCacheBucket` 和 `resources.appStorageBucket` 必须是合法 R2 bucket name。
 - `resources.hyperdriveId` 必须是真实 Cloudflare Hyperdrive id，格式是 32 位小写十六进制字符串。
 

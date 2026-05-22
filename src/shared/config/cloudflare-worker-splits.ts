@@ -1,8 +1,10 @@
 import {
   getAllSplitWorkers,
   getSplitWorker,
+  resolveWorkerRoutingDecision,
   resolveWorkerTarget,
   stripLocalePrefix,
+  type WorkerRoutingDecision,
 } from './cloudflare-worker-routing';
 import topology from './cloudflare-worker-topology';
 
@@ -25,6 +27,7 @@ export {
 export {
   getAllSplitWorkers,
   getSplitWorker,
+  resolveWorkerRoutingDecision,
   resolveWorkerTarget,
   stripLocalePrefix,
 } from './cloudflare-worker-routing';
@@ -32,6 +35,7 @@ export {
 const cloudflareWorkerSplits = {
   ...topology,
   stripLocalePrefix,
+  resolveWorkerRoutingDecision,
   resolveWorkerTarget,
   getSplitWorker,
   getAllSplitWorkers,

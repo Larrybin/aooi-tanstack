@@ -39,7 +39,8 @@ function normalizeForwardedUrl(
 function buildForwardedHeaders(
   originalRequest: Request,
   middlewareRequest: Request,
-  env: RouterEnv
+  env: RouterEnv,
+  activeTargets?: readonly CloudflareServerWorkerTarget[]
 ): Headers {
   const headers = new Headers(middlewareRequest.headers);
   const originalUrl = new URL(originalRequest.url);
@@ -62,7 +63,8 @@ function buildForwardedHeaders(
       Object.entries(env).filter(
         ([, value]) => typeof value === 'string'
       ) as Array<[string, string]>
-    )
+    ),
+    activeTargets
   );
   if (versionOverrides) {
     headers.set('Cloudflare-Workers-Version-Overrides', versionOverrides);
@@ -75,7 +77,8 @@ export function buildForwardedWorkerRequest(
   originalRequest: Request,
   middlewareRequest: Request,
   env: RouterEnv,
-  workerTarget: CloudflareServerWorkerTarget
+  workerTarget: CloudflareServerWorkerTarget,
+  activeTargets?: readonly CloudflareServerWorkerTarget[]
 ): Request {
   const forwardedUrl = normalizeForwardedUrl(
     originalRequest,
@@ -87,7 +90,8 @@ export function buildForwardedWorkerRequest(
   const headers = buildForwardedHeaders(
     originalRequest,
     middlewareRequest,
-    env
+    env,
+    activeTargets
   );
 
   return new Request(normalizedRequest, { headers });

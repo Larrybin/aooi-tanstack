@@ -21,7 +21,6 @@
     "auth": "aooi-ai-remover-auth",
     "payment": "aooi-ai-remover-payment",
     "member": "aooi-ai-remover-member",
-    "chat": "aooi-ai-remover-chat",
     "admin": "aooi-ai-remover-admin"
   },
   "resources": {

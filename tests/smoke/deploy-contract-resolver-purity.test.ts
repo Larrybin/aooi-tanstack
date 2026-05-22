@@ -29,6 +29,27 @@ test('deploy contract resolver 默认使用 production profile', () => {
   assert.equal(contract.router.workerName, 'aooi-ai-remover-router');
 });
 
+test('deploy contract resolver 从 active worker map 排除 disabled chat', () => {
+  const contract = resolveSiteDeployContract({
+    rootDir: process.cwd(),
+    siteKey: 'ai-remover',
+    processEnv: {},
+  });
+
+  assert.equal(contract.workers.chat, undefined);
+  assert.equal(contract.serverWorkers.chat, undefined);
+  assert.deepEqual(Object.keys(contract.serverWorkers), [
+    'public-web',
+    'auth',
+    'payment',
+    'member',
+    'admin',
+  ]);
+  assert.equal('CHAT_WORKER' in contract.router.serviceBindings, false);
+  assert.equal('CHAT_WORKER_VERSION_ID' in contract.router.versionVars, false);
+  assert.equal('CHAT_WORKER_NAME' in contract.router.workerNameVars, false);
+});
+
 test('deploy contract resolver 为 preview 派生 workers.dev 资源', () => {
   const previewSettings = readSitePreviewDeploySettings({
     rootDir: process.cwd(),

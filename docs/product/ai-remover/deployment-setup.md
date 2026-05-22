@@ -119,15 +119,19 @@ The Google OAuth origin, `AUTH_URL` / `BETTER_AUTH_URL` when used, and
 
 Update `sites/ai-remover/deploy.settings.json` for real production resources:
 
-| Field                              | Production value                      |
-| ---------------------------------- | ------------------------------------- |
-| `resources.incrementalCacheBucket` | R2 bucket for OpenNext cache          |
-| `resources.appStorageBucket`       | R2 bucket for uploaded/remover images |
-| `resources.hyperdriveId`           | Real Cloudflare Hyperdrive ID         |
-| `workers.*`                        | Worker names for this production site |
+| Field                              | Production value                             |
+| ---------------------------------- | -------------------------------------------- |
+| `resources.incrementalCacheBucket` | R2 bucket for OpenNext cache                 |
+| `resources.appStorageBucket`       | R2 bucket for uploaded/remover images        |
+| `resources.hyperdriveId`           | Real Cloudflare Hyperdrive ID                |
+| `workers.*`                        | Active worker names for this production site |
 
 Do not put secrets, database URLs, or provider API keys in either site JSON
 file.
+
+`workers.chat` is intentionally absent for AI Remover. The product does not use
+the shared OpenRouter chat runtime; image removal runs on `public-web` through
+the Workers AI binding.
 
 ## Cloudflare Resources
 

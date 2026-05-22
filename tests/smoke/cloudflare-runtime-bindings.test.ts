@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
   CLOUDFLARE_SECRET_WORKER_ALLOWLIST,
+  getRequiredRuntimeBindingsByContract,
   getRequiredRuntimeBindingsByWorker,
 } from '../../scripts/lib/cloudflare-runtime-bindings.mjs';
 import { resolveSiteDeployContract } from '../../scripts/lib/site-deploy-contract.mjs';
@@ -108,7 +109,25 @@ test('cloudflare runtime bindings: AI Remover 不要求 OpenRouter chat secret',
   assert.deepEqual(
     requirements
       .get('chat')
-      ?.filter((item) => item.name === 'OPENROUTER_API_KEY'),
+      ?.filter((item) => item.name === 'OPENROUTER_API_KEY') ?? [],
     []
   );
+});
+
+test('cloudflare runtime bindings: disabled chat 不进入 runtime secret map', () => {
+  const contract = resolveSiteDeployContract({
+    rootDir: process.cwd(),
+    siteKey: 'ai-remover',
+    deployProfile: 'preview',
+    processEnv: {
+      ...process.env,
+      CF_WORKERS_DEV_SUBDOMAIN: 'aooi-preview',
+    },
+  });
+  const requirements = getRequiredRuntimeBindingsByContract(contract) as Map<
+    string,
+    Array<{ name: string; worker: string }>
+  >;
+
+  assert.equal(requirements.has('chat'), false);
 });

@@ -204,7 +204,7 @@ Notes:
 - 本地 Cloudflare smoke 默认要求显式 `DATABASE_URL` 来生成临时 Wrangler config；仓库根 `.dev.vars` 只允许非数据库的运行时键，Wrangler 模板本身也不存储本地数据库连接串。
 - CI 中的 `Cloudflare Deploy Acceptance` 已拆分为独立 jobs。`cloudflare-acceptance` matrix job 不再启动临时 Postgres service，也不执行 `pnpm db:migrate`；它在清空直接数据库 URL 后运行 Cloudflare 检查和 `pnpm cf:build:no-db --site=<site>`。schema/migration 配对仍由独立 guard 负责，生产 migration 仍由本地 release 命令负责。
 - `pnpm cf:check` 与 Cloudflare secrets 文件生成会基于 `sites/<site>/deploy.settings.json` 要求当前启用能力对应的 provider bindings。需要局部校验时使用 `pnpm cf:check -- --workers=state|app|all|<comma-list>`；secrets 文件生成必须显式传同样的 worker scope。
-- `BETTER_AUTH_SECRET` / `AUTH_SECRET` 不属于 provider secrets；它们是 Next server runtime secret，只对 `public-web/auth/payment/member/chat/admin` 这些 server workers 必填，`state` worker 不消费它。
+- `BETTER_AUTH_SECRET` / `AUTH_SECRET` 不属于 provider secrets；它们是 Next server runtime secret，只对当前站点 active topology 里的 server workers 必填，`state` worker 不消费它。
 
 ### Optional
 

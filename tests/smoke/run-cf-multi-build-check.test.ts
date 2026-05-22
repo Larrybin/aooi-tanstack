@@ -23,6 +23,32 @@ test('run-cf-multi-build-check supports scoped app worker dry-runs', () => {
   ]);
 });
 
+test('run-cf-multi-build-check expands app scope to active site workers only', () => {
+  const previousSite = process.env.SITE;
+  try {
+    process.env.SITE = 'ai-remover';
+
+    assert.deepEqual(resolveBuildWorkerKeys(['--workers=app']), [
+      'router',
+      'public-web',
+      'auth',
+      'payment',
+      'member',
+      'admin',
+    ]);
+    assert.throws(
+      () => resolveBuildWorkerKeys(['--workers=chat']),
+      /Cloudflare worker "chat" is disabled for SITE=ai-remover/
+    );
+  } finally {
+    if (previousSite === undefined) {
+      delete process.env.SITE;
+    } else {
+      process.env.SITE = previousSite;
+    }
+  }
+});
+
 test('parseDryRunUploadSize 解析 wrangler dry-run 输出中的 total/gzip 体积', () => {
   const sizes = parseDryRunUploadSize(`
 Total Upload: 10867.16 KiB / gzip: 2136.66 KiB

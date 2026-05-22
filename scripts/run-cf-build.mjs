@@ -2,7 +2,12 @@ import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { resolveRequiredSiteKey } from './lib/site-config.mjs';
+import { resolveSiteDeployContract } from './lib/site-deploy-contract.mjs';
+import { getActiveSplitWorkerSlots } from './lib/site-deploy-settings.mjs';
+
 const rootDir = process.cwd();
+const activeSplitWorkersEnv = 'CLOUDFLARE_ACTIVE_SPLIT_WORKERS';
 
 export function buildOpenNextBuildArgs() {
   return [
@@ -22,11 +27,11 @@ export function buildMultiBuildCheckArgs(scriptArgs = process.argv.slice(2)) {
   ];
 }
 
-function runCommand(command, args) {
+function runCommand(command, args, { env = process.env } = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd: rootDir,
-      env: process.env,
+      env,
       stdio: 'inherit',
     });
 
@@ -47,13 +52,23 @@ function runCommand(command, args) {
 }
 
 async function main() {
-  await runCommand('pnpm', buildOpenNextBuildArgs());
-  await runCommand('node', [
-    '--import',
-    'tsx',
-    'scripts/bundle-cf-server-functions.mjs',
-  ]);
-  await runCommand('node', buildMultiBuildCheckArgs());
+  const contract = resolveSiteDeployContract({
+    rootDir,
+    siteKey: resolveRequiredSiteKey(process.env),
+    processEnv: process.env,
+  });
+  const commandEnv = {
+    ...process.env,
+    [activeSplitWorkersEnv]: getActiveSplitWorkerSlots(contract).join(','),
+  };
+
+  await runCommand('pnpm', buildOpenNextBuildArgs(), { env: commandEnv });
+  await runCommand(
+    'node',
+    ['--import', 'tsx', 'scripts/bundle-cf-server-functions.mjs'],
+    { env: commandEnv }
+  );
+  await runCommand('node', buildMultiBuildCheckArgs(), { env: commandEnv });
 }
 
 if (

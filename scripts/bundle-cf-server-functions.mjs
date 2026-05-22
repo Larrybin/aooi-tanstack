@@ -4,13 +4,19 @@ import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import openNextConfig from '../open-next.config.ts';
-import cloudflareWorkerSplits from '../src/shared/config/cloudflare-worker-splits.ts';
+import openNextConfigModule from '../open-next.config.ts';
 
-const { CLOUDFLARE_SPLIT_WORKER_TARGETS } = cloudflareWorkerSplits;
+const openNextConfig =
+  openNextConfigModule &&
+  typeof openNextConfigModule === 'object' &&
+  'buildOpenNextConfig' in openNextConfigModule &&
+  'default' in openNextConfigModule
+    ? openNextConfigModule.default
+    : openNextConfigModule;
+
 const CLOUDFLARE_UNMINIFIED_HANDLER_TARGETS = [
   'default',
-  ...CLOUDFLARE_SPLIT_WORKER_TARGETS,
+  ...Object.keys(openNextConfig.functions ?? {}),
 ];
 
 const rootDir = process.cwd();

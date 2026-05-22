@@ -1,15 +1,19 @@
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-
 import * as nextEnvModule from '@next/env';
 
 import siteEnvModule from '../src/config/site-env.cjs';
+import {
+  getActiveSplitWorkerSlots,
+  readSiteDeploySettings,
+} from './lib/site-deploy-settings.mjs';
 
 const args = process.argv.slice(2);
 const TEST_SITE_KEY = 'dev-local';
 const TEST_AUTH_SHARED_SECRET = 'dev-local-auth-secret-dev-local-auth-secret';
 const TEST_STORAGE_PUBLIC_BASE_URL = 'http://127.0.0.1:9787/assets/';
+const ACTIVE_SPLIT_WORKERS_ENV = 'CLOUDFLARE_ACTIVE_SPLIT_WORKERS';
 const { applySiteLocalEnvOverlay } = siteEnvModule;
 const loadEnvConfig =
   nextEnvModule.loadEnvConfig || nextEnvModule.default?.loadEnvConfig;
@@ -70,6 +74,18 @@ function loadRootDotenv(env = process.env) {
   }
 }
 
+function applyActiveSplitWorkerEnv({ env, rootDir, siteKey }) {
+  try {
+    const deploySettings = readSiteDeploySettings({ rootDir, siteKey });
+    env[ACTIVE_SPLIT_WORKERS_ENV] =
+      getActiveSplitWorkerSlots(deploySettings).join(',');
+  } catch {
+    // Site generation and deploy contract checks own the actionable error.
+  }
+
+  return env;
+}
+
 export function buildSiteEnv(
   commandParts,
   env = process.env,
@@ -79,6 +95,7 @@ export function buildSiteEnv(
   const siteKey = explicitSiteKey;
   if (siteKey) {
     env.SITE = siteKey;
+    applyActiveSplitWorkerEnv({ env, rootDir, siteKey });
     applySiteLocalEnvOverlay({
       env,
       originalEnv,
@@ -116,6 +133,7 @@ export function buildSiteEnv(
     ...env,
     SITE: TEST_SITE_KEY,
   };
+  applyActiveSplitWorkerEnv({ env: nextEnv, rootDir, siteKey: TEST_SITE_KEY });
 
   applySiteLocalEnvOverlay({
     env: nextEnv,

@@ -16,13 +16,13 @@ import {
 import {
   CLOUDFLARE_RESOURCE_SLOT_KEYS,
   CLOUDFLARE_STATE_SLOT_KEYS,
-  CLOUDFLARE_WORKER_SLOT_KEYS,
+  getActiveServerWorkerSlots,
+  getActiveWorkerSlots,
   readSiteDeploySettings,
   readSitePreviewDeploySettings,
 } from './site-deploy-settings.mjs';
 
 const {
-  CLOUDFLARE_ALL_SERVER_WORKER_TARGETS,
   CLOUDFLARE_DURABLE_OBJECT_BINDINGS,
   CLOUDFLARE_LOCAL_WORKER_URL_VARS,
   CLOUDFLARE_ROUTER_WORKER,
@@ -91,7 +91,7 @@ function buildCanonicalBindingShape(contract) {
       ])
     ),
     workers: Object.fromEntries(
-      CLOUDFLARE_WORKER_SLOT_KEYS.map((key) => [key, 'string'])
+      Object.keys(contract.workers).map((key) => [key, 'string'])
     ),
   };
 }
@@ -149,7 +149,7 @@ function buildDerivedBindingRequirements(site, { deployProfile }) {
 
 function buildServerWorkers(deploySettings) {
   return Object.fromEntries(
-    CLOUDFLARE_ALL_SERVER_WORKER_TARGETS.map((target) => {
+    getActiveServerWorkerSlots(deploySettings).map((target) => {
       const metadata = getServerWorkerMetadata(target);
       return [
         target,
@@ -174,7 +174,7 @@ function buildPreviewDeploySettings({
   return {
     ...productionDeploySettings,
     workers: Object.fromEntries(
-      CLOUDFLARE_WORKER_SLOT_KEYS.map((slot) => [
+      getActiveWorkerSlots(productionDeploySettings).map((slot) => [
         slot,
         buildPreviewWorkerName(siteKey, slot),
       ])
@@ -273,6 +273,7 @@ export function resolveSiteDeployContractFromSources({
     deployProfile,
   });
   const serverWorkers = buildServerWorkers(effectiveDeploySettings);
+  const activeServerWorkerTargets = Object.keys(serverWorkers);
   const stateMigrationTag = `${effectiveDeploySettings.workers.state}-v${effectiveDeploySettings.state.schemaVersion}`;
   const appUrl =
     deployProfile === 'preview'
@@ -317,20 +318,20 @@ export function resolveSiteDeployContractFromSources({
       serviceBindings: {
         WORKER_SELF_REFERENCE: effectiveDeploySettings.workers.router,
         ...Object.fromEntries(
-          CLOUDFLARE_ALL_SERVER_WORKER_TARGETS.map((target) => [
+          activeServerWorkerTargets.map((target) => [
             CLOUDFLARE_SERVICE_BINDINGS[target],
             effectiveDeploySettings.workers[target],
           ])
         ),
       },
       versionVars: Object.fromEntries(
-        CLOUDFLARE_ALL_SERVER_WORKER_TARGETS.map((target) => [
+        activeServerWorkerTargets.map((target) => [
           CLOUDFLARE_VERSION_ID_VARS[target],
           '',
         ])
       ),
       workerNameVars: Object.fromEntries(
-        CLOUDFLARE_ALL_SERVER_WORKER_TARGETS.map((target) => {
+        activeServerWorkerTargets.map((target) => {
           const metadata = getServerWorkerMetadata(target);
           return [
             metadata.workerNameVar,
@@ -445,16 +446,12 @@ export function createCanonicalTypegenContract(contract) {
     deploySettings: {
       bindingRequirements: contract.bindingRequirements,
       configVersion: 1,
-      workers: {
-        router: 'cloudflare-typegen-router',
-        state: 'cloudflare-typegen-state',
-        'public-web': 'cloudflare-typegen-public-web',
-        auth: 'cloudflare-typegen-auth',
-        payment: 'cloudflare-typegen-payment',
-        member: 'cloudflare-typegen-member',
-        chat: 'cloudflare-typegen-chat',
-        admin: 'cloudflare-typegen-admin',
-      },
+      workers: Object.fromEntries(
+        getActiveWorkerSlots(contract).map((slot) => [
+          slot,
+          `cloudflare-typegen-${slot}`,
+        ])
+      ),
       resources: {
         incrementalCacheBucket: 'cloudflare-typegen-opennext-cache',
         appStorageBucket: 'cloudflare-typegen-storage',

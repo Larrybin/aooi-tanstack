@@ -42,7 +42,8 @@ Expected capabilities:
 
 `capabilities.ai` controls the shared OpenRouter/chat/generator module. AI
 Remover image processing uses the Cloudflare Workers AI binding declared in
-`deploy.settings.json`, so this site keeps `capabilities.ai=false`.
+`deploy.settings.json`, so this site keeps `capabilities.ai=false` and does not
+enable the optional `chat` worker in its deploy topology.
 
 Provider keys, OAuth secrets, Creem secrets, and storage settings must stay in
 runtime settings, secrets, or Cloudflare bindings. They must not be committed to

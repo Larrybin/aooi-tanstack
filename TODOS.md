@@ -11,10 +11,6 @@
 
 ## AI Remover preview follow-ups
 
-- **What:** Remove the unused `chat` worker from the AI Remover Cloudflare topology.
-- **Why:** AI Remover does not use the shared OpenRouter chat runtime. The fixed topology still includes a chat worker shell even though it no longer requires `OPENROUTER_API_KEY`.
-- **Context:** Keep Workers AI image removal on the `public-web` worker via the existing `AI` binding.
-
 - **What:** Add a separate anonymous remover limiter smoke.
 - **Why:** Strict anonymous upload/job limits stay enabled to protect storage and Workers AI capacity. Release and preview remover smoke now require a seeded authenticated user with explicit test entitlements, so anonymous coverage should focus only on guest limiter behavior.
 - **Context:** Keep `test:remover-workers-ai-spike` authenticated via `SMOKE_AUTH_REQUIRED=true`; add a dedicated guest limiter check instead of relaxing guest limits.

@@ -124,6 +124,21 @@ test('OpenNext queue override 继续通过 NEXT_CACHE_DO_QUEUE.revalidate 投递
   });
 });
 
+test('OpenNext split config 只生成 active split worker functions', async () => {
+  const configModule = await import('../../open-next.config.ts');
+  const config = configModule.buildOpenNextConfig({
+    activeSplitWorkerTargets: ['auth', 'payment', 'member', 'admin'],
+  });
+
+  assert.deepEqual(Object.keys(config.functions ?? {}), [
+    'auth',
+    'payment',
+    'member',
+    'admin',
+  ]);
+  assert.equal('chat' in (config.functions ?? {}), false);
+});
+
 test('OpenNext tag cache override 继续通过 NEXT_TAG_CACHE_DO_SHARDED 的 getTagData/writeTags 协议访问 state', async () => {
   const openNextConfig = await loadOpenNextConfig();
   const createTagCache = requireCallableOverride<

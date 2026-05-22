@@ -344,6 +344,22 @@ test('buildCloudflareSecretsEnv 仅输出当前启用能力所需 secrets', () =
   assert.doesNotMatch(content, /REPLICATE_API_TOKEN=/);
 });
 
+test('buildCloudflareSecretsEnv 显式请求 disabled chat worker 时失败', () => {
+  assert.throws(
+    () =>
+      buildCloudflareSecretsEnv(
+        {
+          SITE: 'ai-remover',
+          OPENROUTER_API_KEY: 'or-key',
+        },
+        {
+          workerKeys: ['chat'],
+        }
+      ),
+    /Cloudflare worker "chat" is disabled for SITE=ai-remover/
+  );
+});
+
 test('buildCloudflareSecretsEnv 按 deploy.settings.json 与 workerKeys 限定 secrets 输出范围', async () => {
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'cf-secrets-site-'));
   const sourcePath = resolveSiteDeploySettingsPath({

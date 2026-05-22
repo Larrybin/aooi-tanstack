@@ -180,6 +180,18 @@ enabled = true
 DEPLOY_TARGET = "cloudflare"
 NEXT_PUBLIC_APP_URL = "https://example.com"
 STORAGE_PUBLIC_BASE_URL = ""
+PUBLIC_WEB_WORKER_VERSION_ID = ""
+AUTH_WORKER_VERSION_ID = ""
+PAYMENT_WORKER_VERSION_ID = ""
+MEMBER_WORKER_VERSION_ID = ""
+CHAT_WORKER_VERSION_ID = ""
+ADMIN_WORKER_VERSION_ID = ""
+PUBLIC_WEB_WORKER_NAME = ""
+AUTH_WORKER_NAME = ""
+PAYMENT_WORKER_NAME = ""
+MEMBER_WORKER_NAME = ""
+CHAT_WORKER_NAME = ""
+ADMIN_WORKER_NAME = ""
 `;
 
   const config = buildCloudflareWranglerConfig({
@@ -198,6 +210,9 @@ STORAGE_PUBLIC_BASE_URL = ""
     config,
     /NEXT_PUBLIC_APP_URL = "https:\/\/aooi-ai-remover-preview-router\.aooi-preview\.workers\.dev"/
   );
+  assert.doesNotMatch(config, /CHAT_WORKER_VERSION_ID/);
+  assert.doesNotMatch(config, /CHAT_WORKER_NAME/);
+  assert.match(config, /ADMIN_WORKER_NAME = "aooi-ai-remover-preview-admin"/);
 });
 
 test('buildCloudflareWranglerConfig 为 preview server worker 仍禁用 workers.dev', () => {
