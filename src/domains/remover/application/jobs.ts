@@ -1,3 +1,5 @@
+import { getProductOwnerKey } from '@/domains/product-access/domain/ownership';
+
 import {
   BadRequestError,
   ConflictError,
@@ -130,10 +132,7 @@ function buildProcessingReservationIdempotencyKey({
   owner: { userId: string | null; anonymousSessionId: string | null };
   idempotencyKey: string;
 }) {
-  const ownerKey = owner.userId
-    ? `user:${owner.userId}`
-    : `anonymous:${owner.anonymousSessionId ?? 'none'}`;
-  return `processing:${ownerKey}:${idempotencyKey}`;
+  return `processing:${getProductOwnerKey(owner)}:${idempotencyKey}`;
 }
 
 export async function createQueuedRemoverJob({

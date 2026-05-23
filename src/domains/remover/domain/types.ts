@@ -1,23 +1,17 @@
+import type { ProductActor } from '@/domains/product-access/domain/actor';
+import type { ProductOwner } from '@/domains/product-access/domain/ownership';
+
 export type RemoverActor =
-  | {
-      kind: 'user';
-      userId: string;
-      anonymousSessionId?: string | null;
+  | (Extract<ProductActor, { kind: 'user' }> & {
       productId?: string | null;
       entitlements?: Record<string, string | number | boolean>;
       entitlementGrantIds?: string[];
-    }
-  | {
-      kind: 'anonymous';
-      userId?: null;
-      anonymousSessionId: string;
+    })
+  | (Extract<ProductActor, { kind: 'anonymous' }> & {
       productId?: null;
-    };
+    });
 
-export type RemoverOwner = {
-  userId: string | null;
-  anonymousSessionId: string | null;
-};
+export type RemoverOwner = ProductOwner;
 
 export type RemoverImageAssetKind =
   | 'original'
