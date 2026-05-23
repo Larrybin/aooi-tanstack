@@ -114,6 +114,7 @@ Status:
 - [ ] `pnpm test`
 - [ ] `SITE=ai-remover pnpm build`
 - [ ] `SITE=ai-remover pnpm cf:check`
+- [ ] `SITE=ai-remover pnpm test:remover-guest-limiter-smoke`
 - [ ] `SITE=ai-remover pnpm test:remover-workers-ai-spike`
 
 ## Required Focused Tests

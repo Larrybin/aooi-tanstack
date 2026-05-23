@@ -30,6 +30,8 @@ AI is an optional product module layered on top of the mainline shell:
 
 - `pnpm test`
 - `pnpm test:cf-app-smoke`
+- AI Remover anonymous limiter smoke:
+  `SITE=ai-remover pnpm test:remover-guest-limiter-smoke`
 - AI Remover Workers AI runtime spike:
   `SITE=ai-remover pnpm test:remover-workers-ai-spike`
 
