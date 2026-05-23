@@ -2,16 +2,17 @@
 // cache: no-store (request-bound auth)
 // reason: user-specific payment history and invoices
 import { notFound } from 'next/navigation';
-import { resolveSitePaymentCapability } from '@/config/payment-capability';
 import {
   listMemberPaymentsQuery,
   type MemberPaymentRow,
 } from '@/domains/billing/application/member-billing.query';
 import type { PaymentType } from '@/domains/billing/domain/payment';
+import { formatPaymentAmountCents } from '@/domains/billing/ui/format-money';
 import { PaymentCallbackHandler } from '@/domains/billing/ui/payment-callback';
 import { getSignedInUserIdentity } from '@/infra/platform/auth/session.server';
 import { getTranslations } from 'next-intl/server';
 
+import { resolveSitePaymentCapability } from '@/config/payment-capability';
 import { Empty } from '@/shared/blocks/common/empty';
 import { TableCard } from '@/shared/blocks/table';
 import type { Tab } from '@/shared/types/blocks/common';
@@ -82,69 +83,36 @@ export default async function PaymentsPage({
       {
         title: t('fields.price'),
         callback: function (item: MemberPaymentRow) {
-          const currency = (item.currency || 'USD').toUpperCase();
-
-          let prefix = '';
-          if (currency === 'USD') {
-            prefix = `$`;
-          } else if (currency === 'EUR') {
-            prefix = `€`;
-          } else if (currency === 'CNY') {
-            prefix = `¥`;
-          } else {
-            prefix = `${currency} `;
-          }
-
-          const amount = item.amount ?? 0;
-
           return (
-            <div className="text-primary">{`${prefix}${amount / 100}`}</div>
+            <div className="text-primary">
+              {formatPaymentAmountCents(item.amount, item.currency)}
+            </div>
           );
         },
       },
       {
         title: t('fields.paid_amount'),
         callback: function (item: MemberPaymentRow) {
-          const currency = (item.paymentCurrency || 'USD').toUpperCase();
-
-          let prefix = '';
-          if (currency === 'USD') {
-            prefix = `$`;
-          } else if (currency === 'EUR') {
-            prefix = `€`;
-          } else if (currency === 'CNY') {
-            prefix = `¥`;
-          } else {
-            prefix = `${currency} `;
-          }
-
-          const amount = item.paymentAmount ?? 0;
-
           return (
-            <div className="text-primary">{`${prefix}${amount / 100}`}</div>
+            <div className="text-primary">
+              {formatPaymentAmountCents(
+                item.paymentAmount,
+                item.paymentCurrency
+              )}
+            </div>
           );
         },
       },
       {
         title: t('fields.discount_amount'),
         callback: function (item: MemberPaymentRow) {
-          const currency = (item.discountCurrency || 'USD').toUpperCase();
-
-          let prefix = '';
-          if (currency === 'USD') {
-            prefix = `$`;
-          } else if (currency === 'EUR') {
-            prefix = `€`;
-          } else if (currency === 'CNY') {
-            prefix = `¥`;
-          } else {
-            prefix = `${currency} `;
-          }
-
-          const amount = item.discountAmount ?? 0;
-
           return (
-            <div className="text-primary">{`${prefix}${amount / 100}`}</div>
+            <div className="text-primary">
+              {formatPaymentAmountCents(
+                item.discountAmount,
+                item.discountCurrency
+              )}
+            </div>
           );
         },
       },
@@ -166,7 +134,9 @@ export default async function PaymentsPage({
                 icon: 'ArrowUpRight',
               },
             ];
-          } else if (item.invoiceId) {
+          }
+
+          if (item.invoiceId) {
             return [
               {
                 title: t('fields.actions.view_invoice'),

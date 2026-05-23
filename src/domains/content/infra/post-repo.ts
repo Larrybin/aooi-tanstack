@@ -18,6 +18,31 @@ export type PostQuery = {
   limit?: number;
 };
 
+function normalizePostTags(tag: PostQuery['tag']): string[] {
+  if (Array.isArray(tag)) {
+    return tag;
+  }
+
+  if (tag) {
+    return [tag];
+  }
+
+  return [];
+}
+
+function buildPostWhere({ type, status, category, tag }: PostQuery) {
+  const tags = normalizePostTags(tag);
+
+  return and(
+    type ? eq(post.type, type) : undefined,
+    status ? eq(post.status, status) : undefined,
+    category ? like(post.categories, `%${category}%`) : undefined,
+    tags.length > 0
+      ? or(...tags.map((t) => like(post.tags, `%${t}%`)))
+      : undefined
+  );
+}
+
 export async function addPostRow(data: NewPostRow) {
   const [result] = await db().insert(post).values(data).returning();
   return result;
@@ -64,21 +89,10 @@ export async function getPostRows({
   page = 1,
   limit = 30,
 }: PostQuery = {}): Promise<PostRow[]> {
-  const tags = Array.isArray(tag) ? tag : tag ? [tag] : undefined;
-
   const result = await db()
     .select()
     .from(post)
-    .where(
-      and(
-        type ? eq(post.type, type) : undefined,
-        status ? eq(post.status, status) : undefined,
-        category ? like(post.categories, `%${category}%`) : undefined,
-        tags && tags.length > 0
-          ? or(...tags.map((t) => like(post.tags, `%${t}%`)))
-          : undefined
-      )
-    )
+    .where(buildPostWhere({ type, status, category, tag }))
     .orderBy(desc(post.updatedAt), desc(post.createdAt))
     .limit(limit)
     .offset((page - 1) * limit);
@@ -92,21 +106,10 @@ export async function getPostRowsCount({
   category,
   tag,
 }: PostQuery = {}): Promise<number> {
-  const tags = Array.isArray(tag) ? tag : tag ? [tag] : undefined;
-
   const [result] = await db()
     .select({ count: count() })
     .from(post)
-    .where(
-      and(
-        type ? eq(post.type, type) : undefined,
-        status ? eq(post.status, status) : undefined,
-        category ? like(post.categories, `%${category}%`) : undefined,
-        tags && tags.length > 0
-          ? or(...tags.map((t) => like(post.tags, `%${t}%`)))
-          : undefined
-      )
-    )
+    .where(buildPostWhere({ type, status, category, tag }))
     .limit(1);
 
   return result?.count || 0;

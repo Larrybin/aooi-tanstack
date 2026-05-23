@@ -4,7 +4,6 @@ import {
   resolveWorkerRoutingDecision,
   resolveWorkerTarget,
   stripLocalePrefix,
-  type WorkerRoutingDecision,
 } from './cloudflare-worker-routing';
 import topology from './cloudflare-worker-topology';
 

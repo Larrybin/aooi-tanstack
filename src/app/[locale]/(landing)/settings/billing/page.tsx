@@ -7,6 +7,7 @@ import {
   readMemberBillingOverviewQuery,
   type MemberSubscriptionRow,
 } from '@/domains/billing/application/member-billing.query';
+import { formatPaymentAmountCents } from '@/domains/billing/ui/format-money';
 import { PaymentCallbackHandler } from '@/domains/billing/ui/payment-callback';
 import { getSignedInUserIdentity } from '@/infra/platform/auth/session.server';
 import { getTranslations } from 'next-intl/server';
@@ -92,23 +93,10 @@ export default async function BillingPage({
       {
         title: t('fields.amount'),
         callback: function (item: MemberSubscriptionRow) {
-          const currency = (item.currency || 'USD').toUpperCase();
-
-          let prefix = '';
-          if (currency === 'USD') {
-            prefix = `$`;
-          } else if (currency === 'EUR') {
-            prefix = `€`;
-          } else if (currency === 'CNY') {
-            prefix = `¥`;
-          } else {
-            prefix = `${currency} `;
-          }
-
-          const amount = item.amount ?? 0;
-
           return (
-            <div className="text-primary">{`${prefix}${amount / 100}`}</div>
+            <div className="text-primary">
+              {formatPaymentAmountCents(item.amount, item.currency)}
+            </div>
           );
         },
       },

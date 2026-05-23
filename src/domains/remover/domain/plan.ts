@@ -62,15 +62,18 @@ export function resolveRemoverPlanLimits(
     typeof entitlements?.monthly_high_res_downloads === 'number';
   const isPaid = Boolean(requestedProductId && requestedProductId !== 'free');
   const usesMonthlyWindow = isPaid || hasMonthlyEntitlement;
+  const processingLimit = usesMonthlyWindow
+    ? numberEntitlement(entitlements, 'monthly_removals', 5)
+    : numberEntitlement(entitlements, 'daily_removals', 5);
+  const highResDownloads = usesMonthlyWindow
+    ? numberEntitlement(entitlements, 'monthly_high_res_downloads', 0)
+    : numberEntitlement(entitlements, 'signup_high_res_downloads', 3);
+
   return {
     productId: plan?.product_id ?? 'free',
-    processingLimit: usesMonthlyWindow
-      ? numberEntitlement(entitlements, 'monthly_removals', 5)
-      : numberEntitlement(entitlements, 'daily_removals', 5),
+    processingLimit,
     processingWindow: usesMonthlyWindow ? 'month' : 'day',
-    highResDownloads: usesMonthlyWindow
-      ? numberEntitlement(entitlements, 'monthly_high_res_downloads', 0)
-      : numberEntitlement(entitlements, 'signup_high_res_downloads', 3),
+    highResDownloads,
     highResDownloadWindow: usesMonthlyWindow ? 'month' : 'lifetime',
     maxUploadMb: numberEntitlement(entitlements, 'max_upload_mb', 10),
     retentionDays: numberEntitlement(entitlements, 'retention_days', 7),
