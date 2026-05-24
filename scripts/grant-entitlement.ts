@@ -101,10 +101,12 @@ async function main() {
   const entitlements = parseProductEntitlementsJson({
     productKey,
     value: requiredArg(values, 'entitlements'),
+    source: 'grant',
   });
   const entitlementsJson = stringifyProductEntitlements({
     productKey,
     entitlements,
+    source: 'grant',
   });
   const now = new Date();
   const expiresAt = resolveExpiresAt({ values, now });

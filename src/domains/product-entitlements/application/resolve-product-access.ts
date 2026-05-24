@@ -62,6 +62,7 @@ function readPricingEntitlements({
       productKey,
       entitlements: item?.entitlements ?? {},
       source: `pricing product ${productId}`,
+      entitlementSource: 'pricing',
     }),
   };
 }

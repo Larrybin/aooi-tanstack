@@ -59,6 +59,7 @@ function grant(
       stringifyProductEntitlements({
         productKey: 'ai-remover',
         entitlements: { monthly_removals: 750 },
+        source: 'grant',
       }),
     reason: overrides.reason ?? 'test',
     grantedByUserId: overrides.grantedByUserId ?? null,
@@ -136,7 +137,8 @@ test('resolveProductAccess merges active grants with existing entitlement priori
           id: 'lower',
           entitlementsJson: stringifyProductEntitlements({
             productKey: 'ai-remover',
-            entitlements: { daily_removals: 4 },
+            entitlements: { monthly_removals: 25 },
+            source: 'grant',
           }),
           createdAt: new Date('2026-05-20T01:00:00Z'),
         }),
@@ -145,6 +147,7 @@ test('resolveProductAccess merges active grants with existing entitlement priori
           entitlementsJson: stringifyProductEntitlements({
             productKey: 'ai-remover',
             entitlements: { monthly_removals: 50, max_upload_mb: 25 },
+            source: 'grant',
           }),
           createdAt: new Date('2026-05-20T02:00:00Z'),
         }),
@@ -157,6 +160,42 @@ test('resolveProductAccess merges active grants with existing entitlement priori
   assert.equal(access.entitlements.monthly_removals, 50);
   assert.equal(access.entitlements.max_upload_mb, 25);
   assert.deepEqual(access.entitlementGrantIds, ['lower', 'higher']);
+});
+
+test('resolveProductAccess keeps access available when legacy grants include pricing-only keys', async () => {
+  const access = await resolveProductAccess({
+    actor: {
+      kind: 'user',
+      userId: 'user_1',
+    },
+    siteKey: 'ai-remover',
+    productKey: 'ai-remover',
+    productId: 'free',
+    environment: 'preview',
+    pricing,
+    now,
+    deps: {
+      listGrants: async () => [
+        grant({
+          id: 'legacy',
+          entitlementsJson: stringifyProductEntitlements({
+            productKey: 'ai-remover',
+            entitlements: {
+              daily_removals: 50,
+              advanced_mode: true,
+              monthly_removals: 75,
+            },
+          }),
+        }),
+      ],
+    },
+  });
+
+  assert.equal(access.source, 'grant');
+  assert.equal(access.entitlements.daily_removals, 5);
+  assert.equal(access.entitlements.advanced_mode, undefined);
+  assert.equal(access.entitlements.monthly_removals, 75);
+  assert.deepEqual(access.entitlementGrantIds, ['legacy']);
 });
 
 test('resolveProductAccess keeps production grants disabled by default', async () => {

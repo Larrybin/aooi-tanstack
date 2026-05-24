@@ -1,7 +1,9 @@
 import {
+  assertEntitlementSourceMatchesSchema,
   assertEntitlementValueMatchesSchema,
   getProductEntitlementSchema,
   type EntitlementFieldSchema,
+  type EntitlementSchemaSource,
 } from './product-schemas';
 import type {
   AppEnvironment,
@@ -57,9 +59,11 @@ export function stringifyEntitlements(entitlements: EntitlementMap): string {
 export function parseProductEntitlementsJson({
   productKey,
   value,
+  source,
 }: {
   productKey: string;
   value: string;
+  source?: EntitlementSchemaSource;
 }): EntitlementMap {
   const schema = getProductEntitlementSchema(productKey);
   if (!schema) {
@@ -71,6 +75,13 @@ export function parseProductEntitlementsJson({
     const field = schema[key];
     if (!field) {
       throw new Error(`unknown entitlement ${key} for ${productKey}`);
+    }
+    if (source) {
+      assertEntitlementSourceMatchesSchema({
+        key,
+        source,
+        field,
+      });
     }
     assertEntitlementValueMatchesSchema({
       key,
@@ -85,14 +96,17 @@ export function parseProductEntitlementsJson({
 export function stringifyProductEntitlements({
   productKey,
   entitlements,
+  source,
 }: {
   productKey: string;
   entitlements: EntitlementMap;
+  source?: EntitlementSchemaSource;
 }): string {
   return JSON.stringify(
     parseProductEntitlementsJson({
       productKey,
       value: JSON.stringify(entitlements),
+      source,
     })
   );
 }
@@ -145,14 +159,22 @@ export function mergeEntitlementsFromGrants({
       productKey,
       value: grant.entitlementsJson,
     });
+    let mergedGrant = false;
     for (const [key, value] of Object.entries(grantEntitlements)) {
+      const field = getProductEntitlementSchema(productKey)?.[key];
+      if (!field?.sources.includes('grant')) {
+        continue;
+      }
       entitlements[key] = mergeEntitlementValue({
         baseValue: entitlements[key],
         grantValue: value,
-        field: getProductEntitlementSchema(productKey)?.[key],
+        field,
       });
+      mergedGrant = true;
     }
-    grantIds.push(grant.id);
+    if (mergedGrant) {
+      grantIds.push(grant.id);
+    }
   }
 
   return { entitlements, grantIds };

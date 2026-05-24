@@ -1,6 +1,8 @@
 import {
+  assertEntitlementSourceMatchesSchema,
   assertEntitlementValueMatchesSchema,
   getProductEntitlementSchema,
+  type EntitlementSchemaSource,
 } from '@/domains/entitlements/domain/product-schemas';
 import type {
   AppEnvironment,
@@ -31,10 +33,12 @@ export function validateProductEntitlements({
   productKey,
   entitlements,
   source,
+  entitlementSource,
 }: {
   productKey: string;
   entitlements: EntitlementMap;
   source: string;
+  entitlementSource?: EntitlementSchemaSource;
 }): EntitlementMap {
   const schema = getProductEntitlementSchema(productKey);
   if (!schema) {
@@ -47,6 +51,13 @@ export function validateProductEntitlements({
       throw new Error(
         `unknown entitlement ${key} for ${productKey} in ${source}`
       );
+    }
+    if (entitlementSource) {
+      assertEntitlementSourceMatchesSchema({
+        key,
+        source: entitlementSource,
+        field,
+      });
     }
     assertEntitlementValueMatchesSchema({ key, value, field });
   }

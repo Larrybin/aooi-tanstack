@@ -16,6 +16,7 @@ test('AI Remover pricing entitlements match the registered product schema', asyn
       productKey: 'ai-remover',
       entitlements: item.entitlements ?? {},
       source: `pricing ${item.product_id}`,
+      entitlementSource: 'pricing',
     });
   }
 });
@@ -41,4 +42,25 @@ test('validateProductEntitlements rejects unknown product keys and fields', () =
       }),
     /unknown entitlement typo_monthly_removal/u
   );
+});
+
+test('validateProductEntitlements rejects AI Remover pricing-only keys for grant source', () => {
+  for (const [key, value] of Object.entries({
+    guest_daily_removals: 2,
+    daily_removals: 5,
+    retention_days: 7,
+    advanced_mode: true,
+    priority_queue: true,
+  })) {
+    assert.throws(
+      () =>
+        validateProductEntitlements({
+          productKey: 'ai-remover',
+          entitlements: { [key]: value },
+          source: 'grant test',
+          entitlementSource: 'grant',
+        }),
+      new RegExp(`entitlement ${key} is not allowed for grant`, 'u')
+    );
+  }
 });

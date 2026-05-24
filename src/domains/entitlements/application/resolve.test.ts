@@ -70,6 +70,28 @@ test('parseProductEntitlementsJson rejects unknown entitlement keys for the prod
   );
 });
 
+test('parseProductEntitlementsJson rejects AI Remover pricing-only keys for grants', () => {
+  const pricingOnlyGrantKeys = {
+    guest_daily_removals: 2,
+    daily_removals: 5,
+    retention_days: 7,
+    advanced_mode: true,
+    priority_queue: true,
+  };
+
+  for (const [key, value] of Object.entries(pricingOnlyGrantKeys)) {
+    assert.throws(
+      () =>
+        parseProductEntitlementsJson({
+          productKey: 'ai-remover',
+          source: 'grant',
+          value: JSON.stringify({ [key]: value }),
+        }),
+      new RegExp(`entitlement ${key} is not allowed for grant`, 'u')
+    );
+  }
+});
+
 test('resolveEffectiveEntitlements ignores expired, revoked, and wrong-environment grants', async () => {
   const result = await resolveEffectiveEntitlements({
     userId: 'user_1',
@@ -163,6 +185,58 @@ test('resolveEffectiveEntitlements merges active grants without lowering base nu
       max_upload_mb: 30,
     },
     grantIds: ['older', 'newer'],
+  });
+});
+
+test('resolveEffectiveEntitlements skips legacy pricing-only grant keys without failing access', async () => {
+  const result = await resolveEffectiveEntitlements({
+    userId: 'user_1',
+    siteKey: 'ai-remover',
+    productKey: 'ai-remover',
+    baseEntitlements: {
+      daily_removals: 5,
+      advanced_mode: false,
+      retention_days: 7,
+      monthly_removals: 10,
+    },
+    environment: 'preview',
+    internalEntitlementGrantsEnabled: false,
+    now,
+    deps: {
+      listGrants: async () => [
+        grant({
+          id: 'legacy-pricing-only',
+          entitlementsJson: stringifyProductEntitlements({
+            productKey: 'ai-remover',
+            entitlements: {
+              daily_removals: 50,
+              advanced_mode: true,
+              retention_days: 30,
+            },
+          }),
+        }),
+        grant({
+          id: 'legacy-mixed',
+          entitlementsJson: stringifyProductEntitlements({
+            productKey: 'ai-remover',
+            entitlements: {
+              monthly_removals: 75,
+              priority_queue: true,
+            },
+          }),
+        }),
+      ],
+    },
+  });
+
+  assert.deepEqual(result, {
+    entitlements: {
+      daily_removals: 5,
+      advanced_mode: false,
+      retention_days: 7,
+      monthly_removals: 75,
+    },
+    grantIds: ['legacy-mixed'],
   });
 });
 
