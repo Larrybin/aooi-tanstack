@@ -1,18 +1,20 @@
-import { ConflictError, TooManyRequestsError } from '@/shared/lib/api/errors';
+import {
+  assertProductQuotaAvailable,
+  commitProductQuotaReservation,
+  getProductQuotaWindowStart,
+  isProductQuotaReservationReusable,
+  refundProductQuotaReservation,
+} from '@/domains/product-quota/domain/reservation';
 
 import type {
+  RemoverQuotaOperationKey,
   RemoverQuotaReservationLike,
   RemoverQuotaReservationStatus,
+  RemoverQuotaType,
 } from './types';
 
 export function getQuotaWindowStart(now: Date, window: 'day' | 'month'): Date {
-  if (window === 'month') {
-    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  }
-
-  return new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-  );
+  return getProductQuotaWindowStart(now, window);
 }
 
 export function assertQuotaAvailable({
@@ -24,17 +26,12 @@ export function assertQuotaAvailable({
   requestedUnits: number;
   limit: number;
 }): void {
-  if (requestedUnits <= 0) {
-    throw new ConflictError('quota units must be positive');
-  }
-
-  if (limit < requestedUnits || usedUnits + requestedUnits > limit) {
-    throw new TooManyRequestsError('remover quota exceeded', {
-      limit,
-      usedUnits,
-      requestedUnits,
-    });
-  }
+  assertProductQuotaAvailable({
+    usedUnits,
+    requestedUnits,
+    limit,
+    quotaExceededMessage: 'remover quota exceeded',
+  });
 }
 
 export function isQuotaReservationReusable({
@@ -46,37 +43,35 @@ export function isQuotaReservationReusable({
   expiresAt: Date;
   now?: Date;
 }): boolean {
-  if (status === 'committed') {
-    return true;
-  }
-
-  return status === 'reserved' && expiresAt > now;
+  return isProductQuotaReservationReusable({ status, expiresAt, now });
 }
 
 export function commitQuotaReservation<T extends RemoverQuotaReservationLike>(
   reservation: T
 ): RemoverQuotaReservationStatus {
-  if (reservation.status === 'committed') {
-    return 'committed';
-  }
-
-  if (reservation.status === 'refunded') {
-    throw new ConflictError('quota reservation was already refunded');
-  }
-
-  return 'committed';
+  return commitProductQuotaReservation(reservation);
 }
 
 export function refundQuotaReservation<T extends RemoverQuotaReservationLike>(
   reservation: T
 ): RemoverQuotaReservationStatus {
-  if (reservation.status === 'refunded') {
-    return 'refunded';
-  }
+  return refundProductQuotaReservation(reservation);
+}
 
-  if (reservation.status === 'committed') {
-    throw new ConflictError('quota reservation was already committed');
-  }
+export const REMOVER_QUOTA_OPERATION_KEYS = {
+  uploadCreate: 'upload.create',
+  imageRemove: 'image.remove',
+  imageHdDownload: 'image.hd_download',
+} as const satisfies Record<string, RemoverQuotaOperationKey>;
 
-  return 'refunded';
+const REMOVER_QUOTA_TYPE_BY_OPERATION_KEY = {
+  [REMOVER_QUOTA_OPERATION_KEYS.uploadCreate]: 'upload',
+  [REMOVER_QUOTA_OPERATION_KEYS.imageRemove]: 'processing',
+  [REMOVER_QUOTA_OPERATION_KEYS.imageHdDownload]: 'high_res_download',
+} as const satisfies Record<RemoverQuotaOperationKey, RemoverQuotaType>;
+
+export function getRemoverQuotaTypeForOperationKey(
+  operationKey: RemoverQuotaOperationKey
+): RemoverQuotaType {
+  return REMOVER_QUOTA_TYPE_BY_OPERATION_KEY[operationKey];
 }

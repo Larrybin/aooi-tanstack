@@ -11,17 +11,16 @@ import { getUuid } from '@/shared/lib/hash';
 import { assertActorOwnsResource, getRemoverOwner } from '../domain/actor';
 import { formatRemoverEntitlementGrantIdsJson } from '../domain/entitlement-grants';
 import { addRetentionDays, resolveRemoverPlanLimits } from '../domain/plan';
-import { getQuotaWindowStart } from '../domain/quota';
-import type {
-  RemoverActor,
-  RemoverJobStatus,
-  RemoverQuotaType,
-} from '../domain/types';
+import {
+  getQuotaWindowStart,
+  REMOVER_QUOTA_OPERATION_KEYS,
+} from '../domain/quota';
+import type { RemoverActor, RemoverJobStatus } from '../domain/types';
 import type { RemoverImageAsset } from '../infra/image-asset';
 import type { NewRemoverJob, RemoverJob } from '../infra/job';
 import type {
-  NewRemoverQuotaReservation,
   RemoverQuotaReservation,
+  ReserveRemoverQuotaInput,
 } from '../infra/quota-reservation';
 
 type JobDeps = {
@@ -30,17 +29,8 @@ type JobDeps = {
     key: string
   ) => Promise<RemoverQuotaReservation | undefined>;
   createJobWithReservation: (input: {
-    reservation: NewRemoverQuotaReservation;
-    job: NewRemoverJob;
-    quota: {
-      userId: string | null;
-      anonymousSessionId: string | null;
-      quotaType: RemoverQuotaType;
-      windowStart: Date;
-      limit: number;
-      requestedUnits: number;
-      now?: Date;
-    };
+    quota: ReserveRemoverQuotaInput;
+    buildJob: (reservationId: string) => NewRemoverJob;
   }) => Promise<{
     reservation: RemoverQuotaReservation;
     job: RemoverJob;
@@ -188,27 +178,25 @@ export async function createQueuedRemoverJob({
 
   const now = (deps.now ?? (() => new Date()))();
   const plan = resolveRemoverPlanLimits(actor);
-  const quotaType: RemoverQuotaType = 'processing';
   const windowStart = getQuotaWindowStart(now, plan.processingWindow);
 
-  const reservation: NewRemoverQuotaReservation = {
-    id: (deps.createId ?? getUuid)(),
-    ...owner,
-    productId: plan.productId,
-    quotaType,
-    units: 1,
-    status: 'reserved',
-    idempotencyKey: scopedIdempotencyKey,
-    entitlementGrantIdsJson: formatRemoverEntitlementGrantIdsJson(actor),
-    expiresAt: addRetentionDays(now, 1),
-  };
-
   const jobStatus: RemoverJobStatus = 'queued';
-  const jobId = (deps.createId ?? getUuid)();
   const created = await deps.createJobWithReservation({
-    reservation,
-    job: {
-      id: jobId,
+    quota: {
+      actor,
+      productId: plan.productId,
+      operationKey: REMOVER_QUOTA_OPERATION_KEYS.imageRemove,
+      units: 1,
+      windowStart,
+      limit: plan.processingLimit,
+      idempotencyKey: scopedIdempotencyKey,
+      entitlementGrantIdsJson: formatRemoverEntitlementGrantIdsJson(actor),
+      expiresAt: addRetentionDays(now, 1),
+      now,
+      createId: deps.createId ?? getUuid,
+    },
+    buildJob: (reservationId) => ({
+      id: (deps.createId ?? getUuid)(),
       ...owner,
       ...providerConfig,
       status: jobStatus,
@@ -217,17 +205,9 @@ export async function createQueuedRemoverJob({
       inputImageKey: usableInputAsset.storageKey,
       maskImageKey: usableMaskAsset.storageKey,
       costUnits: 1,
-      quotaReservationId: reservation.id,
+      quotaReservationId: reservationId,
       expiresAt: addRetentionDays(now, plan.retentionDays),
-    },
-    quota: {
-      ...owner,
-      quotaType,
-      windowStart,
-      limit: plan.processingLimit,
-      requestedUnits: 1,
-      now,
-    },
+    }),
   });
   assertExistingJobAccessible({ actor, job: created.job });
 

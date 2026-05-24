@@ -11,12 +11,13 @@ import { addRetentionDays, resolveRemoverPlanLimits } from '../domain/plan';
 import {
   getQuotaWindowStart,
   isQuotaReservationReusable,
+  REMOVER_QUOTA_OPERATION_KEYS,
 } from '../domain/quota';
-import type { RemoverActor, RemoverQuotaType } from '../domain/types';
+import type { RemoverActor } from '../domain/types';
 import type { RemoverJob } from '../infra/job';
 import type {
-  NewRemoverQuotaReservation,
   RemoverQuotaReservation,
+  ReserveRemoverQuotaInput,
 } from '../infra/quota-reservation';
 
 type DownloadVariant = 'low_res' | 'high_res';
@@ -26,18 +27,9 @@ type DownloadDeps = {
   findReservationByIdempotencyKey: (
     key: string
   ) => Promise<RemoverQuotaReservation | undefined>;
-  reserveQuota: (input: {
-    reservation: NewRemoverQuotaReservation;
-    quota: {
-      userId: string | null;
-      anonymousSessionId: string | null;
-      quotaType: RemoverQuotaType;
-      windowStart: Date;
-      limit: number;
-      requestedUnits: number;
-      now?: Date;
-    };
-  }) => Promise<{ reservation: RemoverQuotaReservation; reused: boolean }>;
+  reserveQuota: (
+    input: ReserveRemoverQuotaInput
+  ) => Promise<{ reservation: RemoverQuotaReservation; reused: boolean }>;
   commitReservation: (input: {
     reservationId: string;
     now?: Date;
@@ -118,7 +110,6 @@ export async function reserveHighResDownloadQuota({
     }
   }
 
-  const quotaType: RemoverQuotaType = 'high_res_download';
   const owner = getRemoverOwner(actor);
   const windowStart =
     plan.highResDownloadWindow === 'lifetime'
@@ -126,26 +117,18 @@ export async function reserveHighResDownloadQuota({
       : getQuotaWindowStart(now, plan.highResDownloadWindow);
 
   const { reservation } = await deps.reserveQuota({
-    reservation: {
-      id: (deps.createId ?? getUuid)(),
-      ...owner,
-      productId: plan.productId,
-      quotaType,
-      units: 1,
-      status: 'reserved',
-      idempotencyKey,
-      jobId: job.id,
-      entitlementGrantIdsJson: formatRemoverEntitlementGrantIdsJson(actor),
-      expiresAt: addRetentionDays(now, 1),
-    },
-    quota: {
-      ...owner,
-      quotaType,
-      windowStart,
-      limit: plan.highResDownloads,
-      requestedUnits: 1,
-      now,
-    },
+    actor,
+    productId: plan.productId,
+    operationKey: REMOVER_QUOTA_OPERATION_KEYS.imageHdDownload,
+    units: 1,
+    limit: plan.highResDownloads,
+    windowStart,
+    idempotencyKey,
+    jobId: job.id,
+    entitlementGrantIdsJson: formatRemoverEntitlementGrantIdsJson(actor),
+    expiresAt: addRetentionDays(now, 1),
+    now,
+    createId: deps.createId ?? getUuid,
   });
   return reservation.id;
 }

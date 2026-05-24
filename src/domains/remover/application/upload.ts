@@ -6,15 +6,18 @@ import { getUuid } from '@/shared/lib/hash';
 import { getRemoverOwner } from '../domain/actor';
 import { formatRemoverEntitlementGrantIdsJson } from '../domain/entitlement-grants';
 import { addRetentionDays, resolveRemoverPlanLimits } from '../domain/plan';
-import { getQuotaWindowStart } from '../domain/quota';
+import {
+  getQuotaWindowStart,
+  REMOVER_QUOTA_OPERATION_KEYS,
+} from '../domain/quota';
 import type { RemoverActor, RemoverImageAssetKind } from '../domain/types';
 import type {
   NewRemoverImageAsset,
   RemoverImageAsset,
 } from '../infra/image-asset';
 import type {
-  NewRemoverQuotaReservation,
   RemoverQuotaReservation,
+  ReserveRemoverQuotaInput,
 } from '../infra/quota-reservation';
 
 const REMOVER_IMAGE_EXT_BY_MIME = {
@@ -26,18 +29,9 @@ const REMOVER_IMAGE_EXT_BY_MIME = {
 export type RemoverUploadDeps = {
   storageService: Pick<StorageService, 'uploadFile' | 'deleteFiles'>;
   createAsset: (asset: NewRemoverImageAsset) => Promise<RemoverImageAsset>;
-  reserveUploadQuota: (input: {
-    reservation: NewRemoverQuotaReservation;
-    quota: {
-      userId: string | null;
-      anonymousSessionId: string | null;
-      quotaType: 'upload';
-      windowStart: Date;
-      limit: number;
-      requestedUnits: number;
-      now?: Date;
-    };
-  }) => Promise<{ reservation: RemoverQuotaReservation; reused: boolean }>;
+  reserveUploadQuota: (
+    input: ReserveRemoverQuotaInput
+  ) => Promise<{ reservation: RemoverQuotaReservation; reused: boolean }>;
   commitReservation: (input: {
     reservationId: string;
     now?: Date;
@@ -123,25 +117,17 @@ export async function uploadRemoverImage({
   let asset: RemoverImageAsset;
   try {
     quotaReservation = await deps.reserveUploadQuota({
-      reservation: {
-        id: (deps.createId ?? getUuid)(),
-        ...owner,
-        productId: plan.productId,
-        quotaType: 'upload',
-        units: 1,
-        status: 'reserved',
-        idempotencyKey: `upload:${owner.userId ?? owner.anonymousSessionId}:${id}`,
-        entitlementGrantIdsJson: formatRemoverEntitlementGrantIdsJson(actor),
-        expiresAt: addRetentionDays(now, 1),
-      },
-      quota: {
-        ...owner,
-        quotaType: 'upload',
-        windowStart: getQuotaWindowStart(now, plan.processingWindow),
-        limit: uploadLimit,
-        requestedUnits: 1,
-        now,
-      },
+      actor,
+      productId: plan.productId,
+      operationKey: REMOVER_QUOTA_OPERATION_KEYS.uploadCreate,
+      units: 1,
+      limit: uploadLimit,
+      windowStart: getQuotaWindowStart(now, plan.processingWindow),
+      idempotencyKey: `upload:${owner.userId ?? owner.anonymousSessionId}:${id}`,
+      entitlementGrantIdsJson: formatRemoverEntitlementGrantIdsJson(actor),
+      expiresAt: addRetentionDays(now, 1),
+      now,
+      createId: deps.createId ?? getUuid,
     });
 
     const uploaded = await deps.storageService.uploadFile({

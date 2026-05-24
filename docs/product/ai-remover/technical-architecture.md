@@ -12,6 +12,8 @@ AI Remover should be implemented as an aooi site/product workflow:
   `src/domains/product-access/**`; AI Remover is the first consumer.
 - Product access entitlement resolution lives in
   `src/domains/product-entitlements/**`; AI Remover is the first consumer.
+- Product quota reservation primitives live in `src/domains/product-quota/**`;
+  AI Remover is the first consumer.
 - Provider and platform adapters live in `src/infra/**` unless an existing
   domain-owned infra pattern is more direct.
 - Shared utilities stay in `src/shared/**`.
@@ -69,7 +71,8 @@ The domain owns:
 - Removal job state.
 - Image asset metadata.
 - AI Remover-specific use of shared product-access actor/session/ownership.
-- Quota reservation and commit/refund semantics.
+- AI Remover-specific use of shared product-quota reserve/commit/refund
+  semantics.
 - Plan entitlement resolution for this product.
 - My Images query and deletion rules.
 - High-res download authorization.
@@ -81,6 +84,12 @@ quota, billing, runtime, job, media asset, provider, or editor behavior.
 pricing/subscription/grants through product-provided schemas. It does not own
 quota, billing flows, runtime, job, media asset, provider, or editor behavior,
 and it does not know AI Remover-specific entitlement keys.
+`src/domains/product-quota/**` is the generic product quota reservation layer.
+It only handles reserve/commit/refund orchestration through product-provided
+storage adapters. It does not own pricing, entitlement resolution, billing,
+runtime, job lifecycle, media asset, provider, or editor behavior. AI Remover is
+the first consumer, and this stage does not rename or replace the existing
+`remover_quota_reservation` table.
 
 The existing AI module can provide configured provider bindings and shared AI
 enablement checks, but the generic `ai_task` table should not be stretched to
@@ -171,7 +180,9 @@ Required fields:
 
 ### `remover_quota_reservation`
 
-Tracks reservation, commit, and refund idempotently.
+Tracks AI Remover quota reservation, commit, and refund idempotently. The table
+name and schema stay product-owned in this stage; AI Remover maps product-quota
+operation keys onto the existing `quotaType` values.
 
 Required fields:
 
@@ -180,6 +191,9 @@ Required fields:
 - `anonymousSessionId`
 - `productId`
 - `quotaType`: `processing`, `high_res_download`, `upload`
+  - `image.remove` maps to `processing`
+  - `image.hd_download` maps to `high_res_download`
+  - `upload.create` maps to `upload`
 - `units`
 - `status`: `reserved`, `committed`, `refunded`, `expired`
 - `idempotencyKey`

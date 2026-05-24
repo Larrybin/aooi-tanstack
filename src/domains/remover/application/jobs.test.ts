@@ -6,7 +6,10 @@ import { TooManyRequestsError } from '@/shared/lib/api/errors';
 import type { RemoverActor } from '../domain/types';
 import type { RemoverImageAsset } from '../infra/image-asset';
 import type { RemoverJob } from '../infra/job';
-import type { RemoverQuotaReservation } from '../infra/quota-reservation';
+import type {
+  RemoverQuotaReservation,
+  ReserveRemoverQuotaInput,
+} from '../infra/quota-reservation';
 import {
   claimRemoverJobForActor,
   createQueuedRemoverJob,
@@ -23,6 +26,12 @@ const providerConfig = {
   provider: 'replicate',
   model: 'test/remover',
 };
+
+type CreateJobWithReservationInput = Parameters<
+  Parameters<
+    typeof createQueuedRemoverJob
+  >[0]['deps']['createJobWithReservation']
+>[0];
 
 function asset(id: string, kind: 'original' | 'mask'): RemoverImageAsset {
   return {
@@ -44,6 +53,50 @@ function asset(id: string, kind: 'original' | 'mask'): RemoverImageAsset {
   };
 }
 
+function reservationOwner(quota: ReserveRemoverQuotaInput) {
+  return quota.actor.kind === 'user'
+    ? { userId: quota.actor.userId, anonymousSessionId: null }
+    : { userId: null, anonymousSessionId: quota.actor.anonymousSessionId };
+}
+
+function buildReservationAndJob(input: CreateJobWithReservationInput): {
+  reservation: RemoverQuotaReservation;
+  job: RemoverJob;
+} {
+  const reservationId = input.quota.createId?.() ?? 'reservation_1';
+  const job = input.buildJob(reservationId);
+  return {
+    reservation: {
+      id: reservationId,
+      ...reservationOwner(input.quota),
+      productId: input.quota.productId,
+      quotaType: 'processing',
+      units: input.quota.units,
+      status: 'reserved',
+      idempotencyKey: input.quota.idempotencyKey,
+      jobId: job.id,
+      reason: input.quota.reason ?? null,
+      entitlementGrantIdsJson: input.quota.entitlementGrantIdsJson ?? null,
+      committedAt: null,
+      refundedAt: null,
+      createdAt: new Date('2026-05-06T00:00:00Z'),
+      updatedAt: new Date('2026-05-06T00:00:00Z'),
+      expiresAt: input.quota.expiresAt,
+    },
+    job: {
+      providerTaskId: null,
+      outputImageKey: null,
+      thumbnailKey: null,
+      errorCode: null,
+      errorMessage: null,
+      createdAt: new Date('2026-05-06T00:00:00Z'),
+      updatedAt: new Date('2026-05-06T00:00:00Z'),
+      deletedAt: null,
+      ...job,
+    },
+  };
+}
+
 function createDeps({ usedUnits = 0 }: { usedUnits?: number } = {}) {
   const reservations: RemoverQuotaReservation[] = [];
   const jobs: RemoverJob[] = [];
@@ -61,34 +114,16 @@ function createDeps({ usedUnits = 0 }: { usedUnits?: number } = {}) {
             : undefined,
       findReservationByIdempotencyKey: async (key: string) =>
         reservations.find((reservation) => reservation.idempotencyKey === key),
-      createJobWithReservation: async ({ reservation, job, quota }) => {
-        if (usedUnits + quota.requestedUnits > quota.limit) {
+      createJobWithReservation: async (input) => {
+        if (usedUnits + input.quota.units > input.quota.limit) {
           throw new TooManyRequestsError('remover quota exceeded', {
-            limit: quota.limit,
+            limit: input.quota.limit,
             usedUnits,
-            requestedUnits: quota.requestedUnits,
+            requestedUnits: input.quota.units,
           });
         }
-        const savedReservation = {
-          ...reservation,
-          jobId: job.id,
-          reason: reservation.reason ?? null,
-          committedAt: null,
-          refundedAt: null,
-          createdAt: new Date('2026-05-06T00:00:00Z'),
-          updatedAt: new Date('2026-05-06T00:00:00Z'),
-        } satisfies RemoverQuotaReservation;
-        const savedJob = {
-          providerTaskId: null,
-          outputImageKey: null,
-          thumbnailKey: null,
-          errorCode: null,
-          errorMessage: null,
-          createdAt: new Date('2026-05-06T00:00:00Z'),
-          updatedAt: new Date('2026-05-06T00:00:00Z'),
-          deletedAt: null,
-          ...job,
-        } satisfies RemoverJob;
+        const { reservation: savedReservation, job: savedJob } =
+          buildReservationAndJob(input);
         reservations.push(savedReservation);
         jobs.push(savedJob);
         return { reservation: savedReservation, job: savedJob, reused: false };
@@ -244,7 +279,7 @@ test('createQueuedRemoverJob delegates reservation and job creation atomically',
         jobReservationId: string;
         quotaUserId: string | null;
         quotaAnonymousSessionId: string | null;
-        quotaType: string;
+        operationKey: string;
         quotaLimit: number;
         quotaRequestedUnits: number;
         quotaWindowStart: string;
@@ -260,40 +295,24 @@ test('createQueuedRemoverJob delegates reservation and job creation atomically',
     providerConfig,
     deps: {
       ...deps,
-      createJobWithReservation: async ({ reservation, job, quota }) => {
+      createJobWithReservation: async (input) => {
+        const { reservation, job } = buildReservationAndJob(input);
+        const owner = reservationOwner(input.quota);
         createdInput = {
           reservationId: reservation.id,
-          reservationJobId: reservation.jobId,
+          reservationJobId: undefined,
           jobId: job.id,
           jobReservationId: job.quotaReservationId,
-          quotaUserId: quota.userId,
-          quotaAnonymousSessionId: quota.anonymousSessionId,
-          quotaType: quota.quotaType,
-          quotaLimit: quota.limit,
-          quotaRequestedUnits: quota.requestedUnits,
-          quotaWindowStart: quota.windowStart.toISOString(),
+          quotaUserId: owner.userId,
+          quotaAnonymousSessionId: owner.anonymousSessionId,
+          operationKey: input.quota.operationKey,
+          quotaLimit: input.quota.limit,
+          quotaRequestedUnits: input.quota.units,
+          quotaWindowStart: input.quota.windowStart.toISOString(),
         };
         return {
-          reservation: {
-            ...reservation,
-            jobId: job.id,
-            reason: null,
-            committedAt: null,
-            refundedAt: null,
-            createdAt: new Date('2026-05-06T00:00:00Z'),
-            updatedAt: new Date('2026-05-06T00:00:00Z'),
-          },
-          job: {
-            providerTaskId: null,
-            outputImageKey: null,
-            thumbnailKey: null,
-            errorCode: null,
-            errorMessage: null,
-            createdAt: new Date('2026-05-06T00:00:00Z'),
-            updatedAt: new Date('2026-05-06T00:00:00Z'),
-            deletedAt: null,
-            ...job,
-          },
+          reservation,
+          job,
           reused: false,
         };
       },
@@ -307,7 +326,7 @@ test('createQueuedRemoverJob delegates reservation and job creation atomically',
     jobReservationId: 'id_1',
     quotaUserId: null,
     quotaAnonymousSessionId: 'anon_1',
-    quotaType: 'processing',
+    operationKey: 'image.remove',
     quotaLimit: 2,
     quotaRequestedUnits: 1,
     quotaWindowStart: '2026-05-06T00:00:00.000Z',
@@ -340,33 +359,13 @@ test('createQueuedRemoverJob checks signed-in processing quota by user only', as
         userId: 'user_1',
         anonymousSessionId: null,
       }),
-      createJobWithReservation: async ({ reservation, job, quota }) => {
-        quotaOwner = {
-          userId: quota.userId,
-          anonymousSessionId: quota.anonymousSessionId,
-        };
-        entitlementGrantIdsJson = reservation.entitlementGrantIdsJson;
+      createJobWithReservation: async (input) => {
+        const { reservation, job } = buildReservationAndJob(input);
+        quotaOwner = reservationOwner(input.quota);
+        entitlementGrantIdsJson = input.quota.entitlementGrantIdsJson;
         return {
-          reservation: {
-            ...reservation,
-            jobId: job.id,
-            reason: null,
-            committedAt: null,
-            refundedAt: null,
-            createdAt: new Date('2026-05-06T00:00:00Z'),
-            updatedAt: new Date('2026-05-06T00:00:00Z'),
-          },
-          job: {
-            providerTaskId: null,
-            outputImageKey: null,
-            thumbnailKey: null,
-            errorCode: null,
-            errorMessage: null,
-            createdAt: new Date('2026-05-06T00:00:00Z'),
-            updatedAt: new Date('2026-05-06T00:00:00Z'),
-            deletedAt: null,
-            ...job,
-          },
+          reservation,
+          job,
           reused: false,
         };
       },
@@ -402,29 +401,12 @@ test('createQueuedRemoverJob scopes signed-in idempotency by user only', async (
         userId: 'user_1',
         anonymousSessionId: null,
       }),
-      createJobWithReservation: async ({ reservation, job }) => {
-        reservationKey = reservation.idempotencyKey;
+      createJobWithReservation: async (input) => {
+        const { reservation, job } = buildReservationAndJob(input);
+        reservationKey = input.quota.idempotencyKey;
         return {
-          reservation: {
-            ...reservation,
-            jobId: job.id,
-            reason: null,
-            committedAt: null,
-            refundedAt: null,
-            createdAt: new Date('2026-05-06T00:00:00Z'),
-            updatedAt: new Date('2026-05-06T00:00:00Z'),
-          },
-          job: {
-            providerTaskId: null,
-            outputImageKey: null,
-            thumbnailKey: null,
-            errorCode: null,
-            errorMessage: null,
-            createdAt: new Date('2026-05-06T00:00:00Z'),
-            updatedAt: new Date('2026-05-06T00:00:00Z'),
-            deletedAt: null,
-            ...job,
-          },
+          reservation,
+          job,
           reused: false,
         };
       },
@@ -468,20 +450,18 @@ test('createQueuedRemoverJob returns atomic idempotency replay from job creation
     providerConfig,
     deps: {
       ...deps,
-      createJobWithReservation: async ({ reservation }) => ({
-        reservation: {
-          ...reservation,
-          id: 'reservation_existing',
-          jobId: existingJob.id,
-          reason: null,
-          committedAt: null,
-          refundedAt: null,
-          createdAt: new Date('2026-05-06T00:00:00Z'),
-          updatedAt: new Date('2026-05-06T00:00:00Z'),
-        },
-        job: existingJob,
-        reused: true,
-      }),
+      createJobWithReservation: async (input) => {
+        const { reservation } = buildReservationAndJob(input);
+        return {
+          reservation: {
+            ...reservation,
+            id: 'reservation_existing',
+            jobId: existingJob.id,
+          },
+          job: existingJob,
+          reused: true,
+        };
+      },
     },
   });
 

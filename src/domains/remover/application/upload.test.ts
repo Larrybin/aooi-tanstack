@@ -3,11 +3,42 @@ import test from 'node:test';
 
 import { TooManyRequestsError } from '@/shared/lib/api/errors';
 
+import type {
+  RemoverQuotaReservation,
+  ReserveRemoverQuotaInput,
+} from '../infra/quota-reservation';
 import { uploadRemoverImage } from './upload';
 
 const pngBytes = new Uint8Array([
   0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
 ]);
+
+function reservationFromInput(
+  input: ReserveRemoverQuotaInput
+): RemoverQuotaReservation {
+  const owner =
+    input.actor.kind === 'user'
+      ? { userId: input.actor.userId, anonymousSessionId: null }
+      : { userId: null, anonymousSessionId: input.actor.anonymousSessionId };
+
+  return {
+    id: input.createId?.() ?? 'reservation_1',
+    ...owner,
+    productId: input.productId,
+    quotaType: 'upload',
+    units: input.units,
+    status: 'reserved',
+    idempotencyKey: input.idempotencyKey,
+    jobId: input.jobId ?? null,
+    reason: input.reason ?? null,
+    entitlementGrantIdsJson: input.entitlementGrantIdsJson ?? null,
+    createdAt: new Date('2026-05-06T00:00:00Z'),
+    updatedAt: new Date('2026-05-06T00:00:00Z'),
+    committedAt: null,
+    refundedAt: null,
+    expiresAt: input.expiresAt,
+  };
+}
 
 test('uploadRemoverImage stores remover assets under an owner-scoped key', async () => {
   const result = await uploadRemoverImage({
@@ -31,16 +62,8 @@ test('uploadRemoverImage stores remover assets under an owner-scoped key', async
         }),
         deleteFiles: async () => undefined,
       },
-      reserveUploadQuota: async ({ reservation }) => ({
-        reservation: {
-          ...reservation,
-          jobId: reservation.jobId ?? null,
-          reason: reservation.reason ?? null,
-          createdAt: new Date('2026-05-06T00:00:00Z'),
-          updatedAt: new Date('2026-05-06T00:00:00Z'),
-          committedAt: null,
-          refundedAt: null,
-        },
+      reserveUploadQuota: async (input) => ({
+        reservation: reservationFromInput(input),
         reused: false,
       }),
       commitReservation: async () => undefined,
@@ -155,11 +178,11 @@ test('uploadRemoverImage rejects uploads after the owner upload quota is reached
         kind: 'original',
         deps: {
           detectImageMime: () => 'image/png',
-          reserveUploadQuota: async ({ quota }) => {
+          reserveUploadQuota: async (input) => {
             throw new TooManyRequestsError('remover upload quota exceeded', {
-              limit: quota.limit,
-              usedUnits: quota.limit,
-              requestedUnits: quota.requestedUnits,
+              limit: input.limit,
+              usedUnits: input.limit,
+              requestedUnits: input.units,
             });
           },
           storageService: {
@@ -185,6 +208,7 @@ test('uploadRemoverImage checks signed-in upload quota by user only', async () =
     | { userId: string | null; anonymousSessionId: string | null }
     | undefined;
   let entitlementGrantIdsJson: string | null | undefined;
+  let operationKey: string | undefined;
 
   await uploadRemoverImage({
     actor: {
@@ -200,22 +224,18 @@ test('uploadRemoverImage checks signed-in upload quota by user only', async () =
       detectImageMime: () => 'image/png',
       createId: () => 'asset_1',
       now: () => new Date('2026-05-06T00:00:00Z'),
-      reserveUploadQuota: async ({ reservation, quota }) => {
-        quotaOwner = {
-          userId: quota.userId,
-          anonymousSessionId: quota.anonymousSessionId,
-        };
-        entitlementGrantIdsJson = reservation.entitlementGrantIdsJson;
+      reserveUploadQuota: async (input) => {
+        quotaOwner =
+          input.actor.kind === 'user'
+            ? { userId: input.actor.userId, anonymousSessionId: null }
+            : {
+                userId: null,
+                anonymousSessionId: input.actor.anonymousSessionId,
+              };
+        entitlementGrantIdsJson = input.entitlementGrantIdsJson;
+        operationKey = input.operationKey;
         return {
-          reservation: {
-            ...reservation,
-            jobId: reservation.jobId ?? null,
-            reason: reservation.reason ?? null,
-            createdAt: new Date('2026-05-06T00:00:00Z'),
-            updatedAt: new Date('2026-05-06T00:00:00Z'),
-            committedAt: null,
-            refundedAt: null,
-          },
+          reservation: reservationFromInput(input),
           reused: false,
         };
       },
@@ -243,6 +263,7 @@ test('uploadRemoverImage checks signed-in upload quota by user only', async () =
     anonymousSessionId: null,
   });
   assert.equal(entitlementGrantIdsJson, '["grant_1"]');
+  assert.equal(operationKey, 'upload.create');
 });
 
 test('uploadRemoverImage commits upload quota only after storage and asset creation', async () => {
@@ -259,18 +280,10 @@ test('uploadRemoverImage commits upload quota only after storage and asset creat
       detectImageMime: () => 'image/png',
       createId: () => 'asset_1',
       now: () => new Date('2026-05-06T00:00:00Z'),
-      reserveUploadQuota: async ({ reservation }) => {
+      reserveUploadQuota: async (input) => {
         calls.push('reserve');
         return {
-          reservation: {
-            ...reservation,
-            jobId: null,
-            reason: null,
-            createdAt: new Date('2026-05-06T00:00:00Z'),
-            updatedAt: new Date('2026-05-06T00:00:00Z'),
-            committedAt: null,
-            refundedAt: null,
-          },
+          reservation: reservationFromInput(input),
           reused: false,
         };
       },

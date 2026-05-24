@@ -6,8 +6,8 @@ import {
 import { findRemoverJobById } from '@/domains/remover/infra/job';
 import {
   commitRemoverQuotaReservation,
-  createRemoverQuotaReservationWithQuotaCheck,
   findRemoverQuotaReservationByIdempotencyKey,
+  reserveRemoverQuota,
 } from '@/domains/remover/infra/quota-reservation';
 import { getStorageService } from '@/infra/adapters/storage/service';
 
@@ -30,7 +30,7 @@ const deps = {
     findJobById: findRemoverJobById,
     findReservationByIdempotencyKey:
       findRemoverQuotaReservationByIdempotencyKey,
-    reserveQuota: createRemoverQuotaReservationWithQuotaCheck,
+    reserveQuota: reserveRemoverQuota,
     commitReservation: commitRemoverQuotaReservation,
   },
 };

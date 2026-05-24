@@ -1,9 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { PgDialect } from 'drizzle-orm/pg-core';
 import type { SQL } from 'drizzle-orm';
+import { PgDialect } from 'drizzle-orm/pg-core';
 
-import { assertRemoverQuotaAvailable } from './quota-reservation';
+import {
+  assertRemoverQuotaAvailable,
+  toRemoverQuotaCheck,
+  toRemoverQuotaReservationInsert,
+} from './quota-reservation';
 
 test('assertRemoverQuotaAvailable ignores expired reserved quota rows', async () => {
   let capturedWhere: SQL | undefined;
@@ -39,4 +43,72 @@ test('assertRemoverQuotaAvailable ignores expired reserved quota rows', async ()
 
   assert.match(query.sql, /"remover_quota_reservation"."status" = \$\d+/);
   assert.match(query.sql, /"remover_quota_reservation"."expires_at" > \$\d+/);
+});
+
+test('AI Remover product quota operation keys map to existing storage quota types', () => {
+  const baseQuota = {
+    userId: 'user_1',
+    anonymousSessionId: null,
+    siteKey: 'ai-remover',
+    productKey: 'ai-remover',
+    windowStart: new Date('2026-05-01T00:00:00Z'),
+    limit: 10,
+    requestedUnits: 1,
+  };
+
+  assert.equal(
+    toRemoverQuotaCheck({
+      ...baseQuota,
+      operationKey: 'upload.create',
+    }).quotaType,
+    'upload'
+  );
+  assert.equal(
+    toRemoverQuotaCheck({
+      ...baseQuota,
+      operationKey: 'image.remove',
+    }).quotaType,
+    'processing'
+  );
+  assert.equal(
+    toRemoverQuotaCheck({
+      ...baseQuota,
+      operationKey: 'image.hd_download',
+    }).quotaType,
+    'high_res_download'
+  );
+});
+
+test('AI Remover reservation insert keeps the existing remover quota table shape', () => {
+  const reservation = toRemoverQuotaReservationInsert({
+    id: 'reservation_1',
+    userId: 'user_1',
+    anonymousSessionId: null,
+    siteKey: 'ai-remover',
+    productKey: 'ai-remover',
+    productId: 'free',
+    operationKey: 'image.remove',
+    units: 1,
+    status: 'reserved',
+    idempotencyKey: 'processing:user:user_1:idem_1',
+    jobId: 'job_1',
+    reason: null,
+    entitlementGrantIdsJson: '["grant_1"]',
+    expiresAt: new Date('2026-05-07T00:00:00Z'),
+  });
+
+  assert.deepEqual(reservation, {
+    id: 'reservation_1',
+    userId: 'user_1',
+    anonymousSessionId: null,
+    productId: 'free',
+    quotaType: 'processing',
+    units: 1,
+    status: 'reserved',
+    idempotencyKey: 'processing:user:user_1:idem_1',
+    jobId: 'job_1',
+    reason: null,
+    entitlementGrantIdsJson: '["grant_1"]',
+    expiresAt: new Date('2026-05-07T00:00:00Z'),
+  });
 });

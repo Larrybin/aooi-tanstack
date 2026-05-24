@@ -24,6 +24,10 @@ export type RemoverImageAssetKind =
 export type RemoverImageAssetStatus = 'active' | 'deleted';
 export type RemoverJobStatus = 'queued' | 'processing' | 'succeeded' | 'failed';
 export type RemoverQuotaType = 'processing' | 'high_res_download' | 'upload';
+export type RemoverQuotaOperationKey =
+  | 'upload.create'
+  | 'image.remove'
+  | 'image.hd_download';
 export type RemoverQuotaReservationStatus =
   | 'reserved'
   | 'committed'

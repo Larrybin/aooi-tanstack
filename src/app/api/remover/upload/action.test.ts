@@ -1,11 +1,42 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import type {
+  RemoverQuotaReservation,
+  ReserveRemoverQuotaInput,
+} from '@/domains/remover/infra/quota-reservation';
 
 import { createRemoverUploadPostAction } from './action';
 
 const pngBytes = new Uint8Array([
   0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
 ]);
+
+function quotaReservation(
+  input: ReserveRemoverQuotaInput
+): RemoverQuotaReservation {
+  const owner =
+    input.actor.kind === 'user'
+      ? { userId: input.actor.userId, anonymousSessionId: null }
+      : { userId: null, anonymousSessionId: input.actor.anonymousSessionId };
+
+  return {
+    id: input.createId?.() ?? 'reservation_1',
+    ...owner,
+    productId: input.productId,
+    quotaType: 'upload',
+    units: input.units,
+    status: 'reserved',
+    idempotencyKey: input.idempotencyKey,
+    jobId: input.jobId ?? null,
+    reason: input.reason ?? null,
+    entitlementGrantIdsJson: input.entitlementGrantIdsJson ?? null,
+    createdAt: new Date('2026-05-06T00:00:00Z'),
+    updatedAt: new Date('2026-05-06T00:00:00Z'),
+    committedAt: null,
+    refundedAt: null,
+    expiresAt: input.expiresAt,
+  };
+}
 
 test('remover upload action returns only a public asset DTO', async () => {
   const formData = new FormData();
@@ -46,16 +77,8 @@ test('remover upload action returns only a public asset DTO', async () => {
       updatedAt: new Date('2026-05-06T00:00:00Z'),
       deletedAt: null,
     }),
-    reserveUploadQuota: async ({ reservation }) => ({
-      reservation: {
-        ...reservation,
-        jobId: null,
-        reason: null,
-        createdAt: new Date('2026-05-06T00:00:00Z'),
-        updatedAt: new Date('2026-05-06T00:00:00Z'),
-        committedAt: null,
-        refundedAt: null,
-      },
+    reserveUploadQuota: async (input) => ({
+      reservation: quotaReservation(input),
       reused: false,
     }),
     commitReservation: async () => undefined,
@@ -127,16 +150,8 @@ test('remover upload action applies anonymous guest IP limiter before storage wr
       updatedAt: new Date('2026-05-06T00:00:00Z'),
       deletedAt: null,
     }),
-    reserveUploadQuota: async ({ reservation }) => ({
-      reservation: {
-        ...reservation,
-        jobId: null,
-        reason: null,
-        createdAt: new Date('2026-05-06T00:00:00Z'),
-        updatedAt: new Date('2026-05-06T00:00:00Z'),
-        committedAt: null,
-        refundedAt: null,
-      },
+    reserveUploadQuota: async (input) => ({
+      reservation: quotaReservation(input),
       reused: false,
     }),
     commitReservation: async () => undefined,

@@ -1,5 +1,13 @@
 import 'server-only';
 
+import type { ProductActor } from '@/domains/product-access/domain/actor';
+import {
+  commitProductQuota,
+  refundProductQuota,
+  reserveProductQuota,
+  type ProductQuotaCheck,
+  type ProductQuotaReservationDraft,
+} from '@/domains/product-quota/application/quota-service';
 import { db } from '@/infra/adapters/db';
 import { and, eq, gt, gte, isNull, or, sql, sum } from 'drizzle-orm';
 
@@ -8,10 +16,14 @@ import { TooManyRequestsError } from '@/shared/lib/api/errors';
 
 import {
   commitQuotaReservation,
+  getRemoverQuotaTypeForOperationKey,
   isQuotaReservationReusable,
   refundQuotaReservation,
 } from '../domain/quota';
-import type { RemoverQuotaReservationStatus } from '../domain/types';
+import type {
+  RemoverQuotaOperationKey,
+  RemoverQuotaReservationStatus,
+} from '../domain/types';
 
 export type RemoverQuotaReservation =
   typeof removerQuotaReservation.$inferSelect;
@@ -28,9 +40,95 @@ export type QuotaReservationCheck = {
   now?: Date;
 };
 
+export type ReserveRemoverQuotaInput = {
+  actor: ProductActor;
+  productId: string;
+  operationKey: RemoverQuotaOperationKey;
+  units: number;
+  limit: number;
+  windowStart: Date;
+  idempotencyKey: string;
+  expiresAt: Date;
+  jobId?: string | null;
+  reason?: string | null;
+  entitlementGrantIdsJson?: string | null;
+  now?: Date;
+  createId?: () => string;
+};
+
 type RemoverDbTransaction = Parameters<
   Parameters<ReturnType<typeof db>['transaction']>[0]
 >[0];
+
+export const REMOVER_QUOTA_SITE_KEY = 'ai-remover';
+export const REMOVER_QUOTA_PRODUCT_KEY = 'ai-remover';
+
+export function toRemoverQuotaReservationInsert(
+  reservation: ProductQuotaReservationDraft
+): NewRemoverQuotaReservation {
+  return {
+    id: reservation.id,
+    userId: reservation.userId,
+    anonymousSessionId: reservation.anonymousSessionId,
+    productId: reservation.productId,
+    quotaType: getRemoverQuotaTypeForOperationKey(
+      reservation.operationKey as RemoverQuotaOperationKey
+    ),
+    units: reservation.units,
+    status: reservation.status,
+    idempotencyKey: reservation.idempotencyKey,
+    jobId: reservation.jobId,
+    reason: reservation.reason,
+    entitlementGrantIdsJson: reservation.entitlementGrantIdsJson,
+    expiresAt: reservation.expiresAt,
+  };
+}
+
+export function toRemoverQuotaCheck(
+  quota: ProductQuotaCheck
+): QuotaReservationCheck {
+  return {
+    userId: quota.userId,
+    anonymousSessionId: quota.anonymousSessionId,
+    quotaType: getRemoverQuotaTypeForOperationKey(
+      quota.operationKey as RemoverQuotaOperationKey
+    ),
+    windowStart: quota.windowStart,
+    limit: quota.limit,
+    requestedUnits: quota.requestedUnits,
+    now: quota.now,
+  };
+}
+
+export async function reserveRemoverQuota(
+  input: ReserveRemoverQuotaInput
+): Promise<{ reservation: RemoverQuotaReservation; reused: boolean }> {
+  return reserveProductQuota({
+    actor: input.actor,
+    siteKey: REMOVER_QUOTA_SITE_KEY,
+    productKey: REMOVER_QUOTA_PRODUCT_KEY,
+    productId: input.productId,
+    operationKey: input.operationKey,
+    units: input.units,
+    limit: input.limit,
+    windowStart: input.windowStart,
+    idempotencyKey: input.idempotencyKey,
+    expiresAt: input.expiresAt,
+    jobId: input.jobId,
+    reason: input.reason,
+    entitlementGrantIdsJson: input.entitlementGrantIdsJson,
+    now: input.now,
+    createId: input.createId,
+    quotaExceededMessage: 'remover quota exceeded',
+    deps: {
+      reserve: ({ reservation, quota }) =>
+        createRemoverQuotaReservationWithQuotaCheck({
+          reservation: toRemoverQuotaReservationInsert(reservation),
+          quota: toRemoverQuotaCheck(quota),
+        }),
+    },
+  });
+}
 
 export function removerQuotaOwnerCondition({
   userId,
@@ -303,7 +401,7 @@ export async function updateRemoverQuotaReservationStatus({
   return reservation;
 }
 
-export async function commitRemoverQuotaReservation({
+async function commitRemoverQuotaReservationInStore({
   reservationId,
   now = new Date(),
 }: {
@@ -342,7 +440,23 @@ export async function commitRemoverQuotaReservation({
   });
 }
 
-export async function refundRemoverQuotaReservation({
+export async function commitRemoverQuotaReservation({
+  reservationId,
+  now,
+}: {
+  reservationId: string;
+  now?: Date;
+}) {
+  return commitProductQuota({
+    reservationId,
+    now,
+    deps: {
+      commit: commitRemoverQuotaReservationInStore,
+    },
+  });
+}
+
+async function refundRemoverQuotaReservationInStore({
   reservationId,
   reason,
   now = new Date(),
@@ -381,5 +495,24 @@ export async function refundRemoverQuotaReservation({
       .returning();
 
     return updated;
+  });
+}
+
+export async function refundRemoverQuotaReservation({
+  reservationId,
+  reason,
+  now,
+}: {
+  reservationId: string;
+  reason?: string;
+  now?: Date;
+}) {
+  return refundProductQuota({
+    reservationId,
+    reason,
+    now,
+    deps: {
+      refund: refundRemoverQuotaReservationInStore,
+    },
   });
 }

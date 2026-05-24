@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { reserveProductQuota } from '@/domains/product-quota/application/quota-service';
 import { db } from '@/infra/adapters/db';
 import { and, desc, eq, inArray, isNull, lte, or, sql } from 'drizzle-orm';
 
@@ -9,9 +10,12 @@ import { ConflictError } from '@/shared/lib/api/errors';
 import {
   insertRemoverQuotaReservationAfterQuotaCheck,
   lockRemoverQuotaReservationCreation,
-  type NewRemoverQuotaReservation,
-  type QuotaReservationCheck,
+  REMOVER_QUOTA_PRODUCT_KEY,
+  REMOVER_QUOTA_SITE_KEY,
+  toRemoverQuotaCheck,
+  toRemoverQuotaReservationInsert,
   type RemoverQuotaReservation,
+  type ReserveRemoverQuotaInput,
 } from './quota-reservation';
 
 export type RemoverJob = typeof removerJob.$inferSelect;
@@ -31,72 +35,100 @@ export async function withRemoverJobOutputStorageLock<T>(
 }
 
 export async function createRemoverJobWithQuotaReservation({
-  reservation,
-  job,
   quota,
+  buildJob,
 }: {
-  reservation: NewRemoverQuotaReservation;
-  job: NewRemoverJob;
-  quota: QuotaReservationCheck;
+  quota: ReserveRemoverQuotaInput;
+  buildJob: (reservationId: string) => NewRemoverJob;
 }): Promise<{
   reservation: RemoverQuotaReservation;
   job: RemoverJob;
   reused: boolean;
 }> {
-  return db().transaction(async (tx) => {
-    await lockRemoverQuotaReservationCreation(tx, {
-      idempotencyKey: reservation.idempotencyKey,
-      quota,
-    });
+  return reserveProductQuota({
+    actor: quota.actor,
+    siteKey: REMOVER_QUOTA_SITE_KEY,
+    productKey: REMOVER_QUOTA_PRODUCT_KEY,
+    productId: quota.productId,
+    operationKey: quota.operationKey,
+    units: quota.units,
+    limit: quota.limit,
+    windowStart: quota.windowStart,
+    idempotencyKey: quota.idempotencyKey,
+    expiresAt: quota.expiresAt,
+    jobId: quota.jobId,
+    reason: quota.reason,
+    entitlementGrantIdsJson: quota.entitlementGrantIdsJson,
+    now: quota.now,
+    createId: quota.createId,
+    quotaExceededMessage: 'remover quota exceeded',
+    deps: {
+      reserve: async (input) => {
+        const reservation = toRemoverQuotaReservationInsert(input.reservation);
+        const quota = toRemoverQuotaCheck(input.quota);
+        return db().transaction(async (tx) => {
+          await lockRemoverQuotaReservationCreation(tx, {
+            idempotencyKey: reservation.idempotencyKey,
+            quota,
+          });
 
-    const [existingReservation] = await tx
-      .select()
-      .from(removerQuotaReservation)
-      .where(
-        eq(removerQuotaReservation.idempotencyKey, reservation.idempotencyKey)
-      )
-      .limit(1);
-    if (existingReservation) {
-      const [existingJob] = await tx
-        .select()
-        .from(removerJob)
-        .where(
-          and(
-            eq(removerJob.quotaReservationId, existingReservation.id),
-            isNull(removerJob.deletedAt)
-          )
-        )
-        .limit(1);
-      if (!existingJob) {
-        throw new ConflictError(
-          'quota reservation already exists without an active job'
-        );
-      }
+          const [existingReservation] = await tx
+            .select()
+            .from(removerQuotaReservation)
+            .where(
+              eq(
+                removerQuotaReservation.idempotencyKey,
+                reservation.idempotencyKey
+              )
+            )
+            .limit(1);
+          if (existingReservation) {
+            const [existingJob] = await tx
+              .select()
+              .from(removerJob)
+              .where(
+                and(
+                  eq(removerJob.quotaReservationId, existingReservation.id),
+                  isNull(removerJob.deletedAt)
+                )
+              )
+              .limit(1);
+            if (!existingJob) {
+              throw new ConflictError(
+                'quota reservation already exists without an active job'
+              );
+            }
 
-      return {
-        reservation: existingReservation,
-        job: existingJob,
-        reused: true,
-      };
-    }
+            return {
+              reservation: existingReservation,
+              job: existingJob,
+              reused: true,
+            };
+          }
 
-    const createdReservation =
-      await insertRemoverQuotaReservationAfterQuotaCheck(tx, {
-        reservation,
-        quota,
-      });
-    const [createdJob] = await tx.insert(removerJob).values(job).returning();
-    const [attachedReservation] = await tx
-      .update(removerQuotaReservation)
-      .set({ jobId: createdJob.id })
-      .where(eq(removerQuotaReservation.id, createdReservation.id))
-      .returning();
+          const createdReservation =
+            await insertRemoverQuotaReservationAfterQuotaCheck(tx, {
+              reservation,
+              quota,
+            });
+          const [createdJob] = await tx
+            .insert(removerJob)
+            .values(buildJob(createdReservation.id))
+            .returning();
+          const [attachedReservation] = await tx
+            .update(removerQuotaReservation)
+            .set({ jobId: createdJob.id })
+            .where(eq(removerQuotaReservation.id, createdReservation.id))
+            .returning();
 
-    return {
-      reservation: attachedReservation,
-      job: createdJob,
-      reused: false,
-    };
+          return {
+            reservation: attachedReservation,
+            job: createdJob,
+            reused: false,
+          };
+        });
+      },
+    },
   });
 }
 

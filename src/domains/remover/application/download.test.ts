@@ -5,6 +5,10 @@ import { ForbiddenError, NotFoundError } from '@/shared/lib/api/errors';
 
 import type { RemoverActor } from '../domain/types';
 import type { RemoverJob } from '../infra/job';
+import type {
+  RemoverQuotaReservation,
+  ReserveRemoverQuotaInput,
+} from '../infra/quota-reservation';
 import {
   reserveHighResDownloadQuota,
   resolveRemoverDownload,
@@ -21,6 +25,33 @@ const userActor = {
   productId: 'free',
   anonymousSessionId: 'anon_1',
 } satisfies RemoverActor;
+
+function reservationFromInput(
+  input: ReserveRemoverQuotaInput
+): RemoverQuotaReservation {
+  const owner =
+    input.actor.kind === 'user'
+      ? { userId: input.actor.userId, anonymousSessionId: null }
+      : { userId: null, anonymousSessionId: input.actor.anonymousSessionId };
+
+  return {
+    id: input.createId?.() ?? 'reservation_1',
+    ...owner,
+    productId: input.productId,
+    quotaType: 'high_res_download',
+    units: input.units,
+    status: 'reserved',
+    idempotencyKey: input.idempotencyKey,
+    jobId: input.jobId ?? null,
+    reason: input.reason ?? null,
+    entitlementGrantIdsJson: input.entitlementGrantIdsJson ?? null,
+    createdAt: new Date('2026-05-06T00:00:00Z'),
+    updatedAt: new Date('2026-05-06T00:00:00Z'),
+    committedAt: null,
+    refundedAt: null,
+    expiresAt: input.expiresAt,
+  };
+}
 
 function job(overrides: Partial<RemoverJob> = {}): RemoverJob {
   return {
@@ -56,16 +87,8 @@ function deps(savedJob: RemoverJob) {
     deps: {
       findJobById: async () => savedJob,
       findReservationByIdempotencyKey: async () => undefined,
-      reserveQuota: async ({ reservation }) => ({
-        reservation: {
-          ...reservation,
-          jobId: reservation.jobId ?? null,
-          reason: reservation.reason ?? null,
-          createdAt: new Date('2026-05-06T00:00:00Z'),
-          updatedAt: new Date('2026-05-06T00:00:00Z'),
-          committedAt: null,
-          refundedAt: null,
-        },
+      reserveQuota: async (input) => ({
+        reservation: reservationFromInput(input),
         reused: false,
       }),
       commitReservation: async ({ reservationId }) => {
@@ -174,22 +197,17 @@ test('reserveHighResDownloadQuota checks signed-in high-res quota by user only',
     }),
     deps: {
       ...state.deps,
-      reserveQuota: async ({ reservation, quota }) => {
-        quotaOwner = {
-          userId: quota.userId,
-          anonymousSessionId: quota.anonymousSessionId,
-        };
-        entitlementGrantIdsJson = reservation.entitlementGrantIdsJson;
+      reserveQuota: async (input) => {
+        quotaOwner =
+          input.actor.kind === 'user'
+            ? { userId: input.actor.userId, anonymousSessionId: null }
+            : {
+                userId: null,
+                anonymousSessionId: input.actor.anonymousSessionId,
+              };
+        entitlementGrantIdsJson = input.entitlementGrantIdsJson;
         return {
-          reservation: {
-            ...reservation,
-            jobId: reservation.jobId ?? null,
-            reason: reservation.reason ?? null,
-            createdAt: new Date('2026-05-06T00:00:00Z'),
-            updatedAt: new Date('2026-05-06T00:00:00Z'),
-            committedAt: null,
-            refundedAt: null,
-          },
+          reservation: reservationFromInput(input),
           reused: false,
         };
       },
@@ -206,7 +224,7 @@ test('reserveHighResDownloadQuota checks signed-in high-res quota by user only',
 test('reserveHighResDownloadQuota delegates quota check and reservation atomically', async () => {
   let quotaInput:
     | {
-        quotaType: string;
+        operationKey: string;
         limit: number;
         requestedUnits: number;
         idempotencyKey: string;
@@ -228,24 +246,18 @@ test('reserveHighResDownloadQuota delegates quota check and reservation atomical
     }),
     deps: {
       ...state.deps,
-      reserveQuota: async ({ reservation, quota }) => {
+      reserveQuota: async (input) => {
         quotaInput = {
-          quotaType: quota.quotaType,
-          limit: quota.limit,
-          requestedUnits: quota.requestedUnits,
-          idempotencyKey: reservation.idempotencyKey,
-          jobId: reservation.jobId,
+          operationKey: input.operationKey,
+          limit: input.limit,
+          requestedUnits: input.units,
+          idempotencyKey: input.idempotencyKey,
+          jobId: input.jobId,
         };
         return {
           reservation: {
-            ...reservation,
+            ...reservationFromInput(input),
             id: 'download_reservation_1',
-            jobId: reservation.jobId ?? null,
-            reason: null,
-            createdAt: new Date('2026-05-06T00:00:00Z'),
-            updatedAt: new Date('2026-05-06T00:00:00Z'),
-            committedAt: null,
-            refundedAt: null,
           },
           reused: false,
         };
@@ -255,7 +267,7 @@ test('reserveHighResDownloadQuota delegates quota check and reservation atomical
 
   assert.equal(reservationId, 'download_reservation_1');
   assert.deepEqual(quotaInput, {
-    quotaType: 'high_res_download',
+    operationKey: 'image.hd_download',
     limit: 3,
     requestedUnits: 1,
     idempotencyKey: 'high-res-download:user_1:job_1',
@@ -345,23 +357,14 @@ test('reserveHighResDownloadQuota renews expired reserved high-res reservations 
     deps: {
       ...state.deps,
       findReservationByIdempotencyKey: async () => existingReservation,
-      reserveQuota: async ({ reservation, quota }) => {
+      reserveQuota: async (input) => {
         quotaChecked = true;
-        assert.equal(
-          reservation.idempotencyKey,
-          existingReservation.idempotencyKey
-        );
-        assert.equal(quota.quotaType, 'high_res_download');
+        assert.equal(input.idempotencyKey, existingReservation.idempotencyKey);
+        assert.equal(input.operationKey, 'image.hd_download');
         return {
           reservation: {
-            ...reservation,
+            ...reservationFromInput(input),
             id: existingReservation.id,
-            jobId: reservation.jobId ?? null,
-            reason: null,
-            createdAt: new Date('2026-05-07T00:00:00Z'),
-            updatedAt: new Date('2026-05-07T00:00:00Z'),
-            committedAt: null,
-            refundedAt: null,
           },
           reused: false,
         };
