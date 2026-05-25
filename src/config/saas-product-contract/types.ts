@@ -282,7 +282,7 @@ export interface ProductQuotaMappingEntry {
   refundCondition: UsageRefundCondition[];
   idempotency: UsageMappingStatus;
   storage:
-    | 'remover_quota_reservation'
+    | 'product_quota_reservation'
     | 'credit_ledger'
     | 'product_table'
     | 'unknown';

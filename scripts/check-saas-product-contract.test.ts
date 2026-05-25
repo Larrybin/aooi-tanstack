@@ -384,7 +384,7 @@ async function writeUsageCreditSourceFiles(rootDir: string) {
   await writeText(
     path.join(rootDir, 'src/domains/remover/infra/quota-reservation.ts'),
     [
-      'export const removerQuotaReservation = true;',
+      'export const productQuotaReservation = true;',
       'export function lockRemoverQuotaReservationCreation() { return "remover_idempotency remover_quota"; }',
       'export function createRemoverQuotaReservationWithQuotaCheck() { return { idempotencyKey: true, expiresAt: new Date(), status: "reserved" }; }',
       'export function findRemoverQuotaReservationByIdempotencyKey() {}',
@@ -551,13 +551,13 @@ async function writeUsageCreditSourceFiles(rootDir: string) {
     path.join(rootDir, 'src/config/db/schema.ts'),
     [
       'export const credit = pgTable("credit", { consumedDetail: true, metadata: true, expiresAt: true });',
-      'export const removerQuotaReservation = pgTable("remover_quota_reservation", { idempotencyKey: true, expiresAt: true });',
+      'export const productQuotaReservation = pgTable("product_quota_reservation", { idempotencyKey: true, expiresAt: true });',
       '',
     ].join('\n')
   );
   await writeText(
     path.join(rootDir, 'src/config/db/migrations/0006_ai_remover_jobs.sql'),
-    'CREATE TABLE "remover_quota_reservation";\n'
+    'CREATE TABLE "product_quota_reservation";\n'
   );
 }
 
@@ -668,12 +668,123 @@ async function createFixtureRoot(pricing: unknown) {
   return rootDir;
 }
 
-function runAudit(rootDir: string) {
+async function createBackgroundRemoverFixtureRoot() {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), 'saas-contract-audit-'));
+  const siteKey = 'background-remover';
+  await writeJson(path.join(rootDir, 'sites', siteKey, 'site.config.json'), {
+    key: siteKey,
+    domain: 'backgroundremover.example.com',
+    brand: {
+      appName: 'Background Remover',
+      appUrl: 'https://backgroundremover.example.com',
+      supportEmail: 'support@backgroundremover.example.com',
+      logo: '/logo.png',
+      favicon: '/favicon.ico',
+      previewImage: '/logo.png',
+    },
+    capabilities: {
+      auth: true,
+      payment: 'creem',
+      ai: false,
+      docs: false,
+      blog: false,
+    },
+    configVersion: 1,
+  });
+  await writeJson(
+    path.join(rootDir, 'sites', siteKey, 'deploy.settings.json'),
+    {
+      configVersion: 1,
+      bindingRequirements: {
+        bindings: { workersAi: false },
+        secrets: {
+          authSharedSecret: true,
+          googleOauth: true,
+          githubOauth: false,
+          removerCleanup: true,
+        },
+        vars: { storagePublicBaseUrl: true },
+      },
+      workers: {
+        router: 'aooi-background-remover-router',
+        state: 'aooi-background-remover-state',
+        'public-web': 'aooi-background-remover-public-web',
+        auth: 'aooi-background-remover-auth',
+        payment: 'aooi-background-remover-payment',
+        member: 'aooi-background-remover-member',
+        admin: 'aooi-background-remover-admin',
+      },
+      resources: {
+        incrementalCacheBucket: 'aooi-background-remover-opennext-cache',
+        appStorageBucket: 'aooi-background-remover-storage',
+        hyperdriveId: '00000000000000000000000000000003',
+      },
+      state: { schemaVersion: 1 },
+    }
+  );
+  await writeJson(path.join(rootDir, 'sites', siteKey, 'pricing.json'), {
+    pricing: {
+      items: [
+        {
+          title: 'Free',
+          product_id: 'free',
+          interval: 'month',
+          amount: 0,
+          currency: 'USD',
+          checkout_enabled: false,
+          entitlements: {
+            guest_daily_removals: 2,
+            daily_removals: 5,
+            max_upload_mb: 10,
+            retention_days: 7,
+          },
+        },
+        {
+          title: 'Pro',
+          product_id: 'pro',
+          interval: 'month',
+          amount: 999,
+          currency: 'USD',
+          checkout_enabled: true,
+          entitlements: {
+            monthly_removals: 500,
+            max_upload_mb: 20,
+            retention_days: 30,
+          },
+        },
+      ],
+    },
+  });
+  await writeText(
+    path.join(
+      rootDir,
+      'src/domains/background-remover/domain/runtime-contract.ts'
+    ),
+    [
+      'export const BACKGROUND_REMOVER_RUNTIME_CONTRACT = {',
+      "  siteKey: 'background-remover',",
+      "  productKey: 'background-remover',",
+      "  requiredWorkers: { 'public-web': true },",
+      '  requiredBindings: {},',
+      '  requiredVars: { storagePublicBaseUrl: true },',
+      '  requiredSecrets: { removerCleanup: true },',
+      '};',
+      '',
+    ].join('\n')
+  );
+  await writeText(
+    path.join(rootDir, 'src/domains/settings/definitions/payment.ts'),
+    "export const paymentSettings = [{ name: 'creem_product_ids' }];\n"
+  );
+  return rootDir;
+}
+
+function runAudit(rootDir: string, siteKey = 'ai-remover') {
   return spawnSync(process.execPath, [SCRIPT_PATH], {
     cwd: rootDir,
     env: {
       ...process.env,
-      SITE: 'ai-remover',
+      SITE: siteKey,
     },
     encoding: 'utf8',
   });
@@ -1165,6 +1276,24 @@ test('contract audit covers AI Remover product runtime requirements without enab
   assert.match(result.stdout, /openrouter: partial/);
 });
 
+test('contract audit covers Background Remover without shared AI runtime', async () => {
+  const rootDir = await createBackgroundRemoverFixtureRoot();
+
+  const result = runAudit(rootDir, 'background-remover');
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(
+    result.stdout,
+    /SaaS product contract audit: background-remover/
+  );
+  assert.match(result.stdout, /background-remover: resolved/);
+  assert.match(result.stdout, /worker=public-web declared/);
+  assert.match(result.stdout, /var=storagePublicBaseUrl declared/);
+  assert.match(result.stdout, /secret=removerCleanup declared/);
+  assert.doesNotMatch(result.stdout, /binding=workersAi declared/);
+  assert.match(result.stdout, /SITE=background-remover pnpm cf:check/);
+});
+
 test('contract audit fails when AI Remover product runtime binding is disabled', async () => {
   const rootDir = await createFixtureRoot({
     pricing: {
@@ -1468,11 +1597,11 @@ test('contract audit prints usage and credits mapping report', async () => {
   assert.match(result.stdout, /processing: product_owned/);
   assert.match(result.stdout, /subject=anonymous\+user/);
   assert.match(result.stdout, /reserve=explicit_reservation/);
-  assert.match(result.stdout, /storage=remover_quota_reservation/);
+  assert.match(result.stdout, /storage=product_quota_reservation/);
   assert.match(result.stdout, /high_res_download: product_owned/);
   assert.match(result.stdout, /window=lifetime\/month/);
   assert.match(result.stdout, /platform credit ledger: platform_owned/);
-  assert.match(result.stdout, /generic usage table=deferred/);
+  assert.match(result.stdout, /generic usage table=present/);
 });
 
 test('contract audit source-maps AI Remover processing quota', async () => {
@@ -1634,7 +1763,7 @@ test('contract audit keeps platform credit ledger separate from product quota', 
   assert.match(result.stdout, /manual compensation=partial/);
   assert.match(
     result.stdout,
-    /warning  AI Remover processing and high-res limits use removerQuotaReservation, not the platform credit ledger/
+    /warning  AI Remover processing and high-res limits use productQuotaReservation, not the platform credit ledger/
   );
   assert.match(
     result.stdout,

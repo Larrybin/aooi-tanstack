@@ -31,6 +31,9 @@ test('assertRemoverQuotaAvailable ignores expired reserved quota rows', async ()
   await assertRemoverQuotaAvailable(tx as never, {
     userId: 'user_1',
     anonymousSessionId: null,
+    siteKey: 'ai-remover',
+    productKey: 'ai-remover',
+    operationKey: 'image.hd_download',
     quotaType: 'high_res_download',
     windowStart: new Date(0),
     limit: 3,
@@ -41,8 +44,8 @@ test('assertRemoverQuotaAvailable ignores expired reserved quota rows', async ()
   assert.ok(capturedWhere);
   const query = new PgDialect().sqlToQuery(capturedWhere);
 
-  assert.match(query.sql, /"remover_quota_reservation"."status" = \$\d+/);
-  assert.match(query.sql, /"remover_quota_reservation"."expires_at" > \$\d+/);
+  assert.match(query.sql, /"product_quota_reservation"."status" = \$\d+/);
+  assert.match(query.sql, /"product_quota_reservation"."expires_at" > \$\d+/);
 });
 
 test('AI Remover product quota operation keys map to existing storage quota types', () => {
@@ -79,7 +82,7 @@ test('AI Remover product quota operation keys map to existing storage quota type
   );
 });
 
-test('AI Remover reservation insert keeps the existing remover quota table shape', () => {
+test('AI Remover reservation insert targets the generic product quota table shape', () => {
   const reservation = toRemoverQuotaReservationInsert({
     id: 'reservation_1',
     userId: 'user_1',
@@ -101,8 +104,10 @@ test('AI Remover reservation insert keeps the existing remover quota table shape
     id: 'reservation_1',
     userId: 'user_1',
     anonymousSessionId: null,
+    siteKey: 'ai-remover',
+    productKey: 'ai-remover',
     productId: 'free',
-    quotaType: 'processing',
+    operationKey: 'image.remove',
     units: 1,
     status: 'reserved',
     idempotencyKey: 'processing:user:user_1:idem_1',

@@ -2307,9 +2307,13 @@ function auditUsageCredits({ paths, items, pricingPath }) {
     },
   ]);
 
+  const processingOperationReady =
+    sourceTextIncludes(paths.jobs, "'processing'") ||
+    sourceTextIncludes(paths.jobs, 'imageRemove') ||
+    sourceTextIncludes(paths.jobs, 'image.remove');
   const processingReserveReady =
     sourceTextIncludes(paths.jobs, 'createQueuedRemoverJob') &&
-    sourceTextIncludes(paths.jobs, "'processing'") &&
+    processingOperationReady &&
     sourceTextIncludes(
       paths.quotaReservation,
       'createRemoverQuotaReservationWithQuotaCheck'
@@ -2379,9 +2383,13 @@ function auditUsageCredits({ paths, items, pricingPath }) {
         ),
   ].filter(Boolean);
 
+  const highResOperationReady =
+    sourceTextIncludes(paths.download, "'high_res_download'") ||
+    sourceTextIncludes(paths.download, 'imageHdDownload') ||
+    sourceTextIncludes(paths.download, 'image.hd_download');
   const highResReserveReady =
     sourceTextIncludes(paths.download, 'reserveHighResDownloadQuota') &&
-    sourceTextIncludes(paths.download, "'high_res_download'") &&
+    highResOperationReady &&
     sourceTextIncludes(
       paths.quotaReservation,
       'createRemoverQuotaReservationWithQuotaCheck'
@@ -2459,7 +2467,7 @@ function auditUsageCredits({ paths, items, pricingPath }) {
         ? ['provider_failure', 'output_storage_failure']
         : ['unknown'],
       idempotency: processingIdempotencyReady ? 'present' : 'missing',
-      storage: 'remover_quota_reservation',
+      storage: 'product_quota_reservation',
       sources: processingSources,
       issues: processingIssues,
     }),
@@ -2474,7 +2482,7 @@ function auditUsageCredits({ paths, items, pricingPath }) {
       commitCondition: highResCommitReady ? 'download_success' : 'unknown',
       refundCondition: ['missing'],
       idempotency: highResIdempotencyReady ? 'present' : 'missing',
-      storage: 'remover_quota_reservation',
+      storage: 'product_quota_reservation',
       sources: highResSources,
       issues: highResIssues,
     }),
@@ -2550,19 +2558,25 @@ function auditUsageCredits({ paths, items, pricingPath }) {
     },
   ];
 
-  const genericUsageWarning = usageWarning(
-    'generic_usage_table_deferred',
-    'Generic usage table is missing/deferred; AI Remover uses product-owned quota reservation and platform credits remain a separate ledger',
-    [
-      source('usage_db', paths.dbSchema, 'removerQuotaReservation'),
-      source('usage_db', paths.dbSchema, 'credit'),
-    ]
+  const genericUsageTableReady = sourceTextIncludes(
+    paths.dbSchema,
+    'productQuotaReservation'
   );
+  const genericUsageWarning = genericUsageTableReady
+    ? undefined
+    : usageWarning(
+        'generic_usage_table_missing',
+        'Generic product quota reservation table could not be source-mapped',
+        [
+          source('usage_db', paths.dbSchema, 'productQuotaReservation'),
+          source('usage_db', paths.dbSchema, 'credit'),
+        ]
+      );
   const separationWarning = usageWarning(
     'usage_credit_ledgers_separate',
-    'AI Remover processing and high-res limits use removerQuotaReservation, not the platform credit ledger',
+    'AI Remover processing and high-res limits use productQuotaReservation, not the platform credit ledger',
     [
-      source('usage_db', paths.dbSchema, 'removerQuotaReservation'),
+      source('usage_db', paths.dbSchema, 'productQuotaReservation'),
       source('usage_platform_credit', paths.accountCredit, 'credit'),
     ]
   );
@@ -2573,7 +2587,7 @@ function auditUsageCredits({ paths, items, pricingPath }) {
     ...platformCreditLedger.flatMap((entry) => entry.issues),
     genericUsageWarning,
     separationWarning,
-  ];
+  ].filter(Boolean);
 
   return section(
     'partial',
@@ -2593,7 +2607,7 @@ function auditUsageCredits({ paths, items, pricingPath }) {
             ? 'present'
             : 'partial',
         subjectTransfer: subjectTransferReady ? 'present' : 'missing',
-        genericUsageTable: 'deferred',
+        genericUsageTable: genericUsageTableReady ? 'present' : 'missing',
       },
       gaps: [
         'Generic usage table is not implemented.',
@@ -3114,11 +3128,135 @@ function formatAuditReport(report) {
   return lines.join('\n');
 }
 
+function buildBackgroundRemoverAuditReport(siteKey) {
+  const sitePath = resolveSiteConfigPath({ rootDir: ROOT_DIR, siteKey });
+  const pricingPath = resolveSitePricingPath({ rootDir: ROOT_DIR, siteKey });
+  const deploySettingsPath = resolveSiteDeploySettingsPath({
+    rootDir: ROOT_DIR,
+    siteKey,
+  });
+  const runtimeContractPath = path.resolve(
+    ROOT_DIR,
+    'src/domains/background-remover/domain/runtime-contract.ts'
+  );
+  const { site, issues: siteIssues } = readSiteForReport({
+    rootDir: ROOT_DIR,
+    siteKey,
+    sitePath,
+  });
+  const { sitePricing, issues: pricingIssues } = readPricingForReport({
+    rootDir: ROOT_DIR,
+    site,
+    siteKey,
+    pricingPath,
+  });
+  const { deploySettings, issues: deployIssues } = readDeploySettingsForReport({
+    deploySettingsPath,
+    site,
+  });
+  const pricingItems = collectPricingItems(sitePricing);
+  const sections = {
+    site: auditSite(site, sitePath, siteIssues),
+    commercial: auditCommercial({
+      site,
+      sitePricing,
+      sitePath,
+      pricingPath,
+      pricingIssues,
+      settingsSourcePath: path.resolve(
+        ROOT_DIR,
+        'src/domains/settings/definitions/payment.ts'
+      ),
+    }),
+    entitlementKeys: auditEntitlementKeys({
+      siteKey,
+      items: pricingItems,
+      pricingPath,
+    }),
+    productRuntime: auditProductRuntimeContracts({
+      siteKey,
+      deploySettings,
+      deploySettingsPath,
+      deployIssues,
+      runtimeContractPath,
+    }),
+  };
+  const issues = Object.values(sections).flatMap((section) => section.issues);
+
+  return {
+    ...sections,
+    launch: {
+      blockers: issues.filter((item) => item.level === ISSUE_LEVEL.BLOCKER),
+      warnings: issues.filter((item) => item.level === ISSUE_LEVEL.WARNING),
+      recommendedCommands: [
+        'SITE=background-remover node scripts/check-saas-product-contract.mjs',
+        'SITE=background-remover pnpm cf:check',
+        'pnpm cf:build:no-db --site=background-remover',
+      ],
+    },
+  };
+}
+
+function formatBackgroundRemoverAuditReport(report) {
+  const lines = ['SaaS product contract audit: background-remover', ''];
+  lines.push(`Site: ${report.site.status}`);
+  lines.push(`Commercial: ${report.commercial.status}`);
+  lines.push(`Entitlement keys: ${report.entitlementKeys.status}`);
+  lines.push(`Product runtime: ${report.productRuntime.status}`);
+
+  lines.push('', 'Product runtime contracts:');
+  for (const product of report.productRuntime.value.products) {
+    lines.push(`  ${product.productKey}: ${product.status}`);
+    for (const worker of product.workers) {
+      lines.push(`    worker=${worker.key} ${worker.status}`);
+    }
+    for (const runtimeVar of product.vars) {
+      lines.push(`    var=${runtimeVar.key} ${runtimeVar.status}`);
+    }
+    for (const secret of product.secrets) {
+      lines.push(`    secret=${secret.key} ${secret.status}`);
+    }
+  }
+
+  lines.push('', 'Sources:');
+  lines.push(formatSectionSources('site', report.site.sources));
+  lines.push(formatSectionSources('commercial', report.commercial.sources));
+  lines.push(
+    formatSectionSources('entitlement keys', report.entitlementKeys.sources)
+  );
+  lines.push(
+    formatSectionSources('product runtime', report.productRuntime.sources)
+  );
+
+  lines.push(
+    '',
+    'Launch blockers:',
+    ...formatIssueList(report.launch.blockers)
+  );
+  lines.push('', 'Warnings:', ...formatIssueList(report.launch.warnings));
+  lines.push('', 'Recommended commands:');
+  for (const command of report.launch.recommendedCommands) {
+    lines.push(`  ${command}`);
+  }
+
+  return lines.join('\n');
+}
+
 function main() {
   const siteKey = resolveRequiredSiteKey(process.env);
+  if (siteKey === 'background-remover') {
+    const report = buildBackgroundRemoverAuditReport(siteKey);
+    process.stdout.write(`${formatBackgroundRemoverAuditReport(report)}\n`);
+
+    if (report.launch.blockers.length > 0) {
+      process.exitCode = 1;
+    }
+    return;
+  }
+
   if (siteKey !== 'ai-remover') {
     throw new Error(
-      `Contract audit currently only supports SITE=ai-remover; received SITE=${siteKey}`
+      `Contract audit currently only supports SITE=ai-remover or SITE=background-remover; received SITE=${siteKey}`
     );
   }
 

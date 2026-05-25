@@ -5,7 +5,7 @@ import {
 } from '@/shared/lib/api/errors';
 import { getUuid } from '@/shared/lib/hash';
 
-import { assertActorOwnsResource, getRemoverOwner } from '../domain/actor';
+import { assertActorOwnsResource } from '../domain/actor';
 import { formatRemoverEntitlementGrantIdsJson } from '../domain/entitlement-grants';
 import { addRetentionDays, resolveRemoverPlanLimits } from '../domain/plan';
 import {
@@ -110,7 +110,6 @@ export async function reserveHighResDownloadQuota({
     }
   }
 
-  const owner = getRemoverOwner(actor);
   const windowStart =
     plan.highResDownloadWindow === 'lifetime'
       ? new Date(0)

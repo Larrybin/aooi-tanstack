@@ -64,6 +64,13 @@
       "when": 1779367885207,
       "tag": "0008_noisy_sandman",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1780000000000,
+      "tag": "0009_background_remover",
+      "breakpoints": true
     }
   ]
 }

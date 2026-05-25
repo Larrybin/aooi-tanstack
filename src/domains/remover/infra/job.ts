@@ -4,7 +4,7 @@ import { reserveProductQuota } from '@/domains/product-quota/application/quota-s
 import { db } from '@/infra/adapters/db';
 import { and, desc, eq, inArray, isNull, lte, or, sql } from 'drizzle-orm';
 
-import { removerJob, removerQuotaReservation } from '@/config/db/schema';
+import { productQuotaReservation, removerJob } from '@/config/db/schema';
 import { ConflictError } from '@/shared/lib/api/errors';
 
 import {
@@ -74,10 +74,10 @@ export async function createRemoverJobWithQuotaReservation({
 
           const [existingReservation] = await tx
             .select()
-            .from(removerQuotaReservation)
+            .from(productQuotaReservation)
             .where(
               eq(
-                removerQuotaReservation.idempotencyKey,
+                productQuotaReservation.idempotencyKey,
                 reservation.idempotencyKey
               )
             )
@@ -116,9 +116,9 @@ export async function createRemoverJobWithQuotaReservation({
             .values(buildJob(createdReservation.id))
             .returning();
           const [attachedReservation] = await tx
-            .update(removerQuotaReservation)
+            .update(productQuotaReservation)
             .set({ jobId: createdJob.id })
-            .where(eq(removerQuotaReservation.id, createdReservation.id))
+            .where(eq(productQuotaReservation.id, createdReservation.id))
             .returning();
 
           return {
