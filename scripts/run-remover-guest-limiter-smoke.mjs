@@ -3,10 +3,7 @@ import '@/config/load-dotenv';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import {
-  REMOVER_GUEST_JOB_LIMIT_CONFIG,
-  REMOVER_GUEST_UPLOAD_LIMIT_CONFIG,
-} from '../src/shared/lib/api/limiters-config.ts';
+import * as limiterConfigNamespace from '../src/shared/lib/api/limiters-config.ts';
 import { resolveCloudflareAuthSecretValue } from './create-cf-secrets-file.mjs';
 import {
   renderCloudflareLocalTopologyLogs,
@@ -24,6 +21,10 @@ import {
   waitForRemoverApiReady,
 } from './run-remover-workers-ai-spike.mjs';
 
+const limiterConfigModule =
+  limiterConfigNamespace.default ?? limiterConfigNamespace;
+const { REMOVER_GUEST_JOB_LIMIT_CONFIG, REMOVER_GUEST_UPLOAD_LIMIT_CONFIG } =
+  limiterConfigModule;
 const defaultBaseUrl = 'http://localhost:8787';
 const defaultAuthSecret = 'local-cloudflare-smoke-secret-0123456789';
 const defaultModel = '@cf/runwayml/stable-diffusion-v1-5-inpainting';

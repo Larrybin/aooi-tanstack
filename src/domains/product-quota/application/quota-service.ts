@@ -87,6 +87,7 @@ export async function reserveProductQuota<TResult>({
   });
 
   const owner = getProductActorOwner(actor);
+  // The product storage adapter owns windowed usage checks and locking.
   return deps.reserve({
     reservation: {
       id: createId(),

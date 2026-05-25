@@ -287,6 +287,10 @@ export function buildTrustedAuthOrigins(params: {
   const requestOriginCandidates = readRequestOriginCandidates(params.request);
 
   for (const requestOrigin of requestOriginCandidates) {
+    if (allowLocalOrigin && isLocalAuthRuntimeOrigin(requestOrigin)) {
+      origins.add(requestOrigin);
+    }
+
     const normalizedRequestOrigin = normalizeAllowedRuntimeOrigin(
       requestOrigin,
       allowedOrigins

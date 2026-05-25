@@ -220,6 +220,30 @@ function countByDomain(files: Array<{ repoPath: string }>) {
   return counts;
 }
 
+function sourceFilesInDomain(
+  files: Array<{ repoPath: string; content: string }>,
+  domain: string
+) {
+  return files.filter(
+    ({ repoPath }) =>
+      !isTestFile(repoPath) && repoPath.startsWith(`src/domains/${domain}/`)
+  );
+}
+
+function assertNoImporter(
+  file: { repoPath: string; content: string },
+  pattern: RegExp,
+  message: string
+) {
+  for (const specifier of readImportSpecifiers(file.content)) {
+    assert.equal(
+      pattern.test(specifier),
+      false,
+      `${file.repoPath} ${message}: ${specifier}`
+    );
+  }
+}
+
 function isAllowedApplicationPlatformException(
   repoPath: string,
   specifier: string
@@ -1130,4 +1154,99 @@ test('architecture: entitlement and remover entitlement paths do not import RBAC
       `${file.repoPath} entitlement path must not contain admin/quota bypass tokens`
     );
   }
+});
+
+test('architecture: product-access remains remover agnostic', async () => {
+  const files = sourceFilesInDomain(await readSourceFiles(), 'product-access');
+
+  for (const file of files) {
+    assertNoImporter(
+      file,
+      /^@\/domains\/remover(?:\/|$)/,
+      'must not import AI Remover'
+    );
+    assert.doesNotMatch(file.content, /\bai-remover\b|remover_/u);
+  }
+});
+
+test('architecture: product-entitlements does not hard-code AI Remover entitlement keys', async () => {
+  const files = sourceFilesInDomain(
+    await readSourceFiles(),
+    'product-entitlements'
+  );
+  const aiRemoverEntitlementKeys = [
+    'guest_daily_removals',
+    'daily_removals',
+    'signup_high_res_downloads',
+    'monthly_removals',
+    'monthly_high_res_downloads',
+    'advanced_mode',
+    'priority_queue',
+  ];
+  const forbiddenPattern = new RegExp(
+    `\\b(?:ai-remover|${aiRemoverEntitlementKeys.join('|')})\\b`,
+    'u'
+  );
+
+  for (const file of files) {
+    assertNoImporter(
+      file,
+      /^@\/domains\/remover(?:\/|$)/,
+      'must not import AI Remover'
+    );
+    assert.doesNotMatch(file.content, forbiddenPattern);
+  }
+});
+
+test('architecture: product-quota stays storage-adapter agnostic', async () => {
+  const files = sourceFilesInDomain(await readSourceFiles(), 'product-quota');
+
+  for (const file of files) {
+    assertNoImporter(
+      file,
+      /^@\/domains\/remover(?:\/|$)/,
+      'must not import AI Remover'
+    );
+    assert.doesNotMatch(file.content, /\bremover_quota_reservation\b/u);
+  }
+});
+
+test('architecture: product-runtime stays separate from product implementations', async () => {
+  const files = sourceFilesInDomain(await readSourceFiles(), 'product-runtime');
+
+  for (const file of files) {
+    assertNoImporter(
+      file,
+      /^@\/domains\/remover(?:\/|$)/,
+      'must not import AI Remover'
+    );
+    assert.doesNotMatch(file.content, /\bai-remover\b/u);
+  }
+});
+
+test('architecture: AI Remover product runtime AI binding is independent from shared AI capability', async () => {
+  const siteConfig = JSON.parse(
+    await readFile(
+      path.resolve(repoRoot, 'sites/ai-remover/site.config.json'),
+      'utf8'
+    )
+  );
+  const deploySettings = JSON.parse(
+    await readFile(
+      path.resolve(repoRoot, 'sites/ai-remover/deploy.settings.json'),
+      'utf8'
+    )
+  );
+  const runtimeContractSource = await readFile(
+    path.resolve(repoRoot, 'src/domains/remover/domain/runtime-contract.ts'),
+    'utf8'
+  );
+
+  assert.equal(siteConfig.capabilities.ai, false);
+  assert.equal(deploySettings.bindingRequirements.bindings.workersAi, true);
+  assert.match(
+    runtimeContractSource,
+    /requiredBindings:\s*\{[\s\S]*workersAi:\s*true/u
+  );
+  assert.doesNotMatch(runtimeContractSource, /capabilities\.ai/u);
 });

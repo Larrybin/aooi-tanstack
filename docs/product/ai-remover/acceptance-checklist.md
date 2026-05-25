@@ -110,12 +110,34 @@ Status:
 
 ## Required Verification Commands
 
-- [ ] `pnpm lint`
 - [ ] `pnpm test`
+- [ ] `pnpm lint`
+- [ ] `pnpm arch:check`
 - [ ] `SITE=ai-remover pnpm build`
+- [ ] `SITE=ai-remover pnpm contract:check`
 - [ ] `SITE=ai-remover pnpm cf:check`
+- [ ] `pnpm cf:build:no-db --site=ai-remover`
 - [ ] `SITE=ai-remover pnpm test:remover-guest-limiter-smoke`
 - [ ] `SITE=ai-remover pnpm test:remover-workers-ai-spike`
+
+`SITE=ai-remover pnpm cf:check` needs production runtime bindings. A
+structure-only local/CI run may use placeholders for `BETTER_AUTH_SECRET` or
+`AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY`,
+`CREEM_API_KEY`, `CREEM_SIGNING_SECRET`, `STORAGE_PUBLIC_BASE_URL`, and
+`REMOVER_CLEANUP_SECRET`, but that run is not deploy-ready evidence.
+
+## Final Foundation Smoke Path
+
+- [ ] Guest upload.
+- [ ] Guest create job.
+- [ ] Guest poll job.
+- [ ] Guest download low-res result.
+- [ ] Guest high-res download is blocked or charged.
+- [ ] Logged-in user continues through the same ownership path.
+- [ ] Internal grant user can create a job.
+- [ ] Quota exceeded path returns the expected error.
+- [ ] Provider failure refunds processing quota.
+- [ ] Expired asset/download path denies access.
 
 ## Required Focused Tests
 

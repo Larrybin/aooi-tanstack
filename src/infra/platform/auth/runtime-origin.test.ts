@@ -139,6 +139,7 @@ test('buildTrustedAuthOrigins 会把 split worker 丢失端口的 localhost 请�
     }).sort(),
     [
       'http://127.0.0.1:8787',
+      'http://localhost',
       'http://localhost:8787',
       'https://accounts.google.com',
     ].sort()
