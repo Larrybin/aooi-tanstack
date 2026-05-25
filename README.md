@@ -226,7 +226,9 @@ Important fields:
 - `capabilities`: site-level module availability
 
 To add another site, follow
-[docs/guides/add-site.md](docs/guides/add-site.md).
+[docs/guides/add-site.md](docs/guides/add-site.md). If the new site has its
+own AI product workflow, also follow
+[docs/guides/add-ai-saas-site.md](docs/guides/add-ai-saas-site.md).
 
 ## Environment Contract
 
@@ -242,16 +244,17 @@ local `pnpm dev:local` still runs through Next.js and does not require Wrangler.
 
 Engineering guides:
 
-| Document                                          | Description                                   |
-| ------------------------------------------------- | --------------------------------------------- |
-| [Auth Guide](docs/guides/auth.md)                 | Authentication with Better Auth               |
-| [Add Site Runbook](docs/guides/add-site.md)       | Add a site instance                           |
-| [Module Contract](docs/guides/module-contract.md) | Product module matrix and verification status |
-| [Deployment Guide](docs/guides/deployment.md)     | Cloudflare deploy and smoke flow              |
-| [Database Guide](docs/guides/database.md)         | Drizzle ORM and migrations                    |
-| [Payment Guide](docs/guides/payment.md)           | Multi-provider payment integration            |
-| [RBAC Guide](docs/guides/rbac.md)                 | Role-based access control                     |
-| [Settings Guide](docs/guides/settings.md)         | User and admin settings surfaces              |
+| Document                                            | Description                                   |
+| --------------------------------------------------- | --------------------------------------------- |
+| [Auth Guide](docs/guides/auth.md)                   | Authentication with Better Auth               |
+| [Add Site Runbook](docs/guides/add-site.md)         | Add a site instance                           |
+| [Add AI SaaS Site](docs/guides/add-ai-saas-site.md) | Add an AI product workflow site               |
+| [Module Contract](docs/guides/module-contract.md)   | Product module matrix and verification status |
+| [Deployment Guide](docs/guides/deployment.md)       | Cloudflare deploy and smoke flow              |
+| [Database Guide](docs/guides/database.md)           | Drizzle ORM and migrations                    |
+| [Payment Guide](docs/guides/payment.md)             | Multi-provider payment integration            |
+| [RBAC Guide](docs/guides/rbac.md)                   | Role-based access control                     |
+| [Settings Guide](docs/guides/settings.md)           | User and admin settings surfaces              |
 
 Quality references:
 

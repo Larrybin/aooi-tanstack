@@ -1,6 +1,10 @@
 # Add Site Runbook
 
 这份文档说明如何在当前单仓多 site 架构中新增一个 site instance。
+如果新增的是独立 AI SaaS 产品工作流，还要按
+[Add AI SaaS Site Runbook](./add-ai-saas-site.md) 接入
+`product-access`、`product-entitlements`、`product-quota` 和
+`product-runtime`。
 
 这里的 site 不是新的 Next.js route，也不是新的部署分支。一个 site 的最小事实源由三部分组成：
 
