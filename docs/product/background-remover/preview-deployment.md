@@ -14,8 +14,8 @@ CF_DEPLOY_PROFILE=preview
 Collect these before deploying:
 
 - `CF_WORKERS_DEV_SUBDOMAIN`: the Cloudflare account workers.dev subdomain.
-- `PREVIEW_DATABASE_URL`: direct PostgreSQL connection string for the preview
-  database. This is used only by local Drizzle migration commands.
+- `DATABASE_URL`: direct PostgreSQL connection string for the preview database.
+  This is used only by local Drizzle migration commands.
 - `PREVIEW_HYPERDRIVE_ID`: Cloudflare Hyperdrive config ID pointing at that
   preview database. This is a 32-character lowercase hex ID, not a database
   URL.
@@ -41,6 +41,37 @@ database, then keep the returned ID as `PREVIEW_HYPERDRIVE_ID`.
 Cloudflare Images must be enabled for the account because the public-web worker
 binds `IMAGES` and uses `segment=foreground`.
 
+## Local Preview Env
+
+Use `sites/background-remover/.env.local` for local preview operator variables.
+The repo ignores `sites/*/.env.local`, and `run-with-site` loads the selected
+site file for `SITE=background-remover` commands. Shell variables still take
+precedence over values in this file.
+
+```bash
+cat > sites/background-remover/.env.local <<'ENV'
+CF_WORKERS_DEV_SUBDOMAIN=replace_with_workers_dev_subdomain
+DATABASE_URL=postgresql://preview-user:preview-password@preview-host:5432/preview-db
+STORAGE_PUBLIC_BASE_URL=https://aooi-background-remover-preview-router.replace_with_workers_dev_subdomain.workers.dev/assets/
+CF_PREVIEW_ALLOW_PLACEHOLDER_SECRETS=true
+ENV
+```
+
+For anonymous upload testing, placeholder preview secrets are enough. For real
+OAuth, email, or billing testing, add the real preview secrets to the same local
+file:
+
+```bash
+BETTER_AUTH_SECRET=replace_with_preview_auth_secret
+AUTH_SECRET=replace_with_preview_auth_secret
+GOOGLE_CLIENT_ID=replace_with_google_client_id
+GOOGLE_CLIENT_SECRET=replace_with_google_client_secret
+REMOVER_CLEANUP_SECRET=replace_with_cleanup_secret
+RESEND_API_KEY=replace_with_resend_key
+CREEM_API_KEY=replace_with_creem_key
+CREEM_SIGNING_SECRET=replace_with_creem_signing_secret
+```
+
 ## Local Preview Overlay
 
 Create the preview deploy overlay with the real Hyperdrive ID:
@@ -58,13 +89,17 @@ JSON
 
 Replace `replace_with_preview_hyperdrive_id` before running checks or deploys.
 Do not deploy with an all-zero or example Hyperdrive ID.
+This file is not ignored by git. Commit it only when the Hyperdrive ID is the
+shared team preview config; otherwise keep it as an unstaged local operator
+file.
 
 ## Database Migration
 
-Run migrations against the preview database with its direct PostgreSQL URL:
+Run migrations against the preview database. If `DATABASE_URL` is in
+`sites/background-remover/.env.local`, this short command is enough:
 
 ```bash
-DATABASE_URL="$PREVIEW_DATABASE_URL" SITE=background-remover pnpm db:migrate
+SITE=background-remover pnpm db:migrate
 ```
 
 Cloudflare Workers will use Hyperdrive at runtime; Drizzle CLI uses
@@ -75,21 +110,13 @@ Cloudflare Workers will use Hyperdrive at runtime; Drizzle CLI uses
 Run the preview config gate before deploying:
 
 ```bash
-SITE=background-remover \
-CF_WORKERS_DEV_SUBDOMAIN="$CF_WORKERS_DEV_SUBDOMAIN" \
-STORAGE_PUBLIC_BASE_URL="$STORAGE_PUBLIC_BASE_URL" \
-CF_PREVIEW_ALLOW_PLACEHOLDER_SECRETS=true \
-pnpm cf:preview:check
+SITE=background-remover pnpm cf:preview:check
 ```
 
 Run the preview build gate:
 
 ```bash
-SITE=background-remover \
-CF_WORKERS_DEV_SUBDOMAIN="$CF_WORKERS_DEV_SUBDOMAIN" \
-STORAGE_PUBLIC_BASE_URL="$STORAGE_PUBLIC_BASE_URL" \
-CF_PREVIEW_ALLOW_PLACEHOLDER_SECRETS=true \
-pnpm cf:preview:build
+SITE=background-remover pnpm cf:preview:build
 ```
 
 ## First Deploy
@@ -97,19 +124,11 @@ pnpm cf:preview:build
 Deploy state first, then bootstrap the app workers:
 
 ```bash
-SITE=background-remover \
-CF_WORKERS_DEV_SUBDOMAIN="$CF_WORKERS_DEV_SUBDOMAIN" \
-STORAGE_PUBLIC_BASE_URL="$STORAGE_PUBLIC_BASE_URL" \
-CF_PREVIEW_ALLOW_PLACEHOLDER_SECRETS=true \
-pnpm cf:preview:deploy:state
+SITE=background-remover pnpm cf:preview:deploy:state
 ```
 
 ```bash
-SITE=background-remover \
-CF_WORKERS_DEV_SUBDOMAIN="$CF_WORKERS_DEV_SUBDOMAIN" \
-STORAGE_PUBLIC_BASE_URL="$STORAGE_PUBLIC_BASE_URL" \
-CF_PREVIEW_ALLOW_PLACEHOLDER_SECRETS=true \
-pnpm cf:preview:bootstrap
+SITE=background-remover pnpm cf:preview:bootstrap
 ```
 
 The preview URL is:
@@ -123,10 +142,7 @@ https://aooi-background-remover-preview-router.<CF_WORKERS_DEV_SUBDOMAIN>.worker
 After the preview topology exists, deploy app updates with:
 
 ```bash
-SITE=background-remover \
-CF_WORKERS_DEV_SUBDOMAIN="$CF_WORKERS_DEV_SUBDOMAIN" \
-STORAGE_PUBLIC_BASE_URL="$STORAGE_PUBLIC_BASE_URL" \
-pnpm cf:preview:deploy
+SITE=background-remover pnpm cf:preview:deploy
 ```
 
 ## Smoke Test
