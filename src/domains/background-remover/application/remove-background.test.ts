@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { UpstreamError } from '@/shared/lib/api/errors';
+
 import { removeImageBackground } from './remove-background';
 
 const PNG_BYTES = Buffer.from([
@@ -11,7 +13,15 @@ function pngFile(bytes = PNG_BYTES) {
   return new File([bytes], 'product.png', { type: 'image/png' });
 }
 
-function createImagesBinding(resultBytes = Buffer.from([9, 8, 7])) {
+function createImagesBinding({
+  resultBytes = Buffer.from([9, 8, 7]),
+  status = 200,
+  contentType = 'image/png',
+}: {
+  resultBytes?: Buffer;
+  status?: number;
+  contentType?: string;
+} = {}) {
   const transforms: unknown[] = [];
   const outputs: unknown[] = [];
   const transformer: ImageTransformer = {
@@ -27,9 +37,10 @@ function createImagesBinding(resultBytes = Buffer.from([9, 8, 7])) {
       return {
         response: () =>
           new Response(resultBytes, {
-            headers: { 'content-type': 'image/png' },
+            status,
+            headers: { 'content-type': contentType },
           }),
-        contentType: () => 'image/png',
+        contentType: () => contentType,
         image: () =>
           new ReadableStream<Uint8Array>({
             start(controller) {
@@ -217,6 +228,93 @@ test('removeImageBackground refunds quota and deletes uploaded original when tra
     /segment failed/
   );
 
+  assert.deepEqual(refunded, ['reservation_1']);
+  assert.deepEqual(deleted, [
+    ['background-remover/anonymous/anon_1/result_1/original.png'],
+  ]);
+});
+
+test('removeImageBackground rejects failed Images responses before storing result', async () => {
+  const uploaded: string[] = [];
+  const deleted: string[][] = [];
+  const refunded: string[] = [];
+  const images = createImagesBinding({
+    resultBytes: Buffer.from('{"errors":[{"message":"invalid image"}]}'),
+    status: 400,
+    contentType: 'application/json',
+  });
+
+  await assert.rejects(
+    removeImageBackground({
+      actor: { kind: 'anonymous', anonymousSessionId: 'anon_1' },
+      file: pngFile(),
+      width: 1200,
+      height: 800,
+      deps: {
+        storageService: {
+          async uploadFile(options) {
+            uploaded.push(options.key);
+            return {
+              success: true,
+              provider: 'test',
+              key: options.key,
+              url: `https://assets.example/${options.key}`,
+            };
+          },
+          async deleteFiles(keys) {
+            deleted.push(keys);
+          },
+        },
+        images: images.binding,
+        detectImageMime: () => 'image/png',
+        createImage: async () => {
+          throw new Error('should not create image');
+        },
+        markImagesDeletedByIds: async () => {
+          throw new Error('should not mark image deleted');
+        },
+        reserveQuota: async (input) => ({
+          reservation: {
+            id: 'reservation_1',
+            userId: null,
+            anonymousSessionId: 'anon_1',
+            siteKey: 'background-remover',
+            productKey: 'background-remover',
+            productId: input.productId,
+            operationKey: input.operationKey,
+            units: 1,
+            status: 'reserved',
+            idempotencyKey: input.idempotencyKey,
+            jobId: null,
+            reason: null,
+            entitlementGrantIdsJson: null,
+            createdAt: new Date('2026-05-25T00:00:00Z'),
+            updatedAt: new Date('2026-05-25T00:00:00Z'),
+            committedAt: null,
+            refundedAt: null,
+            expiresAt: input.expiresAt,
+          },
+          reused: false,
+        }),
+        commitReservation: async () => {
+          throw new Error('should not commit');
+        },
+        refundReservation: async ({ reservationId }) => {
+          refunded.push(reservationId);
+        },
+        now: () => new Date('2026-05-25T00:00:00Z'),
+        createId: () => 'result_1',
+      },
+    }),
+    (error) =>
+      error instanceof UpstreamError &&
+      error.status === 502 &&
+      /background removal failed/.test(error.message)
+  );
+
+  assert.deepEqual(uploaded, [
+    'background-remover/anonymous/anon_1/result_1/original.png',
+  ]);
   assert.deepEqual(refunded, ['reservation_1']);
   assert.deepEqual(deleted, [
     ['background-remover/anonymous/anon_1/result_1/original.png'],

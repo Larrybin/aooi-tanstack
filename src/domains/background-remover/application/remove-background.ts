@@ -172,6 +172,13 @@ async function removeBackgroundWithImagesBinding({
     .transform({ segment: 'foreground' })
     .output({ format: 'image/png' });
   const response = result.response();
+  if (!response.ok) {
+    throw new UpstreamError(
+      502,
+      `background removal failed (${response.status})`
+    );
+  }
+
   const resultBuffer = Buffer.from(await response.arrayBuffer());
   if (!resultBuffer.length) {
     throw new UpstreamError(502, 'background removal returned an empty image');
