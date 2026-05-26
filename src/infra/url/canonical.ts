@@ -2,7 +2,7 @@ import 'server-only';
 
 import { site } from '@/site';
 
-import { defaultLocale, locales } from '@/config/locale';
+import { defaultLocale, localeHreflangs, locales } from '@/config/locale';
 
 function stripTrailingSlash(value: string) {
   return value.endsWith('/') ? value.slice(0, -1) : value;
@@ -46,7 +46,11 @@ export function buildLanguageAlternates(relativePath: string) {
     return undefined;
   }
 
-  return Object.fromEntries(
-    locales.map((locale) => [locale, buildCanonicalUrl(relativePath, locale)])
-  );
+  return Object.fromEntries([
+    ...locales.map((locale) => [
+      localeHreflangs[locale],
+      buildCanonicalUrl(relativePath, locale),
+    ]),
+    ['x-default', buildCanonicalUrl(relativePath, defaultLocale)],
+  ]);
 }
