@@ -119,19 +119,83 @@ contract. It runs `mamamiya` and `ai-remover` sequentially, clears
 bindings for auth, storage, Creem, Google, OpenRouter, and AI Remover cleanup.
 It is not a production release command.
 
-Create a local `.env.production` file for production-only release inputs:
+### Site Operator Env
+
+Each site uses one ignored operator file for local, preview, and production
+release values:
 
 ```bash
-SITE=mamamiya
-DATABASE_PROVIDER=postgresql
-RELEASE_TEST_DATABASE_URL=postgresql://user:password@localhost:5432/aooi_release_test
-PRODUCTION_DATABASE_URL=postgresql://user:password@db-host:5432/aooi
-CLOUDFLARE_ACCOUNT_ID=...
-CLOUDFLARE_API_TOKEN=...
-STORAGE_PUBLIC_BASE_URL=https://assets.example.com/assets/
-RESEND_API_KEY=...
-BETTER_AUTH_SECRET=...
+sites/<site-key>/.env.local
 ```
+
+Do not commit this file. Keep `SITE=<site-key>` explicit in commands, and do
+not put `SITE`, Hyperdrive IDs, worker names, R2 bucket names, or preview
+`STORAGE_PUBLIC_BASE_URL` in env files. Hyperdrive IDs belong in
+`deploy.settings.json` or `deploy.preview.settings.json`; preview storage public
+URLs are derived from the preview router origin.
+
+Use named sections so one file stays readable:
+
+```bash
+# Common operator
+CF_WORKERS_DEV_SUBDOMAIN=replace_with_workers_dev_subdomain
+CLOUDFLARE_ACCOUNT_ID=replace_with_account_id
+CLOUDFLARE_API_TOKEN=replace_with_api_token
+
+# Local dev
+DATABASE_PROVIDER=postgresql
+DATABASE_URL=postgresql://user:password@localhost:5432/site_local
+BETTER_AUTH_SECRET=replace_with_local_or_release_auth_secret
+AUTH_SECRET=replace_with_local_or_release_auth_secret
+
+# Preview
+PREVIEW_DATABASE_URL=postgresql://user:password@preview-db-host:5432/site_preview
+CF_PREVIEW_ALLOW_PLACEHOLDER_SECRETS=true
+
+# Production release
+RELEASE_TEST_DATABASE_URL=postgresql://user:password@test-db-host:5432/site_release_test
+PRODUCTION_DATABASE_URL=postgresql://user:password@prod-db-host:5432/site_prod
+PRODUCTION_STORAGE_PUBLIC_BASE_URL=https://example.com/assets/
+RESEND_API_KEY=replace_with_resend_key
+CREEM_API_KEY=replace_with_creem_key
+CREEM_SIGNING_SECRET=replace_with_creem_signing_secret
+```
+
+Profile mappings are automatic:
+
+- `cf:preview:*` maps `PREVIEW_DATABASE_URL` to `DATABASE_URL`.
+- `cf:preview:*` derives `STORAGE_PUBLIC_BASE_URL` from
+  `CF_WORKERS_DEV_SUBDOMAIN`.
+- `NODE_ENV=production` maps `PRODUCTION_DATABASE_URL` to `DATABASE_URL`.
+- `NODE_ENV=production` maps `PRODUCTION_STORAGE_PUBLIC_BASE_URL` to
+  `STORAGE_PUBLIC_BASE_URL`.
+- Shell env values still win over `sites/<site-key>/.env.local`.
+
+For a new production topology, provision Cloudflare resources before the first
+release:
+
+```bash
+SITE=<site-key> pnpm site:production:init-settings
+SITE=<site-key> pnpm site:production:doctor
+SITE=<site-key> pnpm site:production:provision
+```
+
+`site:production:init-settings` writes the recommended production worker and R2
+bucket names into `deploy.settings.json`. It does not contact Cloudflare and it
+preserves the current production Hyperdrive ID.
+
+`site:production:doctor` is read-only. It checks production operator env,
+production R2 buckets, Hyperdrive accessibility, and configured production
+workers.
+
+`site:production:provision` creates the production R2 buckets declared in
+`deploy.settings.json`. If `resources.hyperdriveId` is still a known
+placeholder, it creates a Cloudflare Hyperdrive config from
+`PRODUCTION_DATABASE_URL` and writes the returned ID back to
+`sites/<site-key>/deploy.settings.json`. It does not create or select an
+external PostgreSQL database, custom domain, DNS record, or Cloudflare secrets.
+Commit the updated `deploy.settings.json` before running the strict production
+release.
 
 For an already initialized production topology, run the production release
 explicitly:
@@ -140,7 +204,8 @@ explicitly:
 SITE=mamamiya pnpm release:cf
 ```
 
-The release command loads `.env.production`, verifies `HEAD == origin/main`,
+The release command loads the selected site operator env, verifies
+`HEAD == origin/main`,
 requires a successful `Cloudflare Deploy Acceptance` run for the exact commit,
 runs local gates with `RELEASE_TEST_DATABASE_URL`, migrates
 `PRODUCTION_DATABASE_URL`, deploys state and app workers, and finishes with
@@ -174,46 +239,43 @@ Worker and bucket names are derived automatically:
 
 The preview Hyperdrive value is not a database URL. It is the Cloudflare
 Hyperdrive config ID that Wrangler binds as `env.HYPERDRIVE`. Local Node.js
-commands still use a direct PostgreSQL `DATABASE_URL` from `.env.development`,
-`sites/<site-key>/.env.local`, or an explicit shell env.
+migration commands still need a direct PostgreSQL URL. Put that value in the
+`PREVIEW_DATABASE_URL` section of `sites/<site-key>/.env.local`.
 
-#### Preview Operator Env
+`sites/<site-key>/deploy.preview.settings.json` should contain only the preview
+Hyperdrive ID. Commit it only when it points at the shared team preview
+Hyperdrive config. Keep personal one-off preview overlays unstaged.
 
-All site previews use the same local env governance: put operator-local preview
-values in `sites/<site-key>/.env.local`.
+`.tmp/cloudflare.secrets.env` is generated by preview helpers, ignored by git,
+and should not be edited by hand. Add real preview OAuth, email, billing,
+cleanup, or provider secrets to `sites/<site-key>/.env.local` only when those
+flows are being tested. Placeholder preview secrets are enough for anonymous
+upload or basic topology smoke checks.
 
-- `sites/*/.env.local` is ignored by git and must not be committed.
-- `scripts/run-with-site.mjs` loads the selected site file for commands that
-  pass `SITE=<site-key>`.
-- Shell env values win over `sites/<site-key>/.env.local`.
-- Keep `SITE` out of this file. `SITE=<site-key>` must stay explicit in each
-  command.
-- Keep preview Hyperdrive IDs out of this file. The preview Hyperdrive ID
-  belongs in `sites/<site-key>/deploy.preview.settings.json`.
-- Commit `deploy.preview.settings.json` only when it points at the shared team
-  preview Hyperdrive config. Keep personal one-off preview overlays unstaged.
-- `.tmp/cloudflare.secrets.env` is generated by preview helpers, ignored by git,
-  and should not be edited by hand.
+| Runtime / command                                       | Database configuration source                         |
+| ------------------------------------------------------- | ----------------------------------------------------- |
+| `SITE=<site> pnpm dev`                                  | direct `DATABASE_URL` from local env files            |
+| `SITE=<site> pnpm db:migrate`                           | direct `DATABASE_URL` from env or shell               |
+| `CF_DEPLOY_PROFILE=preview SITE=<site> pnpm db:migrate` | `PREVIEW_DATABASE_URL` mapped to `DATABASE_URL`       |
+| `SITE=<site> pnpm cf:preview:*`                         | `PREVIEW_DATABASE_URL` mapped to `DATABASE_URL`       |
+| `CF_DEPLOY_PROFILE=preview`                             | `deploy.preview.settings.json.resources.hyperdriveId` |
+| production Cloudflare deploy                            | `deploy.settings.json.resources.hyperdriveId`         |
 
-Use `sites/<site-key>/.env.local` for values such as:
+Use the site preview wrapper for operator-friendly setup:
 
 ```bash
-CF_WORKERS_DEV_SUBDOMAIN=replace_with_workers_dev_subdomain
-DATABASE_URL=postgresql://preview-user:preview-password@preview-host:5432/preview-db
-STORAGE_PUBLIC_BASE_URL=https://aooi-<site-key>-preview-router.replace_with_workers_dev_subdomain.workers.dev/assets/
-CF_PREVIEW_ALLOW_PLACEHOLDER_SECRETS=true
+SITE=<site-key> pnpm site:preview:doctor
+SITE=<site-key> pnpm site:preview:provision
+SITE=<site-key> pnpm site:preview:deploy
 ```
 
-Add real preview OAuth, email, billing, cleanup, or provider secrets to the same
-file only when those flows are being tested. Placeholder preview secrets are
-enough for anonymous upload or basic topology smoke checks.
-
-| Runtime / command             | Database configuration source                         |
-| ----------------------------- | ----------------------------------------------------- |
-| `SITE=<site> pnpm dev`        | direct `DATABASE_URL` from local env files            |
-| `SITE=<site> pnpm db:migrate` | direct `DATABASE_URL` from env or shell               |
-| `CF_DEPLOY_PROFILE=preview`   | `deploy.preview.settings.json.resources.hyperdriveId` |
-| production Cloudflare deploy  | `deploy.settings.json.resources.hyperdriveId`         |
+`site:preview:doctor` is read-only. It checks local operator env, preview
+deploy settings, R2 buckets, Hyperdrive accessibility, and the preview router
+worker. `site:preview:provision` creates missing preview R2 buckets and a
+Cloudflare Hyperdrive config from `PREVIEW_DATABASE_URL`, then writes
+`sites/<site-key>/deploy.preview.settings.json`. It does not create or select an
+external PostgreSQL database. `site:preview:deploy` runs preview migrations,
+checks, build, state deploy, and app bootstrap in sequence.
 
 First preview deploy:
 
@@ -268,15 +330,15 @@ Use this order for the first production deploy:
 
 ```bash
 pnpm install
-set -a
-. ./.env.production
-set +a
-SITE=mamamiya pnpm cf:check
-SITE=mamamiya pnpm cf:build
-DATABASE_URL="$PRODUCTION_DATABASE_URL" SITE=mamamiya pnpm db:migrate
-SITE=mamamiya pnpm cf:deploy:state
-SITE=mamamiya pnpm cf:deploy
-SITE=mamamiya pnpm test:cf-app-smoke
+SITE=mamamiya pnpm site:production:init-settings
+SITE=mamamiya pnpm site:production:doctor
+SITE=mamamiya pnpm site:production:provision
+NODE_ENV=production SITE=mamamiya pnpm cf:check
+NODE_ENV=production SITE=mamamiya pnpm cf:build
+NODE_ENV=production SITE=mamamiya pnpm db:migrate
+NODE_ENV=production SITE=mamamiya pnpm cf:deploy:state
+NODE_ENV=production SITE=mamamiya pnpm cf:deploy
+NODE_ENV=production SITE=mamamiya pnpm test:cf-app-smoke
 ```
 
 After the first production topology is initialized, use

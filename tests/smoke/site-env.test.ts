@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -112,6 +112,198 @@ REMOVER_AI_PROVIDER=cloudflare-workers-ai
     CREEM_API_KEY: 'shell-creem',
     REMOVER_AI_PROVIDER: 'cloudflare-workers-ai',
   });
+});
+
+test('applySiteLocalEnvOverlay maps preview database and storage values', () => {
+  const env = {
+    SITE: 'background-remover',
+    CF_DEPLOY_PROFILE: 'preview',
+    DATABASE_URL: 'postgresql://local-db',
+    STORAGE_PUBLIC_BASE_URL: 'https://local.example.com/assets/',
+  };
+  const originalEnv = {
+    SITE: 'background-remover',
+    CF_DEPLOY_PROFILE: 'preview',
+  };
+
+  applySiteLocalEnvOverlay({
+    env,
+    originalEnv,
+    rootDir: '/repo',
+    siteKey: 'background-remover',
+    readFileSyncImpl() {
+      return `
+DATABASE_URL=postgresql://site-local-db
+PREVIEW_DATABASE_URL=postgresql://preview-db
+CF_WORKERS_DEV_SUBDOMAIN=aooi-preview
+STORAGE_PUBLIC_BASE_URL=https://stale-preview.example.com/assets/
+`;
+    },
+  });
+
+  assert.equal(env.DATABASE_URL, 'postgresql://preview-db');
+  assert.equal(
+    env.STORAGE_PUBLIC_BASE_URL,
+    'https://aooi-background-remover-preview-router.aooi-preview.workers.dev/assets/'
+  );
+});
+
+test('applySiteLocalEnvOverlay keeps preview mappings ahead of production mappings', () => {
+  const env = {
+    SITE: 'background-remover',
+    CF_DEPLOY_PROFILE: 'preview',
+    NODE_ENV: 'production',
+  };
+  const originalEnv = {
+    SITE: 'background-remover',
+    CF_DEPLOY_PROFILE: 'preview',
+    NODE_ENV: 'production',
+  };
+
+  applySiteLocalEnvOverlay({
+    env,
+    originalEnv,
+    rootDir: '/repo',
+    siteKey: 'background-remover',
+    readFileSyncImpl() {
+      return `
+PREVIEW_DATABASE_URL=postgresql://preview-db
+CF_WORKERS_DEV_SUBDOMAIN=aooi-preview
+PRODUCTION_DATABASE_URL=postgresql://production-db
+PRODUCTION_STORAGE_PUBLIC_BASE_URL=https://backgroundremover.example.com/assets/
+`;
+    },
+  });
+
+  assert.equal(env.DATABASE_URL, 'postgresql://preview-db');
+  assert.equal(
+    env.STORAGE_PUBLIC_BASE_URL,
+    'https://aooi-background-remover-preview-router.aooi-preview.workers.dev/assets/'
+  );
+});
+
+test('applySiteLocalEnvOverlay preserves shell database and storage overrides for preview', () => {
+  const env = {
+    SITE: 'background-remover',
+    CF_DEPLOY_PROFILE: 'preview',
+    DATABASE_URL: 'postgresql://shell-db',
+    STORAGE_PUBLIC_BASE_URL: 'https://shell.example.com/assets/',
+  };
+  const originalEnv = {
+    SITE: 'background-remover',
+    CF_DEPLOY_PROFILE: 'preview',
+    DATABASE_URL: 'postgresql://shell-db',
+    STORAGE_PUBLIC_BASE_URL: 'https://shell.example.com/assets/',
+  };
+
+  applySiteLocalEnvOverlay({
+    env,
+    originalEnv,
+    rootDir: '/repo',
+    siteKey: 'background-remover',
+    readFileSyncImpl() {
+      return `
+PREVIEW_DATABASE_URL=postgresql://preview-db
+CF_WORKERS_DEV_SUBDOMAIN=aooi-preview
+`;
+    },
+  });
+
+  assert.equal(env.DATABASE_URL, 'postgresql://shell-db');
+  assert.equal(
+    env.STORAGE_PUBLIC_BASE_URL,
+    'https://shell.example.com/assets/'
+  );
+});
+
+test('applySiteLocalEnvOverlay preserves explicit empty shell overrides for preview', () => {
+  const env = {
+    SITE: 'background-remover',
+    CF_DEPLOY_PROFILE: 'preview',
+    DATABASE_URL: '',
+    STORAGE_PUBLIC_BASE_URL: '',
+  };
+  const originalEnv = {
+    SITE: 'background-remover',
+    CF_DEPLOY_PROFILE: 'preview',
+    DATABASE_URL: '',
+    STORAGE_PUBLIC_BASE_URL: '',
+  };
+
+  applySiteLocalEnvOverlay({
+    env,
+    originalEnv,
+    rootDir: '/repo',
+    siteKey: 'background-remover',
+    readFileSyncImpl() {
+      return `
+PREVIEW_DATABASE_URL=postgresql://preview-db
+CF_WORKERS_DEV_SUBDOMAIN=aooi-preview
+`;
+    },
+  });
+
+  assert.equal(env.DATABASE_URL, '');
+  assert.equal(env.STORAGE_PUBLIC_BASE_URL, '');
+});
+
+test('applySiteLocalEnvOverlay maps production storage public base URL', () => {
+  const env = {
+    SITE: 'background-remover',
+    NODE_ENV: 'production',
+  };
+  const originalEnv = {
+    SITE: 'background-remover',
+  };
+
+  applySiteLocalEnvOverlay({
+    env,
+    originalEnv,
+    rootDir: '/repo',
+    siteKey: 'background-remover',
+    readFileSyncImpl() {
+      return `
+PRODUCTION_DATABASE_URL=postgresql://production-db
+PRODUCTION_STORAGE_PUBLIC_BASE_URL=https://backgroundremover.example.com/assets/
+`;
+    },
+  });
+
+  assert.equal(env.DATABASE_URL, 'postgresql://production-db');
+  assert.equal(
+    env.STORAGE_PUBLIC_BASE_URL,
+    'https://backgroundremover.example.com/assets/'
+  );
+});
+
+test('applySiteLocalEnvOverlay preserves explicit empty shell overrides for production', () => {
+  const env = {
+    SITE: 'background-remover',
+    NODE_ENV: 'production',
+    DATABASE_URL: '',
+    STORAGE_PUBLIC_BASE_URL: '',
+  };
+  const originalEnv = {
+    SITE: 'background-remover',
+    DATABASE_URL: '',
+    STORAGE_PUBLIC_BASE_URL: '',
+  };
+
+  applySiteLocalEnvOverlay({
+    env,
+    originalEnv,
+    rootDir: '/repo',
+    siteKey: 'background-remover',
+    readFileSyncImpl() {
+      return `
+PRODUCTION_DATABASE_URL=postgresql://production-db
+PRODUCTION_STORAGE_PUBLIC_BASE_URL=https://backgroundremover.example.com/assets/
+`;
+    },
+  });
+
+  assert.equal(env.DATABASE_URL, '');
+  assert.equal(env.STORAGE_PUBLIC_BASE_URL, '');
 });
 
 test('load-dotenv applies selected site local env after root env loading', async () => {

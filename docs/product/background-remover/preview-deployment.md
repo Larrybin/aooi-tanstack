@@ -14,48 +14,41 @@ CF_DEPLOY_PROFILE=preview
 Collect these before deploying:
 
 - `CF_WORKERS_DEV_SUBDOMAIN`: the Cloudflare account workers.dev subdomain.
-- `DATABASE_URL`: direct PostgreSQL connection string for the preview database.
-  This is used only by local Drizzle migration commands.
+- `PREVIEW_DATABASE_URL`: direct PostgreSQL connection string for the preview
+  database. This is used only by local Drizzle migration commands.
 - `PREVIEW_HYPERDRIVE_ID`: Cloudflare Hyperdrive config ID pointing at that
-  preview database. This is a 32-character lowercase hex ID, not a database
-  URL.
-- `STORAGE_PUBLIC_BASE_URL`: public base URL for objects in the preview storage
-  bucket.
+  preview database. `SITE=background-remover pnpm site:preview:provision` can
+  create this config and write the ID into the local preview overlay.
 
 For a quick anonymous upload preview, payment and email secrets can use preview
 placeholders. For OAuth, billing, or email testing, provide real preview secrets
 instead.
 
-## Cloudflare Resources
-
-Create the preview R2 buckets:
-
-```bash
-wrangler r2 bucket create aooi-background-remover-preview-opennext-cache
-wrangler r2 bucket create aooi-background-remover-preview-storage
-```
-
-Create a Cloudflare Hyperdrive config that points at the preview PostgreSQL
-database, then keep the returned ID as `PREVIEW_HYPERDRIVE_ID`.
-
-Cloudflare Images must be enabled for the account because the public-web worker
-binds `IMAGES` and uses `segment=foreground`.
-
 ## Local Preview Env
 
 This site follows the all-site preview env governance in
-[Deployment Guide](../../guides/deployment.md#preview-operator-env). Keep local
+[Deployment Guide](../../guides/deployment.md#site-operator-env). Keep local
 operator values in `sites/background-remover/.env.local`; do not commit this
 file, and keep `SITE=background-remover` explicit in each command.
 
 ```bash
 cat > sites/background-remover/.env.local <<'ENV'
+# Common operator
 CF_WORKERS_DEV_SUBDOMAIN=replace_with_workers_dev_subdomain
-DATABASE_URL=postgresql://preview-user:preview-password@preview-host:5432/preview-db
-STORAGE_PUBLIC_BASE_URL=https://aooi-background-remover-preview-router.replace_with_workers_dev_subdomain.workers.dev/assets/
+
+# Local dev
+DATABASE_PROVIDER=postgresql
+DATABASE_URL=
+
+# Preview
+PREVIEW_DATABASE_URL=postgresql://preview-user:preview-password@preview-host:5432/preview-db
 CF_PREVIEW_ALLOW_PLACEHOLDER_SECRETS=true
 ENV
 ```
+
+Preview commands map `PREVIEW_DATABASE_URL` to `DATABASE_URL` and derive
+`STORAGE_PUBLIC_BASE_URL` from the preview router URL, so do not put preview
+`STORAGE_PUBLIC_BASE_URL` in this file.
 
 For anonymous upload testing, placeholder preview secrets are enough. For real
 OAuth, email, or billing testing, add the real preview secrets to the same local
@@ -72,64 +65,40 @@ CREEM_API_KEY=replace_with_creem_key
 CREEM_SIGNING_SECRET=replace_with_creem_signing_secret
 ```
 
-## Local Preview Overlay
+## Provision Preview Resources
 
-Create the preview deploy overlay with the real Hyperdrive ID:
-
-```bash
-cat > sites/background-remover/deploy.preview.settings.json <<'JSON'
-{
-  "configVersion": 1,
-  "resources": {
-    "hyperdriveId": "replace_with_preview_hyperdrive_id"
-  }
-}
-JSON
-```
-
-Replace `replace_with_preview_hyperdrive_id` before running checks or deploys.
-Do not deploy with an all-zero or example Hyperdrive ID.
-This file is not ignored by git. Commit it only when the Hyperdrive ID is the
-shared team preview config; otherwise keep it as an unstaged local operator
-file.
-
-## Database Migration
-
-Run migrations against the preview database. If `DATABASE_URL` is in
-`sites/background-remover/.env.local`, this short command is enough:
+After `.env.local` has `CF_WORKERS_DEV_SUBDOMAIN` and `PREVIEW_DATABASE_URL`,
+run the read-only doctor:
 
 ```bash
-SITE=background-remover pnpm db:migrate
+SITE=background-remover pnpm site:preview:doctor
 ```
 
-Cloudflare Workers will use Hyperdrive at runtime; Drizzle CLI uses
-`DATABASE_URL` locally.
-
-## Preflight
-
-Run the preview config gate before deploying:
+Then create missing preview R2 buckets and the Hyperdrive config:
 
 ```bash
-SITE=background-remover pnpm cf:preview:check
+SITE=background-remover pnpm site:preview:provision
 ```
 
-Run the preview build gate:
+Provision writes `sites/background-remover/deploy.preview.settings.json` with
+only `resources.hyperdriveId`. This file is not ignored by git. Commit it only
+when the Hyperdrive ID is the shared team preview config; otherwise keep it as
+an unstaged local operator file.
+
+Cloudflare Images must be enabled for the account because the public-web worker
+binds `IMAGES` and uses `segment=foreground`.
+
+## Deploy
+
+Run the preview deploy wrapper:
 
 ```bash
-SITE=background-remover pnpm cf:preview:build
+SITE=background-remover pnpm site:preview:deploy
 ```
 
-## First Deploy
-
-Deploy state first, then bootstrap the app workers:
-
-```bash
-SITE=background-remover pnpm cf:preview:deploy:state
-```
-
-```bash
-SITE=background-remover pnpm cf:preview:bootstrap
-```
+It runs the preview database migration, preview config check, preview build,
+state worker deploy, and app bootstrap in sequence. Cloudflare Workers use
+Hyperdrive at runtime; Drizzle CLI uses the direct preview database URL locally.
 
 The preview URL is:
 
@@ -139,7 +108,8 @@ https://aooi-background-remover-preview-router.<CF_WORKERS_DEV_SUBDOMAIN>.worker
 
 ## Later Updates
 
-After the preview topology exists, deploy app updates with:
+After the preview topology exists, you can still use the lower-level app-only
+update command when you do not need the full sequence:
 
 ```bash
 SITE=background-remover pnpm cf:preview:deploy

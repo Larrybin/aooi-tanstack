@@ -64,6 +64,12 @@
     "cf:preview:deploy:state": "CF_DEPLOY_PROFILE=preview pnpm cf:deploy:state",
     "cf:preview:deploy": "CF_DEPLOY_PROFILE=preview pnpm cf:deploy",
     "cf:preview:bootstrap": "CF_DEPLOY_PROFILE=preview CF_DEPLOY_BOOTSTRAP_MISSING=true pnpm cf:deploy",
+    "site:preview:doctor": "node scripts/site-preview.mjs doctor",
+    "site:preview:provision": "node scripts/site-preview.mjs provision",
+    "site:preview:deploy": "node scripts/site-preview.mjs deploy",
+    "site:production:doctor": "node scripts/site-production.mjs doctor",
+    "site:production:init-settings": "node scripts/site-production.mjs init-settings",
+    "site:production:provision": "node scripts/site-production.mjs provision",
     "release:cf": "node --import tsx scripts/run-local-cloudflare-release.mjs",
     "cf:typegen": "node scripts/run-with-site.mjs node --import tsx scripts/run-cf-typegen.mjs",
     "cf:typegen:check": "node scripts/run-with-site.mjs node --import tsx scripts/check-cf-typegen.mjs"

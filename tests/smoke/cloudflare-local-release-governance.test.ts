@@ -165,5 +165,5 @@ test('文档声明本地 operator session 是生产发布权威', () => {
   assert.match(deploymentGuideContent, /SITE=mamamiya pnpm release:cf/);
   assert.match(deploymentGuideContent, /RELEASE_TEST_DATABASE_URL/);
   assert.match(deploymentGuideContent, /PRODUCTION_DATABASE_URL/);
-  assert.match(deploymentGuideContent, /\.env\.production/);
+  assert.match(deploymentGuideContent, /sites\/<site-key>\/\.env\.local/);
 });

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Aooi Site Factory"
+  short_description: "Build and verify aooi SaaS sites"
+  default_prompt: "Use $aooi-site-factory to add or update an aooi SaaS site instance safely."
+
+policy:
+  allow_implicit_invocation: true

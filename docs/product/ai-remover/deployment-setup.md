@@ -11,9 +11,8 @@ Use these boundaries:
 | --------------------------------------- | -------------------------------------------------- | ---------- | ------------------------------------------------------------- |
 | `sites/ai-remover/site.config.json`     | Build-time site identity and capability flags      | Yes        | domain, app URL, support email, payment capability            |
 | `sites/ai-remover/deploy.settings.json` | Cloudflare resource names and binding requirements | Yes        | worker names, R2 bucket names, Hyperdrive ID                  |
-| `sites/ai-remover/.env.local`           | Local AI Remover runtime values                    | No         | local DB URL, local auth secret, local provider keys          |
+| `sites/ai-remover/.env.local`           | Site operator values                               | No         | local DB URL, preview DB URL, release DB URLs, local secrets  |
 | Cloudflare secrets / vars / bindings    | Production Worker runtime values                   | No         | OAuth secrets, Creem secrets, R2 bindings, Workers AI binding |
-| `.env.production`                       | Local operator inputs for release commands         | No         | Cloudflare API token, production DB URL, release test DB URL  |
 | Admin Settings                          | Non-secret operational switches and mappings       | Database   | Google auth enabled, Creem product mappings, sender email     |
 
 Env, secrets, and bindings wire the app and carry credentials. Admin Settings
@@ -117,7 +116,8 @@ Before deploying, replace the placeholder identity in
 The Google OAuth origin, `AUTH_URL` / `BETTER_AUTH_URL` when used, and
 `site.brand.appUrl` must share the same origin.
 
-Update `sites/ai-remover/deploy.settings.json` for real production resources:
+Update `sites/ai-remover/deploy.settings.json` for real production resource
+names:
 
 | Field                              | Production value                             |
 | ---------------------------------- | -------------------------------------------- |
@@ -128,6 +128,14 @@ Update `sites/ai-remover/deploy.settings.json` for real production resources:
 
 Do not put secrets, database URLs, or provider API keys in either site JSON
 file.
+
+After `PRODUCTION_DATABASE_URL` is present in `sites/ai-remover/.env.local`,
+run `SITE=ai-remover pnpm site:production:init-settings` if you want the
+standard production worker and R2 bucket names written into
+`deploy.settings.json`. Then run `SITE=ai-remover pnpm site:production:doctor`
+to inspect production readiness. `SITE=ai-remover pnpm
+site:production:provision` can create the production R2 buckets and replace a
+placeholder Hyperdrive ID with the real Cloudflare ID.
 
 `workers.chat` is intentionally absent for AI Remover. The product does not use
 the shared OpenRouter chat runtime; image removal runs on `public-web` through
@@ -165,8 +173,8 @@ does not use `CLOUDFLARE_API_TOKEN` at runtime.
 ## Production Runtime Secrets And Vars
 
 Configure these in Cloudflare secrets / vars for the generated workers. They can
-also be present in `.env.production` so local release commands can validate and
-upload them.
+also be present in `sites/ai-remover/.env.local` so local release commands can
+validate and upload them.
 
 | Name                                  | Kind        | Required for AI Remover?    | Notes                                                                                                               |
 | ------------------------------------- | ----------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------- |
@@ -207,18 +215,17 @@ Add `www` variants only if the app actually serves auth from `www`.
 credentials. They are not runtime secrets and are not used by the website after
 deployment.
 
-Create a local `.env.production` for release commands:
+Use the production release section in `sites/ai-remover/.env.local` for release
+commands:
 
 ```bash
-SITE=ai-remover
-DATABASE_PROVIDER=postgresql
 RELEASE_TEST_DATABASE_URL="postgresql://user:password@127.0.0.1:5432/ai_remover_release_test"
 PRODUCTION_DATABASE_URL="postgresql://user:password@prod-db-host:5432/ai_remover"
+PRODUCTION_STORAGE_PUBLIC_BASE_URL="https://assets.airemover.com/"
 
 CLOUDFLARE_ACCOUNT_ID="..."
 CLOUDFLARE_API_TOKEN="..."
 
-STORAGE_PUBLIC_BASE_URL="https://assets.airemover.com/"
 BETTER_AUTH_SECRET="..."
 AUTH_SECRET="..."
 GOOGLE_CLIENT_ID="..."
@@ -270,18 +277,21 @@ SITE=ai-remover STORAGE_PUBLIC_BASE_URL=https://assets.example.com BETTER_AUTH_S
 ```
 
 Preview checks use the preview deploy profile and the all-site preview env
-governance in [Deployment Guide](../../guides/deployment.md#preview-operator-env).
+governance in [Deployment Guide](../../guides/deployment.md#site-operator-env).
 Put local preview values in `sites/ai-remover/.env.local`. Missing local
 `RESEND_API_KEY`, `CREEM_API_KEY`, and `CREEM_SIGNING_SECRET` are warnings, not
 blockers:
 
 ```bash
-SITE=ai-remover pnpm cf:preview:check
+SITE=ai-remover pnpm site:preview:doctor
 ```
 
 For production bootstrap:
 
 ```bash
+SITE=ai-remover pnpm site:production:init-settings
+SITE=ai-remover pnpm site:production:doctor
+SITE=ai-remover pnpm site:production:provision
 SITE=ai-remover pnpm cf:deploy:state
 SITE=ai-remover pnpm cf:deploy
 ```
@@ -291,31 +301,32 @@ Preview is not a separate `SITE`; it is `SITE=ai-remover` plus
 `CF_DEPLOY_PROFILE=preview`.
 
 Before the first preview deploy, prepare `sites/ai-remover/.env.local` with the
-local operator values, then replace `sites/ai-remover/deploy.preview.settings.json`
-with the preview Hyperdrive ID. The deploy overlay intentionally contains only
-the preview Hyperdrive overlay; preview worker names, R2 bucket names, and app
-origin are derived automatically.
-This ID must be the Cloudflare Hyperdrive config ID, not the Supabase/Postgres
-connection string. If you are using Supabase, create a Hyperdrive configuration
-that points at the Supabase direct connection string, then copy the returned
-32-character Hyperdrive ID into `deploy.preview.settings.json`.
+local operator values, then run `SITE=ai-remover pnpm site:preview:provision`.
+Provision creates missing preview R2 buckets, creates the Cloudflare Hyperdrive
+configuration from `PREVIEW_DATABASE_URL`, and writes
+`sites/ai-remover/deploy.preview.settings.json`. The deploy overlay
+intentionally contains only the preview Hyperdrive overlay; preview worker
+names, R2 bucket names, and app origin are derived automatically.
+The Hyperdrive ID is the Cloudflare config ID, not the Supabase/Postgres
+connection string.
 
 Keep the split explicit:
 
 | Environment                 | Config file                                     | Database value                           |
 | --------------------------- | ----------------------------------------------- | ---------------------------------------- |
 | Local dev / local migration | `sites/ai-remover/.env.local`                   | `DATABASE_URL=postgresql://...`          |
+| Preview local migration     | `sites/ai-remover/.env.local`                   | `PREVIEW_DATABASE_URL=postgresql://...`  |
 | Cloudflare preview          | `sites/ai-remover/deploy.preview.settings.json` | `resources.hyperdriveId=<preview ID>`    |
 | Cloudflare production       | `sites/ai-remover/deploy.settings.json`         | `resources.hyperdriveId=<production ID>` |
 
 First preview deploy:
 
 ```bash
-SITE=ai-remover pnpm cf:preview:deploy:state
-SITE=ai-remover pnpm cf:preview:bootstrap
+SITE=ai-remover pnpm site:preview:provision
+SITE=ai-remover pnpm site:preview:deploy
 ```
 
-Later preview updates:
+Later preview app-only updates can still use the low-level wrapper:
 
 ```bash
 SITE=ai-remover pnpm cf:preview:deploy
