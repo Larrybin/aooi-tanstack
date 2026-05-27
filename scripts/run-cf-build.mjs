@@ -27,6 +27,10 @@ export function buildMultiBuildCheckArgs(scriptArgs = process.argv.slice(2)) {
   ];
 }
 
+export function buildStrictI18nCheckArgs(siteKey = resolveRequiredSiteKey()) {
+  return ['scripts/check-site-i18n.mjs', '--site', siteKey, '--strict'];
+}
+
 function runCommand(command, args, { env = process.env } = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
@@ -62,6 +66,9 @@ async function main() {
     [activeSplitWorkersEnv]: getActiveSplitWorkerSlots(contract).join(','),
   };
 
+  await runCommand('node', buildStrictI18nCheckArgs(contract.site.key), {
+    env: commandEnv,
+  });
   await runCommand('pnpm', buildOpenNextBuildArgs(), { env: commandEnv });
   await runCommand(
     'node',

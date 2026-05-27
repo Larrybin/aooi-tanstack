@@ -38,7 +38,10 @@ test('site i18n package reads page registry and manifest for configured sites', 
   assert.deepEqual(Object.keys(mamamiya.manifest.locales).sort(), ['ja', 'zh']);
 
   const aiRemover = readSiteI18nPackage({ siteKey: 'ai-remover' });
-  assert.deepEqual(aiRemover.manifest.locales, {});
+  assert.deepEqual(Object.keys(aiRemover.manifest.locales).sort(), [
+    'ja',
+    'zh',
+  ]);
 });
 
 test('site i18n pages schema rejects duplicate page ids', () => {

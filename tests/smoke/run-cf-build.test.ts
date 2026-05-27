@@ -12,6 +12,7 @@ import {
 import {
   buildMultiBuildCheckArgs,
   buildOpenNextBuildArgs,
+  buildStrictI18nCheckArgs,
 } from '../../scripts/run-cf-build.mjs';
 
 test('cf:build 对 OpenNext 固定跳过根 wrangler config 交互检查', () => {
@@ -29,6 +30,15 @@ test('cf:build forwards worker scope args to the dry-run upload check', () => {
     'tsx',
     'scripts/run-cf-multi-build-check.mjs',
     '--workers=public-web',
+  ]);
+});
+
+test('cf:build runs strict i18n check for the selected site', () => {
+  assert.deepEqual(buildStrictI18nCheckArgs('ai-remover'), [
+    'scripts/check-site-i18n.mjs',
+    '--site',
+    'ai-remover',
+    '--strict',
   ]);
 });
 

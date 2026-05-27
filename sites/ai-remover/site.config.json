@@ -18,7 +18,7 @@
   },
   "i18n": {
     "defaultLocale": "en",
-    "supportedLocales": ["en"],
+    "supportedLocales": ["en", "zh", "ja"],
     "localePrefix": "as-needed",
     "localeDetection": false
   },

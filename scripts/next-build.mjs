@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
 
 import { withIpv4FirstNodeOptions } from './lib/node-process-env.mjs';
@@ -7,6 +7,19 @@ import { syncOpenNextGeneratedTypes } from './sync-open-next-generated-types.mjs
 const nextBin = resolve(process.cwd(), 'node_modules/next/dist/bin/next');
 
 await syncOpenNextGeneratedTypes();
+
+const i18nCheck = spawnSync(
+  process.execPath,
+  ['scripts/check-site-i18n.mjs', '--site', process.env.SITE || 'dev-local'],
+  {
+    stdio: 'inherit',
+    env: process.env,
+  }
+);
+
+if (i18nCheck.status !== 0) {
+  process.stderr.write('[i18n:check] continuing non-strict local build\n');
+}
 
 const child = spawn(
   process.execPath,
