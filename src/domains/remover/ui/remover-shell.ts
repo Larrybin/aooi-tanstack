@@ -3,10 +3,15 @@ import type {
   Header as HeaderType,
 } from '@/shared/types/blocks/landing';
 
-export function buildRemoverHeaderFooter(brand: {
-  appName: string;
-  appLogo: string;
-}) {
+import type { RemoverHomeCopy } from './remover-home-copy';
+
+export function buildRemoverHeaderFooter(
+  brand: {
+    appName: string;
+    appLogo: string;
+  },
+  copy: RemoverHomeCopy['shell']
+) {
   const header: HeaderType = {
     id: 'header',
     brand: {
@@ -22,12 +27,12 @@ export function buildRemoverHeaderFooter(brand: {
     nav: {
       items: [
         {
-          title: 'Pricing',
+          title: copy.pricing,
           url: '/pricing',
           icon: 'DollarSign',
         },
         {
-          title: 'My Images',
+          title: copy.myImages,
           url: '/my-images',
           icon: 'Images',
         },
@@ -40,12 +45,12 @@ export function buildRemoverHeaderFooter(brand: {
       show_sign_out: true,
       items: [
         {
-          title: 'Billing',
+          title: copy.billing,
           url: '/settings/billing',
           icon: 'CreditCard',
         },
         {
-          title: 'My Images',
+          title: copy.myImages,
           url: '/my-images',
           icon: 'Images',
         },
@@ -59,8 +64,7 @@ export function buildRemoverHeaderFooter(brand: {
     id: 'footer',
     brand: {
       title: brand.appName,
-      description:
-        'AI Object Remover for cleaning unwanted objects, people, and distractions from photos.',
+      description: copy.footerDescription,
       logo: {
         src: brand.appLogo,
         alt: brand.appName,
@@ -72,27 +76,27 @@ export function buildRemoverHeaderFooter(brand: {
     nav: {
       items: [
         {
-          title: 'Product',
+          title: copy.productGroup,
           children: [
-            { title: 'AI Object Remover', url: '/' },
-            { title: 'Pricing', url: '/pricing' },
-            { title: 'My Images', url: '/my-images' },
+            { title: copy.tool, url: '/' },
+            { title: copy.pricing, url: '/pricing' },
+            { title: copy.myImages, url: '/my-images' },
           ],
         },
         {
-          title: 'Trust',
+          title: copy.trustGroup,
           children: [
-            { title: 'Privacy Policy', url: '/privacy-policy' },
-            { title: 'Terms of Service', url: '/terms-of-service' },
+            { title: copy.privacyPolicy, url: '/privacy-policy' },
+            { title: copy.termsOfService, url: '/terms-of-service' },
           ],
         },
       ],
     },
-    copyright: `© ${new Date().getFullYear()} ${brand.appName}. All rights reserved.`,
+    copyright: `© ${new Date().getFullYear()} ${brand.appName}. ${copy.copyrightSuffix}`,
     agreement: {
       items: [
-        { title: 'Privacy Policy', url: '/privacy-policy' },
-        { title: 'Terms of Service', url: '/terms-of-service' },
+        { title: copy.privacyPolicy, url: '/privacy-policy' },
+        { title: copy.termsOfService, url: '/terms-of-service' },
       ],
     },
   };

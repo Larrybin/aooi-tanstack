@@ -1,6 +1,12 @@
 {
   "locales": {
     "zh": {
+      "home": {
+        "path": "/",
+        "status": "pending",
+        "sourceHash": "eafc303db61834615103aa60aa369bf3e61498e0e10c2a204b107fe0fc0f17ec",
+        "targetHash": "b464bffac90a4442e354a721a50771f235a6c962872edd816b36535f0aab5289"
+      },
       "pricing": {
         "path": "/pricing",
         "status": "pending",
@@ -21,6 +27,12 @@
       }
     },
     "ja": {
+      "home": {
+        "path": "/",
+        "status": "pending",
+        "sourceHash": "eafc303db61834615103aa60aa369bf3e61498e0e10c2a204b107fe0fc0f17ec",
+        "targetHash": "98de34eb01740ee0c951493f5d95aae9cdacad578560b565b80415836d6005ae"
+      },
       "pricing": {
         "path": "/pricing",
         "status": "pending",

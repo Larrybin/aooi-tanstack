@@ -1,0 +1,187 @@
+{
+  "metadata": {
+    "title": "AI Remover - Remove Objects from Photos for Free",
+    "description": "Remove unwanted objects, people, and distractions from photos in seconds with AI Remover.",
+    "keywords": [
+      "ai remover",
+      "ai object remover",
+      "remove objects from photos",
+      "remove unwanted objects from photos",
+      "remove people from photos"
+    ]
+  },
+  "shell": {
+    "pricing": "Pricing",
+    "myImages": "My Images",
+    "billing": "Billing",
+    "footerDescription": "AI Object Remover for cleaning unwanted objects, people, and distractions from photos.",
+    "productGroup": "Product",
+    "tool": "AI Object Remover",
+    "trustGroup": "Trust",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "copyrightSuffix": "All rights reserved."
+  },
+  "editor": {
+    "invalidTypeError": "Use a JPG, PNG, or WebP image.",
+    "openError": "This image could not be opened.",
+    "loading": "Loading editor...",
+    "uploadTitle": "Upload a photo to start",
+    "uploadDescription": "Drop in a photo, brush over the unwanted area, and let AI Remover clean it up.",
+    "chooseImage": "Choose image",
+    "fileHint": "JPG, PNG, or WebP. Free to try, no sign-up for low-res download.",
+    "steps": ["Upload", "Brush", "Remove", "Download"],
+    "canvas": {
+      "brush": "Brush",
+      "eraser": "Eraser",
+      "pan": "Pan",
+      "size": "Size",
+      "undo": "Undo",
+      "reset": "Reset",
+      "zoomOut": "Zoom out",
+      "zoomIn": "Zoom in",
+      "previewAriaLabel": "Uploaded photo preview",
+      "replaceImage": "Replace image",
+      "removeReadyTitle": "Remove the marked area",
+      "removeEmptyTitle": "Brush over an area before removing",
+      "uploading": "Uploading...",
+      "removing": "Removing...",
+      "remove": "Remove",
+      "successTitle": "Your cleaned image is ready.",
+      "resultAlt": "AI Remover result",
+      "downloadLowRes": "Download low-res result",
+      "signInHighRes": "Sign in for high-res",
+      "downloadHighRes": "Download high-res",
+      "signInMessage": "Sign in to download the high-res result.",
+      "signInDownload": "Sign in to download",
+      "failedTitle": "Removal failed",
+      "defaultMaskError": "The image could not be processed. Please try another mask.",
+      "defaultProcessError": "The image could not be processed."
+    }
+  },
+  "hero": {
+    "badge": "Free to try",
+    "title": "AI Object Remover",
+    "description": "Remove unwanted objects, people, and distractions from photos in seconds.",
+    "useCases": [
+      "Remove unwanted objects from daily photos",
+      "Remove people from travel and event photos",
+      "Clean social media images before posting",
+      "Fix background distractions in creator assets"
+    ]
+  },
+  "processExample": {
+    "before": "Before",
+    "after": "After",
+    "distraction": "distraction",
+    "cleanResult": "Clean result"
+  },
+  "beforeAfter": {
+    "eyebrow": "Before / After",
+    "title": "Clean the photo without opening a heavy editor.",
+    "description": "Brush over the object, person, or background detail you want gone. AI Remover creates a cleaned result while preserving the rest of your image."
+  },
+  "howItWorks": {
+    "eyebrow": "How it works",
+    "title": "Four steps, one clean result.",
+    "steps": [
+      {
+        "title": "Upload",
+        "description": "Choose a JPG, PNG, or WebP photo."
+      },
+      {
+        "title": "Brush",
+        "description": "Paint over the object or person to remove."
+      },
+      {
+        "title": "Remove",
+        "description": "AI fills the selected area in seconds."
+      },
+      {
+        "title": "Download",
+        "description": "Save a clean low-res result for free."
+      }
+    ]
+  },
+  "useCasesSection": {
+    "eyebrow": "Use cases",
+    "title": "Built for quick photo cleanup.",
+    "description": "The MVP stays focused on removing visible distractions from normal photos and creator assets. No project setup. No complex export panel.",
+    "beforePrefix": "Before:",
+    "afterPrefix": "After:",
+    "examples": [
+      {
+        "title": "Clean travel photos",
+        "before": "Tourists and street clutter",
+        "after": "A clear landmark shot"
+      },
+      {
+        "title": "Remove background distractions",
+        "before": "Cables, trash cans, and signs",
+        "after": "A calmer composition"
+      },
+      {
+        "title": "Polish creator assets",
+        "before": "Objects pulling focus",
+        "after": "Ready-to-post visuals"
+      }
+    ]
+  },
+  "featuresSection": {
+    "eyebrow": "Features",
+    "title": "Enough editing power for the job.",
+    "features": [
+      {
+        "title": "Brush-based selection",
+        "description": "Mark only the area you want changed. Keep the rest of the photo intact."
+      },
+      {
+        "title": "Before and after preview",
+        "description": "Compare the original and cleaned result before deciding what to download."
+      },
+      {
+        "title": "Privacy-aware retention",
+        "description": "Images are used for processing, not training, and expire automatically."
+      },
+      {
+        "title": "Fast browser workflow",
+        "description": "Start without a heavy editor, project setup, or mandatory sign-up."
+      }
+    ]
+  },
+  "privacy": {
+    "title": "Privacy and usage boundaries",
+    "description": "Uploaded images are used to process your removal job, not to train AI models. Guest images expire after 24 hours, free-user images after 7 days, and paid-user images after 30 days by default."
+  },
+  "policy": {
+    "title": "Not for watermark or logo removal",
+    "description": "AI Remover is for legitimate photo cleanup. Users must own or have permission to process uploaded images, and may not remove copyright watermarks, brand logos, or authorization marks."
+  },
+  "cta": {
+    "title": "Need high-res downloads?",
+    "description": "Start free, then upgrade when you need more monthly processing, high-res results, and longer image retention.",
+    "button": "View pricing"
+  },
+  "faqSection": {
+    "eyebrow": "FAQ",
+    "title": "Questions before you upload.",
+    "items": [
+      {
+        "question": "Can I try AI Remover without signing up?",
+        "answer": "Yes. Guests can process a limited number of images and download low-res results without creating an account."
+      },
+      {
+        "question": "What image formats are supported?",
+        "answer": "The MVP supports JPG, PNG, and WebP uploads. File size limits depend on your plan."
+      },
+      {
+        "question": "Are uploaded images used for training?",
+        "answer": "No. Uploaded images are used to process your removal job and provide your result. They are not used to train AI models."
+      },
+      {
+        "question": "Can I remove watermarks or logos?",
+        "answer": "No. AI Remover is for legitimate photo cleanup. It must not be used to remove copyright watermarks, brand logos, or authorization marks."
+      }
+    ]
+  }
+}

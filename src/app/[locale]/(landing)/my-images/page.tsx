@@ -1,14 +1,11 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
-import { ImageIcon, Lock, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { listMyRemoverJobsForActor } from '@/domains/remover/application/jobs';
-import { deleteRemoverJobImagesForUser } from '@/domains/remover/application/delete-image';
 import { readAnonymousSessionIdFromRequest } from '@/domains/remover/application/actor-session';
-import { RemoverDownloadButton } from '@/domains/remover/ui/remover-download-button';
-import { buildRemoverHeaderFooter } from '@/domains/remover/ui/remover-shell';
+import { deleteRemoverJobImagesForUser } from '@/domains/remover/application/delete-image';
+import { listMyRemoverJobsForActor } from '@/domains/remover/application/jobs';
 import {
   claimRemoverImageAssetsByKeys,
   markRemoverImageAssetsDeletedByKeys,
@@ -20,21 +17,25 @@ import {
   markRemoverJobDeletedById,
 } from '@/domains/remover/infra/job';
 import { claimRemoverQuotaReservationById } from '@/domains/remover/infra/quota-reservation';
+import { RemoverDownloadButton } from '@/domains/remover/ui/remover-download-button';
+import { resolveRemoverHomeCopy } from '@/domains/remover/ui/remover-home-copy';
+import { buildRemoverHeaderFooter } from '@/domains/remover/ui/remover-shell';
 import {
   readAuthUiRuntimeSettingsCached,
   readBillingRuntimeSettingsCached,
   readPublicUiConfigCached,
 } from '@/domains/settings/application/settings-runtime.query';
 import { getStorageService } from '@/infra/adapters/storage/service';
-import { buildBrandPlaceholderValues } from '@/infra/platform/brand/placeholders.server';
 import { getSignedInUserIdentity } from '@/infra/platform/auth/session.server';
+import { buildBrandPlaceholderValues } from '@/infra/platform/brand/placeholders.server';
 import { getRuntimeEnvString } from '@/infra/runtime/env.server';
 import {
   buildCanonicalUrl,
   buildLanguageAlternates,
   buildMetadataBaseUrl,
 } from '@/infra/url/canonical';
-import { site } from '@/site';
+import { site, siteHomeContent } from '@/site';
+import { ImageIcon, Lock, Trash2 } from 'lucide-react';
 import { setRequestLocale } from 'next-intl/server';
 
 import LandingMarketingLayout from '@/themes/default/layouts/landing-marketing';
@@ -127,7 +128,10 @@ export default async function MyImagesPage({
       getSignedInUserIdentity(),
     ]);
   const brand = buildBrandPlaceholderValues();
-  const { header, footer } = buildRemoverHeaderFooter(brand);
+  const { header, footer } = buildRemoverHeaderFooter(
+    brand,
+    resolveRemoverHomeCopy(siteHomeContent, locale).shell
+  );
 
   const jobs = user
     ? await listMyRemoverJobsForActor({

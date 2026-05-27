@@ -77,7 +77,7 @@ async function importGeneratedSiteLocalizedPricing(siteKey: string) {
   await generateSiteModule(siteKey);
   const source = await readFile(generatedSiteModulePath, 'utf8');
   const pricingLiteral = source.match(
-    /export const siteLocalizedPricing = ([\s\S]+?) as const;\s+export const siteI18nManifest =/
+    /export const siteLocalizedPricing = ([\s\S]+?) as const;\s+export const siteHomeContent =/
   );
   assert.ok(
     pricingLiteral?.[1],
@@ -92,6 +92,27 @@ async function importGeneratedSiteLocalizedPricing(siteKey: string) {
           product_id: string;
           checkout_enabled?: boolean;
         }>;
+      };
+    }
+  >;
+}
+
+async function importGeneratedSiteHomeContent(siteKey: string) {
+  await generateSiteModule(siteKey);
+  const source = await readFile(generatedSiteModulePath, 'utf8');
+  const homeContentLiteral = source.match(
+    /export const siteHomeContent = ([\s\S]+?) as const;\s+export const siteI18nManifest =/
+  );
+  assert.ok(
+    homeContentLiteral?.[1],
+    'generated site module must export a siteHomeContent literal'
+  );
+
+  return Function(`return (${homeContentLiteral[1]});`)() as null | Record<
+    string,
+    {
+      metadata: {
+        title: string;
       };
     }
   >;
@@ -182,6 +203,7 @@ test('@/site: generated module is a pure literal module', async () => {
   assert.equal(source.includes('export const site = {'), true);
   assert.equal(source.includes('export const sitePricing = {'), true);
   assert.equal(source.includes('export const siteLocalizedPricing = {'), true);
+  assert.equal(source.includes('export const siteHomeContent = '), true);
   assert.equal(source.includes('export const siteI18nManifest = {'), true);
 });
 
@@ -211,6 +233,24 @@ test('@/site: SITE=ai-remover exports localized pricing by locale', async () => 
     ['free', 'pro-monthly', 'studio-monthly']
   );
   assert.equal(localizedPricing.ja.pricing.items[0]?.checkout_enabled, false);
+});
+
+test('@/site: SITE=ai-remover exports localized home content by locale', async () => {
+  const homeContent = await importGeneratedSiteHomeContent('ai-remover');
+
+  assert.deepEqual(Object.keys(homeContent ?? {}).sort(), ['en', 'ja', 'zh']);
+  assert.equal(
+    homeContent?.en.metadata.title,
+    'AI Remover - Remove Objects from Photos for Free'
+  );
+  assert.equal(
+    homeContent?.zh.metadata.title,
+    'AI Remover - 免费移除照片中的物体'
+  );
+  assert.equal(
+    homeContent?.ja.metadata.title,
+    'AI Remover - 写真の不要な物体を無料で削除'
+  );
 });
 
 test('existing sites keep the full legacy pricing catalog after migration', async () => {
