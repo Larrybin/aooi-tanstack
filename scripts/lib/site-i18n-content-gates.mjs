@@ -15,6 +15,10 @@ function normalizeTerm(value) {
   return value.trim().toLocaleLowerCase();
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function includesI18nExemptReason(line) {
   return /i18n-exempt:\s*\S+/.test(line);
 }
@@ -66,9 +70,10 @@ export function findForbiddenTerms({
   pageType,
 }) {
   const severity = getForbiddenSeverity(pageType);
+  const normalizedText = normalizeTerm(text);
 
   return collectForbiddenTerms(glossary, locale)
-    .filter((term) => text.includes(term))
+    .filter((term) => normalizedText.includes(normalizeTerm(term)))
     .map((term) =>
       createIssue({
         code: 'i18n_forbidden_term',
@@ -82,6 +87,17 @@ export function findForbiddenTerms({
     );
 }
 
+function removePreservedTerms(text, preservedTerms) {
+  const orderedTerms = preservedTerms
+    .map((term) => term.trim())
+    .filter(Boolean)
+    .sort((left, right) => right.length - left.length);
+
+  return orderedTerms.reduce((remainingText, term) => {
+    return remainingText.replace(new RegExp(escapeRegExp(term), 'gi'), ' ');
+  }, text);
+}
+
 export function findEnglishResiduals({
   text,
   glossary,
@@ -89,14 +105,17 @@ export function findEnglishResiduals({
   pageId,
   pageType,
 }) {
-  const allowedTerms = new Set(glossary.preserve.map(normalizeTerm));
+  const textWithoutPreservedTerms = removePreservedTerms(
+    text,
+    glossary.preserve
+  );
   const issues = [];
   const seenTerms = new Set();
 
-  for (const match of text.matchAll(englishWordPattern)) {
+  for (const match of textWithoutPreservedTerms.matchAll(englishWordPattern)) {
     const term = match[0];
     const normalizedTerm = normalizeTerm(term);
-    if (allowedTerms.has(normalizedTerm) || seenTerms.has(normalizedTerm)) {
+    if (seenTerms.has(normalizedTerm)) {
       continue;
     }
 

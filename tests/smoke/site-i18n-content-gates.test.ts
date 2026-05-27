@@ -63,6 +63,21 @@ test('localized text check flags unapproved English residuals', () => {
   );
 });
 
+test('localized text check preserves multi-word glossary phrases', () => {
+  const issues = checkLocalizedText({
+    text: 'AI Remover 支持 API。',
+    glossary: {
+      ...glossary,
+      preserve: [...glossary.preserve, 'AI Remover'],
+    },
+    locale: 'zh',
+    pageId: 'home',
+    pageType: 'seo',
+  });
+
+  assert.deepEqual(issues, []);
+});
+
 test('forbidden terms are errors for SEO content and warnings for auth/admin', () => {
   const seoIssues = findForbiddenTerms({
     text: '永久免费',
@@ -81,6 +96,26 @@ test('forbidden terms are errors for SEO content and warnings for auth/admin', (
     pageType: 'auth',
   });
   assert.equal(authIssues[0]?.severity, 'warning');
+});
+
+test('forbidden English terms are matched case-insensitively', () => {
+  const issues = findForbiddenTerms({
+    text: 'Free Forever and 100% Perfect are blocked.',
+    glossary: {
+      ...glossary,
+      forbidden: {
+        allLocales: ['free forever', '100% perfect'],
+      },
+    },
+    locale: 'zh',
+    pageId: 'home',
+    pageType: 'seo',
+  });
+
+  assert.deepEqual(
+    issues.map((issue) => issue.term),
+    ['free forever', '100% perfect']
+  );
 });
 
 test('hardcoded visible English scanner catches JSX text and common attributes', () => {
