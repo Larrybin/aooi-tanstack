@@ -24,6 +24,24 @@
         "status": "pending",
         "sourceHash": "a2a9ad42a78fa713ebcf10dff04fffa4c8ec1c71c22a1c3d133d4af310a61795",
         "targetHash": "32a43128b1fe0aa1d7604d89cfe53dc72462e109cb80ad5dd851dad794e726b1"
+      },
+      "auth.sign-in": {
+        "path": "/sign-in",
+        "status": "pending",
+        "sourceHash": "910a27dc2a30e2219cb2e9e68beabe3a48a5158159c6b1a80dc9ab806bbd3dc2",
+        "targetHash": "f7f0615df426edb34fa6f1b7ffb2c4457b98c0b66f66db644c177661209edbfc"
+      },
+      "auth.sign-up": {
+        "path": "/sign-up",
+        "status": "pending",
+        "sourceHash": "910a27dc2a30e2219cb2e9e68beabe3a48a5158159c6b1a80dc9ab806bbd3dc2",
+        "targetHash": "f7f0615df426edb34fa6f1b7ffb2c4457b98c0b66f66db644c177661209edbfc"
+      },
+      "admin.index": {
+        "path": "/admin",
+        "status": "pending",
+        "sourceHash": "435fb82ab8d1476d198f39eb6b9cdf6e27d629c7f37fc297f807a226bae9cb5a",
+        "targetHash": "efcd4a6fb1284d5c4cc28f2ea00650c9b9d85751190acdcc7fa0d156d20e0821"
       }
     },
     "ja": {
@@ -50,6 +68,24 @@
         "status": "pending",
         "sourceHash": "a2a9ad42a78fa713ebcf10dff04fffa4c8ec1c71c22a1c3d133d4af310a61795",
         "targetHash": "96321abd44bcfa8e9c74f2b2226dc50578cc6e8363ad3361f9b0b7047a2f3e5d"
+      },
+      "auth.sign-in": {
+        "path": "/sign-in",
+        "status": "pending",
+        "sourceHash": "910a27dc2a30e2219cb2e9e68beabe3a48a5158159c6b1a80dc9ab806bbd3dc2",
+        "targetHash": "297e02e9645f22b9b12a1668d8aab8531a91aad1e22a4cfa4f20cb49aa56bd86"
+      },
+      "auth.sign-up": {
+        "path": "/sign-up",
+        "status": "pending",
+        "sourceHash": "910a27dc2a30e2219cb2e9e68beabe3a48a5158159c6b1a80dc9ab806bbd3dc2",
+        "targetHash": "297e02e9645f22b9b12a1668d8aab8531a91aad1e22a4cfa4f20cb49aa56bd86"
+      },
+      "admin.index": {
+        "path": "/admin",
+        "status": "pending",
+        "sourceHash": "435fb82ab8d1476d198f39eb6b9cdf6e27d629c7f37fc297f807a226bae9cb5a",
+        "targetHash": "cf2c9bddf2a50aeec99dbb24b6a6a05cecac5ad0d8ff89c8584163333bc449fc"
       }
     }
   }
