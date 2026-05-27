@@ -78,6 +78,21 @@ test('localized text check preserves multi-word glossary phrases', () => {
   assert.deepEqual(issues, []);
 });
 
+test('localized text check preserves terms only as standalone phrases', () => {
+  const issues = checkLocalizedText({
+    text: 'campaign details',
+    glossary,
+    locale: 'zh',
+    pageId: 'home',
+    pageType: 'seo',
+  });
+
+  assert.deepEqual(
+    issues.map((issue) => issue.term),
+    ['campaign', 'details']
+  );
+});
+
 test('localized text check ignores ICU placeholders', () => {
   const issues = checkLocalizedText({
     text: 'アップロードに失敗しました: {reason}',

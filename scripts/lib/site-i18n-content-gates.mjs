@@ -21,6 +21,13 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function createStandaloneTermPattern(term) {
+  return new RegExp(
+    `(?<![A-Za-z0-9])${escapeRegExp(term)}(?![A-Za-z0-9])`,
+    'gi'
+  );
+}
+
 function includesI18nExemptReason(line) {
   return /i18n-exempt:\s*\S+/.test(line);
 }
@@ -121,7 +128,7 @@ function removePreservedTerms(text, preservedTerms) {
     .sort((left, right) => right.length - left.length);
 
   return orderedTerms.reduce((remainingText, term) => {
-    return remainingText.replace(new RegExp(escapeRegExp(term), 'gi'), ' ');
+    return remainingText.replace(createStandaloneTermPattern(term), ' ');
   }, text);
 }
 
