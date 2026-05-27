@@ -1,0 +1,137 @@
+{
+  "metadata": {
+    "title": "AI Remover 料金 - 無料、Pro、Studio プラン",
+    "description": "オブジェクト除去、高解像度ダウンロード、画像履歴の保持期間に合わせて AI Remover のプランを選べます。"
+  },
+  "pricing": {
+    "id": "pricing",
+    "sr_only_title": "AI Remover 料金",
+    "title": "AI Remover 料金",
+    "description": "画像のクリーンアップ量と高解像度ダウンロード数に合うプランを選択してください。",
+    "items": [
+      {
+        "title": "無料",
+        "description": "アカウント作成前に AI Remover を試せます。",
+        "features_title": "含まれる内容",
+        "features": [
+          "ゲストは 1 日 2 枚まで処理可能",
+          "ログイン済み無料ユーザーは 1 日 5 枚まで処理可能",
+          "サインアップ後に高解像度ダウンロード 3 回分を付与",
+          "ゲスト結果は低解像度でダウンロード可能",
+          "ログイン後の画像履歴を 7 日間保持"
+        ],
+        "interval": "month",
+        "amount": 0,
+        "currency": "USD",
+        "price": "$0",
+        "unit": "",
+        "button": {
+          "title": "オブジェクト除去を始める",
+          "url": "/",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "free",
+        "product_name": "AI Remover 無料",
+        "plan_name": "無料",
+        "checkout_enabled": false,
+        "entitlements": {
+          "guest_daily_removals": 2,
+          "low_res_download": true,
+          "daily_removals": 5,
+          "signup_high_res_downloads": 3,
+          "retention_days": 7
+        }
+      },
+      {
+        "title": "Pro",
+        "description": "毎週画像をクリーンアップするクリエイター向けです。",
+        "label": "人気",
+        "features_title": "無料プランの内容に加えて",
+        "features": [
+          "月 500 回の除去",
+          "月 300 回の高解像度ダウンロード",
+          "高度な除去モード",
+          "20MB のアップロード上限",
+          "画像履歴を 30 日間保持"
+        ],
+        "interval": "month",
+        "amount": 999,
+        "currency": "USD",
+        "price": "$9.99",
+        "unit": "/ 月",
+        "is_featured": true,
+        "button": {
+          "title": "Pro にアップグレード",
+          "url": "/pricing",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "pro-monthly",
+        "product_name": "AI Remover Pro 月額",
+        "plan_name": "Pro",
+        "checkout_enabled": true,
+        "entitlements": {
+          "monthly_removals": 500,
+          "monthly_high_res_downloads": 300,
+          "advanced_mode": true,
+          "max_upload_mb": 20,
+          "retention_days": 30
+        }
+      },
+      {
+        "title": "Studio",
+        "description": "制作、デザイン、写真編集をより多く行うワークフロー向けです。",
+        "features_title": "Pro の内容に加えて",
+        "features": [
+          "月 2,000 回の除去",
+          "月 1,500 回の高解像度ダウンロード",
+          "優先キュー",
+          "20MB のアップロード上限",
+          "画像履歴を 30 日間保持"
+        ],
+        "interval": "month",
+        "amount": 2999,
+        "currency": "USD",
+        "price": "$29.99",
+        "unit": "/ 月",
+        "button": {
+          "title": "Studio にアップグレード",
+          "url": "/pricing",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "studio-monthly",
+        "product_name": "AI Remover Studio 月額",
+        "plan_name": "Studio",
+        "checkout_enabled": true,
+        "entitlements": {
+          "monthly_removals": 2000,
+          "monthly_high_res_downloads": 1500,
+          "priority_queue": true,
+          "max_upload_mb": 20,
+          "retention_days": 30
+        }
+      }
+    ]
+  },
+  "faq": {
+    "id": "pricing-faq",
+    "title": "アップグレード前の料金に関する質問",
+    "items": [
+      {
+        "question": "AI Remover は無料で使えますか？",
+        "answer": "はい。ゲストはサインアップ前に低解像度の結果を試せます。アカウントを作成すると、無料の高解像度ダウンロード枠も利用できます。"
+      },
+      {
+        "question": "有料プランには高解像度ダウンロードが含まれますか？",
+        "answer": "はい。Pro には月 300 回、Studio には月 1,500 回の高解像度ダウンロードが含まれます。"
+      },
+      {
+        "question": "キャンセルするとどうなりますか？",
+        "answer": "サブスクリプション特典は現在の請求期間の終了時にダウングレードされます。画像保持期間と利用枠は無料プランの条件に戻ります。"
+      },
+      {
+        "question": "透かしやロゴを削除できますか？",
+        "answer": "できません。AI Remover は正当な写真クリーンアップ用途のためのものであり、著作権の透かし、ブランドロゴ、認可マークの削除には使用できません。"
+      }
+    ]
+  }
+}

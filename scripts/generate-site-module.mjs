@@ -6,12 +6,21 @@ import {
   resolveRequiredSiteKey,
 } from './lib/site-config.mjs';
 import { readSiteI18nManifest } from './lib/site-i18n-pages.mjs';
-import { readCurrentSitePricing } from './lib/site-pricing.mjs';
+import {
+  readCurrentSiteLocalizedPricing,
+  readCurrentSitePricing,
+} from './lib/site-pricing.mjs';
 
-function toModuleSource({ site, sitePricing, siteI18nManifest }) {
+function toModuleSource({
+  site,
+  sitePricing,
+  siteLocalizedPricing,
+  siteI18nManifest,
+}) {
   return [
     `export const site = ${JSON.stringify(site, null, 2)} as const;`,
     `export const sitePricing = ${JSON.stringify(sitePricing, null, 2)} as const;`,
+    `export const siteLocalizedPricing = ${JSON.stringify(siteLocalizedPricing, null, 2)} as const;`,
     `export const siteI18nManifest = ${JSON.stringify(siteI18nManifest, null, 2)} as const;`,
     '',
   ].join('\n');
@@ -29,6 +38,11 @@ async function main() {
     site,
     siteKey,
   });
+  const siteLocalizedPricing = readCurrentSiteLocalizedPricing({
+    rootDir: process.cwd(),
+    site,
+    siteKey,
+  });
   const siteI18nManifest = readSiteI18nManifest({
     rootDir: process.cwd(),
     siteKey,
@@ -37,7 +51,12 @@ async function main() {
   await mkdir(dirname(targetPath), { recursive: true });
   await writeFile(
     targetPath,
-    toModuleSource({ site, sitePricing, siteI18nManifest }),
+    toModuleSource({
+      site,
+      sitePricing,
+      siteLocalizedPricing,
+      siteI18nManifest,
+    }),
     'utf8'
   );
 

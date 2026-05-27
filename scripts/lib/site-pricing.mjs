@@ -5,6 +5,10 @@ export function resolveSitePricingPath({ rootDir, siteKey }) {
   return path.resolve(rootDir, 'sites', siteKey, 'pricing.json');
 }
 
+export function resolveSiteLocalizedPricingPath({ rootDir, siteKey, locale }) {
+  return path.resolve(rootDir, 'sites', siteKey, `pricing.${locale}.json`);
+}
+
 function isPlainObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
@@ -103,4 +107,35 @@ export function readCurrentSitePricing({
   const pricing = JSON.parse(readFileSync(sourcePath, 'utf8'));
   validateSitePricing(pricing, { siteKey });
   return pricing;
+}
+
+export function readCurrentSiteLocalizedPricing({
+  rootDir = process.cwd(),
+  site,
+  siteKey = site.key,
+}) {
+  const locales = site.i18n?.supportedLocales ?? [];
+  const defaultLocale = site.i18n?.defaultLocale;
+  const localizedPricing = {};
+
+  for (const locale of locales) {
+    if (locale === defaultLocale) {
+      continue;
+    }
+
+    const sourcePath = resolveSiteLocalizedPricingPath({
+      rootDir,
+      siteKey,
+      locale,
+    });
+    if (!existsSync(sourcePath)) {
+      continue;
+    }
+
+    const pricing = JSON.parse(readFileSync(sourcePath, 'utf8'));
+    validateSitePricing(pricing, { siteKey });
+    localizedPricing[locale] = pricing;
+  }
+
+  return localizedPricing;
 }

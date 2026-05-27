@@ -42,13 +42,25 @@ export function canUseLocalizedPricingMessages({
 
 export function resolvePricingPageContent({
   sitePricing,
+  siteLocalePricing,
   localizedPricingMessages,
   localizedLandingMessages,
 }: {
   sitePricing: SitePricing;
+  siteLocalePricing?: SitePricing;
   localizedPricingMessages: LocalizedPricingMessages;
   localizedLandingMessages: LocalizedLandingMessages;
 }): SitePricing {
+  if (
+    siteLocalePricing &&
+    canUseLocalizedPricingMessages({
+      sitePricing,
+      localizedPricing: siteLocalePricing.pricing,
+    })
+  ) {
+    return siteLocalePricing;
+  }
+
   if (
     !canUseLocalizedPricingMessages({
       sitePricing,

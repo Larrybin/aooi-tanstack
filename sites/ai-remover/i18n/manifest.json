@@ -1,6 +1,20 @@
 {
   "locales": {
-    "zh": {},
-    "ja": {}
+    "zh": {
+      "pricing": {
+        "path": "/pricing",
+        "status": "pending",
+        "sourceHash": "5a56a74f74fe19a91799f6721434bb600d203ac0ae93f2cc712e4a675e8ede1c",
+        "targetHash": "dfe60bdab314b5f4729b6ec44c892b3f2fff7e654366ce4bed7af06bea234be1"
+      }
+    },
+    "ja": {
+      "pricing": {
+        "path": "/pricing",
+        "status": "pending",
+        "sourceHash": "5a56a74f74fe19a91799f6721434bb600d203ac0ae93f2cc712e4a675e8ede1c",
+        "targetHash": "ac973c6aba7d28732e8131842d45f9cb5256b68171d010e63ff0f7e2ae2f44be"
+      }
+    }
   }
 }

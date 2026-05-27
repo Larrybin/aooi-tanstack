@@ -1,5 +1,5 @@
 {
-  "preserve": ["AI Remover"],
+  "preserve": ["AI Remover", "Pro", "Studio", "USD", "MB"],
   "terms": {},
   "forbidden": {
     "allLocales": ["100% perfect", "free forever"]
