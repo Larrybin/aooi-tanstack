@@ -35,6 +35,7 @@
     "test:r2-upload-spike": "node --test --import tsx \"src/app/api/storage/upload-image/route.test.ts\"",
     "test:coverage": "node scripts/run-with-site.mjs node scripts/run-tests.mjs --coverage",
     "contract:check": "node scripts/check-saas-product-contract.mjs",
+    "i18n:schema:check": "node scripts/check-site-i18n-schema.mjs",
     "lint": "node scripts/run-with-site.mjs pnpm exec eslint . --report-unused-disable-directives",
     "lint:deps": "node scripts/run-with-site.mjs pnpm exec depcruise --config dependency-cruiser.cjs --output-type err-long src cloudflare scripts tests",
     "arch:graph": "pnpm lint:deps",
