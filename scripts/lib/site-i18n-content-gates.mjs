@@ -7,6 +7,7 @@ const strictForbiddenPageTypes = new Set([
 ]);
 const warningForbiddenPageTypes = new Set(['admin', 'auth']);
 const englishWordPattern = /\b[A-Za-z][A-Za-z0-9]*(?:[-'][A-Za-z0-9]+)*\b/g;
+const icuPlaceholderPattern = /\{\s*[A-Za-z][A-Za-z0-9_]*\s*\}/g;
 const visibleJsxTextPattern =
   /<[A-Za-z][A-Za-z0-9.:-]*(?:\s[^<>]*)?>\s*([^<>{}]*[A-Za-z][^<>{}]*)\s*</g;
 const visibleAttributePattern =
@@ -103,6 +104,10 @@ function removePreservedTerms(text, preservedTerms) {
   }, text);
 }
 
+function removeIcuPlaceholders(text) {
+  return text.replace(icuPlaceholderPattern, ' ');
+}
+
 export function findEnglishResiduals({
   text,
   glossary,
@@ -111,7 +116,7 @@ export function findEnglishResiduals({
   pageType,
 }) {
   const textWithoutPreservedTerms = removePreservedTerms(
-    text,
+    removeIcuPlaceholders(text),
     glossary.preserve
   );
   const issues = [];

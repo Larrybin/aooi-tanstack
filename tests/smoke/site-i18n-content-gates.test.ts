@@ -78,6 +78,18 @@ test('localized text check preserves multi-word glossary phrases', () => {
   assert.deepEqual(issues, []);
 });
 
+test('localized text check ignores ICU placeholders', () => {
+  const issues = checkLocalizedText({
+    text: 'アップロードに失敗しました: {reason}',
+    glossary,
+    locale: 'ja',
+    pageId: 'uploader.image.upload_failed_with_reason',
+    pageType: 'product-ui',
+  });
+
+  assert.deepEqual(issues, []);
+});
+
 test('forbidden terms are errors for SEO content and warnings for auth/admin', () => {
   const seoIssues = findForbiddenTerms({
     text: '永久免费',
