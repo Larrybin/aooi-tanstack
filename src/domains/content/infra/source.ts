@@ -12,7 +12,7 @@ export const docsI18n: I18nConfig = {
 
 export const pagesI18n: I18nConfig = {
   defaultLanguage: 'en',
-  languages: ['en', 'zh', 'zh-TW'],
+  languages: ['en', 'zh', 'zh-TW', 'ja'],
 };
 
 export const postsI18n: I18nConfig = {

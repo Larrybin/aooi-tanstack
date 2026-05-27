@@ -110,7 +110,10 @@ test('@/content-source: SITE=mamamiya includes grouped docs entrypoints', async 
   );
   assert.match(artifactIndex, /docs\/core\/auth\.mdx\?collection=docs/);
   assert.match(artifactIndex, /docs\/core\/settings\.zh\.mdx\?collection=docs/);
-  assert.match(artifactIndex, /docs\/extensions\/logging\.mdx\?collection=docs/);
+  assert.match(
+    artifactIndex,
+    /docs\/extensions\/logging\.mdx\?collection=docs/
+  );
   assert.match(
     artifactIndex,
     /docs\/extensions\/code-review-checklist\.zh\.mdx\?collection=docs/
@@ -237,6 +240,15 @@ test('@/content-source: pages directory remains required for every site', async 
     await rm(backupDir, { recursive: true, force: true });
     await runGenerateContentSource('dev-local');
   }
+});
+
+test('@/content-source: page i18n includes Japanese legal pages', async () => {
+  const source = await readFile(
+    path.resolve(rootDir, 'src/domains/content/infra/source.ts'),
+    'utf8'
+  );
+
+  assert.match(source, /languages:\s*\['en', 'zh', 'zh-TW', 'ja'\]/);
 });
 
 test('@/content-source: same-site publish keeps latest two versions and prunes older artifacts', async () => {

@@ -12,6 +12,15 @@ import {
   readCurrentSitePricing,
 } from './lib/site-pricing.mjs';
 
+function toConstExport(name, value) {
+  const literal = JSON.stringify(value, null, 2);
+  if (value === null) {
+    return `export const ${name} = null;`;
+  }
+
+  return `export const ${name} = ${literal} as const;`;
+}
+
 function toModuleSource({
   site,
   sitePricing,
@@ -20,11 +29,11 @@ function toModuleSource({
   siteI18nManifest,
 }) {
   return [
-    `export const site = ${JSON.stringify(site, null, 2)} as const;`,
-    `export const sitePricing = ${JSON.stringify(sitePricing, null, 2)} as const;`,
-    `export const siteLocalizedPricing = ${JSON.stringify(siteLocalizedPricing, null, 2)} as const;`,
-    `export const siteHomeContent = ${JSON.stringify(siteHomeContent, null, 2)} as const;`,
-    `export const siteI18nManifest = ${JSON.stringify(siteI18nManifest, null, 2)} as const;`,
+    toConstExport('site', site),
+    toConstExport('sitePricing', sitePricing),
+    toConstExport('siteLocalizedPricing', siteLocalizedPricing),
+    toConstExport('siteHomeContent', siteHomeContent),
+    toConstExport('siteI18nManifest', siteI18nManifest),
     '',
   ].join('\n');
 }
