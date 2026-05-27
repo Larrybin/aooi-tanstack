@@ -15,7 +15,7 @@ Use this skill only in the `aooi` repository when the user asks to review locali
 - Do not change `manifest.json` status to `approved` unless the user explicitly confirms the exact locale/page list.
 - Before writing approval changes, show the actual entries that will become `approved`.
 - Do not bulk approve ambiguous scopes such as "all good" unless the pending page list has been shown and the user confirms it.
-- `dev-local` and `mamamiya` are legacy/optional rollout sites. `ai-remover`, `background-remover`, and future non-legacy sites are rollout-required.
+- `ai-remover` and `background-remover` are V1 rollout-required sites. Existing legacy sites such as `dev-local` and `mamamiya` are optional unless explicitly added to the rollout-required list.
 
 ## Workflow
 

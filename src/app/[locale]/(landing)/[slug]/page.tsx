@@ -3,7 +3,10 @@
 // reason: public markdown pages; no user-specific data
 import { notFound } from 'next/navigation';
 import { getDocsPage } from '@/domains/content/application/public-content.query';
-import { buildCanonicalUrl } from '@/infra/url/canonical';
+import {
+  buildCanonicalUrl,
+  isPublishedLocaleForPath,
+} from '@/infra/url/canonical';
 import { site } from '@/site';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
@@ -15,7 +18,12 @@ export async function generateMetadata({
   params: Promise<{ locale: string; slug: string }>;
 }) {
   const { locale, slug } = await params;
-  const canonicalUrl = buildCanonicalUrl(`/${slug}`, locale);
+  const canonicalPath = `/${slug}`;
+  if (!isPublishedLocaleForPath(canonicalPath, locale)) {
+    notFound();
+  }
+
+  const canonicalUrl = buildCanonicalUrl(canonicalPath, locale);
   const siteKey: string = site.key;
 
   const page = await getDocsPage({ slug, locale });
@@ -59,6 +67,11 @@ export default async function DynamicPage({
   params: Promise<{ locale: string; slug: string }>;
 }) {
   const { locale, slug } = await params;
+  const canonicalPath = `/${slug}`;
+  if (!isPublishedLocaleForPath(canonicalPath, locale)) {
+    notFound();
+  }
+
   setRequestLocale(locale);
 
   // Get the page from pagesSource

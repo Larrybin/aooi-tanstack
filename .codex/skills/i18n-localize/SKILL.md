@@ -16,7 +16,7 @@ Use this skill only in the `aooi` repository when the user asks to generate or u
 - Do not invent SEO keyword research. For SEO, blog, or docs pages, use the user's pasted brief. If no brief is provided, ask for it or get explicit permission to continue without SEO-intent validation.
 - Never write `approved`. Generated or changed target-language content must enter `manifest.json` as `pending`.
 - Only use locales declared in `sites/<site-key>/site.config.json`.
-- `dev-local` and `mamamiya` are legacy/optional rollout sites. `ai-remover`, `background-remover`, and future non-legacy sites are rollout-required.
+- `ai-remover` and `background-remover` are V1 rollout-required sites. Existing legacy sites such as `dev-local` and `mamamiya` are optional unless explicitly added to the rollout-required list.
 
 ## Workflow
 

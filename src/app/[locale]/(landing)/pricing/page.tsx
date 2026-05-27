@@ -12,11 +12,12 @@ import {
   buildCanonicalUrl,
   buildLanguageAlternates,
   buildMetadataBaseUrl,
+  getPublishedLocalesForPath,
+  isPublishedLocaleForPath,
 } from '@/infra/url/canonical';
 import { site, sitePricing } from '@/site';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-import { locales } from '@/config/locale';
 import { ScopedIntlProvider } from '@/shared/lib/i18n/scoped-intl-provider';
 import type { SitePricing } from '@/shared/types/blocks/pricing';
 import PricingPageView from '@/themes/default/pages/pricing';
@@ -49,6 +50,10 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  if (!isPublishedLocaleForPath('/pricing', locale)) {
+    notFound();
+  }
+
   setRequestLocale(locale);
 
   const brand = buildBrandPlaceholderValues();
@@ -92,7 +97,7 @@ export async function generateMetadata({
 }
 
 export function generateStaticParams() {
-  return getLocaleStaticParams(locales);
+  return getLocaleStaticParams(getPublishedLocalesForPath('/pricing'));
 }
 
 export default async function PricingPage({
@@ -101,6 +106,10 @@ export default async function PricingPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  if (!isPublishedLocaleForPath('/pricing', locale)) {
+    notFound();
+  }
+
   setRequestLocale(locale);
 
   if (!sitePricing) {

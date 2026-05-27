@@ -60,7 +60,7 @@ test('site i18n report treats missing rollout pages as warnings', () => {
   assert.equal(report.issues[0]?.code, 'i18n_required_page_not_approved');
 });
 
-test('site i18n report does not force legacy sites to complete rollout', () => {
+test('site i18n report does not force optional sites to complete rollout', () => {
   const report = buildSiteI18nReport({
     siteKey: 'mamamiya',
     site,
@@ -75,6 +75,29 @@ test('site i18n report does not force legacy sites to complete rollout', () => {
     generatedAt: '2026-01-01T00:00:00.000Z',
   });
 
+  assert.equal(report.summary.errors, 0);
+  assert.equal(report.summary.warnings, 0);
+});
+
+test('site i18n report requires explicit rollout site enrollment', () => {
+  const report = buildSiteI18nReport({
+    siteKey: 'example-production-site',
+    site: {
+      i18n: {
+        defaultLocale: 'en',
+        supportedLocales: ['en'],
+      },
+    },
+    pages,
+    manifest: {
+      locales: {},
+    },
+    glossary,
+    strict: true,
+    generatedAt: '2026-01-01T00:00:00.000Z',
+  });
+
+  assert.equal(report.rolloutRequired, false);
   assert.equal(report.summary.errors, 0);
   assert.equal(report.summary.warnings, 0);
 });
@@ -135,7 +158,7 @@ test('site i18n report writes latest JSON artifact', () => {
   const rootDir = mkdtempSync(path.join(tmpdir(), 'aooi-i18n-check-'));
   try {
     const report = buildSiteI18nReport({
-      siteKey: 'example',
+      siteKey: 'ai-remover',
       site,
       pages,
       manifest: {
@@ -151,11 +174,11 @@ test('site i18n report writes latest JSON artifact', () => {
     const reportPath = writeSiteI18nReport({ rootDir, report });
     assert.equal(
       reportPath,
-      resolveSiteI18nReportPath({ rootDir, siteKey: 'example' })
+      resolveSiteI18nReportPath({ rootDir, siteKey: 'ai-remover' })
     );
 
     const savedReport = JSON.parse(readFileSync(reportPath, 'utf8'));
-    assert.equal(savedReport.siteKey, 'example');
+    assert.equal(savedReport.siteKey, 'ai-remover');
     assert.equal(savedReport.summary.warnings, 1);
   } finally {
     rmSync(rootDir, { recursive: true, force: true });

@@ -159,7 +159,8 @@ pnpm i18n:check --site <site> --strict
 
 - 旧网站不再强制实行多语言
 - `mamamiya`、`dev-local` 标记为 legacy / optional
-- `ai-remover`、`background-remover` 以及后续新增 production site 默认为 rollout-required
+- `ai-remover`、`background-remover` 为 V1 rollout-required
+- 后续新增正式站点必须显式加入 rollout-required 清单后，才执行同一门槛
 - 更新 SPEC、decision log、skill 与检查逻辑中的 rollout scope 表述
 - 明确后续 rollout PR 拆分为 PR8 / PR9
 

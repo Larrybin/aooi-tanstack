@@ -36,9 +36,9 @@
 34. 强制英文源内容资产化。
 35. 新增/修改文件禁止硬编码用户可见英文，允许 i18n-exempt。
 36. i18n-exempt 必须写 reason，品牌/术语类需进 glossary。
-37. 所有现有站点最终迁移到新规则。
-38. rollout-required production site 严格；legacy / optional site 不因未完成 rollout 阻断。
-39. 全库推荐语言组合，但每个 production site 必须显式确认 supportedLocales。
+37. 旧站不强制迁移到完整多语言规则，只有明确纳入 rollout-required 清单时才执行。
+38. rollout-required site 严格；legacy / optional site 不因未完成 rollout 阻断。
+39. 全库推荐语言组合，但每个 rollout-required site 必须显式确认 supportedLocales。
 40. 推荐语言池：en / es / pt-BR / ja / de / fr / ko / zh。
 41. V1 每站从候选池选 3–5 个语言，后续扩到 6–8。
 42. AI 生成能力做仓库内置 Codex skill。
@@ -86,5 +86,5 @@
 84. Rollout Complete 不再强制旧站一次性迁移。
 85. `mamamiya` 与 `dev-local` 作为 legacy / optional 站点，不作为 V1 强制 rollout 阻断项。
 86. 首批强制 rollout 站点为 `ai-remover` 与 `background-remover`。
-87. 后续新增 production site 默认纳入 rollout-required 范围。
+87. 后续新增正式站点需要显式纳入 rollout-required 清单后，才执行同一门槛。
 88. 首批强制 rollout 语言：en / zh / ja。

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdir, mkdtemp, writeFile, readFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -56,7 +56,7 @@ async function importGeneratedSitePricing(siteKey: string) {
   await generateSiteModule(siteKey);
   const source = await readFile(generatedSiteModulePath, 'utf8');
   const pricingLiteral = source.match(
-    /export const sitePricing = ([\s\S]+?) as const;\s*$/
+    /export const sitePricing = ([\s\S]+?) as const;\s+export const siteI18nManifest =/
   );
   assert.ok(
     pricingLiteral?.[1],
@@ -70,6 +70,22 @@ async function importGeneratedSitePricing(siteKey: string) {
         checkout_enabled?: boolean;
       }>;
     };
+  };
+}
+
+async function importGeneratedSiteI18nManifest(siteKey: string) {
+  await generateSiteModule(siteKey);
+  const source = await readFile(generatedSiteModulePath, 'utf8');
+  const manifestLiteral = source.match(
+    /export const siteI18nManifest = ([\s\S]+?) as const;\s*$/
+  );
+  assert.ok(
+    manifestLiteral?.[1],
+    'generated site module must export a siteI18nManifest literal'
+  );
+
+  return Function(`return (${manifestLiteral[1]});`)() as {
+    locales: Record<string, Record<string, { status: string; path: string }>>;
   };
 }
 
@@ -90,10 +106,7 @@ async function readSitePricingFile(siteKey: string) {
 
 async function readLegacyEnglishPricingMessages() {
   const source = await readFile(
-    path.resolve(
-      process.cwd(),
-      'src/config/locale/messages/en/pricing.json'
-    ),
+    path.resolve(process.cwd(), 'src/config/locale/messages/en/pricing.json'),
     'utf8'
   );
   return JSON.parse(source) as {
@@ -106,10 +119,7 @@ async function readLegacyEnglishPricingMessages() {
 
 async function readLegacyEnglishLandingMessages() {
   const source = await readFile(
-    path.resolve(
-      process.cwd(),
-      'src/config/locale/messages/en/landing.json'
-    ),
+    path.resolve(process.cwd(), 'src/config/locale/messages/en/landing.json'),
     'utf8'
   );
   return JSON.parse(source) as {
@@ -147,6 +157,7 @@ test('@/site: generated module is a pure literal module', async () => {
   assert.equal(source.includes('export {'), false);
   assert.equal(source.includes('export const site = {'), true);
   assert.equal(source.includes('export const sitePricing = {'), true);
+  assert.equal(source.includes('export const siteI18nManifest = {'), true);
 });
 
 test('@/site: SITE=ai-remover exports site-scoped pricing', async () => {
@@ -157,6 +168,12 @@ test('@/site: SITE=ai-remover exports site-scoped pricing', async () => {
     ['free', 'pro-monthly', 'studio-monthly']
   );
   assert.equal(sitePricing.pricing.items[0].checkout_enabled, false);
+});
+
+test('@/site: SITE=ai-remover exports site i18n manifest', async () => {
+  const manifest = await importGeneratedSiteI18nManifest('ai-remover');
+
+  assert.deepEqual(Object.keys(manifest.locales).sort(), ['ja', 'zh']);
 });
 
 test('existing sites keep the full legacy pricing catalog after migration', async () => {

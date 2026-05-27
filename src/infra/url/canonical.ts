@@ -1,8 +1,18 @@
 import 'server-only';
 
-import { site } from '@/site';
+import { site, siteI18nManifest } from '@/site';
 
-import { defaultLocale, localeHreflangs, locales } from '@/config/locale';
+import {
+  defaultLocale,
+  localeHreflangs,
+  locales,
+  type Locale,
+} from '@/config/locale';
+
+type SiteI18nManifestLocales = Record<
+  string,
+  Record<string, { path: string; status: string }>
+>;
 
 function stripTrailingSlash(value: string) {
   return value.endsWith('/') ? value.slice(0, -1) : value;
@@ -46,11 +56,42 @@ export function buildLanguageAlternates(relativePath: string) {
     return undefined;
   }
 
+  const publishedLocales = getPublishedLocalesForPath(relativePath);
+
   return Object.fromEntries([
-    ...locales.map((locale) => [
+    ...publishedLocales.map((locale) => [
       localeHreflangs[locale],
       buildCanonicalUrl(relativePath, locale),
     ]),
     ['x-default', buildCanonicalUrl(relativePath, defaultLocale)],
   ]);
+}
+
+export function getPublishedLocalesForPath(relativePath: string): Locale[] {
+  const normalizedPath = normalizeRelativePath(relativePath);
+  const publishedLocales = [defaultLocale];
+  const manifestLocales = siteI18nManifest.locales as SiteI18nManifestLocales;
+
+  for (const locale of locales) {
+    if (locale === defaultLocale) {
+      continue;
+    }
+
+    const entries = manifestLocales[locale] ?? {};
+    const hasApprovedPage = Object.values(entries).some(
+      (entry) => entry.path === normalizedPath && entry.status === 'approved'
+    );
+
+    if (hasApprovedPage) {
+      publishedLocales.push(locale);
+    }
+  }
+
+  return publishedLocales;
+}
+
+export function isPublishedLocaleForPath(relativePath: string, locale: string) {
+  return getPublishedLocalesForPath(relativePath).some(
+    (publishedLocale) => publishedLocale === locale
+  );
 }

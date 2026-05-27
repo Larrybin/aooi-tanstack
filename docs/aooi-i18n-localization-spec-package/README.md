@@ -14,5 +14,5 @@
 建议使用方式：
 
 - 先把 `aooi-i18n-localization-spec.md` 放进仓库 docs。
-- 再把 `implementation-pr-plan.md` 拆成 Codex 执行任务。旧网站不强制 rollout，首批只要求 `ai-remover`、`background-remover` 以及后续新站。
+- 再把 `implementation-pr-plan.md` 拆成 Codex 执行任务。V1 只强制 `ai-remover`、`background-remover`；旧网站不强制 rollout，后续新站需要明确纳入 rollout-required 清单后再执行同一门槛。
 - `decision-log.md` 作为需求变更时的对照基线。

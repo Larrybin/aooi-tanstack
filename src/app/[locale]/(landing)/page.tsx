@@ -2,6 +2,7 @@
 // cache: default RSC
 // reason: public marketing page; keep AI navigation filtering aligned with source-controlled site capabilities
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import {
   readBuildAuthUiSettings,
   readBuildBillingUiSettings,
@@ -12,6 +13,7 @@ import {
   buildBrandPlaceholderValues,
   replaceBrandPlaceholdersDeep,
 } from '@/infra/platform/brand/placeholders.server';
+import { isPublishedLocaleForPath } from '@/infra/url/canonical';
 import { site } from '@/site';
 import { filterLandingButtons } from '@/surfaces/public/navigation/landing-visibility';
 import {
@@ -34,6 +36,10 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  if (!isPublishedLocaleForPath('/', locale)) {
+    notFound();
+  }
+
   setRequestLocale(locale);
   const siteKey: string = site.key;
   const productLanding = getProductLanding(siteKey);
@@ -55,6 +61,10 @@ export default async function LandingPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  if (!isPublishedLocaleForPath('/', locale)) {
+    notFound();
+  }
+
   setRequestLocale(locale);
 
   const publicUiConfig = readBuildPublicUiConfig();

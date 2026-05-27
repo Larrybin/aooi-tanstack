@@ -78,7 +78,7 @@ SEO 增长 + 产品体验都要，但 SEO 更重要。
 en / es / pt-BR / ja / de / fr / ko / zh
 ```
 
-V1 不强制所有旧站一次性 rollout。首批强制站点为 `ai-remover`、`background-remover`，以及后续新增 production site。旧站（如 `mamamiya`、`dev-local`）默认 optional，只有明确进入 rollout 时才要求完整多语言。
+V1 不强制所有旧站一次性 rollout。强制站点为 `ai-remover`、`background-remover`。旧站（如 `mamamiya`、`dev-local`）默认 optional，只有明确进入 rollout-required 清单时才要求完整多语言。后续新站需要执行同一门槛，但必须显式加入 rollout-required 清单，避免误伤临时或实验站点。
 
 首批 rollout 语言：
 
@@ -650,7 +650,7 @@ sourceHash / targetHash 匹配
 12. AI 不允许直接 approved。
 13. 用户明确确认后，i18n-review 才能写 approved。
 14. 英文源用户可见文案必须资产化，不能继续新增硬编码英文。
-15. rollout-required production site 严格；legacy / optional site 不因未完成 rollout 阻断。
+15. rollout-required site 严格；legacy / optional site 不因未完成 rollout 阻断。
 
 ---
 
@@ -683,7 +683,7 @@ V1 不做：
 完成以下能力即为 technical complete：
 
 1. `src/config/locale/registry.json` 存在，并通过 Zod 校验。
-2. 每个 production site 的 `site.config.json` 支持标准 i18n 配置。
+2. 每个 rollout-required site 的 `site.config.json` 支持标准 i18n 配置。
 3. site-level `supportedLocales` 生效。
 4. unsupported locale URL 返回 404。
 5. 默认语言无前缀，非默认语言有前缀。
@@ -729,7 +729,7 @@ en / zh / ja
 13. `background-remover` 无英文 fallback。
 14. `background-remover` sitemap / hreflang 只包含合规页面。
 15. `background-remover` CI / cf:build strict 通过。
-16. 后续新增 production site 默认遵循同一 rollout 门槛。
+16. 后续新增正式站点显式纳入 rollout-required 清单后，遵循同一 rollout 门槛。
 
 ---
 
@@ -756,7 +756,7 @@ PR8：ai-remover i18n rollout
 PR9：background-remover i18n rollout
 ```
 
-后续新增 production site 默认按同一门槛执行；旧站只有明确纳入时才迁移。
+后续新增正式站点显式纳入 rollout-required 清单后按同一门槛执行；旧站只有明确纳入时才迁移。
 
 ---
 

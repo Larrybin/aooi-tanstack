@@ -37,7 +37,11 @@ test('i18n-review skill requires explicit approval before approved status', () =
 
 test('i18n skills document current rollout scope', () => {
   for (const skill of [localizeSkill, reviewSkill]) {
-    assert.match(skill, /`dev-local` and `mamamiya` are legacy\/optional/);
-    assert.match(skill, /`ai-remover`, `background-remover`, and future/);
+    assert.match(
+      skill,
+      /`ai-remover` and `background-remover` are V1 rollout-required/
+    );
+    assert.match(skill, /`dev-local` and `mamamiya` are optional/);
+    assert.match(skill, /explicitly added to the rollout-required list/);
   }
 });

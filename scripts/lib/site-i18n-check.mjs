@@ -1,10 +1,10 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-const legacyOptionalI18nSites = new Set(['dev-local', 'mamamiya']);
+const rolloutRequiredI18nSites = new Set(['ai-remover', 'background-remover']);
 
 export function isSiteI18nRolloutRequired(siteKey) {
-  return !legacyOptionalI18nSites.has(siteKey);
+  return rolloutRequiredI18nSites.has(siteKey);
 }
 
 export function resolveSiteI18nReportPath({
