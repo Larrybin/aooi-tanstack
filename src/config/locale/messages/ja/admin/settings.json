@@ -1,0 +1,117 @@
+{
+  "groups": {
+    "general_ui": "UI",
+    "general_brand": "ブランド",
+    "email_auth": "メール認証",
+    "google_auth": "Google 認証",
+    "github_auth": "Github 認証",
+    "basic_payment": "基本決済",
+    "stripe": "Stripe",
+    "creem": "Creem",
+    "paypal": "Paypal",
+    "resend": "Resend",
+    "r2": "Cloudflare R2",
+    "ai_module": "AI モジュール",
+    "s3": "AWS S3",
+    "openrouter": "OpenRouter",
+    "replicate": "Replicate",
+    "fal": "Fal",
+    "kie": "Kie",
+    "google_analytics": "Google Analytics",
+    "clarity": "Clarity",
+    "plausible": "Plausible",
+    "openpanel": "OpenPanel",
+    "ads_basic": "広告ランタイム",
+    "adsense": "AdSense",
+    "adsterra": "Adsterra",
+    "affonso": "Affonso",
+    "promotekit": "PromoteKit",
+    "tawk": "Tawk",
+    "crisp": "Crisp"
+  },
+  "edit": {
+    "title": "設定",
+    "crumbs": {
+      "admin": "管理",
+      "settings": "設定"
+    },
+    "tabs": {
+      "general": "一般",
+      "auth": "認証",
+      "payment": "支払い",
+      "email": "メール",
+      "storage": "ストレージ",
+      "ai": "AI",
+      "analytics": "分析",
+      "ads": "広告",
+      "affiliate": "アフィリエイト",
+      "customer_service": "カスタマーサービス"
+    },
+    "buttons": {
+      "submit": "保存"
+    },
+    "module_contract": {
+      "title_label": "モジュール",
+      "relationship_label": "関係",
+      "tier_label": "階層",
+      "verification_label": "検証",
+      "guide_label": "有効化ガイド",
+      "guide_cta": "ガイドを開く",
+      "relationship_values": {
+        "owned": "所有",
+        "supporting": "支援"
+      },
+      "tier_values": {
+        "mainline": "メインライン",
+        "optional": "任意",
+        "experimental": "実験的"
+      },
+      "verification_values": {
+        "verified": "検証済み",
+        "partial": "一部検証",
+        "unverified": "未検証"
+      }
+    },
+    "errors": {
+      "load_failed_title": "設定を読み込めませんでした",
+      "load_failed_desc": "一部の設定値をサーバーから読み込めませんでした。関連設定が正しく保存されない可能性がありますが、他のタブの閲覧や切り替えは可能です。",
+      "global_title": "設定エラー",
+      "global_desc": "このページの読み込み中に予期しないエラーが発生しました。後でもう一度お試しいただくか、管理者にお問い合わせください。",
+      "retry": "再試行"
+    }
+  },
+  "brand_preview": {
+    "title": "ライブプレビュー",
+    "description": "アップロードしたアセットはここにすぐ反映されます。保存後、公開ブランドアセットは現在の設定に追従します。オンラインで古いアセットが表示される場合は、通常キャッシュが原因です。",
+    "logo": {
+      "alt": "ロゴプレビュー"
+    },
+    "preview": {
+      "alt": "プレビュー画像"
+    },
+    "favicon": {
+      "title": "ファビコンプレビュー",
+      "alt": "ファビコンプレビュー"
+    },
+    "preview_card": {
+      "title": "ブランドをより明確に表示",
+      "headline": "ブランドをより明確に表示",
+      "description": "Open Graph / Twitter カードを模擬表示し、タイトル、ブランド、プレビュー画像の構成をすばやく確認できます。"
+    },
+    "size_guide": {
+      "title": "サイズガイド",
+      "logo": {
+        "title": "ロゴ",
+        "description": "512×512 以上の正方形画像を使用してください。透明背景を推奨します。小さすぎる文字は避けてください。"
+      },
+      "favicon": {
+        "title": "ファビコン",
+        "description": "32×32、48×48、または `.ico` ファイルを使用してください。形状はシンプルで認識しやすく保ってください。"
+      },
+      "preview": {
+        "title": "プレビュー画像",
+        "description": "1200×630 を使用してください。切り抜きリスクを減らすため、主要な被写体は中央の安全領域に配置してください。"
+      }
+    }
+  }
+}
