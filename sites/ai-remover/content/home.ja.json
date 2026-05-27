@@ -1,0 +1,187 @@
+{
+  "metadata": {
+    "title": "AI Remover - 写真の不要な物体を無料で削除",
+    "description": "AI Remover で写真の不要な物体、人物、背景の写り込みを数秒で取り除けます。",
+    "keywords": [
+      "AI Remover",
+      "AI オブジェクト除去",
+      "写真から物体を削除",
+      "不要な物体を消す",
+      "写真から人物を消す"
+    ]
+  },
+  "shell": {
+    "pricing": "料金",
+    "myImages": "マイ画像",
+    "billing": "請求",
+    "footerDescription": "AI Remover は、写真の不要な物体、人物、背景の写り込みをすばやく整理するためのツールです。",
+    "productGroup": "製品",
+    "tool": "AI オブジェクト除去",
+    "trustGroup": "信頼",
+    "privacyPolicy": "プライバシーポリシー",
+    "termsOfService": "利用規約",
+    "copyrightSuffix": "無断転載を禁じます。"
+  },
+  "editor": {
+    "invalidTypeError": "JPG、PNG、または WebP 画像を使用してください。",
+    "openError": "この画像を開けませんでした。",
+    "loading": "エディターを読み込んでいます...",
+    "uploadTitle": "写真をアップロードして開始",
+    "uploadDescription": "写真を追加し、不要な範囲をブラシで指定すると、AI Remover がきれいに整えます。",
+    "chooseImage": "画像を選択",
+    "fileHint": "JPG、PNG、WebP に対応。無料で試せて、低解像度ダウンロードは登録不要です。",
+    "steps": ["アップロード", "ブラシ", "除去", "ダウンロード"],
+    "canvas": {
+      "brush": "ブラシ",
+      "eraser": "消しゴム",
+      "pan": "移動",
+      "size": "サイズ",
+      "undo": "元に戻す",
+      "reset": "リセット",
+      "zoomOut": "縮小",
+      "zoomIn": "拡大",
+      "previewAriaLabel": "アップロード済み写真のプレビュー",
+      "replaceImage": "画像を変更",
+      "removeReadyTitle": "マークした範囲を除去",
+      "removeEmptyTitle": "除去する前に範囲をブラシで指定してください",
+      "uploading": "アップロード中...",
+      "removing": "除去中...",
+      "remove": "除去",
+      "successTitle": "クリーンな画像の準備ができました。",
+      "resultAlt": "AI Remover の結果",
+      "downloadLowRes": "低解像度の結果をダウンロード",
+      "signInHighRes": "ログインして高解像度を取得",
+      "downloadHighRes": "高解像度の結果をダウンロード",
+      "signInMessage": "高解像度の結果をダウンロードするにはログインしてください。",
+      "signInDownload": "ログインしてダウンロード",
+      "failedTitle": "除去に失敗しました",
+      "defaultMaskError": "この画像を処理できませんでした。別のマスクを試してください。",
+      "defaultProcessError": "この画像を処理できませんでした。"
+    }
+  },
+  "hero": {
+    "badge": "無料で試せます",
+    "title": "AI オブジェクト除去",
+    "description": "写真の不要な物体、人物、背景の写り込みを数秒で取り除きます。",
+    "useCases": [
+      "日常写真の不要な物体を削除",
+      "旅行やイベント写真の人物を整理",
+      "投稿前にソーシャル画像をクリーンアップ",
+      "クリエイター素材の背景ノイズを修正"
+    ]
+  },
+  "processExample": {
+    "before": "処理前",
+    "after": "処理後",
+    "distraction": "写り込み",
+    "cleanResult": "クリーンな結果"
+  },
+  "beforeAfter": {
+    "eyebrow": "処理前 / 処理後",
+    "title": "重い編集ソフトを開かずに写真を整えられます。",
+    "description": "消したい物体、人物、背景の細部をブラシで指定します。AI Remover は画像の他の部分を保ちながら、クリーンな結果を生成します。"
+  },
+  "howItWorks": {
+    "eyebrow": "使い方",
+    "title": "4 ステップでクリーンな結果へ。",
+    "steps": [
+      {
+        "title": "アップロード",
+        "description": "JPG、PNG、または WebP 写真を選択します。"
+      },
+      {
+        "title": "ブラシ",
+        "description": "削除したい物体や人物を塗ります。"
+      },
+      {
+        "title": "除去",
+        "description": "AI が数秒で選択範囲を補完します。"
+      },
+      {
+        "title": "ダウンロード",
+        "description": "クリーンな低解像度の結果を無料で保存します。"
+      }
+    ]
+  },
+  "useCasesSection": {
+    "eyebrow": "利用シーン",
+    "title": "すばやい写真クリーンアップ向けです。",
+    "description": "現在のバージョンは、通常の写真やクリエイター素材に写り込んだ目立つ不要物の除去に集中しています。プロジェクト作成も複雑な書き出しパネルも不要です。",
+    "beforePrefix": "処理前：",
+    "afterPrefix": "処理後：",
+    "examples": [
+      {
+        "title": "旅行写真を整理",
+        "before": "観光客や街中の不要物",
+        "after": "ランドマークが見やすい写真"
+      },
+      {
+        "title": "背景の写り込みを除去",
+        "before": "ケーブル、ゴミ箱、看板",
+        "after": "落ち着いた構図"
+      },
+      {
+        "title": "クリエイター素材を仕上げる",
+        "before": "視線を奪う物体",
+        "after": "投稿に使いやすいビジュアル"
+      }
+    ]
+  },
+  "featuresSection": {
+    "eyebrow": "機能",
+    "title": "この作業に必要な編集力を備えています。",
+    "features": [
+      {
+        "title": "ブラシによる範囲指定",
+        "description": "変更したい部分だけをマークし、写真の他の部分を保ちます。"
+      },
+      {
+        "title": "処理前後のプレビュー",
+        "description": "ダウンロード前に元画像とクリーンな結果を比較できます。"
+      },
+      {
+        "title": "プライバシーに配慮した保持",
+        "description": "画像は処理に使われ、学習には使われず、期限後に自動で失効します。"
+      },
+      {
+        "title": "高速なブラウザワークフロー",
+        "description": "重い編集ソフト、プロジェクト設定、強制登録なしで開始できます。"
+      }
+    ]
+  },
+  "privacy": {
+    "title": "プライバシーと利用範囲",
+    "description": "アップロード画像は除去ジョブの処理に使用され、AI モデルの学習には使用されません。ゲスト画像は既定で 24 時間後、無料ログインユーザーの画像は 7 日後、有料ユーザーの画像は 30 日後に失効します。"
+  },
+  "policy": {
+    "title": "透かしやロゴの削除には使用できません",
+    "description": "AI Remover は正当な写真クリーンアップ用です。ユーザーはアップロード画像を所有している、または処理許可を得ている必要があり、著作権の透かし、ブランドロゴ、認可マークを削除してはいけません。"
+  },
+  "cta": {
+    "title": "高解像度ダウンロードが必要ですか？",
+    "description": "まず無料で始め、月間処理数、高解像度結果、より長い画像保持期間が必要になったらアップグレードできます。",
+    "button": "料金を見る"
+  },
+  "faqSection": {
+    "eyebrow": "FAQ",
+    "title": "アップロード前のよくある質問。",
+    "items": [
+      {
+        "question": "登録せずに AI Remover を試せますか？",
+        "answer": "はい。ゲストは限られた枚数の画像を処理し、アカウント作成なしで低解像度の結果をダウンロードできます。"
+      },
+      {
+        "question": "対応している画像形式は？",
+        "answer": "現在のバージョンでは JPG、PNG、WebP のアップロードに対応しています。ファイルサイズ上限はプランによって異なります。"
+      },
+      {
+        "question": "アップロード画像は学習に使われますか？",
+        "answer": "いいえ。アップロード画像は除去ジョブの処理と結果提供にのみ使用され、AI モデルの学習には使用されません。"
+      },
+      {
+        "question": "透かしやロゴを削除できますか？",
+        "answer": "できません。AI Remover は正当な写真クリーンアップ用であり、著作権の透かし、ブランドロゴ、認可マークの削除には使用できません。"
+      }
+    ]
+  }
+}

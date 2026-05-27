@@ -42,6 +42,22 @@ test('site schema accepts registered site-level i18n config', () => {
   );
 });
 
+test('site schema accepts explicit i18n strict publishing enforcement', () => {
+  assert.doesNotThrow(() =>
+    validateSiteConfig(
+      buildSiteConfig({
+        i18n: {
+          defaultLocale: 'en',
+          supportedLocales: ['en', 'zh', 'ja'],
+          localePrefix: 'as-needed',
+          localeDetection: false,
+          strictPublishing: true,
+        },
+      })
+    )
+  );
+});
+
 test('site schema requires site-level i18n config', () => {
   assert.throws(
     () => validateSiteConfig(buildSiteConfig()),
@@ -129,5 +145,23 @@ test('site schema requires fixed routing policy for v1', () => {
         })
       ),
     /localeDetection must equal false/
+  );
+});
+
+test('site schema rejects non-boolean strict publishing enforcement', () => {
+  assert.throws(
+    () =>
+      validateSiteConfig(
+        buildSiteConfig({
+          i18n: {
+            defaultLocale: 'en',
+            supportedLocales: ['en', 'zh'],
+            localePrefix: 'as-needed',
+            localeDetection: false,
+            strictPublishing: 'yes',
+          },
+        })
+      ),
+    /strictPublishing must be a boolean/
   );
 });

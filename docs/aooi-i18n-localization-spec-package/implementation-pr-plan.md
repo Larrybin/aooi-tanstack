@@ -105,13 +105,13 @@ pnpm i18n:check --site <site> --strict
 - strict 模式：error fail，warning 不 fail
 - 接入：
   - `pnpm build`：warning，不阻断
-  - CI：strict fail
-  - `pnpm cf:build`：strict fail
+  - CI / `pnpm cf:build`：site `i18n.strictPublishing: true` 后 strict fail
+  - rollout 迁移期 pending 内容 PR 不开启该开关，避免原子 PR 被未完成页面阻断
 
 验收：
 
 - 本地普通 build 不因 i18n warning 失败
-- CI/cf:build 有 error 时失败
+- 开启 `i18n.strictPublishing: true` 的 site 在 CI/cf:build 有 error 时失败
 - JSON report 可被 Codex skill 读取
 
 ---
@@ -181,7 +181,7 @@ pnpm i18n:check --site <site> --strict
 - SEO / legal / product UI 无英文 fallback
 - manifest 对应页面 approved
 - sitemap / hreflang 只包含合规页面
-- CI / cf:build strict 通过
+- 合并前把 `ai-remover` 切到 `i18n.strictPublishing: true`，并确保 CI / cf:build strict 通过
 
 验收：
 
@@ -199,7 +199,7 @@ pnpm i18n:check --site <site> --strict
 - SEO / legal / product UI 无英文 fallback
 - manifest 对应页面 approved
 - sitemap / hreflang 只包含合规页面
-- CI / cf:build strict 通过
+- 合并前把 `background-remover` 切到 `i18n.strictPublishing: true`，并确保 CI / cf:build strict 通过
 
 验收：
 

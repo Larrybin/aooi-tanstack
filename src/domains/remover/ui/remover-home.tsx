@@ -14,90 +14,19 @@ import {
 } from 'lucide-react';
 
 import { RemoverEditorEntry } from './remover-editor';
+import type { RemoverHomeCopy } from './remover-home-copy';
 
-const steps = [
-  { title: 'Upload', description: 'Choose a JPG, PNG, or WebP photo.' },
-  { title: 'Brush', description: 'Paint over the object or person to remove.' },
-  { title: 'Remove', description: 'AI fills the selected area in seconds.' },
-  { title: 'Download', description: 'Save a clean low-res result for free.' },
-];
+const featureIcons = [Brush, Images, ShieldCheck, Zap];
 
-const examples = [
-  {
-    title: 'Clean travel photos',
-    before: 'Tourists and street clutter',
-    after: 'A clear landmark shot',
-  },
-  {
-    title: 'Remove background distractions',
-    before: 'Cables, trash cans, and signs',
-    after: 'A calmer composition',
-  },
-  {
-    title: 'Polish creator assets',
-    before: 'Objects pulling focus',
-    after: 'Ready-to-post visuals',
-  },
-];
+function withLocale(path: string, locale: string): string {
+  if (!locale || locale === 'en') {
+    return path;
+  }
 
-const useCases = [
-  'Remove unwanted objects from daily photos',
-  'Remove people from travel and event photos',
-  'Clean social media images before posting',
-  'Fix background distractions in creator assets',
-];
+  return path === '/' ? `/${locale}` : `/${locale}${path}`;
+}
 
-const features = [
-  {
-    icon: Brush,
-    title: 'Brush-based selection',
-    description:
-      'Mark only the area you want changed. Keep the rest of the photo intact.',
-  },
-  {
-    icon: Images,
-    title: 'Before and after preview',
-    description:
-      'Compare the original and cleaned result before deciding what to download.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Privacy-aware retention',
-    description:
-      'Images are used for processing, not training, and expire automatically.',
-  },
-  {
-    icon: Zap,
-    title: 'Fast browser workflow',
-    description:
-      'Start without a heavy editor, project setup, or mandatory sign-up.',
-  },
-];
-
-const faqs = [
-  {
-    question: 'Can I try AI Remover without signing up?',
-    answer:
-      'Yes. Guests can process a limited number of images and download low-res results without creating an account.',
-  },
-  {
-    question: 'What image formats are supported?',
-    answer:
-      'The MVP supports JPG, PNG, and WebP uploads. File size limits depend on your plan.',
-  },
-  {
-    question: 'Are uploaded images used for training?',
-    answer:
-      'No. Uploaded images are used to process your removal job and provide your result. They are not used to train AI models.',
-  },
-  {
-    question: 'Can I remove watermarks or logos?',
-    answer:
-      'No. AI Remover is for legitimate photo cleanup. It must not be used to remove copyright watermarks, brand logos, or authorization marks.',
-  },
-];
-
-function ProcessExample() {
+function ProcessExample({ copy }: { copy: RemoverHomeCopy['processExample'] }) {
   return (
     <div className="grid overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:grid-cols-2">
       <div className="relative min-h-72 overflow-hidden bg-[linear-gradient(135deg,#d7f0ec,#f8d7bf_48%,#d9e8ff)]">
@@ -107,10 +36,10 @@ function ProcessExample() {
         <div className="absolute right-10 bottom-12 h-20 w-28 rounded-lg bg-amber-300/80 shadow-sm" />
         <div className="absolute bottom-8 left-12 h-16 w-36 rounded-lg bg-white/80 shadow-sm" />
         <div className="absolute top-4 left-4 rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-slate-700">
-          Before
+          {copy.before}
         </div>
         <div className="absolute top-16 right-10 rounded-full border border-rose-400 bg-rose-100/80 px-3 py-1 text-xs font-medium text-rose-800">
-          distraction
+          {copy.distraction}
         </div>
       </div>
 
@@ -119,18 +48,26 @@ function ProcessExample() {
         <div className="absolute top-10 left-10 h-28 w-20 rounded-lg bg-white/70 shadow-sm" />
         <div className="absolute bottom-8 left-12 h-16 w-36 rounded-lg bg-white/80 shadow-sm" />
         <div className="absolute top-4 left-4 rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-slate-700">
-          After
+          {copy.after}
         </div>
         <div className="absolute right-6 bottom-6 flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-1 text-xs font-medium text-white shadow-sm">
           <Check className="size-3" />
-          Clean result
+          {copy.cleanResult}
         </div>
       </div>
     </div>
   );
 }
 
-export function RemoverHome() {
+export function RemoverHome({
+  copy,
+  locale,
+}: {
+  copy: RemoverHomeCopy;
+  locale: string;
+}) {
+  const pricingHref = withLocale('/pricing', locale);
+
   return (
     <div className="bg-[#f7faf8] text-slate-950">
       <section className="border-b border-slate-200 bg-[radial-gradient(circle_at_top_left,#d7f0ec,transparent_32%),linear-gradient(180deg,#ffffff,#f7faf8)]">
@@ -138,17 +75,16 @@ export function RemoverHome() {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-white px-3 py-1 text-sm font-medium text-teal-800">
               <Sparkles className="size-4" />
-              Free to try
+              {copy.hero.badge}
             </div>
             <h1 className="mt-5 text-4xl font-semibold tracking-normal text-slate-950 sm:text-5xl lg:text-6xl">
-              AI Object Remover
+              {copy.hero.title}
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
-              Remove unwanted objects, people, and distractions from photos in
-              seconds.
+              {copy.hero.description}
             </p>
             <div className="mt-7 grid max-w-2xl gap-3 sm:grid-cols-2">
-              {useCases.map((item) => (
+              {copy.hero.useCases.map((item) => (
                 <div
                   key={item}
                   className="flex items-center gap-2 text-sm text-slate-700"
@@ -160,7 +96,7 @@ export function RemoverHome() {
             </div>
           </div>
 
-          <RemoverEditorEntry />
+          <RemoverEditorEntry copy={copy.editor} locale={locale} />
         </div>
       </section>
 
@@ -168,18 +104,16 @@ export function RemoverHome() {
         <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div>
             <p className="text-sm font-semibold tracking-normal text-teal-700 uppercase">
-              Before / After
+              {copy.beforeAfter.eyebrow}
             </p>
             <h2 className="mt-3 text-3xl font-semibold text-slate-950">
-              Clean the photo without opening a heavy editor.
+              {copy.beforeAfter.title}
             </h2>
             <p className="mt-4 text-base leading-7 text-slate-600">
-              Brush over the object, person, or background detail you want gone.
-              AI Remover creates a cleaned result while preserving the rest of
-              your image.
+              {copy.beforeAfter.description}
             </p>
           </div>
-          <ProcessExample />
+          <ProcessExample copy={copy.processExample} />
         </div>
       </section>
 
@@ -187,14 +121,14 @@ export function RemoverHome() {
         <div className="container py-12 lg:py-16">
           <div className="max-w-2xl">
             <p className="text-sm font-semibold tracking-normal text-teal-700 uppercase">
-              How it works
+              {copy.howItWorks.eyebrow}
             </p>
             <h2 className="mt-3 text-3xl font-semibold">
-              Four steps, one clean result.
+              {copy.howItWorks.title}
             </h2>
           </div>
           <div className="mt-8 grid gap-4 md:grid-cols-4">
-            {steps.map((step, index) => (
+            {copy.howItWorks.steps.map((step, index) => (
               <div
                 key={step.title}
                 className="rounded-lg border border-slate-200 bg-slate-50 p-5"
@@ -219,19 +153,17 @@ export function RemoverHome() {
         <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr]">
           <div>
             <p className="text-sm font-semibold tracking-normal text-teal-700 uppercase">
-              Use cases
+              {copy.useCasesSection.eyebrow}
             </p>
             <h2 className="mt-3 text-3xl font-semibold">
-              Built for quick photo cleanup.
+              {copy.useCasesSection.title}
             </h2>
             <p className="mt-4 text-base leading-7 text-slate-600">
-              The MVP stays focused on removing visible distractions from normal
-              photos and creator assets. No project setup. No complex export
-              panel.
+              {copy.useCasesSection.description}
             </p>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
-            {examples.map((example) => (
+            {copy.useCasesSection.examples.map((example) => (
               <div
                 key={example.title}
                 className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
@@ -239,10 +171,10 @@ export function RemoverHome() {
                 <h3 className="font-semibold">{example.title}</h3>
                 <div className="mt-4 space-y-2 text-sm">
                   <p className="rounded-lg bg-rose-50 p-3 text-rose-800">
-                    Before: {example.before}
+                    {copy.useCasesSection.beforePrefix} {example.before}
                   </p>
                   <p className="rounded-lg bg-emerald-50 p-3 text-emerald-800">
-                    After: {example.after}
+                    {copy.useCasesSection.afterPrefix} {example.after}
                   </p>
                 </div>
               </div>
@@ -255,15 +187,15 @@ export function RemoverHome() {
         <div className="container py-12 lg:py-16">
           <div className="max-w-2xl">
             <p className="text-sm font-semibold tracking-normal text-teal-700 uppercase">
-              Features
+              {copy.featuresSection.eyebrow}
             </p>
             <h2 className="mt-3 text-3xl font-semibold">
-              Enough editing power for the job.
+              {copy.featuresSection.title}
             </h2>
           </div>
           <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {features.map((feature) => {
-              const Icon = feature.icon;
+            {copy.featuresSection.features.map((feature, index) => {
+              const Icon = featureIcons[index] ?? Brush;
               return (
                 <div
                   key={feature.title}
@@ -287,25 +219,19 @@ export function RemoverHome() {
             <div className="flex size-11 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
               <Lock className="size-6" />
             </div>
-            <h2 className="text-2xl font-semibold">
-              Privacy and usage boundaries
-            </h2>
+            <h2 className="text-2xl font-semibold">{copy.privacy.title}</h2>
           </div>
           <p className="mt-4 text-base leading-7 text-slate-600">
-            Uploaded images are used to process your removal job, not to train
-            AI models. Guest images expire after 24 hours, free-user images
-            after 7 days, and paid-user images after 30 days by default.
+            {copy.privacy.description}
           </p>
         </div>
 
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-6">
           <h3 className="text-xl font-semibold text-amber-950">
-            Not for watermark or logo removal
+            {copy.policy.title}
           </h3>
           <p className="mt-3 text-base leading-7 text-amber-900">
-            AI Remover is for legitimate photo cleanup. Users must own or have
-            permission to process uploaded images, and may not remove copyright
-            watermarks, brand logos, or authorization marks.
+            {copy.policy.description}
           </p>
         </div>
       </section>
@@ -313,17 +239,16 @@ export function RemoverHome() {
       <section className="border-y border-slate-200 bg-slate-950 text-white">
         <div className="container flex flex-col gap-6 py-10 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-3xl font-semibold">Need high-res downloads?</h2>
+            <h2 className="text-3xl font-semibold">{copy.cta.title}</h2>
             <p className="mt-2 max-w-xl text-slate-300">
-              Start free, then upgrade when you need more monthly processing,
-              high-res results, and longer image retention.
+              {copy.cta.description}
             </p>
           </div>
           <Link
-            href="/pricing"
+            href={pricingHref}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-medium text-slate-950 transition hover:bg-slate-100"
           >
-            View pricing
+            {copy.cta.button}
             <ArrowRight className="size-4" />
           </Link>
         </div>
@@ -332,14 +257,14 @@ export function RemoverHome() {
       <section className="container py-12 lg:py-16">
         <div className="max-w-2xl">
           <p className="text-sm font-semibold tracking-normal text-teal-700 uppercase">
-            FAQ
+            {copy.faqSection.eyebrow}
           </p>
           <h2 className="mt-3 text-3xl font-semibold">
-            Questions before you upload.
+            {copy.faqSection.title}
           </h2>
         </div>
         <div className="mt-8 grid gap-4 md:grid-cols-2">
-          {faqs.map((item) => (
+          {copy.faqSection.items.map((item) => (
             <div
               key={item.question}
               className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"

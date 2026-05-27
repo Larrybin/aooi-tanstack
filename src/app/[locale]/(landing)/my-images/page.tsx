@@ -1,14 +1,11 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
-import { ImageIcon, Lock, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { listMyRemoverJobsForActor } from '@/domains/remover/application/jobs';
-import { deleteRemoverJobImagesForUser } from '@/domains/remover/application/delete-image';
 import { readAnonymousSessionIdFromRequest } from '@/domains/remover/application/actor-session';
-import { RemoverDownloadButton } from '@/domains/remover/ui/remover-download-button';
-import { buildRemoverHeaderFooter } from '@/domains/remover/ui/remover-shell';
+import { deleteRemoverJobImagesForUser } from '@/domains/remover/application/delete-image';
+import { listMyRemoverJobsForActor } from '@/domains/remover/application/jobs';
 import {
   claimRemoverImageAssetsByKeys,
   markRemoverImageAssetsDeletedByKeys,
@@ -20,24 +17,87 @@ import {
   markRemoverJobDeletedById,
 } from '@/domains/remover/infra/job';
 import { claimRemoverQuotaReservationById } from '@/domains/remover/infra/quota-reservation';
+import { RemoverDownloadButton } from '@/domains/remover/ui/remover-download-button';
+import { resolveRemoverHomeCopy } from '@/domains/remover/ui/remover-home-copy';
+import { buildRemoverHeaderFooter } from '@/domains/remover/ui/remover-shell';
 import {
   readAuthUiRuntimeSettingsCached,
   readBillingRuntimeSettingsCached,
   readPublicUiConfigCached,
 } from '@/domains/settings/application/settings-runtime.query';
 import { getStorageService } from '@/infra/adapters/storage/service';
-import { buildBrandPlaceholderValues } from '@/infra/platform/brand/placeholders.server';
 import { getSignedInUserIdentity } from '@/infra/platform/auth/session.server';
+import { buildBrandPlaceholderValues } from '@/infra/platform/brand/placeholders.server';
 import { getRuntimeEnvString } from '@/infra/runtime/env.server';
 import {
   buildCanonicalUrl,
   buildLanguageAlternates,
   buildMetadataBaseUrl,
+  isPublishedLocaleForPath,
 } from '@/infra/url/canonical';
-import { site } from '@/site';
-import { setRequestLocale } from 'next-intl/server';
+import { site, siteHomeContent } from '@/site';
+import { ImageIcon, Lock, Trash2 } from 'lucide-react';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import LandingMarketingLayout from '@/themes/default/layouts/landing-marketing';
+
+type MyImagesCopy = {
+  metadataTitle: string;
+  metadataDescription: string;
+  title: string;
+  description: string;
+  emptyTitle: string;
+  emptyDescription: string;
+  startButton: string;
+  resultAlt: string;
+  succeededTitle: string;
+  jobTitle: string;
+  statusLabel: string;
+  createdLabel: string;
+  expiresLabel: string;
+  downloadLabel: string;
+  deleteLabel: string;
+  signInTitle: string;
+  signInDescription: string;
+  signInButton: string;
+  createAccountButton: string;
+  statuses: Record<string, string>;
+};
+
+function withLocale(path: string, locale: string): string {
+  if (!locale || locale === 'en') {
+    return path;
+  }
+
+  return path === '/' ? `/${locale}` : `/${locale}${path}`;
+}
+
+async function getMyImagesCopy(): Promise<MyImagesCopy> {
+  const t = await getTranslations('common.my_images');
+
+  return {
+    metadataTitle: t('metadata_title'),
+    metadataDescription: t('metadata_description'),
+    title: t('title'),
+    description: t('description'),
+    emptyTitle: t('empty_title'),
+    emptyDescription: t('empty_description'),
+    startButton: t('start_button'),
+    resultAlt: t('result_alt'),
+    succeededTitle: t('succeeded_title'),
+    jobTitle: t('job_title'),
+    statusLabel: t('status_label'),
+    createdLabel: t('created_label'),
+    expiresLabel: t('expires_label'),
+    downloadLabel: t('download_label'),
+    deleteLabel: t('delete_label'),
+    signInTitle: t('sign_in_title'),
+    signInDescription: t('sign_in_description'),
+    signInButton: t('sign_in_button'),
+    createAccountButton: t('create_account_button'),
+    statuses: t.raw('statuses') as Record<string, string>,
+  };
+}
 
 export async function generateMetadata({
   params,
@@ -51,12 +111,19 @@ export async function generateMetadata({
     return {};
   }
 
+  if (!isPublishedLocaleForPath('/my-images', locale)) {
+    notFound();
+  }
+
+  setRequestLocale(locale);
+  const copy = await getMyImagesCopy();
+
   return {
     metadataBase: buildMetadataBaseUrl(),
     title: {
-      absolute: 'My Images - AI Remover',
+      absolute: copy.metadataTitle,
     },
-    description: 'View and manage your recent AI Remover image results.',
+    description: copy.metadataDescription,
     alternates: {
       canonical: buildCanonicalUrl('/my-images', locale),
       languages: buildLanguageAlternates('/my-images'),
@@ -119,6 +186,10 @@ export default async function MyImagesPage({
     notFound();
   }
 
+  if (!isPublishedLocaleForPath('/my-images', locale)) {
+    notFound();
+  }
+
   const [publicUiConfig, authSettings, billingSettings, user] =
     await Promise.all([
       readPublicUiConfigCached(),
@@ -127,7 +198,11 @@ export default async function MyImagesPage({
       getSignedInUserIdentity(),
     ]);
   const brand = buildBrandPlaceholderValues();
-  const { header, footer } = buildRemoverHeaderFooter(brand);
+  const copy = await getMyImagesCopy();
+  const { header, footer } = buildRemoverHeaderFooter(
+    brand,
+    resolveRemoverHomeCopy(siteHomeContent, locale).shell
+  );
 
   const jobs = user
     ? await listMyRemoverJobsForActor({
@@ -158,10 +233,10 @@ export default async function MyImagesPage({
                 <ImageIcon className="size-7" />
               </div>
               <h1 className="mt-5 text-4xl font-semibold tracking-normal md:text-5xl">
-                My Images
+                {copy.title}
               </h1>
               <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-slate-600">
-                View, download, and delete your recent AI Remover results.
+                {copy.description}
               </p>
             </div>
           </div>
@@ -169,19 +244,18 @@ export default async function MyImagesPage({
 
         <section className="container py-12 lg:py-16">
           {!user ? (
-            <SignInPrompt />
+            <SignInPrompt copy={copy} locale={locale} />
           ) : jobs.length === 0 ? (
             <div className="mx-auto max-w-3xl rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm md:p-8">
-              <h2 className="text-2xl font-semibold">No images yet</h2>
+              <h2 className="text-2xl font-semibold">{copy.emptyTitle}</h2>
               <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-600">
-                Process an image from the homepage and your recent results will
-                appear here.
+                {copy.emptyDescription}
               </p>
               <Link
-                href="/"
+                href={withLocale('/', locale)}
                 className="mt-6 inline-flex items-center justify-center rounded-lg bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
               >
-                Start removing objects
+                {copy.startButton}
               </Link>
             </div>
           ) : (
@@ -201,7 +275,7 @@ export default async function MyImagesPage({
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={previewUrl}
-                          alt="AI Remover result"
+                          alt={copy.resultAlt}
                           className="h-full w-full object-cover"
                         />
                       ) : (
@@ -211,17 +285,18 @@ export default async function MyImagesPage({
                     <div>
                       <h2 className="font-semibold">
                         {job.status === 'succeeded'
-                          ? 'Cleaned image'
-                          : 'Removal job'}
+                          ? copy.succeededTitle
+                          : copy.jobTitle}
                       </h2>
                       <p className="mt-1 text-sm text-slate-600">
-                        Status: {job.status}
+                        {copy.statusLabel}:{' '}
+                        {copy.statuses[job.status] ?? job.status}
                       </p>
                       <p className="mt-1 text-sm text-slate-600">
-                        Created: {formatDate(job.createdAt)}
+                        {copy.createdLabel}: {formatDate(job.createdAt, locale)}
                       </p>
                       <p className="mt-1 text-sm text-slate-600">
-                        Expires: {formatDate(job.expiresAt)}
+                        {copy.expiresLabel}: {formatDate(job.expiresAt, locale)}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2 md:justify-end">
@@ -229,7 +304,7 @@ export default async function MyImagesPage({
                         <RemoverDownloadButton
                           jobId={job.id}
                           variant="high-res"
-                          label="Download"
+                          label={copy.downloadLabel}
                         />
                       ) : null}
                       <form action={deleteImageAction.bind(null, job.id)}>
@@ -238,7 +313,7 @@ export default async function MyImagesPage({
                           className="inline-flex items-center gap-2 rounded-lg border border-rose-200 px-4 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-50"
                         >
                           <Trash2 className="size-4" />
-                          Delete
+                          {copy.deleteLabel}
                         </button>
                       </form>
                     </div>
@@ -253,38 +328,45 @@ export default async function MyImagesPage({
   );
 }
 
-function SignInPrompt() {
+function SignInPrompt({
+  copy,
+  locale,
+}: {
+  copy: MyImagesCopy;
+  locale: string;
+}) {
+  const myImagesPath = withLocale('/my-images', locale);
+  const signInHref = `${withLocale('/sign-in', locale)}?callbackUrl=${encodeURIComponent(myImagesPath)}`;
+  const signUpHref = `${withLocale('/sign-up', locale)}?callbackUrl=${encodeURIComponent(myImagesPath)}`;
+
   return (
     <div className="mx-auto max-w-3xl rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm md:p-8">
       <div className="mx-auto flex size-12 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
         <Lock className="size-6" />
       </div>
-      <h2 className="mt-5 text-2xl font-semibold">
-        Image history requires sign-in
-      </h2>
+      <h2 className="mt-5 text-2xl font-semibold">{copy.signInTitle}</h2>
       <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-600">
-        Guest results are temporary. Create an account or sign in to keep a
-        7-day free history, or upgrade for 30-day retention.
+        {copy.signInDescription}
       </p>
       <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
         <Link
-          href="/sign-in?callbackUrl=/my-images"
+          href={signInHref}
           className="inline-flex items-center justify-center rounded-lg bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
         >
-          Sign in
+          {copy.signInButton}
         </Link>
         <Link
-          href="/sign-up?callbackUrl=/my-images"
+          href={signUpHref}
           className="inline-flex items-center justify-center rounded-lg border border-slate-200 px-5 py-3 text-sm font-medium text-slate-800 transition hover:bg-slate-50"
         >
-          Create account
+          {copy.createAccountButton}
         </Link>
       </div>
     </div>
   );
 }
 
-function formatDate(value: Date | string | null): string {
+function formatDate(value: Date | string | null, locale: string): string {
   if (!value) {
     return '-';
   }
@@ -294,7 +376,7 @@ function formatDate(value: Date | string | null): string {
     return '-';
   }
 
-  return date.toLocaleDateString('en', {
+  return date.toLocaleDateString(locale || 'en', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',

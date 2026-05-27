@@ -27,8 +27,17 @@ export function buildMultiBuildCheckArgs(scriptArgs = process.argv.slice(2)) {
   ];
 }
 
-export function buildStrictI18nCheckArgs(siteKey = resolveRequiredSiteKey()) {
-  return ['scripts/check-site-i18n.mjs', '--site', siteKey, '--strict'];
+export function isStrictI18nPublishingEnabled(site) {
+  return site.i18n?.strictPublishing === true;
+}
+
+export function buildI18nCheckArgs(site) {
+  const args = ['scripts/check-site-i18n.mjs', '--site', site.key];
+  if (isStrictI18nPublishingEnabled(site)) {
+    args.push('--strict');
+  }
+
+  return args;
 }
 
 function runCommand(command, args, { env = process.env } = {}) {
@@ -66,7 +75,7 @@ async function main() {
     [activeSplitWorkersEnv]: getActiveSplitWorkerSlots(contract).join(','),
   };
 
-  await runCommand('node', buildStrictI18nCheckArgs(contract.site.key), {
+  await runCommand('node', buildI18nCheckArgs(contract.site), {
     env: commandEnv,
   });
   await runCommand('pnpm', buildOpenNextBuildArgs(), { env: commandEnv });

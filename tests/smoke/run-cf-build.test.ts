@@ -10,9 +10,10 @@ import {
   runNoDbCloudflareBuilds,
 } from '../../scripts/run-cf-build-no-db.mjs';
 import {
+  buildI18nCheckArgs,
   buildMultiBuildCheckArgs,
   buildOpenNextBuildArgs,
-  buildStrictI18nCheckArgs,
+  isStrictI18nPublishingEnabled,
 } from '../../scripts/run-cf-build.mjs';
 
 test('cf:build 对 OpenNext 固定跳过根 wrangler config 交互检查', () => {
@@ -33,13 +34,38 @@ test('cf:build forwards worker scope args to the dry-run upload check', () => {
   ]);
 });
 
-test('cf:build runs strict i18n check for the selected site', () => {
-  assert.deepEqual(buildStrictI18nCheckArgs('ai-remover'), [
-    'scripts/check-site-i18n.mjs',
-    '--site',
-    'ai-remover',
-    '--strict',
-  ]);
+test('cf:build runs non-strict i18n check before site publishing enforcement', () => {
+  assert.equal(
+    isStrictI18nPublishingEnabled({
+      key: 'ai-remover',
+      i18n: { strictPublishing: false },
+    }),
+    false
+  );
+  assert.deepEqual(
+    buildI18nCheckArgs({
+      key: 'ai-remover',
+      i18n: { strictPublishing: false },
+    }),
+    ['scripts/check-site-i18n.mjs', '--site', 'ai-remover']
+  );
+});
+
+test('cf:build runs strict i18n check after site publishing enforcement', () => {
+  assert.equal(
+    isStrictI18nPublishingEnabled({
+      key: 'ai-remover',
+      i18n: { strictPublishing: true },
+    }),
+    true
+  );
+  assert.deepEqual(
+    buildI18nCheckArgs({
+      key: 'ai-remover',
+      i18n: { strictPublishing: true },
+    }),
+    ['scripts/check-site-i18n.mjs', '--site', 'ai-remover', '--strict']
+  );
 });
 
 test('cf:build:no-db covers the explicit deployable site list', () => {

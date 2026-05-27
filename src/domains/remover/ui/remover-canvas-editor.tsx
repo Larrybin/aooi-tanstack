@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 
 import type { UploadedRemoverImage } from './remover-editor-types';
+import type { RemoverCanvasEditorCopy } from './remover-home-copy';
 import { buildBinaryMaskPixels } from './remover-mask';
 import {
   uploadRemoverAssetsForJob,
@@ -39,11 +40,23 @@ type RemoverJobResponse = {
   };
 };
 
+function withLocale(path: string, locale: string): string {
+  if (!locale || locale === 'en') {
+    return path;
+  }
+
+  return path === '/' ? `/${locale}` : `/${locale}${path}`;
+}
+
 export default function CanvasMaskEditor({
   image,
+  copy,
+  locale,
   onReplaceImage,
 }: {
   image: UploadedRemoverImage;
+  copy: RemoverCanvasEditorCopy;
+  locale: string;
   onReplaceImage: () => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -210,19 +223,17 @@ export default function CanvasMaskEditor({
       }
 
       setJobState('failed');
-      setJobError(
-        finalJob.job.errorMessage ||
-          'The image could not be processed. Please try another mask.'
-      );
+      setJobError(finalJob.job.errorMessage || copy.defaultMaskError);
     } catch (error: unknown) {
       setJobState('failed');
       setJobError(
-        error instanceof Error
-          ? error.message
-          : 'The image could not be processed.'
+        error instanceof Error ? error.message : copy.defaultProcessError
       );
     }
   }
+
+  const myImagesPath = withLocale('/my-images', locale);
+  const signInHref = `${withLocale('/sign-in', locale)}?callbackUrl=${encodeURIComponent(myImagesPath)}`;
 
   function handlePointerDown(event: PointerEvent<HTMLCanvasElement>) {
     if (isBusy(jobState)) {
@@ -278,27 +289,27 @@ export default function CanvasMaskEditor({
         <div className="flex flex-wrap items-center gap-2">
           <ToolbarButton
             active={tool === 'brush'}
-            label="Brush"
+            label={copy.brush}
             onClick={() => setTool('brush')}
           >
             <Brush className="size-4" />
           </ToolbarButton>
           <ToolbarButton
             active={tool === 'eraser'}
-            label="Eraser"
+            label={copy.eraser}
             onClick={() => setTool('eraser')}
           >
             <Eraser className="size-4" />
           </ToolbarButton>
           <ToolbarButton
             active={tool === 'pan'}
-            label="Pan"
+            label={copy.pan}
             onClick={() => setTool('pan')}
           >
             <Move className="size-4" />
           </ToolbarButton>
           <label className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700">
-            Size
+            {copy.size}
             <input
               type="range"
               min="12"
@@ -313,27 +324,27 @@ export default function CanvasMaskEditor({
 
         <div className="flex flex-wrap items-center gap-2">
           <ToolbarButton
-            label="Undo"
+            label={copy.undo}
             onClick={undo}
             disabled={!historyCount || isBusy(jobState)}
           >
             <Undo2 className="size-4" />
           </ToolbarButton>
           <ToolbarButton
-            label="Reset"
+            label={copy.reset}
             onClick={resetMask}
             disabled={!hasMask || isBusy(jobState)}
           >
             <RotateCcw className="size-4" />
           </ToolbarButton>
           <ToolbarButton
-            label="Zoom out"
+            label={copy.zoomOut}
             onClick={() => setZoom((value) => Math.max(0.5, value - 0.1))}
           >
             <ZoomOut className="size-4" />
           </ToolbarButton>
           <ToolbarButton
-            label="Zoom in"
+            label={copy.zoomIn}
             onClick={() => setZoom((value) => Math.min(2.2, value + 0.1))}
           >
             <ZoomIn className="size-4" />
@@ -352,7 +363,7 @@ export default function CanvasMaskEditor({
           >
             <div
               role="img"
-              aria-label="Uploaded photo preview"
+              aria-label={copy.previewAriaLabel}
               className="relative w-full rounded-lg bg-contain bg-center bg-no-repeat"
               style={{
                 aspectRatio: `${image.width} / ${image.height}`,
@@ -382,7 +393,7 @@ export default function CanvasMaskEditor({
           className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Upload className="size-4" />
-          Replace image
+          {copy.replaceImage}
         </button>
         <button
           type="button"
@@ -396,11 +407,7 @@ export default function CanvasMaskEditor({
               ? 'bg-teal-700 hover:bg-teal-800'
               : 'cursor-not-allowed bg-slate-300',
           ].join(' ')}
-          title={
-            hasMask
-              ? 'Remove the marked area'
-              : 'Brush over an area before removing'
-          }
+          title={hasMask ? copy.removeReadyTitle : copy.removeEmptyTitle}
         >
           <Wand2
             className={['size-4', isBusy(jobState) ? 'animate-pulse' : ''].join(
@@ -408,23 +415,23 @@ export default function CanvasMaskEditor({
             )}
           />
           {jobState === 'uploading'
-            ? 'Uploading...'
+            ? copy.uploading
             : jobState === 'queued' || jobState === 'processing'
-              ? 'Removing...'
-              : 'Remove'}
+              ? copy.removing
+              : copy.remove}
         </button>
       </div>
 
       {jobState === 'succeeded' ? (
         <div className="mt-4 rounded-lg border border-teal-200 bg-teal-50 p-4 text-sm leading-6 text-teal-900">
-          <p className="font-medium">Your cleaned image is ready.</p>
+          <p className="font-medium">{copy.successTitle}</p>
           {resultUrl ? (
             <>
               <div className="mt-3 overflow-hidden rounded-lg border border-teal-200 bg-white">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={resultUrl}
-                  alt="AI Remover result"
+                  alt={copy.resultAlt}
                   className="max-h-[420px] w-full object-contain"
                 />
               </div>
@@ -433,14 +440,14 @@ export default function CanvasMaskEditor({
                 download="ai-remover-result.png"
                 className="mt-3 inline-flex rounded-lg bg-white px-3 py-2 text-sm font-medium text-teal-800 shadow-sm ring-1 ring-teal-200 hover:bg-teal-50"
               >
-                Download low-res result
+                {copy.downloadLowRes}
               </a>
               {jobId && highResRequiresSignIn ? (
                 <Link
-                  href="/sign-in?callbackUrl=/my-images"
+                  href={signInHref}
                   className="mt-3 ml-2 inline-flex rounded-lg bg-teal-700 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-teal-800"
                 >
-                  Sign in for high-res
+                  {copy.signInHighRes}
                 </Link>
               ) : null}
               {jobId && !highResRequiresSignIn ? (
@@ -451,18 +458,18 @@ export default function CanvasMaskEditor({
                   }}
                   className="mt-3 ml-2 inline-flex rounded-lg bg-teal-700 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-teal-800"
                 >
-                  Download high-res
+                  {copy.downloadHighRes}
                 </button>
               ) : null}
             </>
           ) : (
             <div className="mt-3 rounded-lg border border-teal-200 bg-white p-3">
-              <p>Sign in to download the high-res result.</p>
+              <p>{copy.signInMessage}</p>
               <Link
-                href="/sign-in?callbackUrl=/my-images"
+                href={signInHref}
                 className="mt-3 inline-flex rounded-lg bg-teal-700 px-3 py-2 text-sm font-medium text-white hover:bg-teal-800"
               >
-                Sign in to download
+                {copy.signInDownload}
               </Link>
             </div>
           )}
@@ -471,7 +478,7 @@ export default function CanvasMaskEditor({
 
       {jobState === 'failed' && jobError ? (
         <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-900">
-          <p className="font-medium">Removal failed</p>
+          <p className="font-medium">{copy.failedTitle}</p>
           <p className="mt-1">{jobError}</p>
         </div>
       ) : null}

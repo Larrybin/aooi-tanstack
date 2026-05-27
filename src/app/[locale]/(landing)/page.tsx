@@ -14,7 +14,7 @@ import {
   replaceBrandPlaceholdersDeep,
 } from '@/infra/platform/brand/placeholders.server';
 import { isPublishedLocaleForPath } from '@/infra/url/canonical';
-import { site } from '@/site';
+import { site, siteHomeContent } from '@/site';
 import { filterLandingButtons } from '@/surfaces/public/navigation/landing-visibility';
 import {
   buildProductLandingMetadata,
@@ -52,6 +52,7 @@ export async function generateMetadata({
     landing: productLanding,
     locale,
     brand,
+    homeContent: siteHomeContent,
   });
 }
 
@@ -75,7 +76,10 @@ export default async function LandingPage({
   const productLanding = getProductLanding(siteKey);
 
   if (productLanding) {
-    const { header, footer } = productLanding.buildHeaderFooter(brand);
+    const { header, footer } = productLanding.buildHeaderFooter(brand, {
+      locale,
+      homeContent: siteHomeContent,
+    });
 
     return (
       <LandingMarketingLayout
@@ -86,7 +90,7 @@ export default async function LandingPage({
         authSettings={authSettings}
         billingSettings={billingSettings}
       >
-        {productLanding.render()}
+        {productLanding.render({ locale, homeContent: siteHomeContent })}
       </LandingMarketingLayout>
     );
   }

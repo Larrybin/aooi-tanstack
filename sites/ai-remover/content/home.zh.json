@@ -1,0 +1,187 @@
+{
+  "metadata": {
+    "title": "AI Remover - 免费移除照片中的物体",
+    "description": "使用 AI Remover 在几秒内移除照片里不需要的物体、人物和背景干扰。",
+    "keywords": [
+      "AI Remover",
+      "AI 物体移除",
+      "移除照片中的物体",
+      "去除照片多余物体",
+      "移除照片中的人物"
+    ]
+  },
+  "shell": {
+    "pricing": "价格",
+    "myImages": "我的图片",
+    "billing": "账单",
+    "footerDescription": "AI Remover 可帮助你清理照片中的多余物体、人物和背景干扰。",
+    "productGroup": "产品",
+    "tool": "AI 物体移除",
+    "trustGroup": "信任",
+    "privacyPolicy": "隐私政策",
+    "termsOfService": "服务条款",
+    "copyrightSuffix": "保留所有权利。"
+  },
+  "editor": {
+    "invalidTypeError": "请使用 JPG、PNG 或 WebP 图片。",
+    "openError": "无法打开这张图片。",
+    "loading": "编辑器加载中...",
+    "uploadTitle": "上传照片开始",
+    "uploadDescription": "放入照片，刷选不需要的区域，让 AI Remover 帮你清理。",
+    "chooseImage": "选择图片",
+    "fileHint": "支持 JPG、PNG 或 WebP。可免费试用，低清下载无需注册。",
+    "steps": ["上传", "刷选", "移除", "下载"],
+    "canvas": {
+      "brush": "画笔",
+      "eraser": "橡皮擦",
+      "pan": "拖动",
+      "size": "大小",
+      "undo": "撤销",
+      "reset": "重置",
+      "zoomOut": "缩小",
+      "zoomIn": "放大",
+      "previewAriaLabel": "已上传照片预览",
+      "replaceImage": "更换图片",
+      "removeReadyTitle": "移除已标记区域",
+      "removeEmptyTitle": "请先刷选需要移除的区域",
+      "uploading": "上传中...",
+      "removing": "移除中...",
+      "remove": "移除",
+      "successTitle": "清理后的图片已准备好。",
+      "resultAlt": "AI Remover 处理结果",
+      "downloadLowRes": "下载低清结果",
+      "signInHighRes": "登录下载高清",
+      "downloadHighRes": "下载高清结果",
+      "signInMessage": "登录后可下载高清结果。",
+      "signInDownload": "登录下载",
+      "failedTitle": "移除失败",
+      "defaultMaskError": "这张图片无法处理。请尝试调整蒙版。",
+      "defaultProcessError": "这张图片无法处理。"
+    }
+  },
+  "hero": {
+    "badge": "可免费试用",
+    "title": "AI 物体移除",
+    "description": "几秒内移除照片里不需要的物体、人物和背景干扰。",
+    "useCases": [
+      "移除日常照片中的多余物体",
+      "清理旅行和活动照片中的路人",
+      "发布前整理社交媒体图片",
+      "修复创作者素材中的背景干扰"
+    ]
+  },
+  "processExample": {
+    "before": "处理前",
+    "after": "处理后",
+    "distraction": "干扰物",
+    "cleanResult": "干净结果"
+  },
+  "beforeAfter": {
+    "eyebrow": "处理前 / 处理后",
+    "title": "不用打开复杂编辑器，也能清理照片。",
+    "description": "刷选想移除的物体、人物或背景细节。AI Remover 会生成干净结果，同时保留图片其他区域。"
+  },
+  "howItWorks": {
+    "eyebrow": "使用流程",
+    "title": "四步得到干净照片。",
+    "steps": [
+      {
+        "title": "上传",
+        "description": "选择 JPG、PNG 或 WebP 照片。"
+      },
+      {
+        "title": "刷选",
+        "description": "涂抹需要移除的物体或人物。"
+      },
+      {
+        "title": "移除",
+        "description": "AI 会在几秒内填补选中区域。"
+      },
+      {
+        "title": "下载",
+        "description": "免费保存干净的低清结果。"
+      }
+    ]
+  },
+  "useCasesSection": {
+    "eyebrow": "适用场景",
+    "title": "为快速照片清理而设计。",
+    "description": "当前版本专注移除普通照片和创作者素材中的可见干扰。不需要创建项目，也没有复杂导出面板。",
+    "beforePrefix": "处理前：",
+    "afterPrefix": "处理后：",
+    "examples": [
+      {
+        "title": "清理旅行照片",
+        "before": "游客和街景杂物",
+        "after": "更清晰的地标照片"
+      },
+      {
+        "title": "移除背景干扰",
+        "before": "线缆、垃圾桶和标识牌",
+        "after": "更干净的画面构图"
+      },
+      {
+        "title": "整理创作者素材",
+        "before": "抢占注意力的物体",
+        "after": "可直接发布的视觉素材"
+      }
+    ]
+  },
+  "featuresSection": {
+    "eyebrow": "功能",
+    "title": "刚好够用的编辑能力。",
+    "features": [
+      {
+        "title": "画笔选择",
+        "description": "只标记想修改的区域，保留照片其他部分。"
+      },
+      {
+        "title": "前后对比预览",
+        "description": "下载前对比原图和清理后的结果。"
+      },
+      {
+        "title": "重视隐私的保留策略",
+        "description": "图片用于处理而非训练，并会按规则自动过期。"
+      },
+      {
+        "title": "快速浏览器流程",
+        "description": "无需大型编辑器、项目设置或强制注册即可开始。"
+      }
+    ]
+  },
+  "privacy": {
+    "title": "隐私与使用边界",
+    "description": "上传图片用于处理移除任务，不用于训练 AI 模型。访客图片默认 24 小时后过期，免费登录用户图片 7 天后过期，付费用户图片 30 天后过期。"
+  },
+  "policy": {
+    "title": "不用于移除水印或标志",
+    "description": "AI Remover 只用于合法照片清理。用户必须拥有或获准处理上传图片，不得移除版权水印、品牌标志或授权标记。"
+  },
+  "cta": {
+    "title": "需要高清下载？",
+    "description": "先免费开始；当你需要更多月度处理量、高清结果和更长图片保留时间时再升级。",
+    "button": "查看价格"
+  },
+  "faqSection": {
+    "eyebrow": "常见问题",
+    "title": "上传前的常见问题。",
+    "items": [
+      {
+        "question": "不注册可以试用 AI Remover 吗？",
+        "answer": "可以。访客可以处理有限数量的图片，并在不创建账户的情况下下载低清结果。"
+      },
+      {
+        "question": "支持哪些图片格式？",
+        "answer": "当前版本支持 JPG、PNG 和 WebP 上传。文件大小限制取决于你的套餐。"
+      },
+      {
+        "question": "上传图片会用于训练吗？",
+        "answer": "不会。上传图片只用于处理你的移除任务并提供结果，不会用于训练 AI 模型。"
+      },
+      {
+        "question": "可以移除水印或标志吗？",
+        "answer": "不可以。AI Remover 用于合法照片清理，不得用于移除版权水印、品牌标志或授权标记。"
+      }
+    ]
+  }
+}

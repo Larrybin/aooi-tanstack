@@ -15,7 +15,7 @@ import {
   getPublishedLocalesForPath,
   isPublishedLocaleForPath,
 } from '@/infra/url/canonical';
-import { site, sitePricing } from '@/site';
+import { site, siteLocalizedPricing, sitePricing } from '@/site';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { ScopedIntlProvider } from '@/shared/lib/i18n/scoped-intl-provider';
@@ -23,6 +23,12 @@ import type { SitePricing } from '@/shared/types/blocks/pricing';
 import PricingPageView from '@/themes/default/pages/pricing';
 
 import { resolvePricingPageContent } from './pricing-content';
+
+type SiteLocalizedPricing = Record<string, SitePricing>;
+
+function getSiteLocalePricing(locale: string): SitePricing | undefined {
+  return (siteLocalizedPricing as SiteLocalizedPricing)[locale];
+}
 
 async function getLocalizedPricingPageMessages() {
   const [pricingMessages, landingMessages] = await Promise.all([
@@ -63,6 +69,7 @@ export async function generateMetadata({
     ? (replaceBrandPlaceholdersDeep(
         resolvePricingPageContent({
           sitePricing,
+          siteLocalePricing: getSiteLocalePricing(locale),
           localizedPricingMessages,
           localizedLandingMessages,
         }),
@@ -122,6 +129,7 @@ export default async function PricingPage({
   const pricingContent = replaceBrandPlaceholdersDeep(
     resolvePricingPageContent({
       sitePricing,
+      siteLocalePricing: getSiteLocalePricing(locale),
       localizedPricingMessages,
       localizedLandingMessages,
     }),

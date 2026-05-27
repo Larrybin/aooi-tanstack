@@ -7,8 +7,17 @@
   "sign": {
     "sign_in_title": "サインイン",
     "sign_in_description": "アカウントにサインイン",
+    "auth_shell_eyebrow": "おかえりなさい",
+    "auth_shell_title": "空のテンプレートではなく、実際の製品画面にサインインします。",
+    "auth_shell_description": "認証、請求、クレジット、ドキュメントを 1 つの製品内で扱えます。目的はシンプルで、すぐに出荷作業へ戻ることです。",
+    "auth_shell_points": [
+      "認証と支払いフローは接続済み",
+      "マーケティングとドキュメントを備えた整理されたアプリシェル",
+      "最初の実用版をすばやく公開するための構成"
+    ],
     "sign_up_title": "サインアップ",
     "sign_up_description": "アカウントを作成",
+    "return_to": "リダイレクト先：{path}",
     "email_title": "メール",
     "email_placeholder": "ここにメールアドレスを入力",
     "password_title": "パスワード",
@@ -64,6 +73,33 @@
     "payment_method_required": "支払い方法を選択してください",
     "pricing_item_required": "プランを選択してください",
     "invalid_payment_method": "無効な支払い方法です"
+  },
+  "my_images": {
+    "metadata_title": "マイ画像 - AI Remover",
+    "metadata_description": "最近の AI Remover 画像結果を確認、管理できます。",
+    "title": "マイ画像",
+    "description": "最近の AI Remover 結果を確認、ダウンロード、削除できます。",
+    "empty_title": "画像はまだありません",
+    "empty_description": "ホームページから画像を処理すると、最近の結果がここに表示されます。",
+    "start_button": "オブジェクトの削除を開始",
+    "result_alt": "AI Remover の結果",
+    "succeeded_title": "処理済み画像",
+    "job_title": "削除ジョブ",
+    "status_label": "ステータス",
+    "created_label": "作成日",
+    "expires_label": "有効期限",
+    "download_label": "ダウンロード",
+    "delete_label": "削除",
+    "sign_in_title": "画像履歴にはサインインが必要です",
+    "sign_in_description": "ゲスト結果は一時的です。アカウントを作成するかサインインすると、無料履歴を 7 日間保存できます。アップグレードすると 30 日間保存できます。",
+    "sign_in_button": "サインイン",
+    "create_account_button": "アカウントを作成",
+    "statuses": {
+      "queued": "待機中",
+      "processing": "処理中",
+      "succeeded": "完了",
+      "failed": "失敗"
+    }
   },
   "uploader": {
     "image": {

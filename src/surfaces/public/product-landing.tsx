@@ -3,6 +3,10 @@ import type { ReactNode } from 'react';
 import { BackgroundRemoverHome } from '@/domains/background-remover/ui/background-remover-home';
 import { buildBackgroundRemoverHeaderFooter } from '@/domains/background-remover/ui/background-remover-shell';
 import { RemoverHome } from '@/domains/remover/ui/remover-home';
+import type {
+  RemoverHomeContent,
+} from '@/domains/remover/ui/remover-home-copy';
+import { resolveRemoverHomeCopy } from '@/domains/remover/ui/remover-home-copy';
 import { buildRemoverHeaderFooter } from '@/domains/remover/ui/remover-shell';
 import {
   buildCanonicalUrl,
@@ -16,39 +20,46 @@ import type {
 } from '@/shared/types/blocks/landing';
 
 type ProductLanding = {
-  buildHeaderFooter: (brand: {
-    appName: string;
-    appLogo: string;
-  }) => { header: HeaderType; footer: FooterType };
-  render: () => ReactNode;
-  metadata: {
+  buildHeaderFooter: (
+    brand: {
+      appName: string;
+      appLogo: string;
+    },
+    context: ProductLandingContext
+  ) => { header: HeaderType; footer: FooterType };
+  render: (context: ProductLandingContext) => ReactNode;
+  metadata: (context: ProductLandingContext) => {
     title: string;
     description: string;
-    keywords: string[];
+    keywords: readonly string[];
   };
+};
+
+type ProductLandingContext = {
+  locale: string;
+  homeContent: RemoverHomeContent | null;
 };
 
 const PRODUCT_LANDINGS = {
   'ai-remover': {
-    buildHeaderFooter: buildRemoverHeaderFooter,
-    render: () => <RemoverHome />,
-    metadata: {
-      title: 'AI Remover - Remove Objects from Photos for Free',
-      description:
-        'Remove unwanted objects, people, and distractions from photos in seconds with AI Remover.',
-      keywords: [
-        'ai remover',
-        'ai object remover',
-        'remove objects from photos',
-        'remove unwanted objects from photos',
-        'remove people from photos',
-      ],
-    },
+    buildHeaderFooter: (brand, context) =>
+      buildRemoverHeaderFooter(
+        brand,
+        resolveRemoverHomeCopy(context.homeContent, context.locale).shell
+      ),
+    render: (context) => (
+      <RemoverHome
+        copy={resolveRemoverHomeCopy(context.homeContent, context.locale)}
+        locale={context.locale}
+      />
+    ),
+    metadata: (context) =>
+      resolveRemoverHomeCopy(context.homeContent, context.locale).metadata,
   },
   'background-remover': {
-    buildHeaderFooter: buildBackgroundRemoverHeaderFooter,
+    buildHeaderFooter: (brand) => buildBackgroundRemoverHeaderFooter(brand),
     render: () => <BackgroundRemoverHome />,
-    metadata: {
+    metadata: () => ({
       title: 'Background Remover - Transparent PNG Maker',
       description:
         'Remove image backgrounds and create transparent PNG cutouts for product photos, profile images, and design assets.',
@@ -59,7 +70,7 @@ const PRODUCT_LANDINGS = {
         'product image cutout',
         'remove background from image',
       ],
-    },
+    }),
   },
 } as const satisfies Record<string, ProductLanding>;
 
@@ -71,6 +82,7 @@ export function buildProductLandingMetadata({
   landing,
   locale,
   brand,
+  homeContent,
 }: {
   landing: ProductLanding;
   locale: string;
@@ -79,7 +91,9 @@ export function buildProductLandingMetadata({
     appUrl: string;
     appOgImage: string;
   };
+  homeContent: RemoverHomeContent | null;
 }): Metadata {
+  const metadata = landing.metadata({ locale, homeContent });
   const canonicalUrl = buildCanonicalUrl('/', locale);
   const imageUrl = brand.appOgImage.startsWith('http')
     ? brand.appOgImage
@@ -88,10 +102,10 @@ export function buildProductLandingMetadata({
   return {
     metadataBase: buildMetadataBaseUrl(),
     title: {
-      absolute: landing.metadata.title,
+      absolute: metadata.title,
     },
-    description: landing.metadata.description,
-    keywords: landing.metadata.keywords,
+    description: metadata.description,
+    keywords: [...metadata.keywords],
     alternates: {
       canonical: canonicalUrl,
       languages: buildLanguageAlternates('/'),
@@ -100,15 +114,15 @@ export function buildProductLandingMetadata({
       type: 'website',
       locale,
       url: canonicalUrl,
-      title: landing.metadata.title,
-      description: landing.metadata.description,
+      title: metadata.title,
+      description: metadata.description,
       siteName: brand.appName,
       images: [imageUrl],
     },
     twitter: {
       card: 'summary_large_image',
-      title: landing.metadata.title,
-      description: landing.metadata.description,
+      title: metadata.title,
+      description: metadata.description,
       images: [imageUrl],
       site: brand.appUrl,
     },

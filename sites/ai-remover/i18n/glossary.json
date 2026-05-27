@@ -1,5 +1,15 @@
 {
-  "preserve": ["AI Remover"],
+  "preserve": [
+    "AI Remover",
+    "Creem",
+    "Cookie",
+    "IP",
+    "Pro",
+    "Studio",
+    "USD",
+    "MB",
+    "support@airemover.example.com"
+  ],
   "terms": {},
   "forbidden": {
     "allLocales": ["100% perfect", "free forever"]

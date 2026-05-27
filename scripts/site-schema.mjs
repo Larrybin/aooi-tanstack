@@ -98,6 +98,13 @@ function validateSiteI18nConfig(i18n) {
   if (i18n.localeDetection !== false) {
     throw new Error('site.i18n.localeDetection must equal false');
   }
+
+  if (
+    i18n.strictPublishing !== undefined &&
+    typeof i18n.strictPublishing !== 'boolean'
+  ) {
+    throw new Error('site.i18n.strictPublishing must be a boolean');
+  }
 }
 
 export function validateSiteConfig(config) {

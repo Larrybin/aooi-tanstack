@@ -7,6 +7,14 @@
   "sign": {
     "sign_in_title": "登录",
     "sign_in_description": "登录到您的账户",
+    "auth_shell_eyebrow": "欢迎回来",
+    "auth_shell_title": "登录真实产品界面，而不是另一个空模板。",
+    "auth_shell_description": "认证、账单、积分和文档都在同一个产品里。目标很简单：回到真正的发布工作。",
+    "auth_shell_points": [
+      "认证和付款流程已经接好",
+      "干净的应用外壳，包含营销页和文档",
+      "为快速发布第一个真实版本而构建"
+    ],
     "sign_up_title": "注册",
     "sign_up_description": "创建一个新账户",
     "return_to": "将跳转至：{path}",
@@ -65,6 +73,33 @@
     "payment_method_required": "请选择支付方式",
     "pricing_item_required": "请选择一个套餐",
     "invalid_payment_method": "支付方式无效"
+  },
+  "my_images": {
+    "metadata_title": "我的图片 - AI Remover",
+    "metadata_description": "查看并管理您最近的 AI Remover 图片结果。",
+    "title": "我的图片",
+    "description": "查看、下载并删除您最近的 AI Remover 处理结果。",
+    "empty_title": "还没有图片",
+    "empty_description": "从首页处理一张图片后，最近结果会显示在这里。",
+    "start_button": "开始移除物体",
+    "result_alt": "AI Remover 处理结果",
+    "succeeded_title": "已清理的图片",
+    "job_title": "移除任务",
+    "status_label": "状态",
+    "created_label": "创建时间",
+    "expires_label": "过期时间",
+    "download_label": "下载",
+    "delete_label": "删除",
+    "sign_in_title": "登录后可查看图片历史",
+    "sign_in_description": "访客结果是临时的。创建账户或登录即可保留 7 天免费历史记录，升级后可保留 30 天。",
+    "sign_in_button": "登录",
+    "create_account_button": "创建账户",
+    "statuses": {
+      "queued": "排队中",
+      "processing": "处理中",
+      "succeeded": "已完成",
+      "failed": "失败"
+    }
   },
   "uploader": {
     "image": {

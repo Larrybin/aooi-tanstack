@@ -7,6 +7,14 @@
   "sign": {
     "sign_in_title": "登入",
     "sign_in_description": "登入到你的帳戶",
+    "auth_shell_eyebrow": "歡迎回來",
+    "auth_shell_title": "登入真正的產品介面，而不是另一個空模板。",
+    "auth_shell_description": "認證、帳單、點數和文件都在同一個產品中。目標很簡單：回到真正的發布工作。",
+    "auth_shell_points": [
+      "認證和付款流程已經接好",
+      "乾淨的應用外殼，包含行銷頁和文件",
+      "為快速發布第一個真實版本而構建"
+    ],
     "sign_up_title": "註冊",
     "sign_up_description": "建立一個新帳戶",
     "return_to": "將跳轉至：{path}",

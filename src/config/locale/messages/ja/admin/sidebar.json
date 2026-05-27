@@ -1,0 +1,137 @@
+{
+  "header": {
+    "brand": {
+      "title": "Roller Rabbit",
+      "logo": {
+        "src": "/logo.png",
+        "alt": "Roller Rabbit"
+      },
+      "url": "/admin"
+    },
+    "show_trigger": false
+  },
+  "main_navs": [
+    {
+      "title": "システム",
+      "items": [
+        {
+          "title": "ユーザーと権限",
+          "icon": "User",
+          "is_expand": true,
+          "children": [
+            {
+              "title": "ユーザー",
+              "url": "/admin/users",
+              "icon": "User"
+            },
+            {
+              "title": "ロール",
+              "url": "/admin/roles",
+              "icon": "Users"
+            },
+            {
+              "title": "権限",
+              "url": "/admin/permissions",
+              "icon": "ShieldCheck"
+            }
+          ]
+        },
+        {
+          "title": "ページとコンテンツ",
+          "icon": "FileText",
+          "children": [
+            {
+              "title": "カテゴリー",
+              "icon": "Folder",
+              "url": "/admin/categories"
+            },
+            {
+              "title": "投稿",
+              "icon": "FileText",
+              "url": "/admin/posts"
+            }
+          ]
+        },
+        {
+          "title": "支払いとクレジット",
+          "icon": "DollarSign",
+          "children": [
+            {
+              "title": "支払い",
+              "url": "/admin/payments",
+              "icon": "DollarSign"
+            },
+            {
+              "title": "サブスクリプション",
+              "url": "/admin/subscriptions",
+              "icon": "CreditCard"
+            },
+            {
+              "title": "クレジット",
+              "url": "/admin/credits",
+              "icon": "Coins"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "ビジネス",
+      "items": [
+        {
+          "title": "AI タスク",
+          "url": "/admin/ai-tasks",
+          "icon": "Brain"
+        },
+        {
+          "title": "AI チャット",
+          "url": "/admin/chats",
+          "icon": "MessageCircle"
+        }
+      ]
+    }
+  ],
+  "bottom_nav": {
+    "items": [
+      {
+        "title": "設定",
+        "url": "/admin/settings/auth",
+        "icon": "Settings"
+      },
+      {
+        "title": "API キー",
+        "url": "/admin/apikeys",
+        "icon": "Key"
+      }
+    ]
+  },
+  "user": {
+    "nav": {
+      "items": [
+        {
+          "title": "プロフィール",
+          "url": "/settings/profile",
+          "icon": "User",
+          "target": "_blank"
+        }
+      ]
+    },
+    "show_email": false,
+    "show_signout": true,
+    "signout_callback": "/"
+  },
+  "footer": {
+    "nav": {
+      "items": [
+        {
+          "title": "ホーム",
+          "url": "/",
+          "icon": "Home",
+          "target": "_blank"
+        }
+      ]
+    },
+    "show_locale": false
+  },
+  "variant": "sidebar"
+}

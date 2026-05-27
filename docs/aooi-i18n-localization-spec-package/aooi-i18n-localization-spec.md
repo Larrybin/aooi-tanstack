@@ -596,8 +596,9 @@ warning 不阻断
 
 ```text
 pnpm build：warning，不阻断本地普通构建
-CI：strict fail
-pnpm cf:build：strict fail
+CI / pnpm cf:build：在 site `i18n.strictPublishing: true` 后 strict fail
+
+rollout-required site 在迁移期可以保持 `strictPublishing` 未开启，以便 pending 内容 PR 原子合并；某个 site 的 required pages 全部 approved 后，最后一个 rollout PR 必须把该 site 切到 `strictPublishing: true`，之后 CI / `pnpm cf:build` 必须 strict fail。
 ```
 
 ---
@@ -701,7 +702,7 @@ V1 不做：
 17. `pnpm i18n:check --site <site> --strict` 可运行。
 18. JSON report 输出到 `.reports/i18n/<site-key>/latest.json`。
 19. `pnpm build` 只 warning。
-20. CI / `pnpm cf:build` strict fail。
+20. `i18n.strictPublishing: true` 的 site 在 CI / `pnpm cf:build` strict fail。
 21. 仓库内置 `i18n-localize` Codex skill。
 22. 仓库内置 `i18n-review` Codex skill。
 

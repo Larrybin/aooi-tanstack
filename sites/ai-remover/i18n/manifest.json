@@ -1,6 +1,104 @@
 {
   "locales": {
-    "zh": {},
-    "ja": {}
+    "zh": {
+      "home": {
+        "path": "/",
+        "status": "pending",
+        "sourceHash": "eafc303db61834615103aa60aa369bf3e61498e0e10c2a204b107fe0fc0f17ec",
+        "targetHash": "b464bffac90a4442e354a721a50771f235a6c962872edd816b36535f0aab5289"
+      },
+      "pricing": {
+        "path": "/pricing",
+        "status": "pending",
+        "sourceHash": "5a56a74f74fe19a91799f6721434bb600d203ac0ae93f2cc712e4a675e8ede1c",
+        "targetHash": "9a896ab48d22df45585de04c4cf50aaa5062bcdb388a0c22c3891d3c5c8e7b2b"
+      },
+      "legal.privacy-policy": {
+        "path": "/privacy-policy",
+        "status": "pending",
+        "sourceHash": "2ed9798cd1546d3788fc225aacfb4961bcf02b8de2a79170c2ed78d7eadc6eb6",
+        "targetHash": "eec32313d6b9e535e9a1856f2c9567854d6b6664fe2e1b9f57506495837e61a6"
+      },
+      "legal.terms-of-service": {
+        "path": "/terms-of-service",
+        "status": "pending",
+        "sourceHash": "03c3d400731f3b3fb4fd28009308715ec6691c5e7fb9d25db770a6edbfcd6ed8",
+        "targetHash": "af16e3017d4ed92b4cbc0a5a9d4416a506150b918215902de14f9aa32add278e"
+      },
+      "auth.sign-in": {
+        "path": "/sign-in",
+        "status": "pending",
+        "sourceHash": "1fa8a8ab628992bc82f33f6ac74dd6106a1d622469ebc121e7a84b185ac07e78",
+        "targetHash": "38f28a9a6bd3fbde9608549ef014ba4a85fe2dacab3c422c2690796fd71c3b34"
+      },
+      "auth.sign-up": {
+        "path": "/sign-up",
+        "status": "pending",
+        "sourceHash": "1fa8a8ab628992bc82f33f6ac74dd6106a1d622469ebc121e7a84b185ac07e78",
+        "targetHash": "38f28a9a6bd3fbde9608549ef014ba4a85fe2dacab3c422c2690796fd71c3b34"
+      },
+      "admin.index": {
+        "path": "/admin",
+        "status": "pending",
+        "sourceHash": "435fb82ab8d1476d198f39eb6b9cdf6e27d629c7f37fc297f807a226bae9cb5a",
+        "targetHash": "efcd4a6fb1284d5c4cc28f2ea00650c9b9d85751190acdcc7fa0d156d20e0821"
+      },
+      "product.my-images": {
+        "path": "/my-images",
+        "status": "pending",
+        "sourceHash": "a37df20d0b50939d3d037a0bebab5b1dcd834e25f6914a86c2f0ddfaff64f697",
+        "targetHash": "f7f0615df426edb34fa6f1b7ffb2c4457b98c0b66f66db644c177661209edbfc"
+      }
+    },
+    "ja": {
+      "home": {
+        "path": "/",
+        "status": "pending",
+        "sourceHash": "eafc303db61834615103aa60aa369bf3e61498e0e10c2a204b107fe0fc0f17ec",
+        "targetHash": "98de34eb01740ee0c951493f5d95aae9cdacad578560b565b80415836d6005ae"
+      },
+      "pricing": {
+        "path": "/pricing",
+        "status": "pending",
+        "sourceHash": "5a56a74f74fe19a91799f6721434bb600d203ac0ae93f2cc712e4a675e8ede1c",
+        "targetHash": "c8b2ba6f65916e8592035900ecdb3f10ce49431861feb3e593899edbebedb55a"
+      },
+      "legal.privacy-policy": {
+        "path": "/privacy-policy",
+        "status": "pending",
+        "sourceHash": "2ed9798cd1546d3788fc225aacfb4961bcf02b8de2a79170c2ed78d7eadc6eb6",
+        "targetHash": "4560422d213cb7aac469aefb24ae1e13f55a4e4666cc3ba46ee02a6fb17b4a0b"
+      },
+      "legal.terms-of-service": {
+        "path": "/terms-of-service",
+        "status": "pending",
+        "sourceHash": "03c3d400731f3b3fb4fd28009308715ec6691c5e7fb9d25db770a6edbfcd6ed8",
+        "targetHash": "9dfbe5a3142bbae6a548d7325369f9436183cf3197bb25a39c7ff89fea2aa6a7"
+      },
+      "auth.sign-in": {
+        "path": "/sign-in",
+        "status": "pending",
+        "sourceHash": "1fa8a8ab628992bc82f33f6ac74dd6106a1d622469ebc121e7a84b185ac07e78",
+        "targetHash": "345917434dac180c53ad6edd9e630d333be7816d8231fb8c9d59f2a922b35289"
+      },
+      "auth.sign-up": {
+        "path": "/sign-up",
+        "status": "pending",
+        "sourceHash": "1fa8a8ab628992bc82f33f6ac74dd6106a1d622469ebc121e7a84b185ac07e78",
+        "targetHash": "345917434dac180c53ad6edd9e630d333be7816d8231fb8c9d59f2a922b35289"
+      },
+      "admin.index": {
+        "path": "/admin",
+        "status": "pending",
+        "sourceHash": "435fb82ab8d1476d198f39eb6b9cdf6e27d629c7f37fc297f807a226bae9cb5a",
+        "targetHash": "cf2c9bddf2a50aeec99dbb24b6a6a05cecac5ad0d8ff89c8584163333bc449fc"
+      },
+      "product.my-images": {
+        "path": "/my-images",
+        "status": "pending",
+        "sourceHash": "a37df20d0b50939d3d037a0bebab5b1dcd834e25f6914a86c2f0ddfaff64f697",
+        "targetHash": "297e02e9645f22b9b12a1668d8aab8531a91aad1e22a4cfa4f20cb49aa56bd86"
+      }
+    }
   }
 }

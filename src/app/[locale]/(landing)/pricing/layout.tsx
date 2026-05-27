@@ -2,6 +2,7 @@
 // cache: default (no explicit fetch)
 // reason: shared landing shell; keep data loading in leaf pages
 import type { ReactNode } from 'react';
+import { resolveRemoverHomeCopy } from '@/domains/remover/ui/remover-home-copy';
 import { buildRemoverHeaderFooter } from '@/domains/remover/ui/remover-shell';
 import {
   readBuildAuthUiSettings,
@@ -13,7 +14,7 @@ import {
   buildBrandPlaceholderValues,
   replaceBrandPlaceholdersDeep,
 } from '@/infra/platform/brand/placeholders.server';
-import { site } from '@/site';
+import { site, siteHomeContent } from '@/site';
 import { getTranslations } from 'next-intl/server';
 
 import { LocaleDetectorLazy } from '@/shared/blocks/common/locale-detector-lazy';
@@ -41,7 +42,10 @@ export default async function PricingLayout({
   const siteKey: string = site.key;
 
   if (siteKey === 'ai-remover') {
-    const { header, footer } = buildRemoverHeaderFooter(brand);
+    const { header, footer } = buildRemoverHeaderFooter(
+      brand,
+      resolveRemoverHomeCopy(siteHomeContent, locale).shell
+    );
 
     return (
       <LandingMarketingLayout

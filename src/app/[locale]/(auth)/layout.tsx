@@ -3,7 +3,7 @@
 // reason: keep auth pages lightweight; user-specific data starts after sign-in
 import { readPublicUiConfigCached } from '@/domains/settings/application/settings-runtime.query';
 import { buildBrandPlaceholderValues } from '@/infra/platform/brand/placeholders.server';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { BrandLogo } from '@/shared/blocks/common/brand-logo';
 import { LocaleSelector } from '@/shared/blocks/common/locale-selector';
@@ -21,6 +21,7 @@ export default async function AuthLayout({
 
   const publicUiConfig = await readPublicUiConfigCached();
   const brand = buildBrandPlaceholderValues();
+  const t = await getTranslations('common.sign');
   const isLocaleSwitcherEnabled = publicUiConfig.localeSwitcherEnabled;
 
   const appName = brand.appName;
@@ -52,21 +53,16 @@ export default async function AuthLayout({
           <div className="hidden lg:block">
             <div className="max-w-md space-y-6">
               <p className="text-primary text-xs font-semibold tracking-[0.2em] uppercase">
-                Welcome back
+                {t('auth_shell_eyebrow')}
               </p>
               <h1 className="text-4xl font-semibold tracking-tight text-balance">
-                Sign in to the product surface, not another empty starter repo.
+                {t('auth_shell_title')}
               </h1>
               <p className="text-muted-foreground text-base leading-7">
-                Keep auth, billing, credits, and docs in one place. The goal is
-                simple, get back to shipping.
+                {t('auth_shell_description')}
               </p>
               <div className="grid gap-3 pt-2">
-                {[
-                  'Auth and payment flows already wired',
-                  'Clean app shell with marketing and docs',
-                  'Built to launch the first real version fast',
-                ].map((item) => (
+                {(t.raw('auth_shell_points') as string[]).map((item) => (
                   <div
                     key={item}
                     className="bg-background/75 border-border/80 rounded-2xl border px-4 py-3 text-sm shadow-sm"
