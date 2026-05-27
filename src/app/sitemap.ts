@@ -1,9 +1,10 @@
 import type { MetadataRoute } from 'next';
 import { buildBrandPlaceholderValues } from '@/infra/platform/brand/placeholders.server';
 import { getSite } from '@/infra/platform/site';
-import { buildCanonicalUrl } from '@/infra/url/canonical';
-
-import { locales } from '@/config/locale';
+import {
+  buildCanonicalUrl,
+  getPublishedLocalesForPath,
+} from '@/infra/url/canonical';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const site = getSite();
@@ -16,8 +17,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
   const lastModified = new Date();
 
-  return locales.flatMap((locale) =>
-    routes.map((route) => ({
+  return routes.flatMap((route) =>
+    getPublishedLocalesForPath(route).map((locale) => ({
       url: buildCanonicalUrl(route, locale),
       lastModified,
     }))
