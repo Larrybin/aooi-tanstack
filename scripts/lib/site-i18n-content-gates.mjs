@@ -23,6 +23,10 @@ function includesI18nExemptReason(line) {
   return /i18n-exempt:\s*\S+/.test(line);
 }
 
+function getLineNumberAtIndex(content, index) {
+  return content.slice(0, index).split(/\r?\n/).length;
+}
+
 function collectForbiddenTerms(glossary, locale) {
   return [
     ...(glossary.forbidden.allLocales ?? []),
@@ -140,19 +144,29 @@ export function findHardcodedVisibleEnglish({ filePath, content }) {
   const issues = [];
   const lines = content.split(/\r?\n/);
 
+  for (const match of content.matchAll(visibleJsxTextPattern)) {
+    const startLine = getLineNumberAtIndex(content, match.index ?? 0);
+    const endLine = getLineNumberAtIndex(
+      content,
+      (match.index ?? 0) + match[0].length
+    );
+    const matchedLines = lines.slice(startLine - 1, endLine);
+    if (matchedLines.some(includesI18nExemptReason)) {
+      continue;
+    }
+
+    issues.push({
+      code: 'i18n_hardcoded_visible_english',
+      severity: 'error',
+      filePath,
+      line: startLine,
+      text: match[1].trim(),
+    });
+  }
+
   lines.forEach((line, index) => {
     if (includesI18nExemptReason(line)) {
       return;
-    }
-
-    for (const match of line.matchAll(visibleJsxTextPattern)) {
-      issues.push({
-        code: 'i18n_hardcoded_visible_english',
-        severity: 'error',
-        filePath,
-        line: index + 1,
-        text: match[1].trim(),
-      });
     }
 
     for (const match of line.matchAll(visibleAttributePattern)) {

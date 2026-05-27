@@ -134,6 +134,29 @@ test('hardcoded visible English scanner catches JSX text and common attributes',
   );
 });
 
+test('hardcoded visible English scanner catches multiline JSX text', () => {
+  const issues = findHardcodedVisibleEnglish({
+    filePath: 'src/app/example.tsx',
+    content: [
+      'export function Example() {',
+      '  return <button>',
+      '    Upload image',
+      '  </button>;',
+      '}',
+    ].join('\n'),
+  });
+
+  assert.deepEqual(issues, [
+    {
+      code: 'i18n_hardcoded_visible_english',
+      severity: 'error',
+      filePath: 'src/app/example.tsx',
+      line: 2,
+      text: 'Upload image',
+    },
+  ]);
+});
+
 test('hardcoded visible English scanner requires an explicit exempt reason', () => {
   const issues = findHardcodedVisibleEnglish({
     filePath: 'src/app/example.tsx',
