@@ -27,7 +27,7 @@
         "unit": "",
         "button": {
           "title": "オブジェクト除去を始める",
-          "url": "/",
+          "url": "/ja",
           "icon": "RiFlashlightFill"
         },
         "product_id": "free",
@@ -62,7 +62,7 @@
         "is_featured": true,
         "button": {
           "title": "Pro にアップグレード",
-          "url": "/pricing",
+          "url": "/ja/pricing",
           "icon": "RiFlashlightFill"
         },
         "product_id": "pro-monthly",
@@ -95,7 +95,7 @@
         "unit": "/ 月",
         "button": {
           "title": "Studio にアップグレード",
-          "url": "/pricing",
+          "url": "/ja/pricing",
           "icon": "RiFlashlightFill"
         },
         "product_id": "studio-monthly",

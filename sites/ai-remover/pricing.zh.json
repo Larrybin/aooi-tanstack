@@ -27,7 +27,7 @@
         "unit": "",
         "button": {
           "title": "开始移除对象",
-          "url": "/",
+          "url": "/zh",
           "icon": "RiFlashlightFill"
         },
         "product_id": "free",
@@ -62,7 +62,7 @@
         "is_featured": true,
         "button": {
           "title": "升级到 Pro",
-          "url": "/pricing",
+          "url": "/zh/pricing",
           "icon": "RiFlashlightFill"
         },
         "product_id": "pro-monthly",
@@ -95,7 +95,7 @@
         "unit": "/ 月",
         "button": {
           "title": "升级到 Studio",
-          "url": "/pricing",
+          "url": "/zh/pricing",
           "icon": "RiFlashlightFill"
         },
         "product_id": "studio-monthly",

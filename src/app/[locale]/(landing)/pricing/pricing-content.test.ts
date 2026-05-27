@@ -108,4 +108,17 @@ test('resolvePricingPageContent prefers localized site pricing when product ids 
   assert.equal(resolved.pricing.title, 'AI Remover 价格');
   assert.equal(resolved.pricing.items?.[0]?.product_id, 'free');
   assert.equal(resolved.pricing.items?.[0]?.title, '免费');
+  assert.equal(resolved.pricing.items?.[0]?.button?.url, '/zh');
+});
+
+test('ai remover localized free pricing CTA stays on the current locale', async () => {
+  const zhPricing = await readJson<SitePricing>(
+    'sites/ai-remover/pricing.zh.json'
+  );
+  const jaPricing = await readJson<SitePricing>(
+    'sites/ai-remover/pricing.ja.json'
+  );
+
+  assert.equal(zhPricing.pricing.items?.[0]?.button?.url, '/zh');
+  assert.equal(jaPricing.pricing.items?.[0]?.button?.url, '/ja');
 });
