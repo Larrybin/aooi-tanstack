@@ -120,7 +120,7 @@
     "fumadocs-ui": "^15.7.12",
     "github-markdown-css": "^5.8.1",
     "github-slugger": "^2.0.0",
-    "lucide-react": "^0.543.0",
+    "lucide-react": "^1.17.0",
     "markdown-it": "^14.1.1",
     "moment": "^2.30.1",
     "motion": "^12.40.0",
