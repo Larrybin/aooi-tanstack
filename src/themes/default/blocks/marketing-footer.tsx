@@ -4,6 +4,7 @@ import { filterLandingNavItems } from '@/surfaces/public/navigation/landing-visi
 
 import { defaultLocale } from '@/config/locale';
 import { AppImage } from '@/shared/blocks/common/app-image';
+import { LocaleSelector } from '@/shared/blocks/common/locale-selector';
 import { cn } from '@/shared/lib/utils';
 import type { NavItem } from '@/shared/types/blocks/common';
 import type { Footer as FooterType } from '@/shared/types/blocks/landing';
@@ -125,6 +126,10 @@ export function MarketingFooter({
               ))}
             </div>
           ) : null}
+
+          <div className="min-w-0">
+            <LocaleSelector type="button" />
+          </div>
         </div>
       </div>
     </footer>

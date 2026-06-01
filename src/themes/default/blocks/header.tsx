@@ -8,7 +8,6 @@ import { filterLandingNavItems } from '@/surfaces/public/navigation/landing-visi
 import { Menu, X } from 'lucide-react';
 
 import { BrandLogo } from '@/shared/blocks/common/brand-logo';
-import { LocaleSelector } from '@/shared/blocks/common/locale-selector';
 import { SmartIcon } from '@/shared/blocks/common/smart-icon';
 import {
   Accordion,
@@ -54,7 +53,6 @@ export function Header({
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const navItems = filterLandingNavItems(header.nav?.items, publicConfig);
-  const isLocaleSwitcherEnabled = Boolean(publicConfig?.localeSwitcherEnabled);
 
   useEffect(() => {
     // Listen to scroll event to enable header styles on scroll
@@ -298,10 +296,9 @@ export function Header({
                 </div>
               )}
 
-              {/* Header right section: locale selector, sign, buttons */}
+              {/* Header right section: sign and buttons */}
               <div className="mb-6 hidden w-full flex-wrap items-center justify-end space-y-8 in-data-[state=active]:flex max-lg:in-data-[state=active]:mt-6 md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-6 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none">
                 <div className="flex w-full flex-row items-center gap-4 sm:flex-row sm:gap-6 sm:space-y-0 md:w-fit">
-                  {isLocaleSwitcherEnabled ? <LocaleSelector /> : null}
                   <div className="flex-1 md:hidden"></div>
                   {header.show_sign ? (
                     <SignUserSuspense userNav={header.user_nav} />

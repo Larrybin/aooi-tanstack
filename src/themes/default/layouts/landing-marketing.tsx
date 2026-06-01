@@ -33,7 +33,10 @@ export default async function LandingMarketingLayout({
   billingSettings: BillingRuntimeSettings;
 }) {
   return (
-    <ScopedIntlProvider locale={locale} namespaces={['common.sign']}>
+    <ScopedIntlProvider
+      locale={locale}
+      namespaces={['common.sign', 'common.locale_switcher']}
+    >
       <PublicAppProvider
         initialUiConfig={publicUiConfig}
         initialAuthSettings={authSettings}
