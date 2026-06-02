@@ -42,7 +42,6 @@ const postAction = createRemoverJobsPostAction({
       findRemoverQuotaReservationByIdempotencyKey,
     createJobWithReservation: createRemoverJobWithQuotaReservation,
     findJobByQuotaReservationId: findRemoverJobByQuotaReservationId,
-    findJobById: async () => undefined,
   },
   submitDeps: {
     findJobById: findRemoverJobById,

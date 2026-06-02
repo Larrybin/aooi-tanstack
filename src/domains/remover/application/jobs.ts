@@ -23,7 +23,7 @@ import type {
   ReserveRemoverQuotaInput,
 } from '../infra/quota-reservation';
 
-type JobDeps = {
+type CreateQueuedRemoverJobDeps = {
   findAsset: (id: string) => Promise<RemoverImageAsset | undefined>;
   findReservationByIdempotencyKey: (
     key: string
@@ -39,29 +39,33 @@ type JobDeps = {
   findJobByQuotaReservationId: (
     quotaReservationId: string
   ) => Promise<RemoverJob | undefined>;
-  findJobById: (id: string) => Promise<RemoverJob | undefined>;
-  claimJobById?: (input: {
-    id: string;
-    userId: string;
-    anonymousSessionId: string;
-  }) => Promise<RemoverJob | undefined>;
-  claimAssetsByKeys?: (input: {
-    storageKeys: string[];
-    userId: string;
-    anonymousSessionId: string;
-  }) => Promise<unknown>;
-  claimReservationById?: (input: {
-    reservationId: string;
-    userId: string;
-    anonymousSessionId: string;
-  }) => Promise<unknown>;
   createId?: () => string;
   now?: () => Date;
 };
 
-type MyImagesDeps = Required<
-  Pick<JobDeps, 'claimJobById' | 'claimAssetsByKeys' | 'claimReservationById'>
-> & {
+type ReadRemoverJobDeps = {
+  findJobById: (id: string) => Promise<RemoverJob | undefined>;
+};
+
+type ClaimRemoverJobDeps = {
+  claimJobById: (input: {
+    id: string;
+    userId: string;
+    anonymousSessionId: string;
+  }) => Promise<RemoverJob | undefined>;
+  claimAssetsByKeys: (input: {
+    storageKeys: string[];
+    userId: string;
+    anonymousSessionId: string;
+  }) => Promise<unknown>;
+  claimReservationById: (input: {
+    reservationId: string;
+    userId: string;
+    anonymousSessionId: string;
+  }) => Promise<unknown>;
+};
+
+type MyImagesDeps = ClaimRemoverJobDeps & {
   listJobsForOwner: (input: {
     userId: string | null;
     anonymousSessionId: string | null;
@@ -141,7 +145,7 @@ export async function createQueuedRemoverJob({
     provider: string;
     model: string;
   };
-  deps: JobDeps;
+  deps: CreateQueuedRemoverJobDeps;
 }) {
   const owner = getRemoverOwner(actor);
   const scopedIdempotencyKey = buildProcessingReservationIdempotencyKey({
@@ -221,7 +225,7 @@ export async function getRemoverJobForActor({
 }: {
   actor: RemoverActor;
   jobId: string;
-  deps: Pick<JobDeps, 'findJobById'>;
+  deps: ReadRemoverJobDeps;
 }) {
   const job = await deps.findJobById(jobId);
   if (!job) {
@@ -250,9 +254,7 @@ export async function claimRemoverJobForActor({
 }: {
   actor: RemoverActor;
   job: RemoverJob;
-  deps: Required<
-    Pick<JobDeps, 'claimJobById' | 'claimAssetsByKeys' | 'claimReservationById'>
-  >;
+  deps: ClaimRemoverJobDeps;
 }) {
   if (
     actor.kind !== 'user' ||
