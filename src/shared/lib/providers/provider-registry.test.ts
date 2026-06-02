@@ -14,13 +14,10 @@ test('ProviderRegistry resolves default provider from first registered provider'
   });
 
   const provider = { name: ' alpha ', value: 'a' };
-  registry.addUnique(
-    provider,
-    {
-      invalidNameError: () => new Error('name required'),
-      duplicateNameError: (name) => new Error(`duplicate ${name}`),
-    }
-  );
+  registry.addUnique(provider, {
+    invalidNameError: () => new Error('name required'),
+    duplicateNameError: (name) => new Error(`duplicate ${name}`),
+  });
 
   assert.equal(registry.getDefault(), provider);
 });
@@ -31,13 +28,10 @@ test('ProviderRegistry resolves named provider through normalized key', () => {
   });
 
   const provider = { name: 'replicate', value: 'r' };
-  registry.addUnique(
-    provider,
-    {
-      invalidNameError: () => new Error('name required'),
-      duplicateNameError: (name) => new Error(`duplicate ${name}`),
-    }
-  );
+  registry.addUnique(provider, {
+    invalidNameError: () => new Error('name required'),
+    duplicateNameError: (name) => new Error(`duplicate ${name}`),
+  });
 
   assert.equal(registry.get(' replicate '), provider);
 });

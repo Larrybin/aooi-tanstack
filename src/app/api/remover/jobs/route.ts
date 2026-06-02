@@ -1,9 +1,7 @@
 import { createApiContext } from '@/app/api/_lib/context';
 import { createQueuedRemoverJob } from '@/domains/remover/application/jobs';
 import { submitRemoverJobToProvider } from '@/domains/remover/application/processing';
-import {
-  findActiveRemoverImageAssetById,
-} from '@/domains/remover/infra/image-asset';
+import { findActiveRemoverImageAssetById } from '@/domains/remover/infra/image-asset';
 import {
   claimRemoverJobForProviderSubmission,
   createRemoverJobWithQuotaReservation,

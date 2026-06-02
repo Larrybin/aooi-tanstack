@@ -5,10 +5,7 @@ import {
   readEmailRuntimeSettingsCached,
 } from '@/domains/settings/application/settings-runtime.query';
 
-import type {
-  EmailMessage,
-  EmailSendResult,
-} from '@/extensions/email';
+import type { EmailMessage, EmailSendResult } from '@/extensions/email';
 import { ResendProvider } from '@/extensions/email/providers';
 
 import { assertEmailCapabilityContract } from './contract';
