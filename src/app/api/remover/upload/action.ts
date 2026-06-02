@@ -37,7 +37,12 @@ type UploadActionDeps = {
   }) => Promise<(() => Promise<void>) | undefined>;
 };
 
-const DimensionSchema = z.coerce.number().int().positive().max(100000).optional();
+const DimensionSchema = z.coerce
+  .number()
+  .int()
+  .positive()
+  .max(100000)
+  .optional();
 
 function parseDimension(formData: FormData, key: string): number | undefined {
   const raw = formData.get(key);
@@ -70,6 +75,7 @@ export function createRemoverUploadPostAction(deps: UploadActionDeps) {
     }
 
     const storageService = await deps.getStorageService();
+    const acquireGuestIpLimit = deps.acquireGuestIpLimit;
     const { asset, anonymousSessionId } = await uploadRemoverImage({
       actor,
       file: files[0]!,
@@ -83,11 +89,9 @@ export function createRemoverUploadPostAction(deps: UploadActionDeps) {
         commitReservation: deps.commitReservation,
         refundReservation: deps.refundReservation,
         detectImageMime: deps.detectImageMime,
-        acquireGuestIpLimit: deps.acquireGuestIpLimit
+        acquireGuestIpLimit: acquireGuestIpLimit
           ? async (limitActor) =>
-              deps.acquireGuestIpLimit
-                ? deps.acquireGuestIpLimit({ actor: limitActor, req })
-                : undefined
+              acquireGuestIpLimit({ actor: limitActor, req })
           : undefined,
       },
     });

@@ -1,11 +1,7 @@
 import { createApiContext } from '@/app/api/_lib/context';
 import { createQueuedRemoverJob } from '@/domains/remover/application/jobs';
-import { storeRemoverOutputImage } from '@/domains/remover/application/output';
 import { submitRemoverJobToProvider } from '@/domains/remover/application/processing';
-import {
-  createRemoverImageAssets,
-  findActiveRemoverImageAssetById,
-} from '@/domains/remover/infra/image-asset';
+import { findActiveRemoverImageAssetById } from '@/domains/remover/infra/image-asset';
 import {
   claimRemoverJobForProviderSubmission,
   createRemoverJobWithQuotaReservation,
@@ -19,7 +15,6 @@ import {
   findRemoverQuotaReservationByIdempotencyKey,
   refundRemoverQuotaReservation,
 } from '@/domains/remover/infra/quota-reservation';
-import { getStorageService } from '@/infra/adapters/storage/service';
 
 import { createLimiterFactory } from '@/shared/lib/api/limiters-factory';
 import { withApi } from '@/shared/lib/api/route';
@@ -29,6 +24,7 @@ import { resolveRemoverActor } from '../actor.server';
 import { acquireRemoverGuestIpLimit } from '../guest-ip-limit';
 import { resolveRemoverProviderAdapter } from '../provider-adapter.server';
 import { createRemoverJobsPostAction } from './action';
+import { storeRemoverJobOutputImage } from './output-storage.server';
 
 const postAction = createRemoverJobsPostAction({
   createApiContext,
@@ -42,7 +38,6 @@ const postAction = createRemoverJobsPostAction({
       findRemoverQuotaReservationByIdempotencyKey,
     createJobWithReservation: createRemoverJobWithQuotaReservation,
     findJobByQuotaReservationId: findRemoverJobByQuotaReservationId,
-    findJobById: async () => undefined,
   },
   submitDeps: {
     findJobById: findRemoverJobById,
@@ -52,20 +47,7 @@ const postAction = createRemoverJobsPostAction({
     commitReservation: commitRemoverQuotaReservation,
     refundReservation: refundRemoverQuotaReservation,
     withOutputStorageLock: withRemoverJobOutputStorageLock,
-    storeOutputImage: async ({ job, outputImageUrl }) => {
-      const result = await storeRemoverOutputImage({
-        job,
-        outputImageUrl,
-        deps: {
-          storageService: await getStorageService(),
-          createAssets: createRemoverImageAssets,
-        },
-      });
-      return {
-        outputStorageKey: result.outputAsset.storageKey,
-        thumbnailStorageKey: result.thumbnailAsset.storageKey,
-      };
-    },
+    storeOutputImage: storeRemoverJobOutputImage,
   },
   acquireGuestIpLimit: ({ actor, req }) =>
     acquireRemoverGuestIpLimit({

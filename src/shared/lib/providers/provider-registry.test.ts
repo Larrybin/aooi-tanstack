@@ -8,19 +8,18 @@ type TestProvider = {
   value: string;
 };
 
-test('ProviderRegistry resolves default provider and memoizes fallback', () => {
+test('ProviderRegistry resolves default provider from first registered provider', () => {
   const registry = new ProviderRegistry<TestProvider>({
     toNameKey: trimmedProviderNameKey,
-    memoizeDefault: true,
   });
 
   const provider = { name: ' alpha ', value: 'a' };
-  registry.add(provider);
+  registry.addUnique(provider, {
+    invalidNameError: () => new Error('name required'),
+    duplicateNameError: (name) => new Error(`duplicate ${name}`),
+  });
 
-  assert.equal(
-    registry.getDefaultRequired(() => new Error('missing')),
-    provider
-  );
+  assert.equal(registry.getDefault(), provider);
 });
 
 test('ProviderRegistry resolves named provider through normalized key', () => {
@@ -29,24 +28,12 @@ test('ProviderRegistry resolves named provider through normalized key', () => {
   });
 
   const provider = { name: 'replicate', value: 'r' };
-  registry.add(provider);
-
-  assert.equal(
-    registry.getRequired(' replicate ', (name) => new Error(`missing ${name}`)),
-    provider
-  );
-});
-
-test('ProviderRegistry throws caller-provided error for missing default provider', () => {
-  const registry = new ProviderRegistry<TestProvider>({
-    toNameKey: trimmedProviderNameKey,
+  registry.addUnique(provider, {
+    invalidNameError: () => new Error('name required'),
+    duplicateNameError: (name) => new Error(`duplicate ${name}`),
   });
 
-  assert.throws(
-    () =>
-      registry.getDefaultRequired(() => new Error('No provider configured')),
-    /No provider configured/
-  );
+  assert.equal(registry.get(' replicate '), provider);
 });
 
 test('ProviderRegistry addUnique rejects empty and duplicate names', () => {

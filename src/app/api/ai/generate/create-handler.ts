@@ -35,17 +35,6 @@ type AiGenerateApiContext = {
   requireUser: () => Promise<{ id: string }>;
 };
 
-function resolveAppUrlOrigin(appUrl: string): string {
-  const raw = appUrl?.trim() || '';
-  if (!raw) return site.brand.appUrl;
-
-  try {
-    return new URL(raw).origin;
-  } catch {
-    return site.brand.appUrl;
-  }
-}
-
 export type AiGenerateRouteDeps = {
   requireAiEnabled: () => Promise<void>;
   createApiContext: (request: Request) => {
@@ -94,7 +83,7 @@ export function createAiGeneratePostAction(deps: AiGenerateRouteDeps) {
     }
 
     const user = await api.requireUser();
-    const appUrl = resolveAppUrlOrigin('');
+    const appUrl = site.brand.appUrl;
     const params: AIGenerateParams = {
       mediaType,
       model,

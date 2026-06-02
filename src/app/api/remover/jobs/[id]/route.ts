@@ -3,14 +3,12 @@ import {
   claimRemoverJobForActor,
   getRemoverJobForActor,
 } from '@/domains/remover/application/jobs';
-import { storeRemoverOutputImage } from '@/domains/remover/application/output';
 import {
   refreshRemoverJobStatus,
   submitRemoverJobToProvider,
 } from '@/domains/remover/application/processing';
 import {
   claimRemoverImageAssetsByKeys,
-  createRemoverImageAssets,
   findActiveRemoverImageAssetById,
 } from '@/domains/remover/infra/image-asset';
 import {
@@ -25,13 +23,13 @@ import {
   commitRemoverQuotaReservation,
   refundRemoverQuotaReservation,
 } from '@/domains/remover/infra/quota-reservation';
-import { getStorageService } from '@/infra/adapters/storage/service';
 
 import { withApi } from '@/shared/lib/api/route';
 
 import { requireRemoverSite } from '../../_lib/guard';
 import { resolveRemoverActor } from '../../actor.server';
 import { resolveRemoverProviderAdapter } from '../../provider-adapter.server';
+import { storeRemoverJobOutputImage } from '../output-storage.server';
 import { createRemoverJobGetAction } from './action';
 
 const getAction = createRemoverJobGetAction({
@@ -56,20 +54,7 @@ const getAction = createRemoverJobGetAction({
     commitReservation: commitRemoverQuotaReservation,
     refundReservation: refundRemoverQuotaReservation,
     withOutputStorageLock: withRemoverJobOutputStorageLock,
-    storeOutputImage: async ({ job, outputImageUrl }) => {
-      const result = await storeRemoverOutputImage({
-        job,
-        outputImageUrl,
-        deps: {
-          storageService: await getStorageService(),
-          createAssets: createRemoverImageAssets,
-        },
-      });
-      return {
-        outputStorageKey: result.outputAsset.storageKey,
-        thumbnailStorageKey: result.thumbnailAsset.storageKey,
-      };
-    },
+    storeOutputImage: storeRemoverJobOutputImage,
   },
   submitDeps: {
     findJobById: findRemoverJobById,
@@ -79,20 +64,7 @@ const getAction = createRemoverJobGetAction({
     commitReservation: commitRemoverQuotaReservation,
     refundReservation: refundRemoverQuotaReservation,
     withOutputStorageLock: withRemoverJobOutputStorageLock,
-    storeOutputImage: async ({ job, outputImageUrl }) => {
-      const result = await storeRemoverOutputImage({
-        job,
-        outputImageUrl,
-        deps: {
-          storageService: await getStorageService(),
-          createAssets: createRemoverImageAssets,
-        },
-      });
-      return {
-        outputStorageKey: result.outputAsset.storageKey,
-        thumbnailStorageKey: result.thumbnailAsset.storageKey,
-      };
-    },
+    storeOutputImage: storeRemoverJobOutputImage,
   },
 });
 

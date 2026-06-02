@@ -5,17 +5,8 @@ import {
   readEmailRuntimeSettingsCached,
 } from '@/domains/settings/application/settings-runtime.query';
 
-import type {
-  EmailMessage,
-  EmailProvider,
-  EmailSendResult,
-} from '@/extensions/email';
+import type { EmailMessage, EmailSendResult } from '@/extensions/email';
 import { ResendProvider } from '@/extensions/email/providers';
-import { ServiceUnavailableError } from '@/shared/lib/api/errors';
-import {
-  exactProviderNameKey,
-  ProviderRegistry,
-} from '@/shared/lib/providers/provider-registry';
 
 import { assertEmailCapabilityContract } from './contract';
 
@@ -28,25 +19,14 @@ export function createEmailService(input: {
   bindings: ReturnType<typeof readEmailRuntimeBindings>;
 }) {
   const contract = assertEmailCapabilityContract(input);
-  const registry = new ProviderRegistry<EmailProvider>({
-    toNameKey: exactProviderNameKey,
-    memoizeDefault: true,
+  const provider = new ResendProvider({
+    apiKey: contract.resendApiKey,
+    defaultFrom: contract.resendSenderEmail,
   });
-
-  registry.add(
-    new ResendProvider({
-      apiKey: contract.resendApiKey,
-      defaultFrom: contract.resendSenderEmail,
-    })
-  );
 
   return {
     async sendEmail(email) {
-      return await registry
-        .getDefaultRequired(
-          () => new ServiceUnavailableError('email service unavailable')
-        )
-        .sendEmail(email);
+      return await provider.sendEmail(email);
     },
   } satisfies EmailService;
 }
