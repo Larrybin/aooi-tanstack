@@ -5,6 +5,7 @@ import type {
 } from '@/domains/remover/application/download';
 import type { RemoverActor } from '@/domains/remover/domain/types';
 import type { getStorageService } from '@/infra/adapters/storage/service';
+import type { StorageStoredFile } from '@/infra/adapters/storage/service-builder';
 
 import {
   BadRequestError,
@@ -22,9 +23,53 @@ type DownloadActionDeps = {
   downloadDeps: Parameters<typeof resolveRemoverDownload>[0]['deps'];
 };
 
+type AvailableStorageFile = StorageStoredFile & {
+  body: ReadableStream<Uint8Array>;
+};
+
 function contentDisposition(filename: string): string {
   const safeFilename = filename.replace(/["\r\n]/gu, '_');
   return `attachment; filename="${safeFilename}"`;
+}
+
+async function readRemoverOutputFile(
+  getStorageService: DownloadActionDeps['getStorageService'],
+  storageKey: string
+): Promise<AvailableStorageFile> {
+  const storage = await getStorageService();
+  const file = await storage.getFile(storageKey);
+  if (!file?.body) {
+    throw new NotFoundError('remover output image not found');
+  }
+
+  return {
+    ...file,
+    body: file.body,
+  };
+}
+
+function createRemoverOutputResponse({
+  file,
+  cacheControl,
+  filename,
+}: {
+  file: AvailableStorageFile;
+  cacheControl: string;
+  filename?: string;
+}) {
+  return new Response(file.body, {
+    status: 200,
+    headers: {
+      'Cache-Control': cacheControl,
+      'Content-Type': file.contentType,
+      ...(filename
+        ? { 'Content-Disposition': contentDisposition(filename) }
+        : {}),
+      ...(file.contentLength
+        ? { 'Content-Length': String(file.contentLength) }
+        : {}),
+    },
+  });
 }
 
 export function createRemoverDownloadPostAction(
@@ -41,11 +86,10 @@ export function createRemoverDownloadPostAction(
       variant,
       deps: deps.downloadDeps,
     });
-    const storage = await deps.getStorageService();
-    const file = await storage.getFile(download.storageKey);
-    if (!file?.body) {
-      throw new NotFoundError('remover output image not found');
-    }
+    const file = await readRemoverOutputFile(
+      deps.getStorageService,
+      download.storageKey
+    );
     let quotaReservationIdToCommit: string | undefined =
       download.quotaReservationIdToCommit;
     if (download.requiresHighResQuota) {
@@ -64,16 +108,10 @@ export function createRemoverDownloadPostAction(
       });
     }
 
-    return new Response(file.body, {
-      status: 200,
-      headers: {
-        'Cache-Control': 'no-store',
-        'Content-Type': file.contentType,
-        'Content-Disposition': contentDisposition(download.filename),
-        ...(file.contentLength
-          ? { 'Content-Length': String(file.contentLength) }
-          : {}),
-      },
+    return createRemoverOutputResponse({
+      file,
+      cacheControl: 'no-store',
+      filename: download.filename,
     });
   };
 }
@@ -95,21 +133,14 @@ export function createRemoverDownloadGetAction(
       variant,
       deps: deps.downloadDeps,
     });
-    const storage = await deps.getStorageService();
-    const file = await storage.getFile(download.storageKey);
-    if (!file?.body) {
-      throw new NotFoundError('remover output image not found');
-    }
+    const file = await readRemoverOutputFile(
+      deps.getStorageService,
+      download.storageKey
+    );
 
-    return new Response(file.body, {
-      status: 200,
-      headers: {
-        'Cache-Control': 'private, no-store',
-        'Content-Type': file.contentType,
-        ...(file.contentLength
-          ? { 'Content-Length': String(file.contentLength) }
-          : {}),
-      },
+    return createRemoverOutputResponse({
+      file,
+      cacheControl: 'private, no-store',
     });
   };
 }
