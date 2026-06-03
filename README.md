@@ -167,6 +167,10 @@ bindings in Cloudflare; do not put secrets in `site.config.json`,
 Cloudflare commands live in the
 [Deployment Guide](docs/guides/deployment.md).
 
+Repo-local Codex hooks live in `.codex/hooks.json`. They inject short aooi
+context, block destructive shell/deploy commands, and require verification
+evidence before Codex finalizes code or config changes.
+
 Cloudflare preview deploys use the same `SITE=<site-key>` plus
 `CF_DEPLOY_PROFILE=preview`. Preview is a deploy profile, not a separate site.
 Use it when local Cloudflare topology is not enough and you need a real

@@ -78,8 +78,10 @@ next-env.d.ts
 # local IDE history (do not commit)
 .specstory/history/
 
-.codex
-.codex/context.md
+.codex/*
+!.codex/hooks.json
+!.codex/hooks/
+!.codex/hooks/**
 .gstack/
 .generated/
 .cache/fumadocs/
