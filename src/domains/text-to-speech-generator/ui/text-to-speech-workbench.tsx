@@ -11,6 +11,21 @@ import {
 } from '../domain/config';
 import type { TextToSpeechGeneratorHomeCopy } from './text-to-speech-home-copy';
 
+type TextToSpeechHistoryItem = {
+  id: string;
+  status: string;
+  textPreview: string;
+  characterCount: number;
+  language: string;
+  voice: string;
+  model: string;
+  outputFormat: string;
+  createdAt: string;
+  expiresAt: string;
+  audioAvailable: boolean;
+  downloadAvailable: boolean;
+};
+
 export function TextToSpeechGeneratorWorkbench({
   copy,
 }: {
@@ -21,6 +36,7 @@ export function TextToSpeechGeneratorWorkbench({
   const [voice, setVoice] = useState('aura-asteria-en');
   const [playbackSpeed, setPlaybackSpeed] = useState('1x');
   const [audioSrc, setAudioSrc] = useState('');
+  const [history, setHistory] = useState<TextToSpeechHistoryItem[]>([]);
   const [status, setStatus] = useState<
     'idle' | 'generating' | 'ready' | 'error'
   >('idle');
@@ -43,6 +59,35 @@ export function TextToSpeechGeneratorWorkbench({
     }
   }, [playbackSpeed, audioSrc]);
 
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadHistory() {
+      try {
+        const response = await fetch('/api/tts/history');
+        const body = (await response.json()) as {
+          code: number;
+          data?: {
+            items?: TextToSpeechHistoryItem[];
+          };
+        };
+        if (!ignore && response.ok && body.code === 0) {
+          setHistory(body.data?.items ?? []);
+        }
+      } catch {
+        if (!ignore) {
+          setHistory([]);
+        }
+      }
+    }
+
+    void loadHistory();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
   async function generatePreview() {
     setStatus('generating');
     try {
@@ -62,6 +107,7 @@ export function TextToSpeechGeneratorWorkbench({
             contentType?: string;
             audioBase64?: string;
           };
+          history?: TextToSpeechHistoryItem[];
         };
       };
       const audio = body.data?.audio;
@@ -74,6 +120,7 @@ export function TextToSpeechGeneratorWorkbench({
         throw new Error('tts preview failed');
       }
       setAudioSrc(`data:${audio.contentType};base64,${audio.audioBase64}`);
+      setHistory(body.data?.history ?? []);
       setStatus('ready');
     } catch {
       setAudioSrc('');
@@ -206,9 +253,40 @@ export function TextToSpeechGeneratorWorkbench({
             <History className="size-4 text-[#C2410C]" />
             {copy.recentHistory}
           </div>
-          <div className="mt-4 rounded-md border border-[#EEF2F6] bg-[#F8FAFC] px-4 py-5 text-sm text-[#667085]">
-            {copy.historyEmpty}
-          </div>
+          {history.length ? (
+            <div className="mt-4 space-y-3">
+              {history.map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-md border border-[#EEF2F6] bg-[#F8FAFC] p-3"
+                >
+                  <div className="line-clamp-2 text-sm leading-6 font-medium text-[#111827]">
+                    {item.textPreview}
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#667085]">
+                    <span>{item.language}</span>
+                    <span>
+                      {item.characterCount.toLocaleString()} {copy.characters}
+                    </span>
+                    <span>{item.status}</span>
+                  </div>
+                  {item.downloadAvailable ? (
+                    <a
+                      href={`/api/tts/download/${item.id}`}
+                      className="mt-3 inline-flex items-center gap-2 rounded-md border border-[#D7DEE8] bg-white px-3 py-2 text-sm font-semibold text-[#111827] transition hover:bg-[#EEF4FF]"
+                    >
+                      <Download className="size-4" />
+                      {copy.downloadMp3}
+                    </a>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-4 rounded-md border border-[#EEF2F6] bg-[#F8FAFC] px-4 py-5 text-sm text-[#667085]">
+              {copy.historyEmpty}
+            </div>
+          )}
         </div>
       </div>
     </div>

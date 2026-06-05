@@ -71,6 +71,13 @@
       "when": 1780000000000,
       "tag": "0009_background_remover",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1780636000000,
+      "tag": "0010_text_to_speech_generation",
+      "breakpoints": true
     }
   ]
 }
