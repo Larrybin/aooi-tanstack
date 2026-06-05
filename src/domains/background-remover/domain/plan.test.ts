@@ -1,7 +1,99 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import test from 'node:test';
 
 import { resolveBackgroundRemoverPlanLimits } from './plan';
+import type { BackgroundRemoverActor } from './types';
+
+function readBackgroundRemoverPlanEntitlements(
+  productId: string
+): Record<string, string | number | boolean> {
+  const pricing = JSON.parse(
+    readFileSync(
+      path.join(process.cwd(), 'sites', 'background-remover', 'pricing.json'),
+      'utf8'
+    )
+  ) as {
+    pricing?: {
+      items?: Array<{
+        product_id?: string;
+        entitlements?: Record<string, string | number | boolean>;
+      }>;
+    };
+  };
+  const item = pricing.pricing?.items?.find(
+    (entry) => entry.product_id === productId
+  );
+
+  assert.ok(item, `missing background-remover pricing item: ${productId}`);
+  return item.entitlements ?? {};
+}
+
+function createBackgroundRemoverUserActor(
+  productId: string
+): BackgroundRemoverActor {
+  return {
+    kind: 'user',
+    userId: 'user_1',
+    productAccess: {
+      actor: { kind: 'user', userId: 'user_1' },
+      siteKey: 'background-remover',
+      productKey: 'background-remover',
+      productId,
+      environment: 'local',
+      source: productId === 'free' ? 'free' : 'subscription',
+      planKey: productId,
+      packageKey: productId,
+      entitlements: readBackgroundRemoverPlanEntitlements(productId),
+      entitlementGrantIds: [],
+    },
+  };
+}
+
+test('resolveBackgroundRemoverPlanLimits matches Background Remover pricing matrix', () => {
+  const cases = [
+    [
+      'free',
+      {
+        productId: 'free',
+        processingLimit: 5,
+        processingWindow: 'day',
+        maxUploadMb: 10,
+        retentionDays: 7,
+      },
+    ],
+    [
+      'pro-monthly',
+      {
+        productId: 'pro-monthly',
+        processingLimit: 500,
+        processingWindow: 'month',
+        maxUploadMb: 20,
+        retentionDays: 30,
+      },
+    ],
+    [
+      'studio-monthly',
+      {
+        productId: 'studio-monthly',
+        processingLimit: 2000,
+        processingWindow: 'month',
+        maxUploadMb: 20,
+        retentionDays: 30,
+      },
+    ],
+  ] as const;
+
+  for (const [productId, expected] of cases) {
+    assert.deepEqual(
+      resolveBackgroundRemoverPlanLimits(
+        createBackgroundRemoverUserActor(productId)
+      ),
+      expected
+    );
+  }
+});
 
 test('resolveBackgroundRemoverPlanLimits uses guest daily defaults', () => {
   const limits = resolveBackgroundRemoverPlanLimits({

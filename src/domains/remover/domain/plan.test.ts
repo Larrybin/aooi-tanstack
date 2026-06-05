@@ -1,8 +1,114 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import test from 'node:test';
 
 import { resolveRemoverPlanLimits } from './plan';
 import type { RemoverActor } from './types';
+
+function readAiRemoverPlanEntitlements(
+  productId: string
+): Record<string, string | number | boolean> {
+  const pricing = JSON.parse(
+    readFileSync(
+      path.join(process.cwd(), 'sites', 'ai-remover', 'pricing.json'),
+      'utf8'
+    )
+  ) as {
+    pricing?: {
+      items?: Array<{
+        product_id?: string;
+        entitlements?: Record<string, string | number | boolean>;
+      }>;
+    };
+  };
+  const item = pricing.pricing?.items?.find(
+    (entry) => entry.product_id === productId
+  );
+
+  assert.ok(item, `missing ai-remover pricing item: ${productId}`);
+  return item.entitlements ?? {};
+}
+
+function createAiRemoverUserActor(productId: string): RemoverActor {
+  return {
+    kind: 'user',
+    userId: 'user_1',
+    productId,
+    productAccess: {
+      actor: {
+        kind: 'user',
+        userId: 'user_1',
+      },
+      siteKey: 'ai-remover',
+      productKey: 'ai-remover',
+      productId,
+      environment: 'preview',
+      source: productId === 'free' ? 'free' : 'subscription',
+      planKey: productId,
+      packageKey: productId,
+      entitlements: readAiRemoverPlanEntitlements(productId),
+      entitlementGrantIds: [],
+    },
+  };
+}
+
+test('resolveRemoverPlanLimits matches AI Remover pricing matrix', () => {
+  const cases = [
+    [
+      'free',
+      {
+        productId: 'free',
+        processingLimit: 5,
+        processingWindow: 'day',
+        highResDownloads: 3,
+        highResDownloadWindow: 'lifetime',
+        maxUploadMb: 10,
+        retentionDays: 7,
+        lowResDownload: true,
+        advancedMode: false,
+        priorityQueue: false,
+      },
+    ],
+    [
+      'pro-monthly',
+      {
+        productId: 'pro-monthly',
+        processingLimit: 500,
+        processingWindow: 'month',
+        highResDownloads: 300,
+        highResDownloadWindow: 'month',
+        maxUploadMb: 20,
+        retentionDays: 30,
+        lowResDownload: true,
+        advancedMode: true,
+        priorityQueue: false,
+      },
+    ],
+    [
+      'studio-monthly',
+      {
+        productId: 'studio-monthly',
+        processingLimit: 2000,
+        processingWindow: 'month',
+        highResDownloads: 1500,
+        highResDownloadWindow: 'month',
+        maxUploadMb: 20,
+        retentionDays: 30,
+        lowResDownload: true,
+        advancedMode: false,
+        priorityQueue: true,
+      },
+    ],
+  ] as const;
+
+  for (const [productId, expected] of cases) {
+    assert.deepEqual(
+      resolveRemoverPlanLimits(createAiRemoverUserActor(productId)),
+      expected
+    );
+  }
+});
 
 test('resolveRemoverPlanLimits uses signed-in actor grant entitlements', () => {
   const actor = {
