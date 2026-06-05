@@ -2,6 +2,8 @@ export const TEXT_TO_SPEECH_GENERATOR_SITE_KEY =
   'text-to-speech-generator' as const;
 
 export const TEXT_TO_SPEECH_GENERATOR_OUTPUT_FORMAT = 'mp3' as const;
+export const TEXT_TO_SPEECH_GENERATOR_GUEST_REQUEST_CHARACTERS = 1000;
+export const TEXT_TO_SPEECH_GENERATOR_SIGNED_IN_REQUEST_CHARACTERS = 20000;
 
 export type TextToSpeechLanguage = 'en' | 'es' | 'fr' | 'de' | 'ja' | 'pt';
 
@@ -16,9 +18,10 @@ export type TextToSpeechLanguageConfig = {
 export type TextToSpeechVoiceConfig = {
   id: string;
   label: string;
-  language: TextToSpeechLanguage;
+  language: TextToSpeechLanguage | 'multi';
   provider: 'cloudflare-workers-ai';
   modelId: string;
+  speaker?: string;
   modelTier: 'standard';
   isBeta: boolean;
   availablePlans: readonly [
@@ -88,6 +91,7 @@ export const TEXT_TO_SPEECH_VOICES = [
     language: 'en',
     provider: 'cloudflare-workers-ai',
     modelId: '@cf/deepgram/aura-2-en',
+    speaker: 'asteria',
     modelTier: 'standard',
     isBeta: false,
     availablePlans: ALL_PLANS,
@@ -98,6 +102,7 @@ export const TEXT_TO_SPEECH_VOICES = [
     language: 'en',
     provider: 'cloudflare-workers-ai',
     modelId: '@cf/deepgram/aura-2-en',
+    speaker: 'luna',
     modelTier: 'standard',
     isBeta: false,
     availablePlans: ALL_PLANS,
@@ -108,6 +113,7 @@ export const TEXT_TO_SPEECH_VOICES = [
     language: 'es',
     provider: 'cloudflare-workers-ai',
     modelId: '@cf/deepgram/aura-2-es',
+    speaker: 'celeste',
     modelTier: 'standard',
     isBeta: false,
     availablePlans: ALL_PLANS,
@@ -115,7 +121,7 @@ export const TEXT_TO_SPEECH_VOICES = [
   {
     id: 'melotts-standard',
     label: 'Standard Beta',
-    language: 'fr',
+    language: 'multi',
     provider: 'cloudflare-workers-ai',
     modelId: '@cf/myshell-ai/melotts',
     modelTier: 'standard',

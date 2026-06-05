@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Download, History, Play, Volume2 } from 'lucide-react';
 
@@ -18,15 +18,68 @@ export function TextToSpeechGeneratorWorkbench({
 }) {
   const [text, setText] = useState(copy.sampleText);
   const [language, setLanguage] = useState('en');
+  const [voice, setVoice] = useState('aura-asteria-en');
+  const [playbackSpeed, setPlaybackSpeed] = useState('1x');
+  const [audioSrc, setAudioSrc] = useState('');
+  const [status, setStatus] = useState<
+    'idle' | 'generating' | 'ready' | 'error'
+  >('idle');
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const voices = useMemo(
     () =>
       TEXT_TO_SPEECH_VOICES.filter(
-        (voice) =>
-          voice.language === language || voice.modelId.includes('melotts')
+        (item) => item.language === language || item.language === 'multi'
       ),
     [language]
   );
-  const selectedVoice = voices[0]?.id ?? '';
+  const selectedVoice = voices.some((item) => item.id === voice)
+    ? voice
+    : (voices[0]?.id ?? '');
+  const isGenerating = status === 'generating';
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = Number(playbackSpeed.replace('x', ''));
+    }
+  }, [playbackSpeed, audioSrc]);
+
+  async function generatePreview() {
+    setStatus('generating');
+    try {
+      const response = await fetch('/api/tts/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text,
+          language,
+          voice: selectedVoice,
+        }),
+      });
+      const body = (await response.json()) as {
+        code: number;
+        data?: {
+          audio?: {
+            contentType?: string;
+            audioBase64?: string;
+          };
+        };
+      };
+      const audio = body.data?.audio;
+      if (
+        !response.ok ||
+        body.code !== 0 ||
+        !audio?.contentType ||
+        !audio.audioBase64
+      ) {
+        throw new Error('tts preview failed');
+      }
+      setAudioSrc(`data:${audio.contentType};base64,${audio.audioBase64}`);
+      setStatus('ready');
+    } catch {
+      setAudioSrc('');
+      setStatus('error');
+    }
+  }
 
   return (
     <div className="mt-8 grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
@@ -49,7 +102,15 @@ export function TextToSpeechGeneratorWorkbench({
             {copy.languageLabel}
             <select
               value={language}
-              onChange={(event) => setLanguage(event.target.value)}
+              onChange={(event) => {
+                const nextLanguage = event.target.value;
+                setLanguage(nextLanguage);
+                const nextVoice = TEXT_TO_SPEECH_VOICES.find(
+                  (item) =>
+                    item.language === nextLanguage || item.language === 'multi'
+                );
+                setVoice(nextVoice?.id ?? '');
+              }}
               className="mt-2 w-full rounded-md border border-[#D7DEE8] bg-white px-3 py-2 text-[#111827] outline-none focus:border-[#2563EB]"
             >
               {TEXT_TO_SPEECH_LANGUAGES.map((item) => (
@@ -65,7 +126,7 @@ export function TextToSpeechGeneratorWorkbench({
             {copy.voiceLabel}
             <select
               value={selectedVoice}
-              onChange={() => undefined}
+              onChange={(event) => setVoice(event.target.value)}
               className="mt-2 w-full rounded-md border border-[#D7DEE8] bg-white px-3 py-2 text-[#111827] outline-none focus:border-[#2563EB]"
             >
               {voices.map((voice) => (
@@ -79,7 +140,11 @@ export function TextToSpeechGeneratorWorkbench({
 
           <label className="text-sm font-medium text-[#344054]">
             {copy.speedLabel}
-            <select className="mt-2 w-full rounded-md border border-[#D7DEE8] bg-white px-3 py-2 text-[#111827] outline-none focus:border-[#2563EB]">
+            <select
+              value={playbackSpeed}
+              onChange={(event) => setPlaybackSpeed(event.target.value)}
+              className="mt-2 w-full rounded-md border border-[#D7DEE8] bg-white px-3 py-2 text-[#111827] outline-none focus:border-[#2563EB]"
+            >
               {TEXT_TO_SPEECH_PLAYBACK_SPEEDS.map((speed) => (
                 <option key={speed} value={speed}>
                   {speed}
@@ -92,11 +157,12 @@ export function TextToSpeechGeneratorWorkbench({
         <div className="mt-5 flex flex-wrap gap-3">
           <button
             type="button"
-            disabled
-            className="inline-flex items-center gap-2 rounded-md bg-[#2563EB] px-4 py-2.5 text-sm font-semibold text-white opacity-70"
+            disabled={isGenerating}
+            onClick={generatePreview}
+            className="inline-flex items-center gap-2 rounded-md bg-[#2563EB] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-70"
           >
             <Play className="size-4" />
-            {copy.generatePreview}
+            {isGenerating ? copy.generatingPreview : copy.generatePreview}
           </button>
           <Link
             href="/sign-in"
@@ -115,7 +181,23 @@ export function TextToSpeechGeneratorWorkbench({
             {copy.audioTitle}
           </div>
           <div className="mt-4 flex min-h-32 items-center justify-center rounded-md border border-dashed border-[#CBD5E1] bg-[#F8FAFC] px-4 text-center text-sm text-[#667085]">
-            {copy.audioEmpty}
+            {audioSrc ? (
+              <div className="w-full">
+                <audio
+                  ref={audioRef}
+                  controls
+                  src={audioSrc}
+                  className="w-full"
+                />
+                <div className="mt-3 text-sm text-[#0F766E]">
+                  {copy.previewReady}
+                </div>
+              </div>
+            ) : status === 'error' ? (
+              copy.previewError
+            ) : (
+              copy.audioEmpty
+            )}
           </div>
         </div>
 
