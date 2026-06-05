@@ -47,6 +47,9 @@ function chargeDeps(
     async refundConsumedCredit() {
       return undefined;
     },
+    async markGenerationDeleted() {
+      return undefined;
+    },
     ...overrides,
   };
 }
@@ -83,6 +86,9 @@ test('generateStoredTextToSpeechPreview stores audio and only a 100 character pr
           },
           async getFile() {
             return null;
+          },
+          async deleteFiles() {
+            return undefined;
           },
         };
       },
@@ -176,6 +182,9 @@ test('generateStoredTextToSpeechPreview reuses matching unexpired audio', async 
               contentLength: 5,
             };
           },
+          async deleteFiles() {
+            return undefined;
+          },
         };
       },
       async findReusableGeneration() {
@@ -247,6 +256,9 @@ test('generateStoredTextToSpeechPreview consumes extra credits only after monthl
           },
           async getFile() {
             return null;
+          },
+          async deleteFiles() {
+            return undefined;
           },
         };
       },
@@ -320,6 +332,9 @@ test('generateStoredTextToSpeechPreview refunds quota and credits when synthesis
             async getFile() {
               return null;
             },
+            async deleteFiles() {
+              return undefined;
+            },
           };
         },
         async findReusableGeneration() {
@@ -362,5 +377,102 @@ test('generateStoredTextToSpeechPreview refunds quota and credits when synthesis
     'consume-credit',
     'refund-quota:quota_1',
     'refund-credit:credit_1',
+  ]);
+});
+
+test('generateStoredTextToSpeechPreview does not commit quota when generation storage fails after upload', async () => {
+  const events: string[] = [];
+
+  await assert.rejects(
+    generateStoredTextToSpeechPreview({
+      actor: {
+        ...actor,
+        entitlements: {
+          monthly_characters: 100,
+          single_request_characters: 3500,
+          history_items: 3,
+          retention_days: 3,
+        },
+      },
+      input: {
+        text: 'a'.repeat(120),
+        language: 'en',
+        voice: 'aura-luna-en',
+      },
+      deps: {
+        now: () => new Date('2026-01-01T00:00:00Z'),
+        createId: () => 'tts_1',
+        provider: {
+          async synthesize() {
+            return {
+              audioBase64: Buffer.from('audio').toString('base64'),
+              contentType: 'audio/mpeg',
+            };
+          },
+        },
+        async getStorageService() {
+          return {
+            async uploadFile(options) {
+              events.push(`upload:${options.key}`);
+              return {
+                success: true,
+                provider: 'test',
+                key: options.key,
+                url: `https://cdn.example.com/${options.key}`,
+              };
+            },
+            async getFile() {
+              return null;
+            },
+            async deleteFiles(keys) {
+              events.push(`delete-files:${keys.join(',')}`);
+            },
+          };
+        },
+        async findReusableGeneration() {
+          return undefined;
+        },
+        async createGeneration() {
+          events.push('create-generation');
+          throw new Error('database failed');
+        },
+        async deleteOverflowGenerations() {
+          return [];
+        },
+        ...chargeDeps({
+          async countMonthlyQuotaUnits() {
+            return 80;
+          },
+          async reserveMonthlyQuota() {
+            events.push('reserve-quota');
+            return { reservation: { id: 'quota_1' } };
+          },
+          async commitMonthlyQuota() {
+            events.push('commit-quota');
+          },
+          async consumeCredits() {
+            events.push('consume-credit');
+            return { id: 'credit_1' };
+          },
+          async refundMonthlyQuota(input) {
+            events.push(`refund-quota:${input.reservationId}`);
+          },
+          async refundConsumedCredit(creditId) {
+            events.push(`refund-credit:${creditId}`);
+          },
+        }),
+      },
+    }),
+    /database failed/
+  );
+
+  assert.deepEqual(events, [
+    'reserve-quota',
+    'consume-credit',
+    'upload:text-to-speech-generator/en/tts_1.mp3',
+    'create-generation',
+    'refund-quota:quota_1',
+    'refund-credit:credit_1',
+    'delete-files:text-to-speech-generator/en/tts_1.mp3',
   ]);
 });

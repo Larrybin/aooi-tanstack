@@ -27,6 +27,9 @@ type TextToSpeechGenerateActionDeps = {
   createGeneration: Parameters<
     typeof generateStoredTextToSpeechPreview
   >[0]['deps']['createGeneration'];
+  markGenerationDeleted: Parameters<
+    typeof generateStoredTextToSpeechPreview
+  >[0]['deps']['markGenerationDeleted'];
   deleteOverflowGenerations: Parameters<
     typeof generateStoredTextToSpeechPreview
   >[0]['deps']['deleteOverflowGenerations'];
@@ -93,6 +96,7 @@ export function createTextToSpeechGeneratePostAction(
           getStorageService: () => deps.getStorageService(),
           findReusableGeneration: deps.findReusableGeneration,
           createGeneration: deps.createGeneration,
+          markGenerationDeleted: deps.markGenerationDeleted,
           deleteOverflowGenerations: deps.deleteOverflowGenerations,
           countMonthlyQuotaUnits: deps.countMonthlyQuotaUnits,
           reserveMonthlyQuota: deps.reserveMonthlyQuota,

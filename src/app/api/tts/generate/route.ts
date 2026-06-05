@@ -7,6 +7,7 @@ import {
   createTextToSpeechGeneration,
   deleteOverflowTextToSpeechGenerationsForOwner,
   findReusableTextToSpeechGeneration,
+  markTextToSpeechGenerationDeletedById,
 } from '@/domains/text-to-speech-generator/infra/generation';
 import {
   commitTextToSpeechQuotaReservation,
@@ -36,6 +37,7 @@ const postAction = createTextToSpeechGeneratePostAction({
   getStorageService,
   findReusableGeneration: findReusableTextToSpeechGeneration,
   createGeneration: createTextToSpeechGeneration,
+  markGenerationDeleted: markTextToSpeechGenerationDeletedById,
   deleteOverflowGenerations: deleteOverflowTextToSpeechGenerationsForOwner,
   countMonthlyQuotaUnits: countTextToSpeechMonthlyQuotaUnits,
   reserveMonthlyQuota: reserveTextToSpeechQuota,

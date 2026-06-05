@@ -149,6 +149,22 @@ export async function deleteOverflowTextToSpeechGenerationsForOwner({
     .returning();
 }
 
+export async function markTextToSpeechGenerationDeletedById({
+  id,
+  now = new Date(),
+}: {
+  id: string;
+  now?: Date;
+}) {
+  const [generation] = await db()
+    .update(textToSpeechGeneration)
+    .set({ status: 'deleted', deletedAt: now })
+    .where(eq(textToSpeechGeneration.id, id))
+    .returning();
+
+  return generation;
+}
+
 export async function markExpiredTextToSpeechGenerations(now = new Date()) {
   return await db()
     .update(textToSpeechGeneration)

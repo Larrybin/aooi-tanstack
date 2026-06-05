@@ -63,6 +63,9 @@ function createActionDeps() {
         deletedAt: null,
       };
     },
+    async markGenerationDeleted() {
+      return undefined;
+    },
     async deleteOverflowGenerations() {
       return [];
     },

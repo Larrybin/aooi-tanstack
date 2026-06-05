@@ -31,7 +31,10 @@ import {
   type TextToSpeechSynthesisResult,
 } from './generate-preview';
 
-type StorageDeps = Pick<StorageService, 'uploadFile' | 'getFile'>;
+type StorageDeps = Pick<
+  StorageService,
+  'uploadFile' | 'getFile' | 'deleteFiles'
+>;
 
 type TextToSpeechGenerationCharge = {
   quotaReservationId: string | null;
@@ -72,6 +75,7 @@ export type GenerateStoredTextToSpeechDeps = {
     extraCreditCharacters: number;
     expiresAt: Date;
   }) => Promise<TextToSpeechGenerationRecord>;
+  markGenerationDeleted: (input: { id: string; now: Date }) => Promise<unknown>;
   deleteOverflowGenerations: (input: {
     userId: string | null;
     anonymousSessionId: string | null;
@@ -416,6 +420,9 @@ export async function generateStoredTextToSpeechPreview({
 
   const id = (deps.createId ?? getUuid)();
   let charge: TextToSpeechGenerationCharge | undefined;
+  let createdGenerationId = '';
+  let chargeCommitted = false;
+  let uploadedStorageKey = '';
 
   try {
     charge = await reserveGenerationCharge({
@@ -446,8 +453,7 @@ export async function generateStoredTextToSpeechPreview({
     if (!upload.success || !upload.key) {
       throw new Error(upload.error || 'tts audio upload failed');
     }
-
-    await commitGenerationCharge({ charge, deps, now });
+    uploadedStorageKey = upload.key;
 
     const created = await deps.createGeneration({
       id,
@@ -470,10 +476,17 @@ export async function generateStoredTextToSpeechPreview({
       extraCreditCharacters: charge.extraCreditCharacters,
       expiresAt: addTextToSpeechRetentionDays(now, plan.retentionDays),
     });
-    await deps.deleteOverflowGenerations({
-      ...owner,
-      keep: getTextToSpeechHistoryLimit(actor),
-    });
+    createdGenerationId = created.id;
+
+    await commitGenerationCharge({ charge, deps, now });
+    chargeCommitted = true;
+
+    await deps
+      .deleteOverflowGenerations({
+        ...owner,
+        keep: getTextToSpeechHistoryLimit(actor),
+      })
+      .catch(() => undefined);
 
     return {
       ...toStoredPreviewResult({
@@ -491,12 +504,26 @@ export async function generateStoredTextToSpeechPreview({
       ],
     };
   } catch (error) {
-    await refundGenerationCharge({
-      charge,
-      deps,
-      now,
-      reason: error instanceof Error ? error.message : 'tts generation failed',
-    });
+    if (!chargeCommitted) {
+      if (createdGenerationId) {
+        await deps
+          .markGenerationDeleted({
+            id: createdGenerationId,
+            now,
+          })
+          .catch(() => undefined);
+      }
+      await refundGenerationCharge({
+        charge,
+        deps,
+        now,
+        reason:
+          error instanceof Error ? error.message : 'tts generation failed',
+      });
+      if (uploadedStorageKey) {
+        await storage.deleteFiles([uploadedStorageKey]).catch(() => undefined);
+      }
+    }
     throw error;
   }
 }
