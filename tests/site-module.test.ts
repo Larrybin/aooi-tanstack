@@ -272,6 +272,38 @@ test('@/site: SITE=background-remover exports localized home content by locale',
   );
 });
 
+test('@/site: SITE=text-to-speech-generator exports foundation config', async () => {
+  const site = await importGeneratedSite('text-to-speech-generator');
+
+  assert.equal(site.key, 'text-to-speech-generator');
+  assert.equal(site.domain, 'texttospeechgenerator.example.com');
+  assert.equal(site.brand.appUrl, 'https://texttospeechgenerator.example.com');
+});
+
+test('@/site: SITE=text-to-speech-generator exports pricing plans', async () => {
+  const sitePricing = await importGeneratedSitePricing(
+    'text-to-speech-generator'
+  );
+
+  assert.deepEqual(
+    sitePricing.pricing.items.map((item) => item.product_id),
+    ['free', 'lifetime-basic', 'lifetime-pro', 'extra-credits-250k']
+  );
+  assert.equal(sitePricing.pricing.items[0].checkout_enabled, false);
+});
+
+test('@/site: SITE=text-to-speech-generator exports English home content', async () => {
+  const homeContent = await importGeneratedSiteHomeContent(
+    'text-to-speech-generator'
+  );
+
+  assert.deepEqual(Object.keys(homeContent ?? {}).sort(), ['en']);
+  assert.equal(
+    homeContent?.en.metadata.title,
+    'Online Text to Speech Generator'
+  );
+});
+
 test('existing sites keep the full legacy pricing catalog after migration', async () => {
   const legacyEnglishPricingMessages = await readLegacyEnglishPricingMessages();
   const legacyEnglishLandingMessages = await readLegacyEnglishLandingMessages();

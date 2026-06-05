@@ -6,6 +6,9 @@ import { buildBackgroundRemoverHeaderFooter } from '@/domains/background-remover
 import { RemoverHome } from '@/domains/remover/ui/remover-home';
 import { resolveRemoverHomeCopy } from '@/domains/remover/ui/remover-home-copy';
 import { buildRemoverHeaderFooter } from '@/domains/remover/ui/remover-shell';
+import { TextToSpeechGeneratorHome } from '@/domains/text-to-speech-generator/ui/text-to-speech-home';
+import { resolveTextToSpeechGeneratorHomeCopy } from '@/domains/text-to-speech-generator/ui/text-to-speech-home-copy';
+import { buildTextToSpeechGeneratorHeaderFooter } from '@/domains/text-to-speech-generator/ui/text-to-speech-shell';
 import {
   buildCanonicalUrl,
   buildLanguageAlternates,
@@ -72,6 +75,28 @@ const PRODUCT_LANDINGS = {
     ),
     metadata: (context) =>
       resolveBackgroundRemoverHomeCopy(context.homeContent, context.locale)
+        .metadata,
+  },
+  'text-to-speech-generator': {
+    buildHeaderFooter: (brand, context) =>
+      buildTextToSpeechGeneratorHeaderFooter(
+        brand,
+        resolveTextToSpeechGeneratorHomeCopy(
+          context.homeContent,
+          context.locale
+        ).shell
+      ),
+    render: (context) => (
+      <TextToSpeechGeneratorHome
+        copy={resolveTextToSpeechGeneratorHomeCopy(
+          context.homeContent,
+          context.locale
+        )}
+        locale={context.locale}
+      />
+    ),
+    metadata: (context) =>
+      resolveTextToSpeechGeneratorHomeCopy(context.homeContent, context.locale)
         .metadata,
   },
 } as const satisfies Record<string, ProductLanding>;

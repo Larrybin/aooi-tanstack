@@ -1,0 +1,164 @@
+{
+  "metadata": {
+    "title": "Text to Speech Generator Pricing",
+    "description": "Choose a Text to Speech Generator plan for monthly character quota, MP3 downloads, and longer audio history."
+  },
+  "pricing": {
+    "id": "pricing",
+    "sr_only_title": "Text to Speech Generator Pricing",
+    "title": "Text to Speech Generator Pricing",
+    "description": "Preview text to speech for free, then sign in to download MP3 files with clear character limits.",
+    "items": [
+      {
+        "title": "Free",
+        "description": "Preview short text and keep a small signed-in history.",
+        "features_title": "Includes",
+        "features": [
+          "Guest previews: 5 per day",
+          "Guest request limit: 1,500 characters",
+          "Signed-in quota: 10,000 characters per month",
+          "Signed-in request limit: 3,500 characters",
+          "3 history items with 3-day audio retention"
+        ],
+        "interval": "month",
+        "amount": 0,
+        "currency": "USD",
+        "price": "$0",
+        "unit": "",
+        "button": {
+          "title": "Generate speech",
+          "url": "/",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "free",
+        "product_name": "Text to Speech Generator Free",
+        "plan_name": "Free",
+        "checkout_enabled": false,
+        "entitlements": {
+          "guest_daily_previews": 5,
+          "guest_request_characters": 1500,
+          "monthly_characters": 10000,
+          "single_request_characters": 3500,
+          "history_items": 3,
+          "retention_days": 3
+        }
+      },
+      {
+        "title": "Lifetime Basic",
+        "description": "For students and readers who convert notes and short articles regularly.",
+        "features_title": "Everything in Free, plus",
+        "features": [
+          "Permanent member entitlement",
+          "100,000 characters per month",
+          "15,000 characters per request",
+          "20 history items",
+          "30-day audio retention"
+        ],
+        "interval": "one-time",
+        "amount": 2900,
+        "currency": "USD",
+        "price": "$29",
+        "unit": "one-time",
+        "is_featured": true,
+        "button": {
+          "title": "Get Lifetime Basic",
+          "url": "/pricing",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "lifetime-basic",
+        "product_name": "Text to Speech Generator Lifetime Basic",
+        "plan_name": "Lifetime Basic",
+        "checkout_enabled": true,
+        "entitlements": {
+          "monthly_characters": 100000,
+          "single_request_characters": 15000,
+          "history_items": 20,
+          "retention_days": 30,
+          "lifetime_access": true
+        }
+      },
+      {
+        "title": "Lifetime Pro",
+        "description": "For heavier learning, review, and reading workflows.",
+        "features_title": "Everything in Basic, plus",
+        "features": [
+          "Permanent member entitlement",
+          "500,000 characters per month",
+          "15,000 characters per request",
+          "50 history items",
+          "90-day audio retention"
+        ],
+        "interval": "one-time",
+        "amount": 7900,
+        "currency": "USD",
+        "price": "$79",
+        "unit": "one-time",
+        "button": {
+          "title": "Get Lifetime Pro",
+          "url": "/pricing",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "lifetime-pro",
+        "product_name": "Text to Speech Generator Lifetime Pro",
+        "plan_name": "Lifetime Pro",
+        "checkout_enabled": true,
+        "entitlements": {
+          "monthly_characters": 500000,
+          "single_request_characters": 15000,
+          "history_items": 50,
+          "retention_days": 90,
+          "lifetime_access": true
+        }
+      },
+      {
+        "title": "Extra Credits",
+        "description": "Add characters after the monthly plan quota is depleted.",
+        "features_title": "Includes",
+        "features": [
+          "250,000 extra characters",
+          "Consumed after monthly quota",
+          "Valid for 365 days",
+          "One-time purchase"
+        ],
+        "interval": "one-time",
+        "amount": 900,
+        "currency": "USD",
+        "price": "$9",
+        "unit": "",
+        "button": {
+          "title": "Buy Extra Credits",
+          "url": "/pricing",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "extra-credits-250k",
+        "product_name": "Text to Speech Generator Extra Credits",
+        "plan_name": "Extra Credits",
+        "checkout_enabled": true,
+        "credits": 250000,
+        "valid_days": 365
+      }
+    ]
+  },
+  "faq": {
+    "id": "pricing-faq",
+    "title": "Pricing questions before you generate.",
+    "items": [
+      {
+        "question": "Does lifetime mean unlimited text to speech?",
+        "answer": "No. Lifetime plans are permanent member entitlements with fixed monthly character quotas."
+      },
+      {
+        "question": "When are Extra Credits used?",
+        "answer": "Extra Credits are used only after the active monthly character quota is depleted."
+      },
+      {
+        "question": "Can guests download MP3 files?",
+        "answer": "No. Guests can preview generated speech, but MP3 downloads require sign-in."
+      },
+      {
+        "question": "Does playback speed change the downloaded MP3?",
+        "answer": "No. Playback speed changes only the browser audio player."
+      }
+    ]
+  }
+}

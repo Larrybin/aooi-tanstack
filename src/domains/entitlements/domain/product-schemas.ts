@@ -76,6 +76,43 @@ const PRODUCT_ENTITLEMENT_SCHEMAS: Record<string, ProductEntitlementSchema> = {
     },
     retention_days: { type: 'number', merge: 'max', sources: ['pricing'] },
   },
+  'text-to-speech-generator': {
+    guest_daily_previews: {
+      type: 'number',
+      merge: 'max',
+      sources: ['pricing'],
+    },
+    guest_request_characters: {
+      type: 'number',
+      merge: 'max',
+      sources: ['pricing'],
+    },
+    monthly_characters: {
+      type: 'number',
+      merge: 'max',
+      sources: ['pricing', 'grant'],
+    },
+    single_request_characters: {
+      type: 'number',
+      merge: 'max',
+      sources: ['pricing', 'grant'],
+    },
+    history_items: {
+      type: 'number',
+      merge: 'max',
+      sources: ['pricing'],
+    },
+    retention_days: {
+      type: 'number',
+      merge: 'max',
+      sources: ['pricing'],
+    },
+    lifetime_access: {
+      type: 'boolean',
+      merge: 'override',
+      sources: ['pricing', 'grant'],
+    },
+  },
 };
 
 export function getProductEntitlementSchema(productKey: string) {

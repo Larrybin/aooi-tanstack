@@ -21,6 +21,21 @@ test('AI Remover pricing entitlements match the registered product schema', asyn
   }
 });
 
+test('Text to Speech Generator pricing entitlements match the registered product schema', async () => {
+  const pricing = JSON.parse(
+    await readFile('sites/text-to-speech-generator/pricing.json', 'utf8')
+  ) as SitePricing;
+
+  for (const item of pricing.pricing.items ?? []) {
+    validateProductEntitlements({
+      productKey: 'text-to-speech-generator',
+      entitlements: item.entitlements ?? {},
+      source: `pricing ${item.product_id}`,
+      entitlementSource: 'pricing',
+    });
+  }
+});
+
 test('validateProductEntitlements rejects unknown product keys and fields', () => {
   assert.throws(
     () =>
