@@ -571,6 +571,7 @@ async function writeUsageCreditSourceFiles(rootDir: string) {
 async function createFixtureRoot(pricing: unknown) {
   const rootDir = await mkdtemp(path.join(os.tmpdir(), 'saas-contract-audit-'));
   const siteKey = 'ai-remover';
+  await writeJson(path.join(rootDir, 'package.json'), { type: 'module' });
   await writeJson(path.join(rootDir, 'sites', siteKey, 'site.config.json'), {
     key: siteKey,
     domain: 'airemover.example.com',
@@ -603,6 +604,7 @@ async function createFixtureRoot(pricing: unknown) {
           googleOauth: true,
           githubOauth: false,
           removerCleanup: true,
+          turnstile: false,
         },
         vars: { storagePublicBaseUrl: true },
       },
@@ -679,6 +681,7 @@ async function createFixtureRoot(pricing: unknown) {
 async function createBackgroundRemoverFixtureRoot() {
   const rootDir = await mkdtemp(path.join(os.tmpdir(), 'saas-contract-audit-'));
   const siteKey = 'background-remover';
+  await writeJson(path.join(rootDir, 'package.json'), { type: 'module' });
   await writeJson(path.join(rootDir, 'sites', siteKey, 'site.config.json'), {
     key: siteKey,
     domain: 'backgroundremover.example.com',
@@ -711,6 +714,7 @@ async function createBackgroundRemoverFixtureRoot() {
           googleOauth: true,
           githubOauth: false,
           removerCleanup: true,
+          turnstile: false,
         },
         vars: { storagePublicBaseUrl: true },
       },

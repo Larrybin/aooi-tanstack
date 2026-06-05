@@ -559,6 +559,13 @@ export function buildCloudflareWranglerConfig({
       : {}),
     STORAGE_PUBLIC_BASE_URL: storagePublicBaseUrl ?? '',
     DEPLOY_TARGET: deployTarget ?? 'cloudflare',
+    ...(workerSlot === 'public-web' &&
+    contract.bindingRequirements?.secrets?.turnstile
+      ? {
+          NEXT_PUBLIC_TURNSTILE_SITE_KEY:
+            process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? '',
+        }
+      : {}),
     ...(workerSlot === 'router' ? contract.router.versionVars : {}),
     ...(workerSlot === 'router' ? contract.router.workerNameVars : {}),
     ...versionVars,

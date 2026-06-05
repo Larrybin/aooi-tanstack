@@ -21,6 +21,10 @@ const aiRemoverPreviewContract = resolveSiteDeployContract({
     CF_WORKERS_DEV_SUBDOMAIN: 'aooi-preview',
   },
 });
+const textToSpeechContract = resolveSiteDeployContract({
+  rootDir: process.cwd(),
+  siteKey: 'text-to-speech-generator',
+});
 
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -458,6 +462,74 @@ STORAGE_PUBLIC_BASE_URL = ""
   assert.doesNotMatch(authConfig, /\[ai\]\nbinding = "AI"/);
   assert.doesNotMatch(authConfig, /\[images\]\nbinding = "IMAGES"/);
   assert.doesNotMatch(authConfig, /binding = "WORKER_SELF_REFERENCE"/);
+});
+
+test('buildCloudflareWranglerConfig 为 Turnstile public-web 注入公开 site key', () => {
+  const template = `
+name = "public-web-template"
+main = "workers/server-public-web.ts"
+
+[assets]
+directory = "../.open-next/assets"
+
+[[r2_buckets]]
+binding = "NEXT_INC_CACHE_R2_BUCKET"
+bucket_name = "placeholder-cache"
+
+[[r2_buckets]]
+binding = "APP_STORAGE_R2_BUCKET"
+bucket_name = "placeholder-storage"
+
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "d208cd72765b46a7b0849fc687e2fb61"
+localConnectionString = ""
+
+[[durable_objects.bindings]]
+name = "STATEFUL_LIMITERS"
+class_name = "StatefulLimitersDurableObject"
+script_name = "placeholder-state"
+
+[observability]
+enabled = true
+
+[vars]
+DEPLOY_TARGET = "cloudflare"
+NEXT_PUBLIC_APP_URL = "https://example.com"
+STORAGE_PUBLIC_BASE_URL = ""
+`;
+
+  const originalTurnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = 'turnstile-site-key';
+
+  try {
+    const config = buildCloudflareWranglerConfig({
+      template,
+      contract: textToSpeechContract,
+      workerSlot: 'public-web',
+      templatePath: '/repo/cloudflare/wrangler.server-public-web.toml',
+      outputPath: '/repo/.tmp/server/default.toml',
+    });
+    const authConfig = buildCloudflareWranglerConfig({
+      template,
+      contract: textToSpeechContract,
+      workerSlot: 'auth',
+      templatePath: '/repo/cloudflare/wrangler.server-auth.toml',
+      outputPath: '/repo/.tmp/server/auth.toml',
+    });
+
+    assert.match(
+      config,
+      /NEXT_PUBLIC_TURNSTILE_SITE_KEY = "turnstile-site-key"/
+    );
+    assert.doesNotMatch(authConfig, /NEXT_PUBLIC_TURNSTILE_SITE_KEY/);
+  } finally {
+    if (originalTurnstileSiteKey === undefined) {
+      delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+    } else {
+      process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = originalTurnstileSiteKey;
+    }
+  }
 });
 
 test('buildCloudflareWranglerConfig 为 AI Remover public-web 注入 cleanup cron', () => {

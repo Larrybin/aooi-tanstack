@@ -64,16 +64,19 @@ test('getServerPublicEnvConfigs 优先使用 runtime bindings 的公开配置', 
     env: createEnv({
       NEXT_PUBLIC_THEME: 'env-theme',
       NEXT_PUBLIC_DEFAULT_LOCALE: 'zh',
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: 'env-turnstile-site-key',
     }),
     bindings: {
       NEXT_PUBLIC_THEME: 'binding-theme',
       NEXT_PUBLIC_DEFAULT_LOCALE: 'en',
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: 'binding-turnstile-site-key',
     } as CloudflareBindings,
   });
 
   assert.deepEqual(configs, {
     theme: 'binding-theme',
     locale: 'en',
+    turnstileSiteKey: 'binding-turnstile-site-key',
   });
 });
 
@@ -88,6 +91,7 @@ test('getServerPublicEnvConfigs 不承载站点 identity fallback', () => {
   assert.deepEqual(configs, {
     theme: 'default',
     locale: 'en',
+    turnstileSiteKey: '',
   });
 });
 

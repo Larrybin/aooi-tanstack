@@ -79,7 +79,7 @@ test('generateTextToSpeechPreview enforces guest request character limit', async
   await assert.rejects(
     generateTextToSpeechPreview({
       input: {
-        text: 'a'.repeat(1001),
+        text: 'a'.repeat(1501),
         language: 'en',
         voice: 'aura-luna-en',
         actorKind: 'guest',

@@ -91,6 +91,41 @@ test('cloudflare runtime bindings: remover cleanup secret 只分配到 public-we
   assert.deepEqual(authSecrets, []);
 });
 
+test('cloudflare runtime bindings: Turnstile 只分配到 public-web worker', () => {
+  assert.deepEqual(CLOUDFLARE_SECRET_WORKER_ALLOWLIST.TURNSTILE_SECRET_KEY, [
+    'public-web',
+  ]);
+
+  const contract = resolveSiteDeployContract({
+    rootDir: process.cwd(),
+    siteKey: 'text-to-speech-generator',
+  });
+  const requirements = getRequiredRuntimeBindingsByWorker(
+    contract.bindingRequirements
+  ) as Map<string, Array<{ kind: string; name: string; worker: string }>>;
+
+  assert.deepEqual(
+    requirements
+      .get('public-web')
+      ?.filter((item) =>
+        ['NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'TURNSTILE_SECRET_KEY'].includes(
+          item.name
+        )
+      )
+      .map((item) => `${item.kind}:${item.name}:${item.worker}`),
+    [
+      'runtime-var:NEXT_PUBLIC_TURNSTILE_SITE_KEY:public-web',
+      'runtime-secret:TURNSTILE_SECRET_KEY:public-web',
+    ]
+  );
+  assert.deepEqual(
+    requirements
+      .get('auth')
+      ?.filter((item) => item.name === 'TURNSTILE_SECRET_KEY'),
+    []
+  );
+});
+
 test('cloudflare runtime bindings: AI Remover 不要求 OpenRouter chat secret', () => {
   const contract = resolveSiteDeployContract({
     rootDir: process.cwd(),

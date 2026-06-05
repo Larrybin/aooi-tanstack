@@ -18,6 +18,11 @@ export type TextToSpeechGenerationRecord = {
   storageKey: string;
   mimeType: string;
   byteSize: number;
+  quotaReservationId: string | null;
+  creditId: string | null;
+  chargedCharacters: number;
+  monthlyQuotaCharacters: number;
+  extraCreditCharacters: number;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -102,6 +107,9 @@ export function serializeTextToSpeechGenerationForClient({
     outputFormat: generation.outputFormat,
     createdAt: generation.createdAt,
     expiresAt: generation.expiresAt,
+    chargedCharacters: generation.chargedCharacters,
+    monthlyQuotaCharacters: generation.monthlyQuotaCharacters,
+    extraCreditCharacters: generation.extraCreditCharacters,
     audioAvailable: generation.status === 'generated' && !expired,
     downloadAvailable:
       actor.kind === 'user' && generation.status === 'generated' && !expired,

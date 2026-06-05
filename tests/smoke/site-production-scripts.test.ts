@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import siteEnvModule from '../../src/config/site-env.cjs';
 import {
   buildProductionCommandOriginalEnv,
   buildProductionDeploySettingsJson,
@@ -14,6 +13,7 @@ import {
   updateProductionDeploySettingsHyperdriveId,
   updateProductionDeploySettingsNames,
 } from '../../scripts/site-production.mjs';
+import siteEnvModule from '../../src/config/site-env.cjs';
 
 const { applySiteLocalEnvOverlay } = siteEnvModule;
 
@@ -39,6 +39,7 @@ const baseDeploySettings = {
       githubOauth: false,
       googleOauth: true,
       removerCleanup: true,
+      turnstile: false,
     },
     vars: {
       storagePublicBaseUrl: true,
