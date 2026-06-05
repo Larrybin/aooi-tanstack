@@ -1,0 +1,27 @@
+{
+  "key": "text-to-speech-generator",
+  "domain": "texttospeechgenerator.example.com",
+  "brand": {
+    "appName": "Text to Speech Generator",
+    "appUrl": "https://texttospeechgenerator.example.com",
+    "supportEmail": "support@texttospeechgenerator.example.com",
+    "logo": "/logo.png",
+    "favicon": "/favicon.ico",
+    "previewImage": "/logo.png"
+  },
+  "capabilities": {
+    "auth": true,
+    "payment": "creem",
+    "ai": false,
+    "docs": false,
+    "blog": false
+  },
+  "i18n": {
+    "defaultLocale": "en",
+    "supportedLocales": ["en"],
+    "localePrefix": "as-needed",
+    "localeDetection": false,
+    "strictPublishing": true
+  },
+  "configVersion": 1
+}

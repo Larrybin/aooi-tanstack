@@ -1,0 +1,34 @@
+{
+  "configVersion": 1,
+  "bindingRequirements": {
+    "bindings": {
+      "workersAi": true
+    },
+    "secrets": {
+      "authSharedSecret": true,
+      "googleOauth": false,
+      "githubOauth": false,
+      "removerCleanup": false
+    },
+    "vars": {
+      "storagePublicBaseUrl": true
+    }
+  },
+  "workers": {
+    "router": "aooi-text-to-speech-generator-router",
+    "state": "aooi-text-to-speech-generator-state",
+    "public-web": "aooi-text-to-speech-generator-public-web",
+    "auth": "aooi-text-to-speech-generator-auth",
+    "payment": "aooi-text-to-speech-generator-payment",
+    "member": "aooi-text-to-speech-generator-member",
+    "admin": "aooi-text-to-speech-generator-admin"
+  },
+  "resources": {
+    "incrementalCacheBucket": "aooi-text-to-speech-generator-cache",
+    "appStorageBucket": "aooi-text-to-speech-generator-storage",
+    "hyperdriveId": "00000000000000000000000000000004"
+  },
+  "state": {
+    "schemaVersion": 1
+  }
+}

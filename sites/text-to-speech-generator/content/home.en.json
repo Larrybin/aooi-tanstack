@@ -1,0 +1,70 @@
+{
+  "metadata": {
+    "title": "Online Text to Speech Generator",
+    "description": "Turn text into natural speech, preview audio online, and download MP3 files after sign-in.",
+    "keywords": [
+      "text to speech generator",
+      "online text to speech",
+      "free text to speech",
+      "read aloud",
+      "text reader"
+    ]
+  },
+  "shell": {
+    "pricing": "Pricing",
+    "billing": "Billing",
+    "footerDescription": "Turn text into speech, preview online, and download MP3 files after sign-in.",
+    "productGroup": "Product",
+    "tool": "Text to Speech Generator",
+    "trustGroup": "Trust",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "copyrightSuffix": "All rights reserved."
+  },
+  "hero": {
+    "badge": "Online text to speech",
+    "title": "Online Text to Speech Generator",
+    "description": "Paste text, choose a language and voice, preview natural speech online, then sign in when you need an MP3 download.",
+    "trustNotes": [
+      "English and Spanish official support",
+      "MP3 output",
+      "No full-text history storage"
+    ]
+  },
+  "generator": {
+    "sampleText": "Paste notes, short articles, or study material here to preview them as speech.",
+    "textLabel": "Text",
+    "languageLabel": "Language",
+    "voiceLabel": "Voice",
+    "speedLabel": "Playback speed",
+    "characters": "characters",
+    "generatePreview": "Generate Preview",
+    "downloadMp3": "Download MP3",
+    "signInToDownload": "Sign in to download",
+    "recentHistory": "Recent history",
+    "historyEmpty": "Recent previews will appear here.",
+    "audioTitle": "Audio preview",
+    "audioEmpty": "Preview audio appears here after generation."
+  },
+  "sections": {
+    "workflow": {
+      "eyebrow": "Workflow",
+      "title": "Built around the direct text to speech path.",
+      "description": "V1 stays focused on the core job: paste text, generate speech, listen online, and download MP3 after sign-in.",
+      "items": [
+        "Short notes and articles",
+        "Study and review material",
+        "Read-aloud previews",
+        "MP3 downloads for signed-in users"
+      ]
+    },
+    "privacy": {
+      "title": "Text history stays limited",
+      "description": "Generation history stores a short text preview, character count, language, voice, model, and audio metadata. Full original text is not retained."
+    },
+    "limits": {
+      "title": "Clear quotas, no unlimited claims",
+      "description": "Free, lifetime, and extra-credit plans use explicit character limits so generation cost stays controlled."
+    }
+  }
+}

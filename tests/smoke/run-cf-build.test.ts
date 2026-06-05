@@ -73,6 +73,7 @@ test('cf:build:no-db covers the explicit deployable site list', () => {
     'mamamiya',
     'ai-remover',
     'background-remover',
+    'text-to-speech-generator',
   ]);
 });
 

@@ -1,0 +1,19 @@
+{
+  "preserve": [
+    "Text to Speech Generator",
+    "MP3",
+    "Creem",
+    "Cloudflare Workers AI",
+    "support@texttospeechgenerator.example.com"
+  ],
+  "terms": {},
+  "forbidden": {
+    "allLocales": [
+      "unlimited free",
+      "100+ languages",
+      "500+ voices",
+      "celebrity voices",
+      "voice cloning"
+    ]
+  }
+}

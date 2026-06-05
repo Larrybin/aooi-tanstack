@@ -1,0 +1,88 @@
+{
+  "pages": [
+    {
+      "pageId": "home",
+      "path": "/",
+      "type": "seo",
+      "indexable": true,
+      "required": true,
+      "source": {
+        "kind": "app-route",
+        "path": "src/app/[locale]/(landing)/page.tsx"
+      },
+      "hashScope": "seo"
+    },
+    {
+      "pageId": "pricing",
+      "path": "/pricing",
+      "type": "seo",
+      "indexable": true,
+      "required": true,
+      "source": {
+        "kind": "app-route",
+        "path": "src/app/[locale]/(landing)/pricing/page.tsx"
+      },
+      "hashScope": "seo"
+    },
+    {
+      "pageId": "legal.privacy-policy",
+      "path": "/privacy-policy",
+      "type": "legal",
+      "indexable": true,
+      "required": true,
+      "source": {
+        "kind": "site-content",
+        "path": "content/pages/privacy-policy.mdx"
+      },
+      "hashScope": "content"
+    },
+    {
+      "pageId": "legal.terms-of-service",
+      "path": "/terms-of-service",
+      "type": "legal",
+      "indexable": true,
+      "required": true,
+      "source": {
+        "kind": "site-content",
+        "path": "content/pages/terms-of-service.mdx"
+      },
+      "hashScope": "content"
+    },
+    {
+      "pageId": "auth.sign-in",
+      "path": "/sign-in",
+      "type": "auth",
+      "indexable": false,
+      "required": true,
+      "source": {
+        "kind": "app-route",
+        "path": "src/app/[locale]/(auth)/sign-in/page.tsx"
+      },
+      "hashScope": "ui"
+    },
+    {
+      "pageId": "auth.sign-up",
+      "path": "/sign-up",
+      "type": "auth",
+      "indexable": false,
+      "required": true,
+      "source": {
+        "kind": "app-route",
+        "path": "src/app/[locale]/(auth)/sign-up/page.tsx"
+      },
+      "hashScope": "ui"
+    },
+    {
+      "pageId": "admin.index",
+      "path": "/admin",
+      "type": "admin",
+      "indexable": false,
+      "required": true,
+      "source": {
+        "kind": "app-route",
+        "path": "src/app/[locale]/(admin)/admin/page.tsx"
+      },
+      "hashScope": "ui"
+    }
+  ]
+}
