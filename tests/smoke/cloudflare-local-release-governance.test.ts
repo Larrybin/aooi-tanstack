@@ -153,6 +153,15 @@ test('package 暴露本地 Cloudflare production release 入口', () => {
   );
 });
 
+test('release:check 显式调用仓库 ci 脚本而不是 pnpm clean install', () => {
+  assert.equal(
+    packageJson.scripts['release:check'],
+    'pnpm run ci && pnpm cf:check && pnpm cf:build:no-db --site=$SITE && pnpm cf:typegen:check'
+  );
+  assert.doesNotMatch(readmeContent, /`pnpm ci`/);
+  assert.match(readmeContent, /`pnpm run ci`/);
+});
+
 test('文档声明本地 operator session 是生产发布权威', () => {
   assert.match(
     readmeContent,

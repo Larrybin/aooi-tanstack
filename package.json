@@ -25,7 +25,7 @@
     "typecheck": "node scripts/run-with-site.mjs pnpm exec tsc --noEmit --pretty false --incremental false",
     "check": "pnpm lint && pnpm typecheck && pnpm test",
     "ci": "pnpm check && pnpm arch:check && pnpm i18n:check --strict",
-    "release:check": "pnpm ci && pnpm cf:check && pnpm cf:build:no-db --site=$SITE && pnpm cf:typegen:check",
+    "release:check": "pnpm run ci && pnpm cf:check && pnpm cf:build:no-db --site=$SITE && pnpm cf:typegen:check",
     "test": "node scripts/run-with-site.mjs node scripts/run-tests.mjs",
     "test:extended": "pnpm test:auth-spike",
     "test:auth-spike": "node --import tsx scripts/smoke.mjs auth-spike",

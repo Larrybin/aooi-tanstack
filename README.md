@@ -154,7 +154,7 @@ bindings in Cloudflare; do not put secrets in `site.config.json`,
 | -------------------------------- | --------------------------------------------- |
 | `pnpm dev:local`                 | Start local Next.js development server        |
 | `pnpm check`                     | Run the default local change guard            |
-| `pnpm ci`                        | Run local guard plus architecture and i18n    |
+| `pnpm run ci`                    | Run local guard plus architecture and i18n    |
 | `SITE=<site> pnpm release:check` | Run CI plus site Cloudflare release preflight |
 | `pnpm test`                      | Run fast unit and contract tests              |
 | `pnpm test:extended`             | Run external or environment-dependent tests   |
@@ -173,7 +173,7 @@ Cloudflare commands live in the
 
 Use `pnpm check` as the default Codex and local development verification entry.
 It stays fast and deterministic: lint, TypeScript, and the repository test
-runner. Use `pnpm ci` when a change needs the stronger repository guard with
+runner. Use `pnpm run ci` when a change needs the stronger repository guard with
 architecture and strict i18n checks. Use `SITE=<site-key> pnpm release:check`
 before a site release or Cloudflare-sensitive handoff; it intentionally requires
 an explicit site and runs Cloudflare config, no-DB build, and typegen checks.
@@ -299,7 +299,7 @@ The `Cloudflare Deploy Acceptance` workflow splits generic CI from deployment
 acceptance:
 
 - `pnpm check` runs the default lint, TypeScript, and test gate.
-- `pnpm ci` adds architecture and strict i18n checks.
+- `pnpm run ci` adds architecture and strict i18n checks.
 - `scripts/check-release-inputs.mjs` enforces DB schema changes shipping with
   migrations.
 - `pnpm cf:check` and `pnpm cf:build:no-db --site=<site>` run only for
