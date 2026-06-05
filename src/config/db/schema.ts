@@ -763,6 +763,44 @@ export const backgroundRemoverImage = pgTable(
   ]
 );
 
+export const textToSpeechGeneration = pgTable(
+  'text_to_speech_generation',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').references(() => user.id, { onDelete: 'cascade' }),
+    anonymousSessionId: text('anonymous_session_id'),
+    status: text('status').notNull(),
+    textPreview: text('text_preview').notNull(),
+    characterCount: integer('character_count').notNull(),
+    language: text('language').notNull(),
+    voice: text('voice').notNull(),
+    model: text('model').notNull(),
+    outputFormat: text('output_format').notNull(),
+    requestHash: text('request_hash').notNull(),
+    storageKey: text('storage_key').notNull(),
+    mimeType: text('mime_type').notNull(),
+    byteSize: integer('byte_size').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+    deletedAt: timestamp('deleted_at'),
+    expiresAt: timestamp('expires_at').notNull(),
+  },
+  (table) => [
+    index('idx_tts_generation_user_created').on(table.userId, table.createdAt),
+    index('idx_tts_generation_anonymous_created').on(
+      table.anonymousSessionId,
+      table.createdAt
+    ),
+    index('idx_tts_generation_hash_expires').on(
+      table.requestHash,
+      table.expiresAt
+    ),
+    index('idx_tts_generation_expires').on(table.expiresAt),
+  ]
+);
+
 export const chat = pgTable(
   'chat',
   {

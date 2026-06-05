@@ -41,6 +41,12 @@ export type GenerateTextToSpeechPreviewResult = {
     outputFormat: 'mp3';
     hash: string;
   };
+  generation?: {
+    id: string;
+    textPreview: string;
+    expiresAt: Date;
+    reused: boolean;
+  };
   warnings: string[];
 };
 

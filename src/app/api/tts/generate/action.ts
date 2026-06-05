@@ -1,9 +1,11 @@
 import type { ApiContext } from '@/app/api/_lib/context';
 import {
-  generateTextToSpeechPreview,
   TextToSpeechRequestError,
   type TextToSpeechProvider,
 } from '@/domains/text-to-speech-generator/application/generate-preview';
+import { generateStoredTextToSpeechPreview } from '@/domains/text-to-speech-generator/application/generation-workflow';
+import type { TextToSpeechActor } from '@/domains/text-to-speech-generator/domain/types';
+import type { getStorageService } from '@/infra/adapters/storage/service';
 
 import {
   ApiError,
@@ -16,8 +18,18 @@ import { TextToSpeechGenerateBodySchema } from '@/shared/schemas/api/text-to-spe
 
 type TextToSpeechGenerateActionDeps = {
   createApiContext: (req: Request) => Pick<ApiContext, 'parseJson' | 'log'>;
-  resolveActorKind: (req: Request) => Promise<'guest' | 'user'>;
+  resolveActor: (req: Request) => Promise<TextToSpeechActor>;
   provider: TextToSpeechProvider;
+  getStorageService: typeof getStorageService;
+  findReusableGeneration: Parameters<
+    typeof generateStoredTextToSpeechPreview
+  >[0]['deps']['findReusableGeneration'];
+  createGeneration: Parameters<
+    typeof generateStoredTextToSpeechPreview
+  >[0]['deps']['createGeneration'];
+  deleteOverflowGenerations: Parameters<
+    typeof generateStoredTextToSpeechPreview
+  >[0]['deps']['deleteOverflowGenerations'];
 };
 
 function mapRequestError(error: TextToSpeechRequestError) {
@@ -34,12 +46,19 @@ export function createTextToSpeechGeneratePostAction(
   return async (req: Request) => {
     const api = deps.createApiContext(req);
     const body = await api.parseJson(TextToSpeechGenerateBodySchema);
-    const actorKind = await deps.resolveActorKind(req);
+    const actor = await deps.resolveActor(req);
 
     try {
-      const result = await generateTextToSpeechPreview({
-        input: { ...body, actorKind },
-        provider: deps.provider,
+      const result = await generateStoredTextToSpeechPreview({
+        actor,
+        input: body,
+        deps: {
+          provider: deps.provider,
+          getStorageService: () => deps.getStorageService(),
+          findReusableGeneration: deps.findReusableGeneration,
+          createGeneration: deps.createGeneration,
+          deleteOverflowGenerations: deps.deleteOverflowGenerations,
+        },
       });
       return jsonOk(result, { headers: { 'Cache-Control': 'no-store' } });
     } catch (error: unknown) {
