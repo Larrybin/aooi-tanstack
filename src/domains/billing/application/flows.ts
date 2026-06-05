@@ -4,6 +4,7 @@ import {
   buildGrantCreditForOrder,
   type BillingGrantCredit,
 } from '@/domains/billing/domain/credit';
+import { buildBillingEntitlementGrantForOrder } from '@/domains/billing/domain/entitlement-grant';
 import {
   PaymentStatus,
   PaymentType,
@@ -26,6 +27,9 @@ import {
   type Subscription,
   type UpdateSubscription,
 } from '@/domains/billing/infra/subscription';
+import { resolveAppEnvironment } from '@/domains/entitlements/domain/types';
+import { getRuntimeEnvString } from '@/infra/runtime/env.server';
+import { site, sitePricing } from '@/site';
 
 import { getSnowId, getUuid } from '@/shared/lib/hash';
 
@@ -95,6 +99,13 @@ function toCreditGrantOrder(order: Order) {
     creditsAmount: order.creditsAmount,
     creditsValidDays: order.creditsValidDays,
   };
+}
+
+function resolveBillingEntitlementEnvironment() {
+  return resolveAppEnvironment({
+    configured: getRuntimeEnvString('APP_ENVIRONMENT'),
+    nodeEnv: getRuntimeEnvString('NODE_ENV'),
+  });
 }
 
 function isFinalOrderStatus(status: string) {
@@ -299,12 +310,22 @@ async function processSuccessfulPayment({
     subscriptionNo: newSubscription?.subscriptionNo,
     subscriptionInfo,
   });
+  const newEntitlementGrant = buildBillingEntitlementGrantForOrder({
+    order,
+    pricing: sitePricing?.pricing,
+    siteKey: site.key,
+    productKey: site.key,
+    environment: resolveBillingEntitlementEnvironment(),
+    now: session.paymentInfo?.paidAt ?? new Date(),
+    createId: getUuid,
+  });
 
   await updateOrderInTransaction({
     orderNo: order.orderNo,
     updateOrder,
     newSubscription,
     newCredit,
+    newEntitlementGrant,
   });
 
   log?.info(`payment: ${flow} processed`, {

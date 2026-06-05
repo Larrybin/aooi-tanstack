@@ -100,12 +100,12 @@ const PRODUCT_ENTITLEMENT_SCHEMAS: Record<string, ProductEntitlementSchema> = {
     history_items: {
       type: 'number',
       merge: 'max',
-      sources: ['pricing'],
+      sources: ['pricing', 'grant'],
     },
     retention_days: {
       type: 'number',
       merge: 'max',
-      sources: ['pricing'],
+      sources: ['pricing', 'grant'],
     },
     lifetime_access: {
       type: 'boolean',

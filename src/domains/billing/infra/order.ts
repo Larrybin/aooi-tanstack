@@ -2,10 +2,16 @@ import 'server-only';
 
 import type { BillingGrantCredit } from '@/domains/billing/domain/credit';
 import type { PaymentType } from '@/domains/billing/domain/payment';
+import type { NewEntitlementGrant } from '@/domains/entitlements/infra/grant';
 import { db } from '@/infra/adapters/db';
 import { and, count, desc, eq, sql } from 'drizzle-orm';
 
-import { credit, order, subscription } from '@/config/db/schema';
+import {
+  credit,
+  entitlementGrant,
+  order,
+  subscription,
+} from '@/config/db/schema';
 
 import {
   updateSubscriptionBySubscriptionNo,
@@ -22,6 +28,7 @@ export type Order = typeof order.$inferSelect & {
   user?: BillingUser;
 };
 type BillingCreditRecord = typeof credit.$inferSelect;
+type BillingEntitlementGrantRecord = typeof entitlementGrant.$inferSelect;
 export type NewOrder = typeof order.$inferInsert;
 export type UpdateOrder = Partial<
   Omit<NewOrder, 'id' | 'orderNo' | 'createdAt'>
@@ -221,18 +228,20 @@ export async function updateOrderInTransaction({
   updateOrder,
   newSubscription,
   newCredit,
+  newEntitlementGrant,
 }: {
   orderNo: string;
   updateOrder: UpdateOrder;
   newSubscription?: NewSubscription;
   newCredit?: BillingGrantCredit;
+  newEntitlementGrant?: NewEntitlementGrant;
 }) {
   if (!orderNo || !updateOrder) {
     throw new Error('orderNo and updateOrder are required');
   }
 
   // only update order, no need transaction
-  if (!newSubscription && !newCredit) {
+  if (!newSubscription && !newCredit && !newEntitlementGrant) {
     return updateOrderByOrderNo(orderNo, updateOrder);
   }
 
@@ -242,10 +251,12 @@ export async function updateOrderInTransaction({
       order: Order | null;
       subscription: NewSubscription | null;
       credit: BillingCreditRecord | null;
+      entitlementGrant: BillingEntitlementGrantRecord | null;
     } = {
       order: null,
       subscription: null,
       credit: null,
+      entitlementGrant: null,
     };
 
     // deal with subscription
@@ -298,6 +309,32 @@ export async function updateOrderInTransaction({
       }
 
       txResult.credit = existingCredit as BillingCreditRecord;
+    }
+
+    if (newEntitlementGrant) {
+      let [existingGrant] = await tx
+        .select()
+        .from(entitlementGrant)
+        .where(
+          and(
+            eq(entitlementGrant.userId, newEntitlementGrant.userId),
+            eq(entitlementGrant.siteKey, newEntitlementGrant.siteKey),
+            eq(entitlementGrant.productKey, newEntitlementGrant.productKey),
+            eq(entitlementGrant.environment, newEntitlementGrant.environment),
+            eq(entitlementGrant.source, newEntitlementGrant.source),
+            eq(entitlementGrant.reason, newEntitlementGrant.reason)
+          )
+        );
+
+      if (!existingGrant) {
+        const [createdGrant] = await tx
+          .insert(entitlementGrant)
+          .values(newEntitlementGrant)
+          .returning();
+        existingGrant = createdGrant;
+      }
+
+      txResult.entitlementGrant = existingGrant;
     }
 
     // update order

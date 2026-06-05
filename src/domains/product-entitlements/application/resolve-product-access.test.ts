@@ -198,7 +198,7 @@ test('resolveProductAccess keeps access available when legacy grants include pri
   assert.deepEqual(access.entitlementGrantIds, ['legacy']);
 });
 
-test('resolveProductAccess keeps production grants disabled by default', async () => {
+test('resolveProductAccess keeps internal production grants disabled by default', async () => {
   let listedGrants = false;
   const access = await resolveProductAccess({
     actor: {
@@ -219,10 +219,53 @@ test('resolveProductAccess keeps production grants disabled by default', async (
     },
   });
 
-  assert.equal(listedGrants, false);
+  assert.equal(listedGrants, true);
   assert.equal(access.source, 'default');
   assert.equal(access.entitlements.monthly_removals, undefined);
   assert.deepEqual(access.entitlementGrantIds, []);
+});
+
+test('resolveProductAccess applies billing grants in production', async () => {
+  const access = await resolveProductAccess({
+    actor: {
+      kind: 'user',
+      userId: 'user_1',
+    },
+    siteKey: 'ai-remover',
+    productKey: 'ai-remover',
+    productId: 'free',
+    environment: 'production',
+    pricing,
+    now,
+    deps: {
+      listGrants: async () => [
+        grant({
+          id: 'manual',
+          environment: 'production',
+          source: 'internal_test',
+          entitlementsJson: stringifyProductEntitlements({
+            productKey: 'ai-remover',
+            entitlements: { monthly_removals: 25 },
+            source: 'grant',
+          }),
+        }),
+        grant({
+          id: 'billing',
+          environment: 'production',
+          source: 'billing',
+          entitlementsJson: stringifyProductEntitlements({
+            productKey: 'ai-remover',
+            entitlements: { monthly_removals: 500 },
+            source: 'grant',
+          }),
+        }),
+      ],
+    },
+  });
+
+  assert.equal(access.source, 'grant');
+  assert.equal(access.entitlements.monthly_removals, 500);
+  assert.deepEqual(access.entitlementGrantIds, ['billing']);
 });
 
 test('resolveProductAccess rejects unknown pricing entitlement keys', async () => {
