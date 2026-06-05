@@ -150,22 +150,37 @@ bindings in Cloudflare; do not put secrets in `site.config.json`,
 
 ## Common Commands
 
-| Command                    | Purpose                                     |
-| -------------------------- | ------------------------------------------- |
-| `pnpm dev:local`           | Start local Next.js development server      |
-| `pnpm test`                | Run fast unit and contract tests            |
-| `pnpm test:extended`       | Run external or environment-dependent tests |
-| `pnpm lint`                | Run ESLint and env/process guards           |
-| `pnpm arch:check`          | Run dependency graph and boundary checks    |
-| `pnpm format:check`        | Check Prettier formatting                   |
-| `pnpm db:generate`         | Generate Drizzle migrations                 |
-| `pnpm db:migrate`          | Apply database migrations                   |
-| `pnpm db:studio`           | Open Drizzle Studio                         |
-| `SITE=<site> pnpm build`   | Build the selected site                     |
-| `SITE=<site> pnpm analyze` | Build with bundle analyzer reports          |
+| Command                          | Purpose                                       |
+| -------------------------------- | --------------------------------------------- |
+| `pnpm dev:local`                 | Start local Next.js development server        |
+| `pnpm check`                     | Run the default local change guard            |
+| `pnpm run ci`                    | Run local guard plus architecture and i18n    |
+| `SITE=<site> pnpm release:check` | Run CI plus site Cloudflare release preflight |
+| `pnpm test`                      | Run fast unit and contract tests              |
+| `pnpm test:extended`             | Run external or environment-dependent tests   |
+| `pnpm typecheck`                 | Run TypeScript without emitting files         |
+| `pnpm lint`                      | Run ESLint and env/process guards             |
+| `pnpm arch:check`                | Run dependency graph and boundary checks      |
+| `pnpm format:check`              | Check Prettier formatting                     |
+| `pnpm db:generate`               | Generate Drizzle migrations                   |
+| `pnpm db:migrate`                | Apply database migrations                     |
+| `pnpm db:studio`                 | Open Drizzle Studio                           |
+| `SITE=<site> pnpm build`         | Build the selected site                       |
+| `SITE=<site> pnpm analyze`       | Build with bundle analyzer reports            |
 
 Cloudflare commands live in the
 [Deployment Guide](docs/guides/deployment.md).
+
+Use `pnpm check` as the default Codex and local development verification entry.
+It stays fast and deterministic: lint, TypeScript, and the repository test
+runner. Use `pnpm run ci` when a change needs the stronger repository guard with
+architecture and strict i18n checks. Use `SITE=<site-key> pnpm release:check`
+before a site release or Cloudflare-sensitive handoff; it intentionally requires
+an explicit site and runs Cloudflare config, no-DB build, and typegen checks.
+
+Product contract checks stay site-scoped. Run `SITE=ai-remover pnpm
+contract:check` or `SITE=background-remover pnpm contract:check` when touching
+SaaS pricing, entitlement, quota, provider, or payment contract paths.
 
 Repo-local Codex hooks live in `.codex/hooks.json`. They inject short aooi
 context, block destructive shell/deploy commands, and require verification
@@ -283,8 +298,8 @@ Module guides:
 The `Cloudflare Deploy Acceptance` workflow splits generic CI from deployment
 acceptance:
 
-- `pnpm lint` and `pnpm arch:check` run as the static CI gate.
-- `pnpm test` runs as the default test gate.
+- `pnpm check` runs the default lint, TypeScript, and test gate.
+- `pnpm run ci` adds architecture and strict i18n checks.
 - `scripts/check-release-inputs.mjs` enforces DB schema changes shipping with
   migrations.
 - `pnpm cf:check` and `pnpm cf:build:no-db --site=<site>` run only for
