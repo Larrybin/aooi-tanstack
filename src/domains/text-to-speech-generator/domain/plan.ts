@@ -2,6 +2,9 @@ import type { TextToSpeechActor } from './types';
 
 export type TextToSpeechPlanLimits = {
   productId: string;
+  singleRequestCharacters: number;
+  monthlyCharacters: number;
+  guestDailyPreviews: number;
   historyItems: number;
   retentionDays: number;
 };
@@ -24,8 +27,30 @@ function readNumberEntitlement(
 export function resolveTextToSpeechPlanLimits(
   actor: TextToSpeechActor
 ): TextToSpeechPlanLimits {
+  if (actor.kind !== 'user') {
+    return {
+      productId: 'guest',
+      singleRequestCharacters: 1500,
+      monthlyCharacters: 0,
+      guestDailyPreviews: 5,
+      historyItems: 3,
+      retentionDays: 3,
+    };
+  }
+
   return {
-    productId: actor.kind === 'user' ? (actor.productId ?? 'free') : 'guest',
+    productId: actor.productId ?? 'free',
+    singleRequestCharacters: readNumberEntitlement(
+      actor,
+      'single_request_characters',
+      3500
+    ),
+    monthlyCharacters: readNumberEntitlement(
+      actor,
+      'monthly_characters',
+      10000
+    ),
+    guestDailyPreviews: 5,
     historyItems: readNumberEntitlement(actor, 'history_items', 3),
     retentionDays: readNumberEntitlement(actor, 'retention_days', 3),
   };

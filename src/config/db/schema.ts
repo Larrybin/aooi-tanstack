@@ -780,6 +780,20 @@ export const textToSpeechGeneration = pgTable(
     storageKey: text('storage_key').notNull(),
     mimeType: text('mime_type').notNull(),
     byteSize: integer('byte_size').notNull(),
+    quotaReservationId: text('quota_reservation_id').references(
+      () => productQuotaReservation.id,
+      { onDelete: 'set null' }
+    ),
+    creditId: text('credit_id').references(() => credit.id, {
+      onDelete: 'set null',
+    }),
+    chargedCharacters: integer('charged_characters').notNull().default(0),
+    monthlyQuotaCharacters: integer('monthly_quota_characters')
+      .notNull()
+      .default(0),
+    extraCreditCharacters: integer('extra_credit_characters')
+      .notNull()
+      .default(0),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
       .$onUpdate(() => /* @__PURE__ */ new Date())

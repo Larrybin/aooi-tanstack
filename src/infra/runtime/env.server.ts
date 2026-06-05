@@ -30,6 +30,7 @@ export type CloudflareBindings = {
   NEXT_CACHE_DO_QUEUE?: unknown;
   NEXT_TAG_CACHE_DO_SHARDED?: unknown;
   STATEFUL_LIMITERS?: unknown;
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY?: string;
   PUBLIC_WEB_WORKER?: Fetcher;
   AUTH_WORKER?: Fetcher;
   PAYMENT_WORKER?: Fetcher;
@@ -171,6 +172,13 @@ export function getServerPublicEnvConfigs(
       ...options,
       bindings,
     }),
+    nextPublicTurnstileSiteKey: getRuntimeEnvString(
+      'NEXT_PUBLIC_TURNSTILE_SITE_KEY',
+      {
+        ...options,
+        bindings,
+      }
+    ),
   });
 }
 

@@ -17,6 +17,7 @@ export type TextToSpeechPreviewRequest = {
   language: string;
   voice: string;
   actorKind: TextToSpeechActorKind;
+  maxCharacters?: number;
 };
 
 export type ResolvedTextToSpeechPreviewRequest = {
@@ -118,9 +119,10 @@ export function resolveTextToSpeechPreviewRequest(
   }
 
   const maxCharacters =
-    request.actorKind === 'guest'
+    request.maxCharacters ??
+    (request.actorKind === 'guest'
       ? TEXT_TO_SPEECH_GENERATOR_GUEST_REQUEST_CHARACTERS
-      : TEXT_TO_SPEECH_GENERATOR_SIGNED_IN_REQUEST_CHARACTERS;
+      : TEXT_TO_SPEECH_GENERATOR_SIGNED_IN_REQUEST_CHARACTERS);
   const characters = countTextToSpeechCharacters(text);
   if (characters > maxCharacters) {
     throw new TextToSpeechRequestError('text_too_long', 'text is too long', {

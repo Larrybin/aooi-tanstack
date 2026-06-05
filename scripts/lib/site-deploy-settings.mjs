@@ -54,6 +54,7 @@ export const CLOUDFLARE_SECRET_REQUIREMENT_KEYS = Object.freeze([
   'googleOauth',
   'githubOauth',
   'removerCleanup',
+  'turnstile',
 ]);
 
 export const CLOUDFLARE_VAR_REQUIREMENT_KEYS = Object.freeze([

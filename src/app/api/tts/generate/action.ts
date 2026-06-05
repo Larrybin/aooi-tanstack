@@ -27,9 +27,39 @@ type TextToSpeechGenerateActionDeps = {
   createGeneration: Parameters<
     typeof generateStoredTextToSpeechPreview
   >[0]['deps']['createGeneration'];
+  markGenerationDeleted: Parameters<
+    typeof generateStoredTextToSpeechPreview
+  >[0]['deps']['markGenerationDeleted'];
   deleteOverflowGenerations: Parameters<
     typeof generateStoredTextToSpeechPreview
   >[0]['deps']['deleteOverflowGenerations'];
+  countMonthlyQuotaUnits: Parameters<
+    typeof generateStoredTextToSpeechPreview
+  >[0]['deps']['countMonthlyQuotaUnits'];
+  reserveMonthlyQuota: Parameters<
+    typeof generateStoredTextToSpeechPreview
+  >[0]['deps']['reserveMonthlyQuota'];
+  commitMonthlyQuota: Parameters<
+    typeof generateStoredTextToSpeechPreview
+  >[0]['deps']['commitMonthlyQuota'];
+  refundMonthlyQuota: Parameters<
+    typeof generateStoredTextToSpeechPreview
+  >[0]['deps']['refundMonthlyQuota'];
+  consumeCredits: Parameters<
+    typeof generateStoredTextToSpeechPreview
+  >[0]['deps']['consumeCredits'];
+  refundConsumedCredit: Parameters<
+    typeof generateStoredTextToSpeechPreview
+  >[0]['deps']['refundConsumedCredit'];
+  verifyTurnstile?: (input: {
+    actor: TextToSpeechActor;
+    token?: string;
+    req: Request;
+  }) => Promise<void>;
+  acquireGuestIpLimit?: (input: {
+    actor: TextToSpeechActor;
+    req: Request;
+  }) => Promise<(() => Promise<void>) | undefined>;
 };
 
 function mapRequestError(error: TextToSpeechRequestError) {
@@ -47,6 +77,15 @@ export function createTextToSpeechGeneratePostAction(
     const api = deps.createApiContext(req);
     const body = await api.parseJson(TextToSpeechGenerateBodySchema);
     const actor = await deps.resolveActor(req);
+    await deps.verifyTurnstile?.({
+      actor,
+      token: body.turnstileToken,
+      req,
+    });
+    const releaseGuestIpLimit = await deps.acquireGuestIpLimit?.({
+      actor,
+      req,
+    });
 
     try {
       const result = await generateStoredTextToSpeechPreview({
@@ -57,7 +96,14 @@ export function createTextToSpeechGeneratePostAction(
           getStorageService: () => deps.getStorageService(),
           findReusableGeneration: deps.findReusableGeneration,
           createGeneration: deps.createGeneration,
+          markGenerationDeleted: deps.markGenerationDeleted,
           deleteOverflowGenerations: deps.deleteOverflowGenerations,
+          countMonthlyQuotaUnits: deps.countMonthlyQuotaUnits,
+          reserveMonthlyQuota: deps.reserveMonthlyQuota,
+          commitMonthlyQuota: deps.commitMonthlyQuota,
+          refundMonthlyQuota: deps.refundMonthlyQuota,
+          consumeCredits: deps.consumeCredits,
+          refundConsumedCredit: deps.refundConsumedCredit,
         },
       });
       return jsonOk(result, { headers: { 'Cache-Control': 'no-store' } });
@@ -72,6 +118,8 @@ export function createTextToSpeechGeneratePostAction(
 
       api.log.error('tts: preview generation failed', { error });
       throw new UpstreamError(502, 'text to speech generation failed');
+    } finally {
+      await releaseGuestIpLimit?.().catch(() => undefined);
     }
   };
 }

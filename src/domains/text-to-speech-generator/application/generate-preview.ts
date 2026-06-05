@@ -29,6 +29,7 @@ export type GenerateTextToSpeechPreviewInput = {
   language: string;
   voice: string;
   actorKind: TextToSpeechActorKind;
+  maxCharacters?: number;
 };
 
 export type GenerateTextToSpeechPreviewResult = {
@@ -46,6 +47,9 @@ export type GenerateTextToSpeechPreviewResult = {
     textPreview: string;
     expiresAt: Date;
     reused: boolean;
+    chargedCharacters: number;
+    monthlyQuotaCharacters: number;
+    extraCreditCharacters: number;
   };
   warnings: string[];
 };

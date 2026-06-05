@@ -4,26 +4,45 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Download, History, Play, Volume2 } from 'lucide-react';
 
+import { envConfigs } from '@/config';
+
 import {
   TEXT_TO_SPEECH_LANGUAGES,
   TEXT_TO_SPEECH_PLAYBACK_SPEEDS,
   TEXT_TO_SPEECH_VOICES,
 } from '../domain/config';
+import {
+  mergeTextToSpeechHistory,
+  type TextToSpeechHistoryItem,
+} from './history-state';
 import type { TextToSpeechGeneratorHomeCopy } from './text-to-speech-home-copy';
 
-type TextToSpeechHistoryItem = {
-  id: string;
-  status: string;
-  textPreview: string;
-  characterCount: number;
-  language: string;
-  voice: string;
-  model: string;
-  outputFormat: string;
-  createdAt: string;
-  expiresAt: string;
-  audioAvailable: boolean;
-  downloadAvailable: boolean;
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (
+        container: HTMLElement,
+        options: {
+          sitekey: string;
+          callback: (token: string) => void;
+          'expired-callback': () => void;
+          'error-callback': () => void;
+        }
+      ) => string;
+      reset: (widgetId: string) => void;
+    };
+  }
+}
+
+type TextToSpeechQuotaSummary = {
+  actorKind: 'user' | 'anonymous';
+  productId: string;
+  monthlyCharacters: number;
+  monthlyUsedCharacters: number;
+  monthlyRemainingCharacters: number;
+  extraCreditsRemaining: number;
+  resetAt: string | null;
+  guestDailyPreviews: number;
 };
 
 export function TextToSpeechGeneratorWorkbench({
@@ -31,16 +50,21 @@ export function TextToSpeechGeneratorWorkbench({
 }: {
   copy: TextToSpeechGeneratorHomeCopy['generator'];
 }) {
+  const turnstileSiteKey = envConfigs.turnstileSiteKey;
   const [text, setText] = useState(copy.sampleText);
   const [language, setLanguage] = useState('en');
   const [voice, setVoice] = useState('aura-asteria-en');
   const [playbackSpeed, setPlaybackSpeed] = useState('1x');
   const [audioSrc, setAudioSrc] = useState('');
   const [history, setHistory] = useState<TextToSpeechHistoryItem[]>([]);
+  const [quota, setQuota] = useState<TextToSpeechQuotaSummary | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState('');
   const [status, setStatus] = useState<
     'idle' | 'generating' | 'ready' | 'error'
   >('idle');
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const turnstileRef = useRef<HTMLDivElement | null>(null);
+  const turnstileWidgetRef = useRef<string | null>(null);
   const voices = useMemo(
     () =>
       TEXT_TO_SPEECH_VOICES.filter(
@@ -62,31 +86,72 @@ export function TextToSpeechGeneratorWorkbench({
   useEffect(() => {
     let ignore = false;
 
-    async function loadHistory() {
+    async function loadGeneratorState() {
       try {
-        const response = await fetch('/api/tts/history');
-        const body = (await response.json()) as {
+        const [historyResponse, quotaResponse] = await Promise.all([
+          fetch('/api/tts/history'),
+          fetch('/api/tts/quota'),
+        ]);
+        const historyBody = (await historyResponse.json()) as {
           code: number;
-          data?: {
-            items?: TextToSpeechHistoryItem[];
-          };
+          data?: { items?: TextToSpeechHistoryItem[] };
         };
-        if (!ignore && response.ok && body.code === 0) {
-          setHistory(body.data?.items ?? []);
+        const quotaBody = (await quotaResponse.json()) as {
+          code: number;
+          data?: TextToSpeechQuotaSummary;
+        };
+        if (!ignore && historyResponse.ok && historyBody.code === 0) {
+          setHistory(historyBody.data?.items ?? []);
+        }
+        if (!ignore && quotaResponse.ok && quotaBody.code === 0) {
+          setQuota(quotaBody.data ?? null);
         }
       } catch {
         if (!ignore) {
           setHistory([]);
+          setQuota(null);
         }
       }
     }
 
-    void loadHistory();
+    void loadGeneratorState();
 
     return () => {
       ignore = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!turnstileSiteKey || !turnstileRef.current) {
+      return;
+    }
+
+    let cancelled = false;
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      if (cancelled || !turnstileRef.current || !window.turnstile) {
+        return;
+      }
+      turnstileWidgetRef.current = window.turnstile.render(
+        turnstileRef.current,
+        {
+          sitekey: turnstileSiteKey,
+          callback: setTurnstileToken,
+          'expired-callback': () => setTurnstileToken(''),
+          'error-callback': () => setTurnstileToken(''),
+        }
+      );
+    };
+    document.head.appendChild(script);
+
+    return () => {
+      cancelled = true;
+      script.remove();
+    };
+  }, [turnstileSiteKey]);
 
   async function generatePreview() {
     setStatus('generating');
@@ -98,6 +163,7 @@ export function TextToSpeechGeneratorWorkbench({
           text,
           language,
           voice: selectedVoice,
+          turnstileToken: turnstileToken || undefined,
         }),
       });
       const body = (await response.json()) as {
@@ -106,6 +172,14 @@ export function TextToSpeechGeneratorWorkbench({
           audio?: {
             contentType?: string;
             audioBase64?: string;
+          };
+          request?: {
+            characters?: number;
+          };
+          generation?: {
+            reused?: boolean;
+            monthlyQuotaCharacters?: number;
+            extraCreditCharacters?: number;
           };
           history?: TextToSpeechHistoryItem[];
         };
@@ -120,8 +194,37 @@ export function TextToSpeechGeneratorWorkbench({
         throw new Error('tts preview failed');
       }
       setAudioSrc(`data:${audio.contentType};base64,${audio.audioBase64}`);
-      setHistory(body.data?.history ?? []);
+      setHistory((current) =>
+        mergeTextToSpeechHistory({
+          current,
+          incoming: body.data?.history ?? [],
+        })
+      );
+      setQuota((current) =>
+        current?.actorKind === 'user' && !body.data?.generation?.reused
+          ? {
+              ...current,
+              monthlyUsedCharacters:
+                current.monthlyUsedCharacters +
+                (body.data?.generation?.monthlyQuotaCharacters ?? 0),
+              monthlyRemainingCharacters: Math.max(
+                0,
+                current.monthlyRemainingCharacters -
+                  (body.data?.generation?.monthlyQuotaCharacters ?? 0)
+              ),
+              extraCreditsRemaining: Math.max(
+                0,
+                current.extraCreditsRemaining -
+                  (body.data?.generation?.extraCreditCharacters ?? 0)
+              ),
+            }
+          : current
+      );
       setStatus('ready');
+      if (turnstileWidgetRef.current && window.turnstile) {
+        window.turnstile.reset(turnstileWidgetRef.current);
+        setTurnstileToken('');
+      }
     } catch {
       setAudioSrc('');
       setStatus('error');
@@ -201,7 +304,46 @@ export function TextToSpeechGeneratorWorkbench({
           </label>
         </div>
 
+        {quota ? (
+          <div className="mt-4 rounded-md border border-[#D7DEE8] bg-[#F8FAFC] px-3 py-2 text-sm text-[#344054]">
+            {quota.actorKind === 'user' ? (
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span className="font-medium">{copy.quotaTitle}</span>
+                <span>
+                  {quota.monthlyRemainingCharacters.toLocaleString()} /{' '}
+                  {quota.monthlyCharacters.toLocaleString()}{' '}
+                  {copy.quotaRemaining}
+                </span>
+                <span>
+                  {quota.extraCreditsRemaining.toLocaleString()}{' '}
+                  {copy.extraCredits}
+                </span>
+                {quota.resetAt ? (
+                  <span>
+                    {copy.resets} {new Date(quota.resetAt).toLocaleDateString()}
+                  </span>
+                ) : null}
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span className="font-medium">{copy.quotaTitle}</span>
+                <span>
+                  {quota.guestDailyPreviews.toLocaleString()}{' '}
+                  {copy.previewsPerDay}
+                </span>
+              </div>
+            )}
+          </div>
+        ) : null}
+
         <div className="mt-5 flex flex-wrap gap-3">
+          {turnstileSiteKey ? (
+            <div
+              ref={turnstileRef}
+              className="min-h-16 w-full"
+              aria-hidden="true"
+            />
+          ) : null}
           <button
             type="button"
             disabled={isGenerating}

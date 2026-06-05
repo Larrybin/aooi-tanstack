@@ -85,6 +85,22 @@ function resolveSource({
   return subscriptionProductId ? 'subscription' : 'default';
 }
 
+function resolveGrantRecordsForAccess({
+  grants,
+  environment,
+  internalEntitlementGrantsEnabled,
+}: {
+  grants: EntitlementGrantRecord[];
+  environment: AppEnvironment;
+  internalEntitlementGrantsEnabled: boolean;
+}) {
+  if (environment === 'production' && !internalEntitlementGrantsEnabled) {
+    return grants.filter((grant) => grant.source === 'billing');
+  }
+
+  return grants;
+}
+
 export async function resolveProductAccess({
   actor,
   siteKey,
@@ -127,21 +143,23 @@ export async function resolveProductAccess({
     productId: resolvedProductId,
   });
 
-  const effective =
-    environment === 'production' && !internalEntitlementGrantsEnabled
-      ? { entitlements: baseEntitlements, grantIds: [] }
-      : mergeEntitlementsFromGrants({
-          baseEntitlements,
-          grants:
-            (await deps.listGrants?.({
-              userId: actor.userId,
-              siteKey,
-              productKey,
-            })) ?? [],
-          environment,
-          now,
-          productKey,
-        });
+  const grants =
+    (await deps.listGrants?.({
+      userId: actor.userId,
+      siteKey,
+      productKey,
+    })) ?? [];
+  const effective = mergeEntitlementsFromGrants({
+    baseEntitlements,
+    grants: resolveGrantRecordsForAccess({
+      grants,
+      environment,
+      internalEntitlementGrantsEnabled,
+    }),
+    environment,
+    now,
+    productKey,
+  });
 
   return {
     actor,

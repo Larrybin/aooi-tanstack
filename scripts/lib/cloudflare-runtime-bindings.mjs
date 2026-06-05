@@ -56,6 +56,7 @@ export const CLOUDFLARE_SECRET_WORKER_ALLOWLIST = Object.freeze({
   OPENROUTER_API_KEY: ['chat'],
   AI_NOTIFY_WEBHOOK_SECRET: ['chat'],
   REMOVER_CLEANUP_SECRET: ['public-web'],
+  TURNSTILE_SECRET_KEY: ['public-web'],
 });
 
 const ALLOWED_WORKER_KEYS = new Set(CLOUDFLARE_ALL_WORKER_SCOPE);
@@ -213,6 +214,24 @@ function buildDeploySecretRequirementMap(contract) {
       name: 'REMOVER_CLEANUP_SECRET',
       requirement: 'removerCleanup',
       capability: 'AI Remover expiration cleanup',
+    });
+  }
+
+  if (secrets.turnstile) {
+    assertSecretWorkerAllowed('TURNSTILE_SECRET_KEY', ['public-web']);
+    addRequirementIfWorkerActive(requirements, 'public-web', {
+      kind: 'runtime-var',
+      worker: 'public-web',
+      name: 'NEXT_PUBLIC_TURNSTILE_SITE_KEY',
+      requirement: 'turnstile',
+      capability: 'Cloudflare Turnstile site key',
+    });
+    addRequirementIfWorkerActive(requirements, 'public-web', {
+      kind: 'runtime-secret',
+      worker: 'public-web',
+      name: 'TURNSTILE_SECRET_KEY',
+      requirement: 'turnstile',
+      capability: 'Cloudflare Turnstile verification',
     });
   }
 

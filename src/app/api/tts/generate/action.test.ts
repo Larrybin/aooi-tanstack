@@ -4,8 +4,8 @@ import type { z } from 'zod';
 
 import { createTextToSpeechGeneratePostAction } from './action';
 
-function createAction() {
-  return createTextToSpeechGeneratePostAction({
+function createActionDeps() {
+  return {
     createApiContext: (req) => ({
       parseJson: async <TSchema extends z.ZodTypeAny>(schema: TSchema) =>
         schema.parse(await req.json()) as z.infer<TSchema>,
@@ -63,10 +63,35 @@ function createAction() {
         deletedAt: null,
       };
     },
+    async markGenerationDeleted() {
+      return undefined;
+    },
     async deleteOverflowGenerations() {
       return [];
     },
-  });
+    async countMonthlyQuotaUnits() {
+      return 0;
+    },
+    async reserveMonthlyQuota() {
+      return { reservation: { id: 'quota_1' } };
+    },
+    async commitMonthlyQuota() {
+      return undefined;
+    },
+    async refundMonthlyQuota() {
+      return undefined;
+    },
+    async consumeCredits() {
+      return { id: 'credit_1' };
+    },
+    async refundConsumedCredit() {
+      return undefined;
+    },
+  } satisfies Parameters<typeof createTextToSpeechGeneratePostAction>[0];
+}
+
+function createAction() {
+  return createTextToSpeechGeneratePostAction(createActionDeps());
 }
 
 test('tts/generate returns generated preview audio envelope', async () => {
@@ -97,6 +122,36 @@ test('tts/generate returns generated preview audio envelope', async () => {
     Buffer.from('audio').toString('base64')
   );
   assert.equal(body.data.generation.textPreview, 'Hello world');
+});
+
+test('tts/generate applies guest IP limiter for anonymous previews', async () => {
+  let limitedIp: string | null = null;
+  let released = false;
+  const action = createTextToSpeechGeneratePostAction({
+    ...createActionDeps(),
+    acquireGuestIpLimit: async ({ req }) => {
+      limitedIp = req.headers.get('cf-connecting-ip');
+      return async () => {
+        released = true;
+      };
+    },
+  });
+
+  const response = await action(
+    new Request('http://localhost/api/tts/generate', {
+      method: 'POST',
+      headers: { 'cf-connecting-ip': '203.0.113.20' },
+      body: JSON.stringify({
+        text: 'Hello world',
+        language: 'en',
+        voice: 'aura-luna-en',
+      }),
+    })
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(limitedIp, '203.0.113.20');
+  assert.equal(released, true);
 });
 
 test('tts/generate rejects blocked content as a bad request', async () => {

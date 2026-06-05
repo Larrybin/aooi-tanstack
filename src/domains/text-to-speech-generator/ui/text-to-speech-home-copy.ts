@@ -34,6 +34,11 @@ export type TextToSpeechGeneratorHomeCopy = {
     previewError: string;
     downloadMp3: string;
     signInToDownload: string;
+    quotaTitle: string;
+    quotaRemaining: string;
+    extraCredits: string;
+    resets: string;
+    previewsPerDay: string;
     recentHistory: string;
     historyEmpty: string;
     audioTitle: string;

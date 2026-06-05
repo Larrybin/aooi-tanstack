@@ -24,6 +24,7 @@ test('site deploy settings 读取当前闭合 manifest', () => {
   assert.equal(settings.bindingRequirements.secrets.googleOauth, false);
   assert.equal(settings.bindingRequirements.secrets.githubOauth, false);
   assert.equal(settings.bindingRequirements.secrets.removerCleanup, false);
+  assert.equal(settings.bindingRequirements.secrets.turnstile, false);
   assert.equal(settings.workers.router, 'roller-rabbit');
   assert.equal(settings.workers.chat, 'roller-rabbit-chat');
   assert.equal(settings.state.schemaVersion, 1);
@@ -66,6 +67,7 @@ test('site deploy settings 缺少 required worker 时失败', () => {
               googleOauth: false,
               githubOauth: false,
               removerCleanup: false,
+              turnstile: false,
             },
             vars: {
               storagePublicBaseUrl: true,
@@ -110,6 +112,7 @@ test('site deploy settings 拒绝未知 worker key', () => {
               googleOauth: false,
               githubOauth: false,
               removerCleanup: false,
+              turnstile: false,
             },
             vars: {
               storagePublicBaseUrl: true,
@@ -156,6 +159,7 @@ test('site deploy settings 启用 admin 时必须启用 auth', () => {
               googleOauth: false,
               githubOauth: false,
               removerCleanup: false,
+              turnstile: false,
             },
             vars: {
               storagePublicBaseUrl: true,
@@ -198,6 +202,7 @@ test('site deploy settings 启用能力时必须启用对应 worker', () => {
         googleOauth: false,
         githubOauth: false,
         removerCleanup: false,
+        turnstile: false,
       },
       vars: {
         storagePublicBaseUrl: true,
@@ -294,6 +299,7 @@ test('site deploy settings 拒绝未知嵌套字段', () => {
               googleOauth: false,
               githubOauth: false,
               removerCleanup: false,
+              turnstile: false,
               extraSecret: false,
             },
             vars: {
@@ -345,6 +351,7 @@ test('site deploy settings 不接受派生 secret requirement 双写字段', () 
               googleOauth: false,
               githubOauth: false,
               removerCleanup: false,
+              turnstile: false,
               emailProvider: true,
               stripe: true,
               openrouter: false,
@@ -404,6 +411,7 @@ test('site deploy settings allow site-specific capability-derived contract to st
         googleOauth: false,
         githubOauth: false,
         removerCleanup: false,
+        turnstile: false,
       },
       vars: {
         storagePublicBaseUrl: true,

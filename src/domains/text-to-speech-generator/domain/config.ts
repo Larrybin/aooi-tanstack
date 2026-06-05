@@ -2,8 +2,8 @@ export const TEXT_TO_SPEECH_GENERATOR_SITE_KEY =
   'text-to-speech-generator' as const;
 
 export const TEXT_TO_SPEECH_GENERATOR_OUTPUT_FORMAT = 'mp3' as const;
-export const TEXT_TO_SPEECH_GENERATOR_GUEST_REQUEST_CHARACTERS = 1000;
-export const TEXT_TO_SPEECH_GENERATOR_SIGNED_IN_REQUEST_CHARACTERS = 20000;
+export const TEXT_TO_SPEECH_GENERATOR_GUEST_REQUEST_CHARACTERS = 1500;
+export const TEXT_TO_SPEECH_GENERATOR_SIGNED_IN_REQUEST_CHARACTERS = 3500;
 
 export type TextToSpeechLanguage = 'en' | 'es' | 'fr' | 'de' | 'ja' | 'pt';
 

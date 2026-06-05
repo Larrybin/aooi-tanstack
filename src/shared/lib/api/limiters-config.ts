@@ -8,11 +8,11 @@ export const LimiterBucket = {
   API_STORAGE_UPLOAD: 'api.storage-upload',
   API_REMOVER_GUEST_UPLOAD: 'api.remover.guest-upload',
   API_REMOVER_GUEST_JOB: 'api.remover.guest-job',
+  API_TTS_GUEST_PREVIEW: 'api.tts.guest-preview',
   AUTH_RESET_PASSWORD: 'auth.reset-password',
 } as const;
 
-export type LimiterBucket =
-  (typeof LimiterBucket)[keyof typeof LimiterBucket];
+export type LimiterBucket = (typeof LimiterBucket)[keyof typeof LimiterBucket];
 
 export const SEND_EMAIL_RATE_LIMIT_CONFIG = {
   bucket: LimiterBucket.API_SEND_EMAIL,
@@ -57,5 +57,12 @@ export const REMOVER_GUEST_JOB_LIMIT_CONFIG = {
   bucket: LimiterBucket.API_REMOVER_GUEST_JOB,
   windowMs: 24 * 60 * 60 * 1000,
   maxAttempts: 2,
+  maxConcurrent: 2,
+} as const;
+
+export const TEXT_TO_SPEECH_GUEST_PREVIEW_LIMIT_CONFIG = {
+  bucket: LimiterBucket.API_TTS_GUEST_PREVIEW,
+  windowMs: 24 * 60 * 60 * 1000,
+  maxAttempts: 5,
   maxConcurrent: 2,
 } as const;

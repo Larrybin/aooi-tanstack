@@ -8,7 +8,8 @@
       "authSharedSecret": true,
       "googleOauth": false,
       "githubOauth": false,
-      "removerCleanup": false
+      "removerCleanup": false,
+      "turnstile": true
     },
     "vars": {
       "storagePublicBaseUrl": true

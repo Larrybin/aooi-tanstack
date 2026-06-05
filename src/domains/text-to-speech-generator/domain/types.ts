@@ -14,3 +14,10 @@ export type TextToSpeechActor =
     });
 
 export type TextToSpeechGenerationStatus = 'generated' | 'expired' | 'deleted';
+
+export type TextToSpeechQuotaOperationKey = 'speech.generate';
+
+export type TextToSpeechQuotaReservationStatus =
+  | 'reserved'
+  | 'committed'
+  | 'refunded';

@@ -14,6 +14,7 @@ import {
   REMOVER_GUEST_UPLOAD_LIMIT_CONFIG,
   SEND_EMAIL_RATE_LIMIT_CONFIG,
   STORAGE_UPLOAD_CONCURRENCY_LIMIT_CONFIG,
+  TEXT_TO_SPEECH_GUEST_PREVIEW_LIMIT_CONFIG,
   VERIFY_CODE_ATTEMPT_LIMIT_CONFIG,
 } from '@/shared/lib/api/limiters-config';
 import {
@@ -109,6 +110,13 @@ function createStoreBackedFactory(
         store,
       });
     },
+    createTextToSpeechGuestPreviewLimiter() {
+      return new FixedWindowQuotaLimiter({
+        ...TEXT_TO_SPEECH_GUEST_PREVIEW_LIMIT_CONFIG,
+        now,
+        store,
+      });
+    },
   };
 }
 
@@ -146,6 +154,12 @@ function createCloudflareFactory(
     },
     createRemoverGuestJobLimiter() {
       return new CloudflareQuotaLimiter(REMOVER_GUEST_JOB_LIMIT_CONFIG, now);
+    },
+    createTextToSpeechGuestPreviewLimiter() {
+      return new CloudflareQuotaLimiter(
+        TEXT_TO_SPEECH_GUEST_PREVIEW_LIMIT_CONFIG,
+        now
+      );
     },
   };
 }

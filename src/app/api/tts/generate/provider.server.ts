@@ -13,6 +13,7 @@ type CloudflareTtsOutput =
   | string
   | Uint8Array
   | ArrayBuffer
+  | ReadableStream<Uint8Array>
   | { audio?: string | number[] };
 
 function bytesToBase64(bytes: Uint8Array): string {
@@ -23,9 +24,25 @@ function bytesToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
-function normalizeAudioBase64(output: CloudflareTtsOutput): string {
+function isReadableStream(
+  output: CloudflareTtsOutput
+): output is ReadableStream<Uint8Array> {
+  return (
+    typeof ReadableStream !== 'undefined' && output instanceof ReadableStream
+  );
+}
+
+export async function normalizeAudioBase64(
+  output: CloudflareTtsOutput
+): Promise<string> {
   if (typeof output === 'string') {
     return output;
+  }
+
+  if (isReadableStream(output)) {
+    return bytesToBase64(
+      new Uint8Array(await new Response(output).arrayBuffer())
+    );
   }
 
   if (output instanceof ArrayBuffer) {
@@ -78,7 +95,7 @@ export function createCloudflareTextToSpeechProvider(): TextToSpeechProvider {
       )) as CloudflareTtsOutput;
 
       return {
-        audioBase64: normalizeAudioBase64(output),
+        audioBase64: await normalizeAudioBase64(output),
         contentType: 'audio/mpeg',
       };
     },
