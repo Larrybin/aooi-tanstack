@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { TooManyRequestsError } from '@/shared/lib/api/errors';
+
 import type { TextToSpeechGenerationRecord } from '../domain/history';
 import type { TextToSpeechActor } from '../domain/types';
 import { generateStoredTextToSpeechPreview } from './generation-workflow';
@@ -295,6 +297,97 @@ test('generateStoredTextToSpeechPreview consumes extra credits only after monthl
   assert.equal(reservedUnits, 20);
   assert.equal(consumedCredits, 100);
   assert.equal(result.generation?.id, 'tts_1');
+});
+
+test('generateStoredTextToSpeechPreview retries quota overflow races as credits', async () => {
+  const events: string[] = [];
+  let countCalls = 0;
+
+  const result = await generateStoredTextToSpeechPreview({
+    actor: {
+      ...actor,
+      entitlements: {
+        monthly_characters: 100,
+        single_request_characters: 3500,
+        history_items: 3,
+        retention_days: 3,
+      },
+    },
+    input: {
+      text: 'a'.repeat(120),
+      language: 'en',
+      voice: 'aura-luna-en',
+    },
+    deps: {
+      now: () => new Date('2026-01-01T00:00:00Z'),
+      createId: () => 'tts_1',
+      provider: {
+        async synthesize() {
+          return {
+            audioBase64: Buffer.from('audio').toString('base64'),
+            contentType: 'audio/mpeg',
+          };
+        },
+      },
+      async getStorageService() {
+        return {
+          async uploadFile(options) {
+            return {
+              success: true,
+              provider: 'test',
+              key: options.key,
+              url: `https://cdn.example.com/${options.key}`,
+            };
+          },
+          async getFile() {
+            return null;
+          },
+          async deleteFiles() {
+            return undefined;
+          },
+        };
+      },
+      async findReusableGeneration() {
+        return undefined;
+      },
+      async createGeneration(input) {
+        return {
+          ...input,
+          createdAt: new Date('2026-01-01T00:00:00Z'),
+          updatedAt: new Date('2026-01-01T00:00:00Z'),
+          deletedAt: null,
+        } satisfies TextToSpeechGenerationRecord;
+      },
+      async deleteOverflowGenerations() {
+        return [];
+      },
+      ...chargeDeps({
+        async countMonthlyQuotaUnits() {
+          countCalls += 1;
+          return countCalls === 1 ? 80 : 90;
+        },
+        async reserveMonthlyQuota(input) {
+          events.push(`reserve-quota:${input.units}`);
+          if (events.length === 1) {
+            throw new TooManyRequestsError('text to speech quota exceeded');
+          }
+          return { reservation: { id: 'quota_retry' } };
+        },
+        async consumeCredits(input) {
+          events.push(`consume-credit:${input.credits}`);
+          return { id: 'credit_1' };
+        },
+      }),
+    },
+  });
+
+  assert.deepEqual(events, [
+    'reserve-quota:20',
+    'reserve-quota:10',
+    'consume-credit:110',
+  ]);
+  assert.equal(result.generation?.monthlyQuotaCharacters, 10);
+  assert.equal(result.generation?.extraCreditCharacters, 110);
 });
 
 test('generateStoredTextToSpeechPreview refunds quota and credits when synthesis fails', async () => {

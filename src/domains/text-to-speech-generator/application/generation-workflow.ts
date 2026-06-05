@@ -1,6 +1,6 @@
 import type { StorageService } from '@/infra/adapters/storage/service-builder';
 
-import { ForbiddenError } from '@/shared/lib/api/errors';
+import { ForbiddenError, TooManyRequestsError } from '@/shared/lib/api/errors';
 import { getUuid } from '@/shared/lib/hash';
 
 import {
@@ -172,6 +172,29 @@ function formatEntitlementGrantIdsJson(actor: TextToSpeechActor) {
   return JSON.stringify(actor.entitlementGrantIds);
 }
 
+function splitTextToSpeechCharge({
+  characters,
+  monthlyCharacters,
+  usedMonthlyCharacters,
+}: {
+  characters: number;
+  monthlyCharacters: number;
+  usedMonthlyCharacters: number;
+}) {
+  const monthlyQuotaCharacters = Math.min(
+    characters,
+    Math.max(0, monthlyCharacters - usedMonthlyCharacters)
+  );
+  return {
+    monthlyQuotaCharacters,
+    extraCreditCharacters: characters - monthlyQuotaCharacters,
+  };
+}
+
+function isMonthlyQuotaRace(error: unknown) {
+  return error instanceof TooManyRequestsError;
+}
+
 async function reserveGenerationCharge({
   actor,
   generationId,
@@ -204,30 +227,71 @@ async function reserveGenerationCharge({
     windowStart,
     now,
   });
-  const monthlyQuotaCharacters = Math.min(
-    characters,
-    Math.max(0, plan.monthlyCharacters - usedMonthlyCharacters)
-  );
-  const extraCreditCharacters = characters - monthlyQuotaCharacters;
+  let { monthlyQuotaCharacters, extraCreditCharacters } =
+    splitTextToSpeechCharge({
+      characters,
+      monthlyCharacters: plan.monthlyCharacters,
+      usedMonthlyCharacters,
+    });
   let quotaReservationId: string | null = null;
   let creditId: string | null = null;
 
   try {
     if (monthlyQuotaCharacters > 0) {
-      const quota = await deps.reserveMonthlyQuota({
-        actor,
-        productId: plan.productId,
-        operationKey: TEXT_TO_SPEECH_QUOTA_OPERATION_KEYS.speechGenerate,
-        units: monthlyQuotaCharacters,
-        limit: plan.monthlyCharacters,
-        windowStart,
-        idempotencyKey: `tts:generate:${generationId}:monthly`,
-        expiresAt: addTextToSpeechQuotaReservationMinutes(now, 10),
-        entitlementGrantIdsJson: formatEntitlementGrantIdsJson(actor),
-        reason: requestHash,
-        now,
-      });
-      quotaReservationId = quota.reservation.id;
+      const quota = await deps
+        .reserveMonthlyQuota({
+          actor,
+          productId: plan.productId,
+          operationKey: TEXT_TO_SPEECH_QUOTA_OPERATION_KEYS.speechGenerate,
+          units: monthlyQuotaCharacters,
+          limit: plan.monthlyCharacters,
+          windowStart,
+          idempotencyKey: `tts:generate:${generationId}:monthly`,
+          expiresAt: addTextToSpeechQuotaReservationMinutes(now, 10),
+          entitlementGrantIdsJson: formatEntitlementGrantIdsJson(actor),
+          reason: requestHash,
+          now,
+        })
+        .catch(async (error: unknown) => {
+          if (!isMonthlyQuotaRace(error)) {
+            throw error;
+          }
+
+          const latestUsedMonthlyCharacters = await deps.countMonthlyQuotaUnits(
+            {
+              userId: actor.userId,
+              windowStart,
+              now,
+            }
+          );
+          const retry = splitTextToSpeechCharge({
+            characters,
+            monthlyCharacters: plan.monthlyCharacters,
+            usedMonthlyCharacters: latestUsedMonthlyCharacters,
+          });
+          monthlyQuotaCharacters = retry.monthlyQuotaCharacters;
+          extraCreditCharacters = retry.extraCreditCharacters;
+          if (monthlyQuotaCharacters <= 0) {
+            return null;
+          }
+
+          return deps.reserveMonthlyQuota({
+            actor,
+            productId: plan.productId,
+            operationKey: TEXT_TO_SPEECH_QUOTA_OPERATION_KEYS.speechGenerate,
+            units: monthlyQuotaCharacters,
+            limit: plan.monthlyCharacters,
+            windowStart,
+            idempotencyKey: `tts:generate:${generationId}:monthly`,
+            expiresAt: addTextToSpeechQuotaReservationMinutes(now, 10),
+            entitlementGrantIdsJson: formatEntitlementGrantIdsJson(actor),
+            reason: requestHash,
+            now,
+          });
+        });
+      if (quota) {
+        quotaReservationId = quota.reservation.id;
+      }
     }
 
     if (extraCreditCharacters > 0) {
