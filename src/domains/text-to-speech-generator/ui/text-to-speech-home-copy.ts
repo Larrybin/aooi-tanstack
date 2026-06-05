@@ -29,6 +29,9 @@ export type TextToSpeechGeneratorHomeCopy = {
     speedLabel: string;
     characters: string;
     generatePreview: string;
+    generatingPreview: string;
+    previewReady: string;
+    previewError: string;
     downloadMp3: string;
     signInToDownload: string;
     recentHistory: string;
