@@ -11,6 +11,10 @@ import {
   TEXT_TO_SPEECH_PLAYBACK_SPEEDS,
   TEXT_TO_SPEECH_VOICES,
 } from '../domain/config';
+import {
+  mergeTextToSpeechHistory,
+  type TextToSpeechHistoryItem,
+} from './history-state';
 import type { TextToSpeechGeneratorHomeCopy } from './text-to-speech-home-copy';
 
 declare global {
@@ -29,21 +33,6 @@ declare global {
     };
   }
 }
-
-type TextToSpeechHistoryItem = {
-  id: string;
-  status: string;
-  textPreview: string;
-  characterCount: number;
-  language: string;
-  voice: string;
-  model: string;
-  outputFormat: string;
-  createdAt: string;
-  expiresAt: string;
-  audioAvailable: boolean;
-  downloadAvailable: boolean;
-};
 
 type TextToSpeechQuotaSummary = {
   actorKind: 'user' | 'anonymous';
@@ -205,7 +194,12 @@ export function TextToSpeechGeneratorWorkbench({
         throw new Error('tts preview failed');
       }
       setAudioSrc(`data:${audio.contentType};base64,${audio.audioBase64}`);
-      setHistory(body.data?.history ?? []);
+      setHistory((current) =>
+        mergeTextToSpeechHistory({
+          current,
+          incoming: body.data?.history ?? [],
+        })
+      );
       setQuota((current) =>
         current?.actorKind === 'user' && !body.data?.generation?.reused
           ? {
