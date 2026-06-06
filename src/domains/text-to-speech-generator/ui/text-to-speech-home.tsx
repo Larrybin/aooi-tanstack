@@ -10,9 +10,11 @@ import { TextToSpeechGeneratorWorkbench } from './text-to-speech-workbench';
 
 export function TextToSpeechGeneratorHome({
   copy,
+  turnstileSiteKey,
 }: {
   copy: TextToSpeechGeneratorHomeCopy;
   locale: string;
+  turnstileSiteKey: string;
 }) {
   return (
     <div className="bg-[#F8FAFC] text-[#111827]">
@@ -43,7 +45,10 @@ export function TextToSpeechGeneratorHome({
             ))}
           </div>
 
-          <TextToSpeechGeneratorWorkbench copy={copy.generator} />
+          <TextToSpeechGeneratorWorkbench
+            copy={copy.generator}
+            turnstileSiteKey={turnstileSiteKey}
+          />
         </div>
       </section>
 

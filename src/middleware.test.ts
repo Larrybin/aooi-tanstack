@@ -14,6 +14,9 @@ function assertSecurityHeaders(response: Response) {
   assert.match(csp, /default-src 'self'/);
   assert.match(csp, /frame-ancestors 'self'/);
   assert.match(csp, /object-src 'none'/);
+  assert.match(csp, /script-src .*https:\/\/challenges\.cloudflare\.com/);
+  assert.match(csp, /frame-src .*https:\/\/challenges\.cloudflare\.com/);
+  assert.match(csp, /media-src 'self' data: blob:/);
   const connectSrc = csp
     .split(';')
     .map((directive) => directive.trim())

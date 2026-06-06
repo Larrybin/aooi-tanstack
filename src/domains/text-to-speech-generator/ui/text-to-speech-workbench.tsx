@@ -4,8 +4,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Download, History, Play, Volume2 } from 'lucide-react';
 
-import { envConfigs } from '@/config';
-
 import {
   TEXT_TO_SPEECH_LANGUAGES,
   TEXT_TO_SPEECH_PLAYBACK_SPEEDS,
@@ -47,10 +45,11 @@ type TextToSpeechQuotaSummary = {
 
 export function TextToSpeechGeneratorWorkbench({
   copy,
+  turnstileSiteKey,
 }: {
   copy: TextToSpeechGeneratorHomeCopy['generator'];
+  turnstileSiteKey: string;
 }) {
-  const turnstileSiteKey = envConfigs.turnstileSiteKey;
   const [text, setText] = useState(copy.sampleText);
   const [language, setLanguage] = useState('en');
   const [voice, setVoice] = useState('aura-asteria-en');

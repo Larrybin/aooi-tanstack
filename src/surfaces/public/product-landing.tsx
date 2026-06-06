@@ -9,6 +9,7 @@ import { buildRemoverHeaderFooter } from '@/domains/remover/ui/remover-shell';
 import { TextToSpeechGeneratorHome } from '@/domains/text-to-speech-generator/ui/text-to-speech-home';
 import { resolveTextToSpeechGeneratorHomeCopy } from '@/domains/text-to-speech-generator/ui/text-to-speech-home-copy';
 import { buildTextToSpeechGeneratorHeaderFooter } from '@/domains/text-to-speech-generator/ui/text-to-speech-shell';
+import { getServerPublicEnvConfigs } from '@/infra/runtime/env.server';
 import {
   buildCanonicalUrl,
   buildLanguageAlternates,
@@ -93,6 +94,7 @@ const PRODUCT_LANDINGS = {
           context.locale
         )}
         locale={context.locale}
+        turnstileSiteKey={getServerPublicEnvConfigs().turnstileSiteKey}
       />
     ),
     metadata: (context) =>
