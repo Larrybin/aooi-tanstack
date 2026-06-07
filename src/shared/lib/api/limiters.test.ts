@@ -135,6 +135,23 @@ test('FixedWindowQuotaLimiter: 同时覆盖次数上限和并发上限', async (
   assert.equal((await limiter.acquire('u1')).allowed, true);
 });
 
+test('FixedWindowQuotaLimiter: clear resets the quota window', async () => {
+  const limiter = new FixedWindowQuotaLimiter({
+    bucket: LimiterBucket.API_EMAIL_TEST,
+    windowMs: 10_000,
+    maxAttempts: 1,
+    maxConcurrent: 1,
+    store: createMemoryRateLimitStore(),
+  });
+
+  assert.equal((await limiter.acquire('u1')).allowed, true);
+  await limiter.release('u1');
+  assert.equal((await limiter.acquire('u1')).allowed, false);
+
+  await limiter.clear('u1');
+  assert.equal((await limiter.acquire('u1')).allowed, true);
+});
+
 test('DualConcurrencyLimiter: 同时限制全局并发和单 key 并发', async () => {
   const limiter = new DualConcurrencyLimiter({
     bucket: LimiterBucket.API_STORAGE_UPLOAD,

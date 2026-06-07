@@ -1,9 +1,9 @@
+import type { LimiterBucket } from '@/shared/lib/api/limiters-config';
 import {
   createMemoryRateLimitStore,
   type LockedRateLimitStore,
   type RateLimitStore,
 } from '@/shared/lib/api/rate-limit-store';
-import type { LimiterBucket } from '@/shared/lib/api/limiters-config';
 
 export type DeniedLimitResult = {
   allowed: false;
@@ -284,6 +284,12 @@ export class FixedWindowQuotaLimiter {
         ...state,
         inflight: nextInflight,
       });
+    });
+  }
+
+  async clear(key: string): Promise<void> {
+    await this.store.withLock(this.config.bucket, [key], async (store) => {
+      await store.delete(key);
     });
   }
 

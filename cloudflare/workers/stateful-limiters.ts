@@ -122,6 +122,18 @@ type DurableObjectRequestBody =
       };
     }
   | {
+      action: 'quota.clear';
+      bucket: string;
+      canonicalBucket: LimiterBucket;
+      key: string;
+      config: {
+        bucket: LimiterBucket;
+        windowMs: number;
+        maxAttempts: number;
+        maxConcurrent: number;
+      };
+    }
+  | {
       action: 'dual.acquire';
       bucket: string;
       canonicalBucket: LimiterBucket;
@@ -370,6 +382,15 @@ export class StatefulLimitersDurableObject {
           store: this.store,
         });
         await limiter.release(body.key, body.now);
+        return json({ ok: true });
+      }
+      case 'quota.clear': {
+        const limiter = new FixedWindowQuotaLimiter({
+          ...body.config,
+          bucket: body.canonicalBucket,
+          store: this.store,
+        });
+        await limiter.clear(body.key);
         return json({ ok: true });
       }
       case 'dual.acquire': {

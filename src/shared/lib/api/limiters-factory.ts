@@ -15,6 +15,7 @@ import {
   SEND_EMAIL_RATE_LIMIT_CONFIG,
   STORAGE_UPLOAD_CONCURRENCY_LIMIT_CONFIG,
   TEXT_TO_SPEECH_GUEST_PREVIEW_LIMIT_CONFIG,
+  TEXT_TO_SPEECH_TURNSTILE_TRUST_LIMIT_CONFIG,
   VERIFY_CODE_ATTEMPT_LIMIT_CONFIG,
 } from '@/shared/lib/api/limiters-config';
 import {
@@ -117,6 +118,13 @@ function createStoreBackedFactory(
         store,
       });
     },
+    createTextToSpeechTurnstileTrustLimiter() {
+      return new FixedWindowQuotaLimiter({
+        ...TEXT_TO_SPEECH_TURNSTILE_TRUST_LIMIT_CONFIG,
+        now,
+        store,
+      });
+    },
   };
 }
 
@@ -158,6 +166,12 @@ function createCloudflareFactory(
     createTextToSpeechGuestPreviewLimiter() {
       return new CloudflareQuotaLimiter(
         TEXT_TO_SPEECH_GUEST_PREVIEW_LIMIT_CONFIG,
+        now
+      );
+    },
+    createTextToSpeechTurnstileTrustLimiter() {
+      return new CloudflareQuotaLimiter(
+        TEXT_TO_SPEECH_TURNSTILE_TRUST_LIMIT_CONFIG,
         now
       );
     },

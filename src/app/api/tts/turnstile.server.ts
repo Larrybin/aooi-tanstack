@@ -1,5 +1,11 @@
 import 'server-only';
 
+import {
+  createTextToSpeechTurnstileTrustCookie,
+  readAndConsumeTextToSpeechTurnstileTrust,
+  resetTextToSpeechTurnstileTrust,
+  type TextToSpeechTurnstileTrustLimiter,
+} from '@/domains/text-to-speech-generator/application/turnstile-trust';
 import type { TextToSpeechActor } from '@/domains/text-to-speech-generator/domain/types';
 import { getRuntimeEnvString } from '@/infra/runtime/env.server';
 
@@ -22,13 +28,19 @@ function isProductionAppEnvironment() {
 export async function verifyTextToSpeechTurnstile({
   actor,
   token,
+  req,
   remoteIp,
+  trustLimiter,
   fetchFn = fetch,
+  now = Date.now,
 }: {
   actor: TextToSpeechActor;
   token?: string;
+  req: Request;
   remoteIp?: string;
+  trustLimiter: TextToSpeechTurnstileTrustLimiter;
   fetchFn?: typeof fetch;
+  now?: () => number;
 }) {
   if (actor.kind !== 'anonymous') {
     return;
@@ -41,6 +53,17 @@ export async function verifyTextToSpeechTurnstile({
         'text to speech verification is not configured'
       );
     }
+    return;
+  }
+
+  const trusted = await readAndConsumeTextToSpeechTurnstileTrust({
+    req,
+    anonymousSessionId: actor.anonymousSessionId,
+    secret,
+    now,
+    limiter: trustLimiter,
+  });
+  if (trusted) {
     return;
   }
 
@@ -71,4 +94,18 @@ export async function verifyTextToSpeechTurnstile({
   if (!result.success) {
     throw new BadRequestError('turnstile verification failed');
   }
+
+  await resetTextToSpeechTurnstileTrust({
+    limiter: trustLimiter,
+    anonymousSessionId: actor.anonymousSessionId,
+  });
+
+  return {
+    setCookie: await createTextToSpeechTurnstileTrustCookie({
+      req,
+      anonymousSessionId: actor.anonymousSessionId,
+      secret,
+      now,
+    }),
+  };
 }

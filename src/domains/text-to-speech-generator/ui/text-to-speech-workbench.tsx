@@ -2,7 +2,17 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Download, History, Play, Volume2 } from 'lucide-react';
+import {
+  CalendarDays,
+  CheckCircle2,
+  Coins,
+  Download,
+  FileText,
+  History,
+  LockKeyhole,
+  Play,
+  Volume2,
+} from 'lucide-react';
 
 import {
   TEXT_TO_SPEECH_LANGUAGES,
@@ -23,10 +33,15 @@ declare global {
         options: {
           sitekey: string;
           callback: (token: string) => void;
+          execution: 'execute';
+          appearance: 'interaction-only';
+          action: string;
+          'response-field': false;
           'expired-callback': () => void;
           'error-callback': () => void;
         }
       ) => string;
+      execute: (widgetId: string) => void;
       reset: (widgetId: string) => void;
     };
   }
@@ -57,13 +72,15 @@ export function TextToSpeechGeneratorWorkbench({
   const [audioSrc, setAudioSrc] = useState('');
   const [history, setHistory] = useState<TextToSpeechHistoryItem[]>([]);
   const [quota, setQuota] = useState<TextToSpeechQuotaSummary | null>(null);
-  const [turnstileToken, setTurnstileToken] = useState('');
   const [status, setStatus] = useState<
     'idle' | 'generating' | 'ready' | 'error'
   >('idle');
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const turnstileRef = useRef<HTMLDivElement | null>(null);
   const turnstileWidgetRef = useRef<string | null>(null);
+  const turnstileScriptRef = useRef<Promise<void> | null>(null);
+  const turnstileResolveRef = useRef<((token: string) => void) | null>(null);
+  const turnstileRejectRef = useRef<(() => void) | null>(null);
   const voices = useMemo(
     () =>
       TEXT_TO_SPEECH_VOICES.filter(
@@ -75,6 +92,24 @@ export function TextToSpeechGeneratorWorkbench({
     ? voice
     : (voices[0]?.id ?? '');
   const isGenerating = status === 'generating';
+  const quotaPercent =
+    quota?.actorKind === 'user' && quota.monthlyCharacters > 0
+      ? Math.max(
+          0,
+          Math.min(
+            100,
+            Math.round(
+              (quota.monthlyUsedCharacters / quota.monthlyCharacters) * 100
+            )
+          )
+        )
+      : null;
+
+  function applySamplePreset(sampleText: string) {
+    setText(sampleText);
+    setAudioSrc('');
+    setStatus('idle');
+  }
 
   useEffect(() => {
     if (audioRef.current) {
@@ -85,104 +120,172 @@ export function TextToSpeechGeneratorWorkbench({
   useEffect(() => {
     let ignore = false;
 
-    async function loadGeneratorState() {
+    async function loadHistoryState() {
       try {
-        const [historyResponse, quotaResponse] = await Promise.all([
-          fetch('/api/tts/history'),
-          fetch('/api/tts/quota'),
-        ]);
+        const historyResponse = await fetch('/api/tts/history');
         const historyBody = (await historyResponse.json()) as {
           code: number;
           data?: { items?: TextToSpeechHistoryItem[] };
         };
+        if (!ignore && historyResponse.ok && historyBody.code === 0) {
+          setHistory(historyBody.data?.items ?? []);
+        }
+      } catch {
+        if (!ignore) {
+          setHistory([]);
+        }
+      }
+    }
+
+    async function loadQuotaState() {
+      try {
+        const quotaResponse = await fetch('/api/tts/quota');
         const quotaBody = (await quotaResponse.json()) as {
           code: number;
           data?: TextToSpeechQuotaSummary;
         };
-        if (!ignore && historyResponse.ok && historyBody.code === 0) {
-          setHistory(historyBody.data?.items ?? []);
-        }
         if (!ignore && quotaResponse.ok && quotaBody.code === 0) {
           setQuota(quotaBody.data ?? null);
         }
       } catch {
         if (!ignore) {
-          setHistory([]);
           setQuota(null);
         }
       }
     }
 
-    void loadGeneratorState();
+    void loadHistoryState();
+    void loadQuotaState();
 
     return () => {
       ignore = true;
     };
   }, []);
 
-  useEffect(() => {
-    if (!turnstileSiteKey || !turnstileRef.current) {
-      return;
+  function loadTurnstileScript() {
+    if (window.turnstile) {
+      return Promise.resolve();
+    }
+    if (turnstileScriptRef.current) {
+      return turnstileScriptRef.current;
     }
 
-    let cancelled = false;
-    const script = document.createElement('script');
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      if (cancelled || !turnstileRef.current || !window.turnstile) {
-        return;
-      }
+    turnstileScriptRef.current = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src =
+        'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => resolve();
+      script.onerror = () => {
+        turnstileScriptRef.current = null;
+        reject(new Error('turnstile failed to load'));
+      };
+      document.head.appendChild(script);
+    });
+    return turnstileScriptRef.current;
+  }
+
+  async function executeTurnstile() {
+    if (!turnstileSiteKey || !turnstileRef.current) {
+      throw new Error('turnstile is not configured');
+    }
+
+    await loadTurnstileScript();
+    if (!window.turnstile) {
+      throw new Error('turnstile is unavailable');
+    }
+
+    if (!turnstileWidgetRef.current) {
       turnstileWidgetRef.current = window.turnstile.render(
         turnstileRef.current,
         {
           sitekey: turnstileSiteKey,
-          callback: setTurnstileToken,
-          'expired-callback': () => setTurnstileToken(''),
-          'error-callback': () => setTurnstileToken(''),
+          execution: 'execute',
+          appearance: 'interaction-only',
+          action: 'tts_generate',
+          'response-field': false,
+          callback: (token) => {
+            turnstileResolveRef.current?.(token);
+            turnstileResolveRef.current = null;
+            turnstileRejectRef.current = null;
+          },
+          'expired-callback': () => {
+            turnstileRejectRef.current?.();
+            turnstileResolveRef.current = null;
+            turnstileRejectRef.current = null;
+          },
+          'error-callback': () => {
+            turnstileRejectRef.current?.();
+            turnstileResolveRef.current = null;
+            turnstileRejectRef.current = null;
+          },
         }
       );
-    };
-    document.head.appendChild(script);
+    }
 
-    return () => {
-      cancelled = true;
-      script.remove();
+    return new Promise<string>((resolve, reject) => {
+      const timeoutId = window.setTimeout(() => {
+        turnstileResolveRef.current = null;
+        turnstileRejectRef.current = null;
+        reject(new Error('turnstile verification timed out'));
+      }, 15_000);
+      turnstileResolveRef.current = (token) => {
+        window.clearTimeout(timeoutId);
+        resolve(token);
+      };
+      turnstileRejectRef.current = () => {
+        window.clearTimeout(timeoutId);
+        reject(new Error('turnstile verification failed'));
+      };
+      window.turnstile?.execute(turnstileWidgetRef.current ?? '');
+    });
+  }
+
+  async function submitGenerate(turnstileToken?: string) {
+    const response = await fetch('/api/tts/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text,
+        language,
+        voice: selectedVoice,
+        turnstileToken,
+      }),
+    });
+    const body = (await response.json()) as {
+      code: number;
+      message?: string;
+      data?: {
+        audio?: {
+          contentType?: string;
+          audioBase64?: string;
+        };
+        request?: {
+          characters?: number;
+        };
+        generation?: {
+          reused?: boolean;
+          monthlyQuotaCharacters?: number;
+          extraCreditCharacters?: number;
+        };
+        history?: TextToSpeechHistoryItem[];
+      };
     };
-  }, [turnstileSiteKey]);
+    return { response, body };
+  }
 
   async function generatePreview() {
     setStatus('generating');
     try {
-      const response = await fetch('/api/tts/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text,
-          language,
-          voice: selectedVoice,
-          turnstileToken: turnstileToken || undefined,
-        }),
-      });
-      const body = (await response.json()) as {
-        code: number;
-        data?: {
-          audio?: {
-            contentType?: string;
-            audioBase64?: string;
-          };
-          request?: {
-            characters?: number;
-          };
-          generation?: {
-            reused?: boolean;
-            monthlyQuotaCharacters?: number;
-            extraCreditCharacters?: number;
-          };
-          history?: TextToSpeechHistoryItem[];
-        };
-      };
+      let { response, body } = await submitGenerate();
+      if (
+        !response.ok &&
+        body.message === 'turnstile verification is required'
+      ) {
+        const token = await executeTurnstile();
+        ({ response, body } = await submitGenerate(token));
+      }
       const audio = body.data?.audio;
       if (
         !response.ok ||
@@ -222,7 +325,6 @@ export function TextToSpeechGeneratorWorkbench({
       setStatus('ready');
       if (turnstileWidgetRef.current && window.turnstile) {
         window.turnstile.reset(turnstileWidgetRef.current);
-        setTurnstileToken('');
       }
     } catch {
       setAudioSrc('');
@@ -231,200 +333,290 @@ export function TextToSpeechGeneratorWorkbench({
   }
 
   return (
-    <div className="mt-8 grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
-      <div className="rounded-lg border border-[#D7DEE8] bg-white p-4 shadow-sm md:p-5">
-        <div className="flex items-center gap-2 text-sm font-medium text-[#344054]">
-          <Volume2 className="size-4 text-[#2563EB]" />
-          {copy.textLabel}
-        </div>
-        <textarea
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          className="mt-3 min-h-48 w-full resize-y rounded-md border border-[#D7DEE8] bg-[#F8FAFC] p-3 text-base leading-7 text-[#111827] transition outline-none focus:border-[#2563EB] focus:bg-white"
-        />
-        <div className="mt-2 text-sm text-[#667085]">
-          {text.length.toLocaleString()} {copy.characters}
+    <div className="mt-6 grid overflow-hidden rounded-lg border border-[#D7DEE8] bg-white shadow-sm lg:grid-cols-[1.08fr_0.92fr]">
+      <div className="flex min-w-0 flex-col border-[#D7DEE8] lg:border-r">
+        <div className="flex items-center justify-between gap-4 border-b border-[#E5EAF2] px-4 py-4 md:px-5">
+          <div className="inline-flex items-center gap-2 text-sm font-semibold text-[#0F172A]">
+            <Volume2 className="size-4 text-[#2563EB]" />
+            {copy.textLabel}
+          </div>
+          <div className="text-sm text-[#667085]">
+            {text.length.toLocaleString()} {copy.characters}
+          </div>
         </div>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-3">
-          <label className="text-sm font-medium text-[#344054]">
-            {copy.languageLabel}
-            <select
-              value={language}
-              onChange={(event) => {
-                const nextLanguage = event.target.value;
-                setLanguage(nextLanguage);
-                const nextVoice = TEXT_TO_SPEECH_VOICES.find(
-                  (item) =>
-                    item.language === nextLanguage || item.language === 'multi'
-                );
-                setVoice(nextVoice?.id ?? '');
-              }}
-              className="mt-2 w-full rounded-md border border-[#D7DEE8] bg-white px-3 py-2 text-[#111827] outline-none focus:border-[#2563EB]"
-            >
-              {TEXT_TO_SPEECH_LANGUAGES.map((item) => (
-                <option key={item.code} value={item.code}>
-                  {item.label}
-                  {item.status === 'beta' ? ' beta' : ''}
-                </option>
-              ))}
-            </select>
-          </label>
+        <div className="p-4 md:p-5">
+          <textarea
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            className="min-h-72 w-full resize-y rounded-md border border-[#D7DEE8] bg-[#FBFCFE] p-4 text-base leading-8 text-[#0F172A] transition outline-none focus:border-[#2563EB] focus:bg-white"
+          />
 
-          <label className="text-sm font-medium text-[#344054]">
-            {copy.voiceLabel}
-            <select
-              value={selectedVoice}
-              onChange={(event) => setVoice(event.target.value)}
-              className="mt-2 w-full rounded-md border border-[#D7DEE8] bg-white px-3 py-2 text-[#111827] outline-none focus:border-[#2563EB]"
-            >
-              {voices.map((voice) => (
-                <option key={voice.id} value={voice.id}>
-                  {voice.label}
-                  {voice.isBeta ? ' beta' : ''}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="text-sm font-medium text-[#344054]">
+              {copy.samplePrompt}
+            </span>
+            {copy.samplePresets.map((sample) => (
+              <button
+                key={sample.label}
+                type="button"
+                onClick={() => applySamplePreset(sample.text)}
+                className="inline-flex items-center gap-2 rounded-md border border-[#D7DEE8] bg-white px-3 py-2 text-sm font-medium text-[#344054] transition hover:border-[#2563EB] hover:text-[#1D4ED8]"
+              >
+                <FileText className="size-4" />
+                {sample.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
-          <label className="text-sm font-medium text-[#344054]">
-            {copy.speedLabel}
-            <select
-              value={playbackSpeed}
-              onChange={(event) => setPlaybackSpeed(event.target.value)}
-              className="mt-2 w-full rounded-md border border-[#D7DEE8] bg-white px-3 py-2 text-[#111827] outline-none focus:border-[#2563EB]"
+        <div className="mt-auto border-t border-[#E5EAF2] bg-[#F8FAFC] p-4 md:p-5">
+          <div className="grid gap-3 md:grid-cols-[1fr_1fr_1.1fr]">
+            <label className="text-sm font-medium text-[#344054]">
+              {copy.languageLabel}
+              <select
+                value={language}
+                onChange={(event) => {
+                  const nextLanguage = event.target.value;
+                  setLanguage(nextLanguage);
+                  const nextVoice = TEXT_TO_SPEECH_VOICES.find(
+                    (item) =>
+                      item.language === nextLanguage ||
+                      item.language === 'multi'
+                  );
+                  setVoice(nextVoice?.id ?? '');
+                }}
+                className="mt-2 h-10 w-full rounded-md border border-[#D7DEE8] bg-white px-3 text-[#0F172A] outline-none focus:border-[#2563EB]"
+              >
+                {TEXT_TO_SPEECH_LANGUAGES.map((item) => (
+                  <option key={item.code} value={item.code}>
+                    {item.label}
+                    {item.status === 'beta' ? ' beta' : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="text-sm font-medium text-[#344054]">
+              {copy.voiceLabel}
+              <select
+                value={selectedVoice}
+                onChange={(event) => setVoice(event.target.value)}
+                className="mt-2 h-10 w-full rounded-md border border-[#D7DEE8] bg-white px-3 text-[#0F172A] outline-none focus:border-[#2563EB]"
+              >
+                {voices.map((voice) => (
+                  <option key={voice.id} value={voice.id}>
+                    {voice.label}
+                    {voice.isBeta ? ' beta' : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <fieldset>
+              <legend className="text-sm font-medium text-[#344054]">
+                {copy.speedLabel}
+              </legend>
+              <div className="mt-2 grid h-10 grid-cols-4 overflow-hidden rounded-md border border-[#D7DEE8] bg-white">
+                {TEXT_TO_SPEECH_PLAYBACK_SPEEDS.map((speed) => (
+                  <button
+                    key={speed}
+                    type="button"
+                    onClick={() => setPlaybackSpeed(speed)}
+                    className={
+                      playbackSpeed === speed
+                        ? 'bg-[#2563EB] text-sm font-semibold text-white'
+                        : 'border-l border-[#E5EAF2] text-sm font-medium text-[#344054] first:border-l-0 hover:bg-[#EEF4FF]'
+                    }
+                  >
+                    {speed}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          </div>
+
+          <div className="mt-4 flex justify-end">
+            <button
+              type="button"
+              disabled={isGenerating || !text.trim()}
+              onClick={generatePreview}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-[#2563EB] px-4 text-sm font-semibold text-white transition hover:bg-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {TEXT_TO_SPEECH_PLAYBACK_SPEEDS.map((speed) => (
-                <option key={speed} value={speed}>
-                  {speed}
-                </option>
-              ))}
-            </select>
-          </label>
+              <Play className="size-4" />
+              {isGenerating ? copy.generatingPreview : copy.generatePreview}
+            </button>
+          </div>
+          {turnstileSiteKey ? (
+            <div ref={turnstileRef} className="fixed right-4 bottom-4 z-50" />
+          ) : null}
+
+          <p className="mt-3 flex items-center justify-center gap-2 text-sm text-[#667085]">
+            <LockKeyhole className="size-4" />
+            {copy.previewHint}
+          </p>
+        </div>
+      </div>
+
+      <div className="min-w-0 p-4 md:p-5">
+        <div className="flex items-center gap-2 text-sm font-semibold text-[#0F172A]">
+          <Play className="size-4 text-[#0F766E]" />
+          {copy.audioTitle}
+        </div>
+
+        <div className="mt-4 rounded-md border border-[#D7DEE8] bg-[#FBFCFE] p-4">
+          {audioSrc ? (
+            <div>
+              <audio
+                ref={audioRef}
+                controls
+                src={audioSrc}
+                className="w-full"
+              />
+              <div className="mt-3 flex items-center gap-2 text-sm font-medium text-[#0F766E]">
+                <CheckCircle2 className="size-4" />
+                {copy.previewReady}
+              </div>
+            </div>
+          ) : status === 'error' ? (
+            <div className="flex min-h-24 items-center justify-center text-center text-sm text-[#B42318]">
+              {copy.previewError}
+            </div>
+          ) : (
+            <div className="flex min-h-24 items-center justify-center text-center text-sm text-[#667085]">
+              {copy.audioEmpty}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            disabled
+            className="inline-flex min-h-14 items-center gap-3 rounded-md border border-[#D7DEE8] bg-white px-4 py-3 text-left text-sm font-semibold text-[#0F172A] opacity-70"
+          >
+            <Download className="size-5 text-[#344054]" />
+            <span>
+              {copy.downloadMp3}
+              <span className="block text-xs font-normal text-[#667085]">
+                {audioSrc ? copy.signInToDownload : copy.generateFirst}
+              </span>
+            </span>
+          </button>
+
+          <Link
+            href="/sign-in"
+            className="inline-flex min-h-14 items-center gap-3 rounded-md bg-[#2563EB] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#1D4ED8]"
+          >
+            <LockKeyhole className="size-5" />
+            <span>
+              {copy.signInToDownload}
+              <span className="block text-xs font-normal text-[#DBEAFE]">
+                {copy.saveInHistory}
+              </span>
+            </span>
+          </Link>
         </div>
 
         {quota ? (
-          <div className="mt-4 rounded-md border border-[#D7DEE8] bg-[#F8FAFC] px-3 py-2 text-sm text-[#344054]">
+          <div className="mt-5 grid gap-3 border-y border-[#E5EAF2] py-4 sm:grid-cols-3">
             {quota.actorKind === 'user' ? (
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <span className="font-medium">{copy.quotaTitle}</span>
-                <span>
-                  {quota.monthlyRemainingCharacters.toLocaleString()} /{' '}
-                  {quota.monthlyCharacters.toLocaleString()}{' '}
-                  {copy.quotaRemaining}
-                </span>
-                <span>
-                  {quota.extraCreditsRemaining.toLocaleString()}{' '}
-                  {copy.extraCredits}
-                </span>
-                {quota.resetAt ? (
-                  <span>
-                    {copy.resets} {new Date(quota.resetAt).toLocaleDateString()}
-                  </span>
-                ) : null}
-              </div>
+              <>
+                <div>
+                  <div className="flex items-center gap-2 text-sm font-medium text-[#344054]">
+                    <Play className="size-4 text-[#2563EB]" />
+                    {copy.quotaTitle}
+                  </div>
+                  <div className="mt-1 text-sm text-[#0F172A]">
+                    {quota.monthlyRemainingCharacters.toLocaleString()} /{' '}
+                    {quota.monthlyCharacters.toLocaleString()}{' '}
+                    {copy.quotaRemaining}
+                  </div>
+                  <div className="mt-2 h-1.5 rounded-full bg-[#E5EAF2]">
+                    <div
+                      className="h-1.5 rounded-full bg-[#2563EB]"
+                      style={{ width: `${quotaPercent ?? 0}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="border-[#E5EAF2] sm:border-l sm:pl-4">
+                  <div className="flex items-center gap-2 text-sm font-medium text-[#344054]">
+                    <Coins className="size-4 text-[#0F766E]" />
+                    {copy.extraCredits}
+                  </div>
+                  <div className="mt-1 text-sm text-[#0F172A]">
+                    {quota.extraCreditsRemaining.toLocaleString()}
+                  </div>
+                </div>
+                <div className="border-[#E5EAF2] sm:border-l sm:pl-4">
+                  <div className="flex items-center gap-2 text-sm font-medium text-[#344054]">
+                    <CalendarDays className="size-4 text-[#D97706]" />
+                    {copy.resets}
+                  </div>
+                  <div className="mt-1 text-sm text-[#0F172A]">
+                    {quota.resetAt
+                      ? new Date(quota.resetAt).toLocaleDateString()
+                      : copy.nextCycle}
+                  </div>
+                </div>
+              </>
             ) : (
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <span className="font-medium">{copy.quotaTitle}</span>
-                <span>
+              <div className="sm:col-span-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-[#344054]">
+                  <Play className="size-4 text-[#2563EB]" />
+                  {copy.quotaTitle}
+                </div>
+                <div className="mt-1 text-sm text-[#0F172A]">
                   {quota.guestDailyPreviews.toLocaleString()}{' '}
                   {copy.previewsPerDay}
-                </span>
+                </div>
               </div>
             )}
           </div>
         ) : null}
 
-        <div className="mt-5 flex flex-wrap gap-3">
-          {turnstileSiteKey ? (
-            <div
-              ref={turnstileRef}
-              className="min-h-16 w-full"
-              aria-hidden="true"
-            />
-          ) : null}
-          <button
-            type="button"
-            disabled={isGenerating}
-            onClick={generatePreview}
-            className="inline-flex items-center gap-2 rounded-md bg-[#2563EB] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            <Play className="size-4" />
-            {isGenerating ? copy.generatingPreview : copy.generatePreview}
-          </button>
-          <Link
-            href="/sign-in"
-            className="inline-flex items-center gap-2 rounded-md border border-[#D7DEE8] bg-white px-4 py-2.5 text-sm font-semibold text-[#111827] transition hover:bg-[#F8FAFC]"
-          >
-            <Download className="size-4" />
-            {copy.signInToDownload}
-          </Link>
-        </div>
-      </div>
-
-      <div className="grid gap-5">
-        <div className="rounded-lg border border-[#D7DEE8] bg-white p-4 shadow-sm md:p-5">
-          <div className="flex items-center gap-2 text-sm font-medium text-[#344054]">
-            <Play className="size-4 text-[#0F766E]" />
-            {copy.audioTitle}
-          </div>
-          <div className="mt-4 flex min-h-32 items-center justify-center rounded-md border border-dashed border-[#CBD5E1] bg-[#F8FAFC] px-4 text-center text-sm text-[#667085]">
-            {audioSrc ? (
-              <div className="w-full">
-                <audio
-                  ref={audioRef}
-                  controls
-                  src={audioSrc}
-                  className="w-full"
-                />
-                <div className="mt-3 text-sm text-[#0F766E]">
-                  {copy.previewReady}
-                </div>
-              </div>
-            ) : status === 'error' ? (
-              copy.previewError
-            ) : (
-              copy.audioEmpty
-            )}
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-[#D7DEE8] bg-white p-4 shadow-sm md:p-5">
-          <div className="flex items-center gap-2 text-sm font-medium text-[#344054]">
+        <div className="mt-5">
+          <div className="flex items-center gap-2 text-sm font-semibold text-[#0F172A]">
             <History className="size-4 text-[#C2410C]" />
             {copy.recentHistory}
           </div>
           {history.length ? (
-            <div className="mt-4 space-y-3">
+            <div className="mt-3 overflow-hidden rounded-md border border-[#D7DEE8]">
               {history.map((item) => (
                 <div
                   key={item.id}
-                  className="rounded-md border border-[#EEF2F6] bg-[#F8FAFC] p-3"
+                  className="grid gap-2 border-t border-[#E5EAF2] bg-white px-3 py-3 first:border-t-0 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
                 >
-                  <div className="line-clamp-2 text-sm leading-6 font-medium text-[#111827]">
-                    {item.textPreview}
-                  </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#667085]">
-                    <span>{item.language}</span>
-                    <span>
-                      {item.characterCount.toLocaleString()} {copy.characters}
-                    </span>
-                    <span>{item.status}</span>
+                  <div className="min-w-0">
+                    <div className="line-clamp-1 text-sm font-medium text-[#0F172A]">
+                      {item.textPreview}
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#667085]">
+                      <span>{item.language}</span>
+                      <span>
+                        {item.characterCount.toLocaleString()} {copy.characters}
+                      </span>
+                      <span>{item.status}</span>
+                    </div>
                   </div>
                   {item.downloadAvailable ? (
                     <a
                       href={`/api/tts/download/${item.id}`}
-                      className="mt-3 inline-flex items-center gap-2 rounded-md border border-[#D7DEE8] bg-white px-3 py-2 text-sm font-semibold text-[#111827] transition hover:bg-[#EEF4FF]"
+                      className="inline-flex items-center justify-center gap-2 rounded-md border border-[#D7DEE8] bg-white px-3 py-2 text-sm font-semibold text-[#0F172A] transition hover:bg-[#EEF4FF]"
                     >
                       <Download className="size-4" />
                       {copy.downloadMp3}
                     </a>
-                  ) : null}
+                  ) : (
+                    <span className="text-xs text-[#667085]">
+                      {copy.previewOnly}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
           ) : (
-            <div className="mt-4 rounded-md border border-[#EEF2F6] bg-[#F8FAFC] px-4 py-5 text-sm text-[#667085]">
+            <div className="mt-3 rounded-md border border-[#D7DEE8] bg-[#FBFCFE] px-4 py-5 text-sm text-[#667085]">
               {copy.historyEmpty}
             </div>
           )}
