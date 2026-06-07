@@ -1,9 +1,10 @@
 import 'server-only';
 
 import {
-  consumeTextToSpeechTurnstileTrustCookie,
   createTextToSpeechTurnstileTrustCookie,
-  readTextToSpeechTurnstileTrustCookie,
+  readAndConsumeTextToSpeechTurnstileTrust,
+  resetTextToSpeechTurnstileTrust,
+  type TextToSpeechTurnstileTrustLimiter,
 } from '@/domains/text-to-speech-generator/application/turnstile-trust';
 import type { TextToSpeechActor } from '@/domains/text-to-speech-generator/domain/types';
 import { getRuntimeEnvString } from '@/infra/runtime/env.server';
@@ -29,6 +30,7 @@ export async function verifyTextToSpeechTurnstile({
   token,
   req,
   remoteIp,
+  trustLimiter,
   fetchFn = fetch,
   now = Date.now,
 }: {
@@ -36,6 +38,7 @@ export async function verifyTextToSpeechTurnstile({
   token?: string;
   req: Request;
   remoteIp?: string;
+  trustLimiter: TextToSpeechTurnstileTrustLimiter;
   fetchFn?: typeof fetch;
   now?: () => number;
 }) {
@@ -53,21 +56,15 @@ export async function verifyTextToSpeechTurnstile({
     return;
   }
 
-  const trust = await readTextToSpeechTurnstileTrustCookie({
+  const trusted = await readAndConsumeTextToSpeechTurnstileTrust({
     req,
     anonymousSessionId: actor.anonymousSessionId,
     secret,
     now,
+    limiter: trustLimiter,
   });
-  if (trust) {
-    return {
-      setCookie: await consumeTextToSpeechTurnstileTrustCookie({
-        req,
-        trust,
-        secret,
-        now,
-      }),
-    };
+  if (trusted) {
+    return;
   }
 
   const trimmedToken = token?.trim();
@@ -97,6 +94,11 @@ export async function verifyTextToSpeechTurnstile({
   if (!result.success) {
     throw new BadRequestError('turnstile verification failed');
   }
+
+  await resetTextToSpeechTurnstileTrust({
+    limiter: trustLimiter,
+    anonymousSessionId: actor.anonymousSessionId,
+  });
 
   return {
     setCookie: await createTextToSpeechTurnstileTrustCookie({

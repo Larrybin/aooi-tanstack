@@ -30,6 +30,8 @@ import { verifyTextToSpeechTurnstile } from '../turnstile.server';
 import { createTextToSpeechGeneratePostAction } from './action';
 import { createCloudflareTextToSpeechProvider } from './provider.server';
 
+const limiterFactory = createLimiterFactory();
+
 const postAction = createTextToSpeechGeneratePostAction({
   createApiContext,
   resolveActor: resolveTextToSpeechActor,
@@ -51,12 +53,13 @@ const postAction = createTextToSpeechGeneratePostAction({
       token,
       req,
       remoteIp: resolveTextToSpeechGuestIp(req),
+      trustLimiter: limiterFactory.createTextToSpeechTurnstileTrustLimiter(),
     }),
   acquireGuestIpLimit: ({ actor, req }) =>
     acquireTextToSpeechGuestIpLimit({
       actor,
       req,
-      limiter: createLimiterFactory().createTextToSpeechGuestPreviewLimiter(),
+      limiter: limiterFactory.createTextToSpeechGuestPreviewLimiter(),
     }),
 });
 

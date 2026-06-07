@@ -254,6 +254,18 @@ export class CloudflareQuotaLimiter {
       { key, namespace: this.namespace }
     );
   }
+
+  async clear(key: string): Promise<void> {
+    await callStatefulLimiter(
+      this.config.bucket,
+      {
+        action: 'quota.clear',
+        key,
+        config: this.config,
+      },
+      { key, namespace: this.namespace }
+    );
+  }
 }
 
 export class CloudflareDualConcurrencyLimiter {

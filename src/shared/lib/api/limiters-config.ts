@@ -9,6 +9,7 @@ export const LimiterBucket = {
   API_REMOVER_GUEST_UPLOAD: 'api.remover.guest-upload',
   API_REMOVER_GUEST_JOB: 'api.remover.guest-job',
   API_TTS_GUEST_PREVIEW: 'api.tts.guest-preview',
+  API_TTS_TURNSTILE_TRUST: 'api.tts.turnstile-trust',
   AUTH_RESET_PASSWORD: 'auth.reset-password',
 } as const;
 
@@ -65,4 +66,11 @@ export const TEXT_TO_SPEECH_GUEST_PREVIEW_LIMIT_CONFIG = {
   windowMs: 24 * 60 * 60 * 1000,
   maxAttempts: 5,
   maxConcurrent: 2,
+} as const;
+
+export const TEXT_TO_SPEECH_TURNSTILE_TRUST_LIMIT_CONFIG = {
+  bucket: LimiterBucket.API_TTS_TURNSTILE_TRUST,
+  windowMs: 30 * 60 * 1000,
+  maxAttempts: 3,
+  maxConcurrent: 3,
 } as const;

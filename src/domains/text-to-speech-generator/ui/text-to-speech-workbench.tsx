@@ -225,9 +225,19 @@ export function TextToSpeechGeneratorWorkbench({
     }
 
     return new Promise<string>((resolve, reject) => {
-      turnstileResolveRef.current = resolve;
-      turnstileRejectRef.current = () =>
+      const timeoutId = window.setTimeout(() => {
+        turnstileResolveRef.current = null;
+        turnstileRejectRef.current = null;
+        reject(new Error('turnstile verification timed out'));
+      }, 15_000);
+      turnstileResolveRef.current = (token) => {
+        window.clearTimeout(timeoutId);
+        resolve(token);
+      };
+      turnstileRejectRef.current = () => {
+        window.clearTimeout(timeoutId);
         reject(new Error('turnstile verification failed'));
+      };
       window.turnstile?.execute(turnstileWidgetRef.current ?? '');
     });
   }

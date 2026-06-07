@@ -2,14 +2,17 @@ import { signHmacSha256Hex } from '@/shared/lib/runtime/crypto';
 
 export const TEXT_TO_SPEECH_TURNSTILE_TRUST_COOKIE = 'tts_turnstile';
 export const TEXT_TO_SPEECH_TURNSTILE_TRUST_MAX_AGE_SECONDS = 60 * 30;
-export const TEXT_TO_SPEECH_TURNSTILE_TRUST_MAX_GENERATIONS = 3;
 
 const SIGNATURE_PATTERN = /^[a-f0-9]{64}$/;
 
 type TurnstileTrust = {
   anonymousSessionId: string;
-  remainingGenerations: number;
   expiresAt: number;
+};
+
+export type TextToSpeechTurnstileTrustLimiter = {
+  acquire: (key: string) => Promise<{ allowed: boolean }>;
+  clear: (key: string) => Promise<void>;
 };
 
 function parseCookieHeader(cookieHeader: string | null): Map<string, string> {
@@ -80,13 +83,12 @@ function serializeTrustCookie({
 
 export async function buildTextToSpeechTurnstileTrustCookie({
   anonymousSessionId,
-  remainingGenerations,
   expiresAt,
   secret,
 }: TurnstileTrust & {
   secret: string;
 }) {
-  const payload = `${anonymousSessionId}.${remainingGenerations}.${expiresAt}`;
+  const payload = `${anonymousSessionId}.${expiresAt}`;
   const signature = await signHmacSha256Hex(payload, secret);
   return `${payload}.${signature}`;
 }
@@ -105,16 +107,13 @@ export async function readTextToSpeechTurnstileTrustCookie({
   const cookieValue = parseCookieHeader(req.headers.get('cookie')).get(
     TEXT_TO_SPEECH_TURNSTILE_TRUST_COOKIE
   );
-  const [cookieAnonymousSessionId, remainingRaw, expiresRaw, signature, extra] =
+  const [cookieAnonymousSessionId, expiresRaw, signature, extra] =
     cookieValue?.split('.') ?? [];
-  const remainingGenerations = Number(remainingRaw);
   const expiresAt = Number(expiresRaw);
 
   if (
     extra !== undefined ||
     cookieAnonymousSessionId !== anonymousSessionId ||
-    !Number.isInteger(remainingGenerations) ||
-    remainingGenerations <= 0 ||
     !Number.isInteger(expiresAt) ||
     expiresAt <= now() ||
     !signature ||
@@ -124,7 +123,7 @@ export async function readTextToSpeechTurnstileTrustCookie({
   }
 
   const expected = await signHmacSha256Hex(
-    `${cookieAnonymousSessionId}.${remainingGenerations}.${expiresAt}`,
+    `${cookieAnonymousSessionId}.${expiresAt}`,
     secret
   );
   if (!constantTimeEqual(expected, signature)) {
@@ -133,36 +132,61 @@ export async function readTextToSpeechTurnstileTrustCookie({
 
   return {
     anonymousSessionId: cookieAnonymousSessionId,
-    remainingGenerations,
     expiresAt,
   };
 }
 
-export async function consumeTextToSpeechTurnstileTrustCookie({
+export async function consumeTextToSpeechTurnstileTrust({
+  limiter,
+  anonymousSessionId,
+}: {
+  limiter: TextToSpeechTurnstileTrustLimiter;
+  anonymousSessionId: string;
+}) {
+  const result = await limiter.acquire(anonymousSessionId);
+  return result.allowed;
+}
+
+export async function resetTextToSpeechTurnstileTrust({
+  limiter,
+  anonymousSessionId,
+}: {
+  limiter: TextToSpeechTurnstileTrustLimiter;
+  anonymousSessionId: string;
+}) {
+  await limiter.clear(anonymousSessionId);
+  return consumeTextToSpeechTurnstileTrust({
+    limiter,
+    anonymousSessionId,
+  });
+}
+
+export async function readAndConsumeTextToSpeechTurnstileTrust({
   req,
-  trust,
+  anonymousSessionId,
   secret,
   now,
+  limiter,
 }: {
   req: Request;
-  trust: TurnstileTrust;
+  anonymousSessionId: string;
   secret: string;
   now: () => number;
-}) {
-  const remainingGenerations = trust.remainingGenerations - 1;
-  if (remainingGenerations <= 0) {
-    return clearTextToSpeechTurnstileTrustCookie(req);
+  limiter: TextToSpeechTurnstileTrustLimiter;
+}): Promise<boolean> {
+  const trust = await readTextToSpeechTurnstileTrustCookie({
+    req,
+    anonymousSessionId,
+    secret,
+    now,
+  });
+  if (!trust) {
+    return false;
   }
 
-  return serializeTrustCookie({
-    value: await buildTextToSpeechTurnstileTrustCookie({
-      anonymousSessionId: trust.anonymousSessionId,
-      remainingGenerations,
-      expiresAt: trust.expiresAt,
-      secret,
-    }),
-    maxAge: Math.max(0, Math.ceil((trust.expiresAt - now()) / 1000)),
-    secure: isSecureRequest(req),
+  return consumeTextToSpeechTurnstileTrust({
+    limiter,
+    anonymousSessionId: trust.anonymousSessionId,
   });
 }
 
@@ -179,17 +203,10 @@ export async function createTextToSpeechTurnstileTrustCookie({
 }) {
   const expiresAt =
     now() + TEXT_TO_SPEECH_TURNSTILE_TRUST_MAX_AGE_SECONDS * 1000;
-  const remainingGenerations =
-    TEXT_TO_SPEECH_TURNSTILE_TRUST_MAX_GENERATIONS - 1;
-
-  if (remainingGenerations <= 0) {
-    return clearTextToSpeechTurnstileTrustCookie(req);
-  }
 
   return serializeTrustCookie({
     value: await buildTextToSpeechTurnstileTrustCookie({
       anonymousSessionId,
-      remainingGenerations,
       expiresAt,
       secret,
     }),
