@@ -55,7 +55,7 @@ type TextToSpeechGenerateActionDeps = {
     actor: TextToSpeechActor;
     token?: string;
     req: Request;
-  }) => Promise<void>;
+  }) => Promise<{ setCookie?: string } | undefined>;
   acquireGuestIpLimit?: (input: {
     actor: TextToSpeechActor;
     req: Request;
@@ -77,7 +77,7 @@ export function createTextToSpeechGeneratePostAction(
     const api = deps.createApiContext(req);
     const body = await api.parseJson(TextToSpeechGenerateBodySchema);
     const actor = await deps.resolveActor(req);
-    await deps.verifyTurnstile?.({
+    const turnstileVerification = await deps.verifyTurnstile?.({
       actor,
       token: body.turnstileToken,
       req,
@@ -106,7 +106,13 @@ export function createTextToSpeechGeneratePostAction(
           refundConsumedCredit: deps.refundConsumedCredit,
         },
       });
-      return jsonOk(result, { headers: { 'Cache-Control': 'no-store' } });
+      const response = jsonOk(result, {
+        headers: { 'Cache-Control': 'no-store' },
+      });
+      if (turnstileVerification?.setCookie) {
+        response.headers.append('Set-Cookie', turnstileVerification.setCookie);
+      }
+      return response;
     } catch (error: unknown) {
       if (error instanceof TextToSpeechRequestError) {
         throw mapRequestError(error);

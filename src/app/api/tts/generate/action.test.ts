@@ -154,6 +154,32 @@ test('tts/generate applies guest IP limiter for anonymous previews', async () =>
   assert.equal(released, true);
 });
 
+test('tts/generate appends Turnstile verification cookie after a successful preview', async () => {
+  const action = createTextToSpeechGeneratePostAction({
+    ...createActionDeps(),
+    verifyTurnstile: async () => ({
+      setCookie: 'tts_turnstile=verified; Path=/; Max-Age=1800',
+    }),
+  });
+
+  const response = await action(
+    new Request('http://localhost/api/tts/generate', {
+      method: 'POST',
+      body: JSON.stringify({
+        text: 'Hello world',
+        language: 'en',
+        voice: 'aura-luna-en',
+      }),
+    })
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(
+    response.headers.get('set-cookie'),
+    'tts_turnstile=verified; Path=/; Max-Age=1800'
+  );
+});
+
 test('tts/generate rejects blocked content as a bad request', async () => {
   const action = createAction();
   await assert.rejects(

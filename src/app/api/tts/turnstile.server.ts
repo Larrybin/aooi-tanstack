@@ -1,5 +1,10 @@
 import 'server-only';
 
+import {
+  consumeTextToSpeechTurnstileTrustCookie,
+  createTextToSpeechTurnstileTrustCookie,
+  readTextToSpeechTurnstileTrustCookie,
+} from '@/domains/text-to-speech-generator/application/turnstile-trust';
 import type { TextToSpeechActor } from '@/domains/text-to-speech-generator/domain/types';
 import { getRuntimeEnvString } from '@/infra/runtime/env.server';
 
@@ -22,13 +27,17 @@ function isProductionAppEnvironment() {
 export async function verifyTextToSpeechTurnstile({
   actor,
   token,
+  req,
   remoteIp,
   fetchFn = fetch,
+  now = Date.now,
 }: {
   actor: TextToSpeechActor;
   token?: string;
+  req: Request;
   remoteIp?: string;
   fetchFn?: typeof fetch;
+  now?: () => number;
 }) {
   if (actor.kind !== 'anonymous') {
     return;
@@ -42,6 +51,23 @@ export async function verifyTextToSpeechTurnstile({
       );
     }
     return;
+  }
+
+  const trust = await readTextToSpeechTurnstileTrustCookie({
+    req,
+    anonymousSessionId: actor.anonymousSessionId,
+    secret,
+    now,
+  });
+  if (trust) {
+    return {
+      setCookie: await consumeTextToSpeechTurnstileTrustCookie({
+        req,
+        trust,
+        secret,
+        now,
+      }),
+    };
   }
 
   const trimmedToken = token?.trim();
@@ -71,4 +97,13 @@ export async function verifyTextToSpeechTurnstile({
   if (!result.success) {
     throw new BadRequestError('turnstile verification failed');
   }
+
+  return {
+    setCookie: await createTextToSpeechTurnstileTrustCookie({
+      req,
+      anonymousSessionId: actor.anonymousSessionId,
+      secret,
+      now,
+    }),
+  };
 }

@@ -11,7 +11,6 @@ import {
   History,
   LockKeyhole,
   Play,
-  ShieldCheck,
   Volume2,
 } from 'lucide-react';
 
@@ -34,10 +33,15 @@ declare global {
         options: {
           sitekey: string;
           callback: (token: string) => void;
+          execution: 'execute';
+          appearance: 'interaction-only';
+          action: string;
+          'response-field': false;
           'expired-callback': () => void;
           'error-callback': () => void;
         }
       ) => string;
+      execute: (widgetId: string) => void;
       reset: (widgetId: string) => void;
     };
   }
@@ -68,13 +72,15 @@ export function TextToSpeechGeneratorWorkbench({
   const [audioSrc, setAudioSrc] = useState('');
   const [history, setHistory] = useState<TextToSpeechHistoryItem[]>([]);
   const [quota, setQuota] = useState<TextToSpeechQuotaSummary | null>(null);
-  const [turnstileToken, setTurnstileToken] = useState('');
   const [status, setStatus] = useState<
     'idle' | 'generating' | 'ready' | 'error'
   >('idle');
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const turnstileRef = useRef<HTMLDivElement | null>(null);
   const turnstileWidgetRef = useRef<string | null>(null);
+  const turnstileScriptRef = useRef<Promise<void> | null>(null);
+  const turnstileResolveRef = useRef<((token: string) => void) | null>(null);
+  const turnstileRejectRef = useRef<(() => void) | null>(null);
   const voices = useMemo(
     () =>
       TEXT_TO_SPEECH_VOICES.filter(
@@ -156,69 +162,120 @@ export function TextToSpeechGeneratorWorkbench({
     };
   }, []);
 
-  useEffect(() => {
-    if (!turnstileSiteKey || !turnstileRef.current) {
-      return;
+  function loadTurnstileScript() {
+    if (window.turnstile) {
+      return Promise.resolve();
+    }
+    if (turnstileScriptRef.current) {
+      return turnstileScriptRef.current;
     }
 
-    let cancelled = false;
-    const script = document.createElement('script');
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      if (cancelled || !turnstileRef.current || !window.turnstile) {
-        return;
-      }
+    turnstileScriptRef.current = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src =
+        'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => resolve();
+      script.onerror = () => {
+        turnstileScriptRef.current = null;
+        reject(new Error('turnstile failed to load'));
+      };
+      document.head.appendChild(script);
+    });
+    return turnstileScriptRef.current;
+  }
+
+  async function executeTurnstile() {
+    if (!turnstileSiteKey || !turnstileRef.current) {
+      throw new Error('turnstile is not configured');
+    }
+
+    await loadTurnstileScript();
+    if (!window.turnstile) {
+      throw new Error('turnstile is unavailable');
+    }
+
+    if (!turnstileWidgetRef.current) {
       turnstileWidgetRef.current = window.turnstile.render(
         turnstileRef.current,
         {
           sitekey: turnstileSiteKey,
-          callback: setTurnstileToken,
-          'expired-callback': () => setTurnstileToken(''),
-          'error-callback': () => setTurnstileToken(''),
+          execution: 'execute',
+          appearance: 'interaction-only',
+          action: 'tts_generate',
+          'response-field': false,
+          callback: (token) => {
+            turnstileResolveRef.current?.(token);
+            turnstileResolveRef.current = null;
+            turnstileRejectRef.current = null;
+          },
+          'expired-callback': () => {
+            turnstileRejectRef.current?.();
+            turnstileResolveRef.current = null;
+            turnstileRejectRef.current = null;
+          },
+          'error-callback': () => {
+            turnstileRejectRef.current?.();
+            turnstileResolveRef.current = null;
+            turnstileRejectRef.current = null;
+          },
         }
       );
-    };
-    document.head.appendChild(script);
+    }
 
-    return () => {
-      cancelled = true;
-      script.remove();
+    return new Promise<string>((resolve, reject) => {
+      turnstileResolveRef.current = resolve;
+      turnstileRejectRef.current = () =>
+        reject(new Error('turnstile verification failed'));
+      window.turnstile?.execute(turnstileWidgetRef.current ?? '');
+    });
+  }
+
+  async function submitGenerate(turnstileToken?: string) {
+    const response = await fetch('/api/tts/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text,
+        language,
+        voice: selectedVoice,
+        turnstileToken,
+      }),
+    });
+    const body = (await response.json()) as {
+      code: number;
+      message?: string;
+      data?: {
+        audio?: {
+          contentType?: string;
+          audioBase64?: string;
+        };
+        request?: {
+          characters?: number;
+        };
+        generation?: {
+          reused?: boolean;
+          monthlyQuotaCharacters?: number;
+          extraCreditCharacters?: number;
+        };
+        history?: TextToSpeechHistoryItem[];
+      };
     };
-  }, [turnstileSiteKey]);
+    return { response, body };
+  }
 
   async function generatePreview() {
     setStatus('generating');
     try {
-      const response = await fetch('/api/tts/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text,
-          language,
-          voice: selectedVoice,
-          turnstileToken: turnstileToken || undefined,
-        }),
-      });
-      const body = (await response.json()) as {
-        code: number;
-        data?: {
-          audio?: {
-            contentType?: string;
-            audioBase64?: string;
-          };
-          request?: {
-            characters?: number;
-          };
-          generation?: {
-            reused?: boolean;
-            monthlyQuotaCharacters?: number;
-            extraCreditCharacters?: number;
-          };
-          history?: TextToSpeechHistoryItem[];
-        };
-      };
+      let { response, body } = await submitGenerate();
+      if (
+        !response.ok &&
+        body.message === 'turnstile verification is required'
+      ) {
+        const token = await executeTurnstile();
+        ({ response, body } = await submitGenerate(token));
+      }
       const audio = body.data?.audio;
       if (
         !response.ok ||
@@ -258,7 +315,6 @@ export function TextToSpeechGeneratorWorkbench({
       setStatus('ready');
       if (turnstileWidgetRef.current && window.turnstile) {
         window.turnstile.reset(turnstileWidgetRef.current);
-        setTurnstileToken('');
       }
     } catch {
       setAudioSrc('');
@@ -370,21 +426,7 @@ export function TextToSpeechGeneratorWorkbench({
             </fieldset>
           </div>
 
-          <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-end">
-            {turnstileSiteKey ? (
-              <div className="rounded-md border border-[#D7DEE8] bg-white p-3">
-                <div className="mb-2 flex items-center gap-2 text-sm font-medium text-[#344054]">
-                  <ShieldCheck className="size-4 text-[#0F766E]" />
-                  {copy.turnstileTitle}
-                </div>
-                <div ref={turnstileRef} className="min-h-16" aria-hidden />
-              </div>
-            ) : (
-              <div className="rounded-md border border-[#D7DEE8] bg-white p-3 text-sm text-[#667085]">
-                {copy.turnstileUnavailable}
-              </div>
-            )}
-
+          <div className="mt-4 flex justify-end">
             <button
               type="button"
               disabled={isGenerating || !text.trim()}
@@ -395,6 +437,9 @@ export function TextToSpeechGeneratorWorkbench({
               {isGenerating ? copy.generatingPreview : copy.generatePreview}
             </button>
           </div>
+          {turnstileSiteKey ? (
+            <div ref={turnstileRef} className="fixed right-4 bottom-4 z-50" />
+          ) : null}
 
           <p className="mt-3 flex items-center justify-center gap-2 text-sm text-[#667085]">
             <LockKeyhole className="size-4" />

@@ -49,6 +49,7 @@ const postAction = createTextToSpeechGeneratePostAction({
     verifyTextToSpeechTurnstile({
       actor,
       token,
+      req,
       remoteIp: resolveTextToSpeechGuestIp(req),
     }),
   acquireGuestIpLimit: ({ actor, req }) =>

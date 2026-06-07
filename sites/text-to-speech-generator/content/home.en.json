@@ -54,8 +54,6 @@
     "audioTitle": "Audio preview",
     "audioEmpty": "Preview audio appears here after generation.",
     "samplePrompt": "Try a sample:",
-    "turnstileTitle": "Turnstile",
-    "turnstileUnavailable": "Preview verification is not configured for this environment.",
     "previewHint": "Preview is free. Sign in to download MP3.",
     "generateFirst": "Generate first",
     "saveInHistory": "Save in your history",
