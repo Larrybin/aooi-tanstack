@@ -52,9 +52,44 @@
     "recentHistory": "Recent history",
     "historyEmpty": "Recent previews will appear here.",
     "audioTitle": "Audio preview",
-    "audioEmpty": "Preview audio appears here after generation."
+    "audioEmpty": "Preview audio appears here after generation.",
+    "samplePrompt": "Try a sample:",
+    "turnstileTitle": "Turnstile",
+    "turnstileUnavailable": "Preview verification is not configured for this environment.",
+    "previewHint": "Preview is free. Sign in to download MP3.",
+    "generatedFile": "Preview file",
+    "generateFirst": "Generate first",
+    "saveInHistory": "Save in your history",
+    "nextCycle": "Next cycle",
+    "previewOnly": "Preview only",
+    "samplePresets": [
+      {
+        "label": "Study notes",
+        "text": "Photosynthesis helps plants convert sunlight into energy. The process uses carbon dioxide, water, and chlorophyll to produce glucose and oxygen."
+      },
+      {
+        "label": "Article intro",
+        "text": "Daily reading habits can improve focus, vocabulary, and long-term learning. Listening to text is a practical way to review ideas while commuting or exercising."
+      },
+      {
+        "label": "Product script",
+        "text": "Create a quick voice preview for your product walkthrough. Paste the script, choose a voice, generate speech, and sign in when you need an MP3 download."
+      }
+    ]
   },
   "sections": {
+    "explore": {
+      "title": "Explore more",
+      "links": [
+        { "label": "Free text to speech", "href": "/free-text-to-speech/" },
+        { "label": "Read aloud", "href": "/read-aloud/" },
+        { "label": "Text reader", "href": "/text-reader/" },
+        { "label": "AI text to speech", "href": "/ai-text-to-speech/" },
+        { "label": "TTS online", "href": "/tts-online/" },
+        { "label": "Text to audio", "href": "/text-to-audio/" },
+        { "label": "Pricing", "href": "/pricing" }
+      ]
+    },
     "workflow": {
       "eyebrow": "Workflow",
       "title": "Built around the direct text to speech path.",

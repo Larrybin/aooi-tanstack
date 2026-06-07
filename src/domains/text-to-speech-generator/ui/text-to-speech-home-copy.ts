@@ -43,8 +43,28 @@ export type TextToSpeechGeneratorHomeCopy = {
     historyEmpty: string;
     audioTitle: string;
     audioEmpty: string;
+    samplePrompt: string;
+    turnstileTitle: string;
+    turnstileUnavailable: string;
+    previewHint: string;
+    generatedFile: string;
+    generateFirst: string;
+    saveInHistory: string;
+    nextCycle: string;
+    previewOnly: string;
+    samplePresets: readonly {
+      label: string;
+      text: string;
+    }[];
   };
   sections: {
+    explore: {
+      title: string;
+      links: readonly {
+        label: string;
+        href: string;
+      }[];
+    };
     workflow: {
       eyebrow: string;
       title: string;

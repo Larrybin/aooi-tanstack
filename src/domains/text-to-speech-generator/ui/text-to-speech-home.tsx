@@ -1,7 +1,12 @@
+import Link from 'next/link';
 import {
-  BadgeCheck,
+  BadgeInfo,
   BookOpenText,
+  FileAudio,
+  Gift,
+  Headphones,
   ShieldCheck,
+  Sparkles,
   WalletCards,
 } from 'lucide-react';
 
@@ -17,38 +22,54 @@ export function TextToSpeechGeneratorHome({
   turnstileSiteKey: string;
 }) {
   return (
-    <div className="bg-[#F8FAFC] text-[#111827]">
-      <section className="border-b border-[#D7DEE8] bg-[linear-gradient(180deg,#FFFFFF,#EEF6FF)]">
-        <div className="container py-8 md:py-12 lg:py-14">
-          <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2 rounded-md border border-[#BFDBFE] bg-white px-3 py-1 text-sm font-medium text-[#1E3A8A] shadow-sm">
-              <BookOpenText className="size-4 text-[#2563EB]" />
-              {copy.hero.badge}
-            </div>
-            <h1 className="mt-5 max-w-3xl text-4xl font-semibold tracking-normal text-[#111827] sm:text-5xl lg:text-6xl">
+    <div className="bg-[#FBFCFE] text-[#0F172A]">
+      <section className="border-b border-[#D7DEE8] bg-[linear-gradient(180deg,#FFFFFF,#F3F7FC)]">
+        <div className="container py-6 md:py-8">
+          <div className="max-w-5xl">
+            <h1 className="text-4xl font-semibold tracking-normal text-[#0F172A] sm:text-5xl">
               {copy.hero.title}
             </h1>
-            <p className="mt-4 max-w-3xl text-lg leading-8 text-[#344054] sm:text-xl">
+            <p className="mt-3 max-w-6xl text-lg leading-8 text-[#475467]">
               {copy.hero.description}
             </p>
-          </div>
-
-          <div className="mt-7 flex flex-wrap gap-3 text-sm text-[#344054]">
-            {copy.hero.trustNotes.map((note) => (
-              <span
-                key={note}
-                className="inline-flex items-center gap-2 rounded-md border border-[#D7DEE8] bg-white px-3 py-2"
-              >
-                <BadgeCheck className="size-4 text-[#0F766E]" />
-                {note}
-              </span>
-            ))}
           </div>
 
           <TextToSpeechGeneratorWorkbench
             copy={copy.generator}
             turnstileSiteKey={turnstileSiteKey}
           />
+
+          <div className="mt-8">
+            <div className="flex items-center gap-4">
+              <div className="h-px flex-1 bg-[#D7DEE8]" />
+              <h2 className="text-base font-semibold text-[#0F172A]">
+                {copy.sections.explore.title}
+              </h2>
+              <div className="h-px flex-1 bg-[#D7DEE8]" />
+            </div>
+            <div className="mt-5 flex flex-wrap justify-center gap-3">
+              {copy.sections.explore.links.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="inline-flex min-h-10 items-center gap-2 rounded-md border border-[#D7DEE8] bg-white px-4 py-2 text-sm font-medium text-[#344054] transition hover:border-[#2563EB] hover:text-[#1D4ED8]"
+                >
+                  {item.label === 'Free text to speech' ? (
+                    <Gift className="size-4" />
+                  ) : item.label === 'Text to audio' ? (
+                    <FileAudio className="size-4" />
+                  ) : item.label === 'Pricing' ? (
+                    <BadgeInfo className="size-4" />
+                  ) : item.label === 'AI text to speech' ? (
+                    <Sparkles className="size-4" />
+                  ) : (
+                    <Headphones className="size-4" />
+                  )}
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
