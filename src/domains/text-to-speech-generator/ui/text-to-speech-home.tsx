@@ -2,11 +2,7 @@ import Link from 'next/link';
 import {
   BadgeInfo,
   BookOpenText,
-  FileAudio,
-  Gift,
-  Headphones,
   ShieldCheck,
-  Sparkles,
   WalletCards,
 } from 'lucide-react';
 
@@ -54,16 +50,12 @@ export function TextToSpeechGeneratorHome({
                   href={item.href}
                   className="inline-flex min-h-10 items-center gap-2 rounded-md border border-[#D7DEE8] bg-white px-4 py-2 text-sm font-medium text-[#344054] transition hover:border-[#2563EB] hover:text-[#1D4ED8]"
                 >
-                  {item.label === 'Free text to speech' ? (
-                    <Gift className="size-4" />
-                  ) : item.label === 'Text to audio' ? (
-                    <FileAudio className="size-4" />
-                  ) : item.label === 'Pricing' ? (
+                  {item.label === 'Pricing' ? (
                     <BadgeInfo className="size-4" />
-                  ) : item.label === 'AI text to speech' ? (
-                    <Sparkles className="size-4" />
+                  ) : item.label === 'Privacy Policy' ? (
+                    <ShieldCheck className="size-4" />
                   ) : (
-                    <Headphones className="size-4" />
+                    <BookOpenText className="size-4" />
                   )}
                   {item.label}
                 </Link>

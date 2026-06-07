@@ -47,7 +47,6 @@ export type TextToSpeechGeneratorHomeCopy = {
     turnstileTitle: string;
     turnstileUnavailable: string;
     previewHint: string;
-    generatedFile: string;
     generateFirst: string;
     saveInHistory: string;
     nextCycle: string;

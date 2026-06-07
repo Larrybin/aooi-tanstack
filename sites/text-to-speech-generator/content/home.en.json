@@ -57,7 +57,6 @@
     "turnstileTitle": "Turnstile",
     "turnstileUnavailable": "Preview verification is not configured for this environment.",
     "previewHint": "Preview is free. Sign in to download MP3.",
-    "generatedFile": "Preview file",
     "generateFirst": "Generate first",
     "saveInHistory": "Save in your history",
     "nextCycle": "Next cycle",
@@ -81,13 +80,9 @@
     "explore": {
       "title": "Explore more",
       "links": [
-        { "label": "Free text to speech", "href": "/free-text-to-speech/" },
-        { "label": "Read aloud", "href": "/read-aloud/" },
-        { "label": "Text reader", "href": "/text-reader/" },
-        { "label": "AI text to speech", "href": "/ai-text-to-speech/" },
-        { "label": "TTS online", "href": "/tts-online/" },
-        { "label": "Text to audio", "href": "/text-to-audio/" },
-        { "label": "Pricing", "href": "/pricing" }
+        { "label": "Pricing", "href": "/pricing" },
+        { "label": "Privacy Policy", "href": "/privacy-policy" },
+        { "label": "Terms of Service", "href": "/terms-of-service" }
       ]
     },
     "workflow": {

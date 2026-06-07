@@ -435,20 +435,19 @@ export function TextToSpeechGeneratorWorkbench({
         </div>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <a
-            href={audioSrc || undefined}
-            download="text-to-speech-preview.mp3"
-            aria-disabled={!audioSrc}
-            className="inline-flex min-h-14 items-center gap-3 rounded-md border border-[#D7DEE8] bg-white px-4 py-3 text-sm font-semibold text-[#0F172A] transition hover:bg-[#F8FAFC] aria-disabled:pointer-events-none aria-disabled:opacity-50"
+          <button
+            type="button"
+            disabled
+            className="inline-flex min-h-14 items-center gap-3 rounded-md border border-[#D7DEE8] bg-white px-4 py-3 text-left text-sm font-semibold text-[#0F172A] opacity-70"
           >
             <Download className="size-5 text-[#344054]" />
             <span>
               {copy.downloadMp3}
               <span className="block text-xs font-normal text-[#667085]">
-                {audioSrc ? copy.generatedFile : copy.generateFirst}
+                {audioSrc ? copy.signInToDownload : copy.generateFirst}
               </span>
             </span>
-          </a>
+          </button>
 
           <Link
             href="/sign-in"
