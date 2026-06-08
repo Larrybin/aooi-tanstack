@@ -5,16 +5,51 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-const args = process.argv.slice(2);
-const coverageEnabled = args.includes('--coverage');
-
-const TEST_FILE_PATTERN = /\.(test|spec)\.(t|j)sx?$/;
-const SERVER_TEST_FILE_PATTERN = /\.server\.(test|spec)\.(t|j)sx?$/;
+const TEST_FILE_PATTERN = /\.(test|spec)\.(mjs|[tj]sx?)$/;
+const SERVER_TEST_FILE_PATTERN = /\.server\.(test|spec)\.(mjs|[tj]sx?)$/;
 const IGNORED_DIRS = new Set(['.git', '.next', 'dist', 'node_modules', 'out']);
 const EXCLUDED_TEST_FILES = new Set([
   'src/architecture-boundaries.test.ts',
   'tests/smoke/auth-dual-runtime.test.ts',
 ]);
+
+export function parseTestRunnerArgs(args) {
+  return {
+    coverageEnabled: args.includes('--coverage'),
+    requestedFiles: args.filter((arg) => arg !== '--coverage' && arg !== '--'),
+  };
+}
+
+function toRepoPath(filePath) {
+  return relative(ROOT_DIR, resolve(ROOT_DIR, filePath)).split(sep).join('/');
+}
+
+export function filterRequestedTestFiles(testFiles, requestedFiles) {
+  if (requestedFiles.length === 0) {
+    return testFiles;
+  }
+
+  const requestedRepoPaths = new Set(requestedFiles.map(toRepoPath));
+  const matchedRepoPaths = new Set();
+  const selectedFiles = testFiles.filter((filePath) => {
+    const repoPath = toRepoPath(filePath);
+    if (!requestedRepoPaths.has(repoPath)) {
+      return false;
+    }
+
+    matchedRepoPaths.add(repoPath);
+    return true;
+  });
+
+  const missingFiles = [...requestedRepoPaths].filter(
+    (repoPath) => !matchedRepoPaths.has(repoPath)
+  );
+  if (missingFiles.length > 0) {
+    throw new Error(`Unknown test file(s): ${missingFiles.join(', ')}`);
+  }
+
+  return selectedFiles;
+}
 
 async function isDirectory(path) {
   try {
@@ -46,6 +81,7 @@ async function collectTestFiles(dir, out) {
 }
 
 async function main() {
+  const options = parseTestRunnerArgs(process.argv.slice(2));
   process.chdir(ROOT_DIR);
 
   const candidateRoots = [];
@@ -60,18 +96,22 @@ async function main() {
   }
 
   testFiles.sort((a, b) => a.localeCompare(b));
+  const selectedTestFiles = filterRequestedTestFiles(
+    testFiles,
+    options.requestedFiles
+  );
 
-  if (testFiles.length === 0) {
+  if (selectedTestFiles.length === 0) {
     process.stderr.write(
-      'No test files found (expected **/*.test.(t|j)s(x) or **/*.spec.(t|j)s(x)).\n'
+      'No test files found (expected **/*.test.(mjs|ts|tsx|js|jsx) or **/*.spec.(mjs|ts|tsx|js|jsx)).\n'
     );
     process.exit(1);
   }
 
-  const defaultTestFiles = testFiles.filter(
+  const defaultTestFiles = selectedTestFiles.filter(
     (filePath) => !SERVER_TEST_FILE_PATTERN.test(filePath)
   );
-  const reactServerTestFiles = testFiles.filter((filePath) =>
+  const reactServerTestFiles = selectedTestFiles.filter((filePath) =>
     SERVER_TEST_FILE_PATTERN.test(filePath)
   );
 
@@ -94,7 +134,9 @@ async function main() {
       nodeArgs.unshift('react-server');
       nodeArgs.unshift('--conditions');
     }
-    if (coverageEnabled) nodeArgs.unshift('--experimental-test-coverage');
+    if (options.coverageEnabled) {
+      nodeArgs.unshift('--experimental-test-coverage');
+    }
 
     const exitCode = await new Promise((resolveExitCode) => {
       const child = spawn(process.execPath, nodeArgs, { stdio: 'inherit' });
@@ -118,4 +160,15 @@ async function main() {
   }
 }
 
-await main();
+if (
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  try {
+    await main();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    process.stderr.write(`${message}\n`);
+    process.exit(1);
+  }
+}
