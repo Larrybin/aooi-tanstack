@@ -1,20 +1,16 @@
 import type { MetadataRoute } from 'next';
 import { buildBrandPlaceholderValues } from '@/infra/platform/brand/placeholders.server';
-import { getSite } from '@/infra/platform/site';
 import {
   buildCanonicalUrl,
   getPublishedLocalesForPath,
 } from '@/infra/url/canonical';
+import { siteI18nPages } from '@/site';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const site = getSite();
   buildBrandPlaceholderValues();
-  const routes = [
-    '/',
-    '/pricing',
-    ...(site.capabilities.blog ? ['/blog'] : []),
-    ...(site.capabilities.docs ? ['/docs'] : []),
-  ];
+  const routes = siteI18nPages.pages
+    .filter((page) => page.indexable)
+    .map((page) => page.path);
   const lastModified = new Date();
 
   return routes.flatMap((route) =>

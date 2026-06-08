@@ -101,7 +101,7 @@ async function importGeneratedSiteHomeContent(siteKey: string) {
   await generateSiteModule(siteKey);
   const source = await readFile(generatedSiteModulePath, 'utf8');
   const homeContentLiteral = source.match(
-    /export const siteHomeContent = ([\s\S]+?) as const;\s+export const siteI18nManifest =/
+    /export const siteHomeContent = ([\s\S]+?) as const;\s+export const siteI18nPages =/
   );
   assert.ok(
     homeContentLiteral?.[1],
@@ -116,6 +116,26 @@ async function importGeneratedSiteHomeContent(siteKey: string) {
       };
     }
   >;
+}
+
+async function importGeneratedSiteI18nPages(siteKey: string) {
+  await generateSiteModule(siteKey);
+  const source = await readFile(generatedSiteModulePath, 'utf8');
+  const pagesLiteral = source.match(
+    /export const siteI18nPages = ([\s\S]+?) as const;\s+export const siteI18nManifest =/
+  );
+  assert.ok(
+    pagesLiteral?.[1],
+    'generated site module must export a siteI18nPages literal'
+  );
+
+  return Function(`return (${pagesLiteral[1]});`)() as {
+    pages: Array<{
+      pageId: string;
+      path: string;
+      indexable: boolean;
+    }>;
+  };
 }
 
 async function importGeneratedSiteI18nManifest(siteKey: string) {
@@ -204,6 +224,7 @@ test('@/site: generated module is a pure literal module', async () => {
   assert.equal(source.includes('export const sitePricing = {'), true);
   assert.equal(source.includes('export const siteLocalizedPricing = {'), true);
   assert.equal(source.includes('export const siteHomeContent = '), true);
+  assert.equal(source.includes('export const siteI18nPages = {'), true);
   assert.equal(source.includes('export const siteI18nManifest = {'), true);
 });
 
@@ -221,6 +242,18 @@ test('@/site: SITE=ai-remover exports site i18n manifest', async () => {
   const manifest = await importGeneratedSiteI18nManifest('ai-remover');
 
   assert.deepEqual(Object.keys(manifest.locales).sort(), ['ja', 'zh']);
+});
+
+test('@/site: SITE=ai-remover exports site i18n pages', async () => {
+  const pages = await importGeneratedSiteI18nPages('ai-remover');
+
+  assert.deepEqual(
+    pages.pages
+      .filter((page) => page.indexable)
+      .map((page) => page.path)
+      .sort(),
+    ['/', '/pricing', '/privacy-policy', '/terms-of-service']
+  );
 });
 
 test('@/site: SITE=ai-remover exports localized pricing by locale', async () => {

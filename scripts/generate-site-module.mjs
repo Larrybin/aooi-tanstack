@@ -6,7 +6,10 @@ import {
   readCurrentSiteConfig,
   resolveRequiredSiteKey,
 } from './lib/site-config.mjs';
-import { readSiteI18nManifest } from './lib/site-i18n-pages.mjs';
+import {
+  readSiteI18nManifest,
+  readSiteI18nPages,
+} from './lib/site-i18n-pages.mjs';
 import {
   readCurrentSiteLocalizedPricing,
   readCurrentSitePricing,
@@ -26,6 +29,7 @@ function toModuleSource({
   sitePricing,
   siteLocalizedPricing,
   siteHomeContent,
+  siteI18nPages,
   siteI18nManifest,
 }) {
   return [
@@ -33,6 +37,7 @@ function toModuleSource({
     toConstExport('sitePricing', sitePricing),
     toConstExport('siteLocalizedPricing', siteLocalizedPricing),
     toConstExport('siteHomeContent', siteHomeContent),
+    toConstExport('siteI18nPages', siteI18nPages),
     toConstExport('siteI18nManifest', siteI18nManifest),
     '',
   ].join('\n');
@@ -81,6 +86,10 @@ async function main() {
     site,
     siteKey,
   });
+  const siteI18nPages = readSiteI18nPages({
+    rootDir: process.cwd(),
+    siteKey,
+  });
   const siteI18nManifest = readSiteI18nManifest({
     rootDir: process.cwd(),
     siteKey,
@@ -94,6 +103,7 @@ async function main() {
       sitePricing,
       siteLocalizedPricing,
       siteHomeContent,
+      siteI18nPages,
       siteI18nManifest,
     }),
     'utf8'

@@ -4,17 +4,14 @@ import {
   buildCanonicalUrl,
   getPublishedLocalesForPath,
 } from '@/infra/url/canonical';
-import { site } from '@/site';
+import { siteI18nPages } from '@/site';
 
 import sitemap from './sitemap';
 
-test('sitemap uses approved published locales per route', async () => {
-  const routes = [
-    '/',
-    '/pricing',
-    ...(site.capabilities.blog ? ['/blog'] : []),
-    ...(site.capabilities.docs ? ['/docs'] : []),
-  ];
+test('sitemap uses approved published locales for indexable site pages', async () => {
+  const routes = siteI18nPages.pages
+    .filter((page) => page.indexable)
+    .map((page) => page.path);
   const entries = await sitemap();
   const urls = entries.map((entry) => entry.url);
 

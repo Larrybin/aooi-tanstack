@@ -17,8 +17,6 @@ export default function robots(): MetadataRoute.Robots {
 
   const disallow = uniqueStrings([
     '/*?*q=',
-    '/privacy-policy',
-    '/terms-of-service',
     ...protectedRoots.flatMap((root) => {
       const localePrefixed = locales
         .filter((locale) => locale !== defaultLocale)
