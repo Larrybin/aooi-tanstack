@@ -428,6 +428,8 @@ function buildEffectiveWorkerConfig(contract, workerKey) {
 
 function assertRouterConfig(content, contract, requiredBindingsByWorker) {
   assertSharedSettings(content, 'router', {
+    requiresHyperdrive:
+      contract.bindingRequirements.bindings?.hyperdrive === true,
     expectedWorkersDev: contract.route.mode === 'workers-dev',
     expectedPreviewUrls: contract.route.mode === 'workers-dev',
     expectedAppOrigin: contract.appOrigin,
@@ -677,6 +679,8 @@ function assertServerConfig(
   requiredBindingsByWorker
 ) {
   assertSharedSettings(content, `${target}`, {
+    requiresHyperdrive:
+      contract.bindingRequirements.bindings?.hyperdrive === true,
     expectedAppOrigin: contract.appOrigin,
     expectedIncrementalCacheBucket: contract.resources.incrementalCacheBucket,
     expectedAppStorageBucket: contract.resources.appStorageBucket,

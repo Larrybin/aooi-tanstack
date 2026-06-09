@@ -32,21 +32,34 @@ Runtime code must read site identity through `@/site`. Do not import `sites/**` 
 ## Default Workflow
 
 1. Identify the target `site-key` and confirm the directory, `site.config.json`, and command `SITE=<site-key>` match exactly.
-2. Classify the work:
+2. Classify the product profile before choosing implementation scope:
+   - `free-tool-no-db`: public tool, no auth, no payment, no shared AI, no docs/blog, no Hyperdrive.
+   - `free-tool-with-storage`: public tool with storage, but no database-backed SaaS surface.
+   - `ai-saas`: auth/quota/entitlements with AI runtime.
+   - `paid-saas`: auth plus payment/member/admin/database-backed SaaS surface.
+   - `internal-admin-tool`: operator/admin workflow, not public marketing.
+
+   The profile is not a second source of truth. Use it to derive or validate
+   `site.config.json`, `deploy.settings.json`, route pruning, layout shell,
+   production/preview checks, and test evidence.
+
+3. Classify the work:
    - `config-only`: brand, domain, capability flags, deploy resources, runtime bindings.
    - `content-only`: pages, docs, posts, copy, legal, FAQ, marketing text.
    - `shared-capability`: auth, billing, AI, storage, docs/blog, analytics, ads, settings.
    - `site-product-ui`: site-specific route, workflow, generator, dashboard, calculator, or product surface.
    - `shared-platform`: changes that intentionally affect every site.
    - `release-verify`: Cloudflare, smoke, deploy, or production readiness.
-3. Read the smallest relevant references:
+4. Read the smallest relevant references:
    - For adding or changing a site instance, read `references/site-instance.md`.
+   - For product profile decisions, read `references/product-profiles.md`.
    - For module capability decisions, read `references/module-capabilities.md`.
    - For UI or product feature work, read `references/ui-scope.md`.
+   - For upload, conversion, compression, generation, or media tools, read `references/product-lifecycle.md`.
    - For Cloudflare verification or release work, read `references/cloudflare-release.md`.
-4. Prefer configuration, content, runtime settings, and existing platform modules before writing new code.
-5. If code is needed, place it in the existing `app -> surfaces -> domains -> infra/shared` structure. Keep route files thin and put business semantics in the owning domain.
-6. Verify with the narrowest command set that proves the changed behavior, then widen to Cloudflare checks when deploy semantics are touched.
+5. Prefer configuration, content, runtime settings, and existing platform modules before writing new code.
+6. If code is needed, place it in the existing `app -> surfaces -> domains -> infra/shared` structure. Keep route files thin and put business semantics in the owning domain.
+7. Verify with the narrowest command set that proves the changed behavior, then widen to Cloudflare checks when deploy semantics are touched.
 
 ## Write Scope Rules
 
@@ -87,6 +100,7 @@ Use the smallest useful set first:
 pnpm test
 pnpm lint
 pnpm arch:check
+SITE=<site-key> pnpm site:contract
 SITE=<site-key> pnpm build
 SITE=<site-key> pnpm cf:check
 pnpm cf:build:no-db --site=<site-key>

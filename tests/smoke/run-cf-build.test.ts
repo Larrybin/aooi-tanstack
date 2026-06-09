@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
 
+import { resolveSiteDeployContract } from '../../scripts/lib/site-deploy-contract.mjs';
+import {
+  resolveSiteRoutePrunePaths,
+  withSiteRoutePruning,
+} from '../../scripts/lib/site-route-pruning.mjs';
 import {
   buildNoDbCloudflareBuildCommandArgs,
   buildNoDbCloudflareBuildEnv,
@@ -74,6 +83,7 @@ test('cf:build:no-db covers the explicit deployable site list', () => {
     'ai-remover',
     'background-remover',
     'text-to-speech-generator',
+    'mp4-compressor',
   ]);
 });
 
@@ -152,4 +162,116 @@ test('cf:build:no-db reports all sites even when one site fails', async () => {
     { site: 'first-site', status: 'failed', message: 'first failed' },
     { site: 'second-site', status: 'passed' },
   ]);
+});
+
+test('cf:build prunes disabled free tool routes only during OpenNext build', async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), 'site-route-prune-'));
+  const prunedRoute = 'src/app/api/auth';
+  const prunedRouteFile = path.join(prunedRoute, 'route.ts');
+  const keptRoute = 'src/app/[locale]/(landing)';
+  const prunedFile = path.join(rootDir, prunedRouteFile);
+  const keptFile = path.join(rootDir, keptRoute, 'page.tsx');
+
+  await mkdir(path.dirname(prunedFile), { recursive: true });
+  await mkdir(path.dirname(keptFile), { recursive: true });
+  await writeFile(prunedFile, 'export const GET = () => new Response();\n');
+  await writeFile(
+    keptFile,
+    'export default function Page() { return null; }\n'
+  );
+
+  const contract = {
+    site: {
+      key: 'mp4-compressor',
+      capabilities: {
+        auth: false,
+        payment: 'none',
+        ai: false,
+        docs: false,
+        blog: false,
+      },
+    },
+    bindingRequirements: {
+      bindings: {
+        hyperdrive: false,
+      },
+    },
+  };
+
+  try {
+    assert.ok(resolveSiteRoutePrunePaths(contract).includes(prunedRoute));
+
+    await withSiteRoutePruning({
+      rootDir,
+      contract,
+      logger: {
+        log() {},
+      },
+      async task() {
+        assert.equal(existsSync(path.join(rootDir, prunedRoute)), true);
+        assert.equal(existsSync(path.join(rootDir, prunedRouteFile)), false);
+        assert.equal(existsSync(path.join(rootDir, keptRoute)), true);
+      },
+    });
+
+    assert.equal(existsSync(path.join(rootDir, prunedRoute)), true);
+    assert.equal(existsSync(path.join(rootDir, prunedRouteFile)), true);
+    assert.equal(existsSync(path.join(rootDir, keptRoute)), true);
+  } finally {
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});
+
+test('cf:build keeps SaaS routes when auth or Hyperdrive is enabled', async () => {
+  assert.deepEqual(
+    resolveSiteRoutePrunePaths({
+      site: {
+        key: 'background-remover',
+        capabilities: {
+          auth: true,
+          payment: 'creem',
+          ai: false,
+          docs: false,
+          blog: false,
+        },
+      },
+      bindingRequirements: {
+        bindings: {
+          hyperdrive: true,
+        },
+      },
+    }),
+    []
+  );
+});
+
+test('cf:build real public-only free tool topology must prune disabled SaaS routes', () => {
+  const contract = resolveSiteDeployContract({
+    siteKey: 'mp4-compressor',
+    processEnv: {},
+  });
+  const prunePaths = resolveSiteRoutePrunePaths(contract);
+
+  assert.deepEqual(Object.keys(contract.serverWorkers), ['public-web']);
+  assert.ok(prunePaths.includes('src/app/api/auth'));
+  assert.ok(prunePaths.includes('src/app/api/config'));
+  assert.ok(prunePaths.includes('src/app/[locale]/(admin)'));
+  assert.ok(prunePaths.includes('src/app/[locale]/(landing)/settings'));
+  assert.ok(prunePaths.includes('src/app/[locale]/(landing)/blog'));
+});
+
+test('cf:build real SaaS topology keeps split-worker routes available', () => {
+  const contract = resolveSiteDeployContract({
+    siteKey: 'background-remover',
+    processEnv: {},
+  });
+
+  assert.deepEqual(Object.keys(contract.serverWorkers), [
+    'public-web',
+    'auth',
+    'payment',
+    'member',
+    'admin',
+  ]);
+  assert.deepEqual(resolveSiteRoutePrunePaths(contract), []);
 });

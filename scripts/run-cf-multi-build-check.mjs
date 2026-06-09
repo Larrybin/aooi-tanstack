@@ -153,7 +153,7 @@ export function buildVersionUploadDryRunArgs({
   secretsPath,
   name,
 }) {
-  return [
+  const args = [
     'versions',
     'upload',
     '--dry-run',
@@ -161,9 +161,11 @@ export function buildVersionUploadDryRunArgs({
     configPath,
     '--name',
     name,
-    '--secrets-file',
-    secretsPath,
   ];
+  if (secretsPath) {
+    args.push('--secrets-file', secretsPath);
+  }
+  return args;
 }
 
 async function readServerBundleDiagnostics(target) {
@@ -220,11 +222,12 @@ async function main() {
 
   try {
     await mkdir(emptyAssetsDir, { recursive: true });
-    await writeCloudflareSecretsFile({
+    const { content: secretsContent } = await writeCloudflareSecretsFile({
       outputPath: secretsPath,
       fallbackAuthSecret: fallbackBuildSecret,
       workerKeys,
     });
+    const activeSecretsPath = secretsContent.trim() ? secretsPath : null;
 
     for (const target of uploadTargets) {
       await assertBundleExists(target);
@@ -250,7 +253,7 @@ async function main() {
         buildVersionUploadDryRunArgs({
           configPath: tempConfigPath,
           name: target.name,
-          secretsPath,
+          secretsPath: activeSecretsPath,
         })
       );
       const sizes = parseDryRunUploadSize(`${result.stdout}\n${result.stderr}`);

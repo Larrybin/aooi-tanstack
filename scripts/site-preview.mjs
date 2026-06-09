@@ -157,7 +157,7 @@ function createPreviewContext({
 } = {}) {
   const siteKey = resolveRequiredSiteKey(processEnv);
   readCurrentSiteConfig({ rootDir, siteKey });
-  readSiteDeploySettings({ rootDir, siteKey });
+  const deploySettings = readSiteDeploySettings({ rootDir, siteKey });
 
   const envFilePath = resolveSiteLocalEnvPath({ rootDir, siteKey });
   const envFileValues = readSiteLocalEnv({ rootDir, siteKey });
@@ -187,6 +187,8 @@ function createPreviewContext({
   return {
     envFilePath,
     envFileValues,
+    hyperdriveRequired:
+      deploySettings.bindingRequirements.bindings.hyperdrive === true,
     previewDatabaseUrl,
     previewSettings: readPreviewDeploySettingsStatus({ rootDir, siteKey }),
     resourceNames,
@@ -201,7 +203,7 @@ function requirePreviewOperatorValues(context) {
   if (!context.workersDevSubdomain) {
     missing.push('CF_WORKERS_DEV_SUBDOMAIN');
   }
-  if (!context.previewDatabaseUrl) {
+  if (context.hyperdriveRequired && !context.previewDatabaseUrl) {
     missing.push('PREVIEW_DATABASE_URL');
   }
 
@@ -248,14 +250,18 @@ async function runDoctor() {
     printStatus('missing', 'CF_WORKERS_DEV_SUBDOMAIN');
   }
 
-  if (context.previewDatabaseUrl) {
+  if (!context.hyperdriveRequired) {
+    printStatus('skip', 'PREVIEW_DATABASE_URL', 'Hyperdrive disabled');
+  } else if (context.previewDatabaseUrl) {
     printStatus('ok', 'PREVIEW_DATABASE_URL');
   } else {
     failures += 1;
     printStatus('missing', 'PREVIEW_DATABASE_URL');
   }
 
-  if (context.previewSettings.state === 'valid') {
+  if (!context.hyperdriveRequired) {
+    printStatus('skip', 'preview deploy settings', 'Hyperdrive disabled');
+  } else if (context.previewSettings.state === 'valid') {
     printStatus(
       'ok',
       'preview deploy settings',
@@ -298,7 +304,7 @@ async function runDoctor() {
     }
   }
 
-  if (context.previewSettings.state === 'valid') {
+  if (context.hyperdriveRequired && context.previewSettings.state === 'valid') {
     if (await checkHyperdrive(context.previewSettings.hyperdriveId, env)) {
       printStatus(
         'ok',
@@ -351,12 +357,19 @@ async function runDoctor() {
 async function runProvision() {
   const context = createPreviewContext();
   requirePreviewOperatorValues(context);
-  assertPreviewSettingsCanProvision(context);
+  if (context.hyperdriveRequired) {
+    assertPreviewSettingsCanProvision(context);
+  }
 
   const env = createPreviewCommandEnv(context);
 
   await ensureR2Bucket(context.resourceNames.cacheBucket, env);
   await ensureR2Bucket(context.resourceNames.storageBucket, env);
+
+  if (!context.hyperdriveRequired) {
+    printStatus('skip', 'Hyperdrive config', 'Hyperdrive disabled');
+    return 0;
+  }
 
   if (context.previewSettings.state === 'valid') {
     if (!(await checkHyperdrive(context.previewSettings.hyperdriveId, env))) {
@@ -421,7 +434,7 @@ async function runProvision() {
 async function runDeploy() {
   const context = createPreviewContext();
   requirePreviewOperatorValues(context);
-  if (context.previewSettings.state !== 'valid') {
+  if (context.hyperdriveRequired && context.previewSettings.state !== 'valid') {
     throw new Error(
       `valid sites/${context.siteKey}/deploy.preview.settings.json is required before preview deploy`
     );
@@ -429,7 +442,9 @@ async function runDeploy() {
 
   const env = createPreviewCommandEnv(context);
   const steps = [
-    ['migrate preview database', ['db:migrate']],
+    ...(context.hyperdriveRequired
+      ? [['migrate preview database', ['db:migrate']]]
+      : []),
     ['check preview config', ['cf:preview:check']],
     ['build preview workers', ['cf:preview:build']],
     ['deploy preview state worker', ['cf:preview:deploy:state']],

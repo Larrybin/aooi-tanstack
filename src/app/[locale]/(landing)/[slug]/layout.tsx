@@ -2,8 +2,6 @@
 // cache: default (no explicit fetch)
 // reason: shared landing shell; keep AI navigation filtering aligned with source-controlled site capabilities
 import type { ReactNode } from 'react';
-import { resolveRemoverHomeCopy } from '@/domains/remover/ui/remover-home-copy';
-import { buildRemoverHeaderFooter } from '@/domains/remover/ui/remover-shell';
 import {
   readBuildAuthUiSettings,
   readBuildBillingUiSettings,
@@ -15,6 +13,7 @@ import {
   replaceBrandPlaceholdersDeep,
 } from '@/infra/platform/brand/placeholders.server';
 import { site, siteHomeContent } from '@/site';
+import { getProductLanding } from '@/surfaces/public/product-landing';
 import { getTranslations } from 'next-intl/server';
 
 import { LocaleDetector } from '@/shared/blocks/common/locale-detector';
@@ -40,12 +39,13 @@ export default async function PageDetailLayout({
   const billingSettings = readBuildBillingUiSettings();
   const brand = buildBrandPlaceholderValues();
   const siteKey: string = site.key;
+  const productLanding = getProductLanding(siteKey);
 
-  if (siteKey === 'ai-remover') {
-    const { header, footer } = buildRemoverHeaderFooter(
-      brand,
-      resolveRemoverHomeCopy(siteHomeContent, locale).shell
-    );
+  if (productLanding) {
+    const { header, footer } = productLanding.buildHeaderFooter(brand, {
+      locale,
+      homeContent: siteHomeContent,
+    });
 
     return (
       <LandingMarketingLayout

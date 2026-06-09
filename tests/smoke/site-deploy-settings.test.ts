@@ -60,6 +60,7 @@ test('site deploy settings 缺少 required worker 时失败', () => {
           configVersion: 1,
           bindingRequirements: {
             bindings: {
+              hyperdrive: true,
               workersAi: false,
             },
             secrets: {
@@ -105,6 +106,7 @@ test('site deploy settings 拒绝未知 worker key', () => {
           configVersion: 1,
           bindingRequirements: {
             bindings: {
+              hyperdrive: true,
               workersAi: false,
             },
             secrets: {
@@ -152,6 +154,7 @@ test('site deploy settings 启用 admin 时必须启用 auth', () => {
           configVersion: 1,
           bindingRequirements: {
             bindings: {
+              hyperdrive: true,
               workersAi: false,
             },
             secrets: {
@@ -195,6 +198,7 @@ test('site deploy settings 启用能力时必须启用对应 worker', () => {
     configVersion: 1,
     bindingRequirements: {
       bindings: {
+        hyperdrive: true,
         workersAi: false,
       },
       secrets: {
@@ -292,6 +296,7 @@ test('site deploy settings 拒绝未知嵌套字段', () => {
           configVersion: 1,
           bindingRequirements: {
             bindings: {
+              hyperdrive: true,
               workersAi: false,
             },
             secrets: {
@@ -344,6 +349,7 @@ test('site deploy settings 不接受派生 secret requirement 双写字段', () 
           configVersion: 1,
           bindingRequirements: {
             bindings: {
+              hyperdrive: true,
               workersAi: false,
             },
             secrets: {
@@ -404,6 +410,7 @@ test('site deploy settings allow site-specific capability-derived contract to st
     configVersion: 1,
     bindingRequirements: {
       bindings: {
+        hyperdrive: true,
         workersAi: false,
       },
       secrets: {

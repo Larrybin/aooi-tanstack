@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { resolveRequiredSiteKey } from './lib/site-config.mjs';
 import { resolveSiteDeployContract } from './lib/site-deploy-contract.mjs';
 import { getActiveSplitWorkerSlots } from './lib/site-deploy-settings.mjs';
+import { withSiteRoutePruning } from './lib/site-route-pruning.mjs';
 
 const rootDir = process.cwd();
 const activeSplitWorkersEnv = 'CLOUDFLARE_ACTIVE_SPLIT_WORKERS';
@@ -78,7 +79,13 @@ async function main() {
   await runCommand('node', buildI18nCheckArgs(contract.site), {
     env: commandEnv,
   });
-  await runCommand('pnpm', buildOpenNextBuildArgs(), { env: commandEnv });
+  await withSiteRoutePruning({
+    rootDir,
+    contract,
+    async task() {
+      await runCommand('pnpm', buildOpenNextBuildArgs(), { env: commandEnv });
+    },
+  });
   await runCommand(
     'node',
     ['--import', 'tsx', 'scripts/bundle-cf-server-functions.mjs'],

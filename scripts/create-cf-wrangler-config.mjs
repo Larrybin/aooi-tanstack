@@ -235,6 +235,22 @@ function replaceOrInsertImagesBinding(content, enabled) {
     );
 }
 
+function replaceOrInsertHyperdriveBinding(content, enabled, hyperdriveId) {
+  return replaceOrInsertArrayTable(
+    content,
+    'hyperdrive',
+    enabled
+      ? [
+          {
+            binding: 'HYPERDRIVE',
+            id: hyperdriveId,
+            localConnectionString: '',
+          },
+        ]
+      : []
+  );
+}
+
 function replaceOrInsertCronTriggers(content, crons) {
   const pattern = /\n?\[triggers\]\s*[\s\S]*?(?=\n\[\[|\n\[[^\[]|$)/g;
   const cleaned = content.replace(pattern, '').replace(/\n{3,}/g, '\n\n');
@@ -362,6 +378,8 @@ function applyWorkerSpecificBindings(content, contract, workerSlot) {
   const requiresWorkersAi =
     workerSlot === 'public-web' &&
     contract.bindingRequirements.bindings?.workersAi === true;
+  const requiresHyperdrive =
+    contract.bindingRequirements.bindings?.hyperdrive === true;
   const cleanupCrons = requiresRemoverCleanupCron(contract, workerSlot)
     ? [REMOVER_CLEANUP_CRON]
     : [];
@@ -447,11 +465,10 @@ function applyWorkerSpecificBindings(content, contract, workerSlot) {
       },
     ]);
 
-    nextContent = replaceQuotedValue(
+    nextContent = replaceOrInsertHyperdriveBinding(
       nextContent,
-      /(^\s*id\s*=\s*")([^"\n]*)(")/m,
-      contract.resources.hyperdriveId,
-      '[[hyperdrive]].id'
+      requiresHyperdrive,
+      contract.resources.hyperdriveId
     );
   }
 
@@ -571,7 +588,10 @@ export function buildCloudflareWranglerConfig({
     ...versionVars,
   };
 
-  if (databaseUrl !== undefined) {
+  if (
+    databaseUrl !== undefined &&
+    contract.bindingRequirements.bindings?.hyperdrive === true
+  ) {
     nextContent = replaceQuotedValue(
       nextContent,
       /(^\s*localConnectionString\s*=\s*")([^"\n]*)(")/m,

@@ -88,3 +88,22 @@ test('buildVersionUploadDryRunArgs 为 app worker 固定使用 wrangler versions
     ]
   );
 });
+
+test('buildVersionUploadDryRunArgs 在无 secrets 时不传 secrets-file', () => {
+  assert.deepEqual(
+    buildVersionUploadDryRunArgs({
+      configPath: '/tmp/wrangler.server-public-web.toml',
+      name: 'roller-rabbit-public-web',
+      secretsPath: null,
+    }),
+    [
+      'versions',
+      'upload',
+      '--dry-run',
+      '--config',
+      '/tmp/wrangler.server-public-web.toml',
+      '--name',
+      'roller-rabbit-public-web',
+    ]
+  );
+});

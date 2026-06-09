@@ -598,7 +598,7 @@ async function createFixtureRoot(pricing: unknown) {
     {
       configVersion: 1,
       bindingRequirements: {
-        bindings: { workersAi: true },
+        bindings: { hyperdrive: true, workersAi: true },
         secrets: {
           authSharedSecret: true,
           googleOauth: true,
@@ -708,7 +708,7 @@ async function createBackgroundRemoverFixtureRoot() {
     {
       configVersion: 1,
       bindingRequirements: {
-        bindings: { workersAi: false },
+        bindings: { hyperdrive: true, workersAi: false },
         secrets: {
           authSharedSecret: true,
           googleOauth: true,
@@ -1337,6 +1337,7 @@ test('contract audit fails when AI Remover product runtime binding is disabled',
       bindings: {
         ...((current.bindingRequirements as { bindings: object }).bindings ??
           {}),
+        hyperdrive: true,
         workersAi: false,
       },
     },

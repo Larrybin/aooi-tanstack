@@ -4,7 +4,6 @@
 interface __BaseEnv_CloudflareEnv {
 	NEXT_INC_CACHE_R2_BUCKET: R2Bucket;
 	APP_STORAGE_R2_BUCKET: R2Bucket;
-	HYPERDRIVE: Hyperdrive;
 	IMAGES: ImagesBinding;
 	ASSETS: Fetcher;
 	DEPLOY_TARGET: "cloudflare";

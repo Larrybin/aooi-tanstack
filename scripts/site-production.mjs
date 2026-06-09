@@ -40,6 +40,12 @@ const PRODUCTION_RELEASE_ENV_KEYS = Object.freeze([
   'CLOUDFLARE_API_TOKEN',
   'RESEND_API_KEY',
 ]);
+const PRODUCTION_DATABASE_ENV_KEYS = new Set([
+  'DATABASE_PROVIDER',
+  'RELEASE_TEST_DATABASE_URL',
+  'PRODUCTION_DATABASE_URL',
+]);
+const PRODUCTION_AUTH_ENV_KEYS = new Set(['RESEND_API_KEY']);
 
 function trimEnvValue(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -80,8 +86,29 @@ export function buildProductionResourceNames(siteKey) {
   };
 }
 
-export function getMissingProductionReleaseEnvNames(env) {
+export function isProductionHyperdriveRequired(deploySettings) {
+  return deploySettings.bindingRequirements.bindings.hyperdrive === true;
+}
+
+export function isProductionAuthRequired({ deploySettings, siteConfig }) {
+  return (
+    siteConfig.capabilities.auth !== false ||
+    deploySettings.bindingRequirements.secrets.authSharedSecret === true
+  );
+}
+
+export function getMissingProductionReleaseEnvNames(
+  env,
+  { authRequired = true, hyperdriveRequired = true } = {}
+) {
   const missing = PRODUCTION_RELEASE_ENV_KEYS.filter((name) => {
+    if (!hyperdriveRequired && PRODUCTION_DATABASE_ENV_KEYS.has(name)) {
+      return false;
+    }
+    if (!authRequired && PRODUCTION_AUTH_ENV_KEYS.has(name)) {
+      return false;
+    }
+
     if (name === 'DATABASE_PROVIDER') {
       return trimEnvValue(env[name]) !== 'postgresql';
     }
@@ -89,14 +116,25 @@ export function getMissingProductionReleaseEnvNames(env) {
     return !trimEnvValue(env[name]);
   });
 
-  if (!trimEnvValue(env.BETTER_AUTH_SECRET) && !trimEnvValue(env.AUTH_SECRET)) {
+  if (
+    authRequired &&
+    !trimEnvValue(env.BETTER_AUTH_SECRET) &&
+    !trimEnvValue(env.AUTH_SECRET)
+  ) {
     missing.push('BETTER_AUTH_SECRET or AUTH_SECRET');
   }
 
   return missing;
 }
 
-export function hasUnsafeProductionReleaseTestDatabase(env) {
+export function hasUnsafeProductionReleaseTestDatabase(
+  env,
+  { hyperdriveRequired = true } = {}
+) {
+  if (!hyperdriveRequired) {
+    return false;
+  }
+
   const releaseTestDatabaseUrl = trimEnvValue(env.RELEASE_TEST_DATABASE_URL);
   const productionDatabaseUrl = trimEnvValue(env.PRODUCTION_DATABASE_URL);
   return (
@@ -221,6 +259,8 @@ function createProductionContext({
     rootDir,
     siteConfig,
     siteKey,
+    authRequired: isProductionAuthRequired({ deploySettings, siteConfig }),
+    hyperdriveRequired: isProductionHyperdriveRequired(deploySettings),
   };
 }
 
@@ -229,7 +269,7 @@ function requireProductionOperatorValues(context) {
   if (!existsSync(context.envFilePath)) {
     missing.push(`sites/${context.siteKey}/.env.local`);
   }
-  if (!context.productionDatabaseUrl) {
+  if (context.hyperdriveRequired && !context.productionDatabaseUrl) {
     missing.push('PRODUCTION_DATABASE_URL');
   }
 
@@ -240,10 +280,22 @@ function requireProductionOperatorValues(context) {
   }
 }
 
-function printProductionEnvStatus(env) {
-  const missing = getMissingProductionReleaseEnvNames(env);
+function printProductionEnvStatus(env, { authRequired, hyperdriveRequired }) {
+  const missing = getMissingProductionReleaseEnvNames(env, {
+    authRequired,
+    hyperdriveRequired,
+  });
   const missingSet = new Set(missing);
   for (const name of PRODUCTION_RELEASE_ENV_KEYS) {
+    if (!hyperdriveRequired && PRODUCTION_DATABASE_ENV_KEYS.has(name)) {
+      printStatus('skip', name, 'Hyperdrive disabled');
+      continue;
+    }
+    if (!authRequired && PRODUCTION_AUTH_ENV_KEYS.has(name)) {
+      printStatus('skip', name, 'Auth disabled');
+      continue;
+    }
+
     if (missingSet.has(name)) {
       printStatus(
         'missing',
@@ -255,13 +307,15 @@ function printProductionEnvStatus(env) {
     }
   }
 
-  if (missingSet.has('BETTER_AUTH_SECRET or AUTH_SECRET')) {
+  if (!authRequired) {
+    printStatus('skip', 'BETTER_AUTH_SECRET or AUTH_SECRET', 'Auth disabled');
+  } else if (missingSet.has('BETTER_AUTH_SECRET or AUTH_SECRET')) {
     printStatus('missing', 'BETTER_AUTH_SECRET or AUTH_SECRET');
   } else {
     printStatus('ok', 'BETTER_AUTH_SECRET or AUTH_SECRET');
   }
 
-  if (hasUnsafeProductionReleaseTestDatabase(env)) {
+  if (hasUnsafeProductionReleaseTestDatabase(env, { hyperdriveRequired })) {
     printStatus(
       'error',
       'RELEASE_TEST_DATABASE_URL',
@@ -363,7 +417,10 @@ async function runDoctor() {
     );
   }
 
-  failures += printProductionEnvStatus(env);
+  failures += printProductionEnvStatus(env, {
+    authRequired: context.authRequired,
+    hyperdriveRequired: context.hyperdriveRequired,
+  });
 
   for (const bucketName of [
     resources.incrementalCacheBucket,
@@ -386,18 +443,22 @@ async function runDoctor() {
     }
   }
 
-  const hyperdriveId = resources.hyperdriveId;
-  if (await checkHyperdrive(hyperdriveId, env)) {
-    printStatus('ok', 'Hyperdrive config', hyperdriveId);
+  if (!context.hyperdriveRequired) {
+    printStatus('skip', 'Hyperdrive config', 'Hyperdrive disabled');
   } else {
-    failures += 1;
-    printStatus(
-      isProductionHyperdrivePlaceholder(hyperdriveId)
-        ? 'placeholder'
-        : 'missing',
-      'Hyperdrive config',
-      hyperdriveId
-    );
+    const hyperdriveId = resources.hyperdriveId;
+    if (await checkHyperdrive(hyperdriveId, env)) {
+      printStatus('ok', 'Hyperdrive config', hyperdriveId);
+    } else {
+      failures += 1;
+      printStatus(
+        isProductionHyperdrivePlaceholder(hyperdriveId)
+          ? 'placeholder'
+          : 'missing',
+        'Hyperdrive config',
+        hyperdriveId
+      );
+    }
   }
 
   for (const [slot, workerName] of Object.entries(
@@ -464,7 +525,11 @@ async function runProvision() {
 
   await ensureR2Bucket(resources.incrementalCacheBucket, env);
   await ensureR2Bucket(resources.appStorageBucket, env);
-  await ensureProductionHyperdrive(context, env);
+  if (context.hyperdriveRequired) {
+    await ensureProductionHyperdrive(context, env);
+  } else {
+    printStatus('skip', 'Hyperdrive config', 'Hyperdrive disabled');
+  }
   printStatus('ok', 'production resource provisioning');
   return 0;
 }

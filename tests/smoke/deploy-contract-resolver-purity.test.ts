@@ -217,3 +217,21 @@ test('deploy contract resolver 在 preview 缺少 overlay 时失败', () => {
     /missing preview deploy settings/i
   );
 });
+
+test('deploy contract resolver allows no-DB preview without Hyperdrive overlay', () => {
+  const contract = resolveSiteDeployContract({
+    rootDir: process.cwd(),
+    siteKey: 'mp4-compressor',
+    deployProfile: 'preview',
+    processEnv: {
+      CF_WORKERS_DEV_SUBDOMAIN: 'aooi-preview',
+    },
+  });
+
+  assert.equal(contract.bindingRequirements.bindings.hyperdrive, false);
+  assert.equal(
+    contract.appUrl,
+    'https://aooi-mp4-compressor-preview-router.aooi-preview.workers.dev'
+  );
+  assert.equal(contract.workers.router, 'aooi-mp4-compressor-preview-router');
+});

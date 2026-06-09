@@ -81,6 +81,21 @@ test('公共 layout 都必须向 PublicAppProvider 注入 typed initial props', 
   }
 });
 
+test('legal page layout uses the product shell registry instead of a single product special case', async () => {
+  const content = await readRepoFile(
+    'src/app/[locale]/(landing)/[slug]/layout.tsx'
+  );
+
+  assert.equal(
+    content.includes(
+      "import { getProductLanding } from '@/surfaces/public/product-landing';"
+    ),
+    true
+  );
+  assert.equal(content.includes('getProductLanding(siteKey)'), true);
+  assert.equal(content.includes("siteKey === 'ai-remover'"), false);
+});
+
 test('themes/default/layouts 不再直接读取 settings runtime query', async () => {
   const layoutFiles = [
     'src/themes/default/layouts/landing.tsx',

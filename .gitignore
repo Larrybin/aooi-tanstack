@@ -79,6 +79,9 @@ next-env.d.ts
 .specstory/history/
 
 .codex/*
+!.codex/skills/
+!.codex/skills/aooi-site-factory/
+!.codex/skills/aooi-site-factory/**
 !.codex/hooks.json
 !.codex/hooks/
 !.codex/hooks/**

@@ -9,6 +9,7 @@ export const NO_DB_CLOUDFLARE_BUILD_SITES = Object.freeze([
   'ai-remover',
   'background-remover',
   'text-to-speech-generator',
+  'mp4-compressor',
 ]);
 
 export const NO_DB_CLOUDFLARE_PLACEHOLDER_ENV = Object.freeze({

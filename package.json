@@ -71,6 +71,7 @@
     "cf:preview:deploy:state": "CF_DEPLOY_PROFILE=preview pnpm cf:deploy:state",
     "cf:preview:deploy": "CF_DEPLOY_PROFILE=preview pnpm cf:deploy",
     "cf:preview:bootstrap": "CF_DEPLOY_PROFILE=preview CF_DEPLOY_BOOTSTRAP_MISSING=true pnpm cf:deploy",
+    "site:contract": "node scripts/run-with-site.mjs node --import tsx scripts/site-contract.mjs",
     "site:preview:doctor": "node scripts/site-preview.mjs doctor",
     "site:preview:provision": "node scripts/site-preview.mjs provision",
     "site:preview:deploy": "node scripts/site-preview.mjs deploy",
