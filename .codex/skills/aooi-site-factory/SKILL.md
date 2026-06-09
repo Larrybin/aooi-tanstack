@@ -101,6 +101,7 @@ pnpm test
 pnpm lint
 pnpm arch:check
 SITE=<site-key> pnpm site:contract
+SITE=<site-key> pnpm site:gate
 SITE=<site-key> pnpm build
 SITE=<site-key> pnpm cf:check
 pnpm cf:build:no-db --site=<site-key>
@@ -120,7 +121,7 @@ Before calling work complete, summarize:
 
 - Target site and scope classification.
 - Files or contracts changed.
-- Commands run and outcomes.
+- Commands run and outcomes. New site, site capability, deploy topology, and no-DB/free-tool PRs must include `SITE=<site-key> pnpm site:contract` or `SITE=<site-key> pnpm site:gate` evidence. Prefer `site:gate` for new site PRs.
 - Any skipped checks and why.
 - Whether the site remains draft/local-only or is release-ready.
 

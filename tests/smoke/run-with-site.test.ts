@@ -68,6 +68,19 @@ test('run-with-site 对 Cloudflare smoke 命令要求显式 SITE', async () => {
   assert.match(result.stderr, /scripts\/smoke\.mjs cf-local/);
 });
 
+test('run-with-site 对 site gate 命令要求显式 SITE', async () => {
+  const result = await runWithSite(
+    ['node', '--import', 'tsx', 'scripts/site-gate.mjs'],
+    {
+      SITE: '',
+    }
+  );
+
+  assert.equal(result.ok, false);
+  assert.match(result.stderr, /SITE is required for this command/);
+  assert.match(result.stderr, /scripts\/site-gate\.mjs/);
+});
+
 test('run-with-site 对 lint 使用内部 dev-local site fallback', async () => {
   const result = await runWithSite(
     [
