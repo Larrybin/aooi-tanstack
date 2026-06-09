@@ -71,6 +71,10 @@ type FfmpegGlobals = Window & {
   };
 };
 
+type CompressionGlobals = typeof globalThis & {
+  DecompressionStream?: typeof DecompressionStream;
+};
+
 const MODE_SETTINGS: Record<
   CompressionMode,
   { crf: number; labelKey: 'bestQuality' | 'balanced' | 'smallestFile' }
@@ -277,6 +281,29 @@ async function fetchBytes(url: string) {
 async function createBlobUrl(url: string, mimeType: string) {
   return URL.createObjectURL(
     new Blob([await fetchBytes(url)], { type: mimeType })
+  );
+}
+
+export async function fetchGzipBytes(url: string) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`failed to load ${url}`);
+  }
+
+  const Compression = globalThis as CompressionGlobals;
+  if (!response.body || typeof Compression.DecompressionStream !== 'function') {
+    throw new Error('gzip decompression is unavailable in this browser');
+  }
+
+  const decompressed = response.body.pipeThrough(
+    new Compression.DecompressionStream('gzip')
+  );
+  return new Uint8Array(await new Response(decompressed).arrayBuffer());
+}
+
+async function createGzipBlobUrl(url: string, mimeType: string) {
+  return URL.createObjectURL(
+    new Blob([await fetchGzipBytes(url)], { type: mimeType })
   );
 }
 
@@ -503,8 +530,8 @@ export function Mp4CompressorWorkbench({
         '/vendor/ffmpeg/ffmpeg-core.js',
         'text/javascript'
       ),
-      wasmURL: await createBlobUrl(
-        '/vendor/ffmpeg/ffmpeg-core.wasm',
+      wasmURL: await createGzipBlobUrl(
+        '/vendor/ffmpeg/ffmpeg-core.wasm.gz',
         'application/wasm'
       ),
     });

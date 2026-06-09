@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { gzipSync } from 'node:zlib';
 
-import { buildScaleArgs } from './mp4-compressor-workbench';
+import { buildScaleArgs, fetchGzipBytes } from './mp4-compressor-workbench';
 
 test('buildScaleArgs does not upscale landscape videos to the selected height', () => {
   assert.deepEqual(
@@ -50,4 +51,21 @@ test('buildScaleArgs downscales only when the configured output dimension shrink
     }),
     ['-vf', 'scale=720:-2']
   );
+});
+
+test('fetchGzipBytes inflates a gzip response for wasm blob loading', async () => {
+  const originalFetch = globalThis.fetch;
+  const payload = new TextEncoder().encode('wasm bytes');
+  const gzipped = gzipSync(payload);
+
+  globalThis.fetch = async () =>
+    new Response(gzipped, {
+      status: 200,
+    });
+
+  try {
+    assert.deepEqual(await fetchGzipBytes('/ffmpeg-core.wasm.gz'), payload);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
