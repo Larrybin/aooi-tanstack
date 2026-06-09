@@ -3,7 +3,6 @@ import {
   findPricingItemByProductId,
   isPricingItemCheckoutEnabled,
 } from '@/domains/billing/domain/pricing';
-import { readBillingRuntimeSettingsCached } from '@/domains/settings/application/settings-runtime.query';
 import { getPaymentRuntimeBindings } from '@/infra/adapters/payment/runtime-bindings';
 import { sitePricing } from '@/site';
 import { createFileRoute } from '@tanstack/react-router';
@@ -15,6 +14,7 @@ import { withApi } from '@/shared/lib/api/route';
 import { PaymentCheckoutBodySchema } from '@/shared/schemas/api/payment/checkout';
 
 import { createTanStackApiContext } from '../../../server/api-context';
+import { readTanStackBillingRuntimeSettings } from '../../../server/billing-runtime';
 
 const postPaymentCheckout = withApi(async (request: Request) => {
   assertPaymentCapabilityEnabled();
@@ -47,7 +47,7 @@ const postPaymentCheckout = withApi(async (request: Request) => {
 
   const user = await api.requireUser();
   const [settings, bindings] = await Promise.all([
-    readBillingRuntimeSettingsCached(),
+    readTanStackBillingRuntimeSettings(),
     Promise.resolve(getPaymentRuntimeBindings()),
   ]);
 

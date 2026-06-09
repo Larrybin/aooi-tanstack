@@ -27,11 +27,8 @@ import { findSubscriptionByProviderSubscriptionId } from '@/domains/billing/infr
 import type {
   ActiveBillingRuntimeSettings,
   ActivePaymentRuntimeBindings,
+  BillingRuntimeSettings,
 } from '@/domains/settings/application/settings-runtime.contracts';
-import {
-  readBillingRuntimeSettingsCached,
-  readBillingRuntimeSettingsFresh,
-} from '@/domains/settings/application/settings-runtime.query';
 import { getPaymentRuntimeBindings } from '@/infra/adapters/payment/runtime-bindings';
 import {
   getPaymentService,
@@ -45,10 +42,7 @@ import { withApi } from '@/shared/lib/api/route';
 import { resolveConfigConsistencyMode } from '@/shared/lib/config-consistency';
 
 import { createTanStackApiContext } from '../../../server/api-context';
-
-type BillingRuntimeSettingsForNone = {
-  provider: 'none';
-};
+import { readTanStackBillingRuntimeSettings } from '../../../server/billing-runtime';
 
 type PaymentNotifyRouteDeps = PaymentNotifyDeps & {
   createPaymentWebhookInboxReceipt: PaymentNotifyFlowDeps['createPaymentWebhookInboxReceipt'];
@@ -57,12 +51,8 @@ type PaymentNotifyRouteDeps = PaymentNotifyDeps & {
   markPaymentWebhookInboxProcessFailed: PaymentNotifyFlowDeps['markPaymentWebhookInboxProcessFailed'];
   markPaymentWebhookInboxProcessed: PaymentNotifyFlowDeps['markPaymentWebhookInboxProcessed'];
   serializePaymentWebhookHeaders: PaymentNotifyFlowDeps['serializePaymentWebhookHeaders'];
-  readBillingRuntimeSettingsCached: () => Promise<
-    ActiveBillingRuntimeSettings | BillingRuntimeSettingsForNone
-  >;
-  readBillingRuntimeSettingsFresh: () => Promise<
-    ActiveBillingRuntimeSettings | BillingRuntimeSettingsForNone
-  >;
+  readBillingRuntimeSettingsCached: () => Promise<BillingRuntimeSettings>;
+  readBillingRuntimeSettingsFresh: () => Promise<BillingRuntimeSettings>;
   readPaymentRuntimeBindings: () => ActivePaymentRuntimeBindings;
   createPaymentService: (input: {
     settings: ActiveBillingRuntimeSettings;
@@ -87,8 +77,8 @@ const paymentNotifyDeps: PaymentNotifyRouteDeps = {
   markPaymentWebhookInboxProcessFailed,
   markPaymentWebhookInboxProcessed,
   serializePaymentWebhookHeaders,
-  readBillingRuntimeSettingsCached,
-  readBillingRuntimeSettingsFresh,
+  readBillingRuntimeSettingsCached: readTanStackBillingRuntimeSettings,
+  readBillingRuntimeSettingsFresh: readTanStackBillingRuntimeSettings,
   readPaymentRuntimeBindings: () => {
     const bindings = getPaymentRuntimeBindings();
     if (bindings.provider === 'none') {

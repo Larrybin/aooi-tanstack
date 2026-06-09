@@ -4,7 +4,7 @@ import {
   buildBrandPlaceholderValues,
   replaceBrandPlaceholdersDeep,
 } from '@/shared/brand/placeholders';
-import { requireSupportedLocale } from '@/shared/i18n/locale';
+import { normalizeLocale } from '@/shared/i18n/locale';
 import {
   buildCanonicalUrl,
   buildLanguageAlternates,
@@ -34,15 +34,18 @@ export async function resolvePricingRouteData({
   locale: localeInput,
 }: {
   locale: string;
-}): Promise<PricingRouteData> {
-  const locale = requireSupportedLocale(localeInput);
+}): Promise<PricingRouteData | null> {
+  const locale = normalizeLocale(localeInput);
+  if (!locale) {
+    return null;
+  }
 
   if (!isPublishedLocaleForPath('/pricing', locale)) {
-    throw new Response('Not found', { status: 404 });
+    return null;
   }
 
   if (!sitePricing) {
-    throw new Response('Not found', { status: 404 });
+    return null;
   }
 
   const brand = buildBrandPlaceholderValues();

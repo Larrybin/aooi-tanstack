@@ -7,6 +7,8 @@ import {
   Scripts,
 } from '@tanstack/react-router';
 
+import { defaultLocale, isRtlLocale } from '@/config/locale';
+
 import appCss from '../styles/app.css?url';
 
 export const Route = createRootRoute({
@@ -21,8 +23,10 @@ export const Route = createRootRoute({
 });
 
 function RootDocument() {
+  const dir = isRtlLocale(defaultLocale) ? 'rtl' : 'ltr';
+
   return (
-    <html lang="en">
+    <html lang={defaultLocale} dir={dir}>
       <head>
         <HeadContent />
       </head>
