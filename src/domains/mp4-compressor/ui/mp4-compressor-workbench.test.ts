@@ -5,9 +5,19 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 
-import { buildScaleArgs, fetchGzipBytes } from './mp4-compressor-workbench';
+import {
+  buildCompressionArgs,
+  buildScaleArgs,
+  fetchGzipBytes,
+} from './mp4-compressor-workbench';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
+const testVideo = {
+  sizeBytes: 100 * 1024 * 1024,
+  width: 1920,
+  height: 1080,
+  duration: 60,
+} as Parameters<typeof buildCompressionArgs>[0]['video'];
 
 async function readWorkbenchSource() {
   return readFile(
@@ -62,6 +72,37 @@ test('buildScaleArgs downscales only when the configured output dimension shrink
       },
     }),
     ['-vf', 'scale=720:-2']
+  );
+});
+
+test('buildCompressionArgs keeps every audio track without re-encoding by default', () => {
+  assert.deepEqual(
+    buildCompressionArgs({
+      mode: 'balanced',
+      resolution: 'original',
+      audio: 'keep',
+      targetSizeMb: 0,
+      video: testVideo,
+    }),
+    [
+      '-i',
+      'input.mp4',
+      '-map',
+      '0:v:0',
+      '-map',
+      '0:a?',
+      '-c:v',
+      'libx264',
+      '-crf',
+      '26',
+      '-preset',
+      'veryfast',
+      '-movflags',
+      '+faststart',
+      '-c:a',
+      'copy',
+      'output.mp4',
+    ]
   );
 });
 

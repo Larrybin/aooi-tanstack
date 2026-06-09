@@ -194,7 +194,7 @@ export function buildScaleArgs({
   return ['-vf', `scale=${scale}`];
 }
 
-function buildCompressionArgs({
+export function buildCompressionArgs({
   mode,
   resolution,
   audio,
@@ -207,7 +207,11 @@ function buildCompressionArgs({
   targetSizeMb: number;
   video: VideoInfo;
 }) {
-  const args = ['-i', 'input.mp4', ...buildScaleArgs({ resolution, video })];
+  const args = ['-i', 'input.mp4', '-map', '0:v:0'];
+  if (audio !== 'remove') {
+    args.push('-map', '0:a?');
+  }
+  args.push(...buildScaleArgs({ resolution, video }));
 
   if (
     targetSizeMb > 0 &&
@@ -228,8 +232,10 @@ function buildCompressionArgs({
 
   if (audio === 'remove') {
     args.push('-an');
+  } else if (audio === 'keep') {
+    args.push('-c:a', 'copy');
   } else {
-    args.push('-c:a', 'aac', '-b:a', audio === 'reduce' ? '96k' : '128k');
+    args.push('-c:a', 'aac', '-b:a', '96k');
   }
 
   args.push('output.mp4');
