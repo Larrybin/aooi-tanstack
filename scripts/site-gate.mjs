@@ -108,8 +108,8 @@ export function buildSiteGateSteps({
     steps.push({
       label: 'no-DB Cloudflare build',
       command: 'pnpm',
-      args: ['cf:build:no-db', '--site', siteKey],
-      env: siteEnv,
+      args: ['cf:build'],
+      env: buildNoDbCloudflareBuildEnv(siteKey, processEnv),
     });
   }
 

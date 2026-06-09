@@ -10,13 +10,13 @@ import {
   runSiteGate,
 } from '../../scripts/site-gate.mjs';
 
-test('site gate includes no-DB build for free-tool-no-db profiles', () => {
+test('site gate runs the current free-tool-no-db site build without the matrix allowlist', () => {
   const steps = buildSiteGateSteps({
-    siteKey: 'mp4-compressor',
+    siteKey: 'new-free-tool',
     profile: 'free-tool-no-db',
     focusedTestFiles: [
-      'src/domains/mp4-compressor/ui/mp4-compressor-workbench.test.ts',
-      'tests/smoke/mp4-compressor-assets.test.ts',
+      'src/domains/new-free-tool/ui/new-free-tool-workbench.test.ts',
+      'tests/smoke/new-free-tool-assets.test.ts',
     ],
   });
 
@@ -26,21 +26,24 @@ test('site gate includes no-DB build for free-tool-no-db profiles', () => {
       ['site:contract'],
       ['build'],
       ['cf:check'],
-      ['cf:build:no-db', '--site', 'mp4-compressor'],
+      ['cf:build'],
       [
         'test',
         '--',
-        'src/domains/mp4-compressor/ui/mp4-compressor-workbench.test.ts',
-        'tests/smoke/mp4-compressor-assets.test.ts',
+        'src/domains/new-free-tool/ui/new-free-tool-workbench.test.ts',
+        'tests/smoke/new-free-tool-assets.test.ts',
       ],
     ]
   );
-  assert.equal(steps[2].env.SITE, 'mp4-compressor');
-  assert.equal(steps[2].env.DATABASE_URL, '');
-  assert.equal(
-    steps[2].env.STORAGE_PUBLIC_BASE_URL,
-    'http://127.0.0.1:8787/assets/'
-  );
+
+  for (const index of [2, 3]) {
+    assert.equal(steps[index].env.SITE, 'new-free-tool');
+    assert.equal(steps[index].env.DATABASE_URL, '');
+    assert.equal(
+      steps[index].env.STORAGE_PUBLIC_BASE_URL,
+      'http://127.0.0.1:8787/assets/'
+    );
+  }
 });
 
 test('site gate skips no-DB build and focused tests when not applicable', () => {
@@ -118,7 +121,7 @@ test('site gate runs the planned commands in order', async () => {
     { command: 'pnpm', args: ['cf:check'], site: 'mp4-compressor' },
     {
       command: 'pnpm',
-      args: ['cf:build:no-db', '--site', 'mp4-compressor'],
+      args: ['cf:build'],
       site: 'mp4-compressor',
     },
     {
