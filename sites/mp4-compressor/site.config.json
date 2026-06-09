@@ -1,0 +1,27 @@
+{
+  "key": "mp4-compressor",
+  "domain": "mp4compressor.example.com",
+  "brand": {
+    "appName": "MP4 Compressor",
+    "appUrl": "https://mp4compressor.example.com",
+    "supportEmail": "support@mp4compressor.example.com",
+    "logo": "/logo.png",
+    "favicon": "/favicon.ico",
+    "previewImage": "/logo.png"
+  },
+  "capabilities": {
+    "auth": false,
+    "payment": "none",
+    "ai": false,
+    "docs": false,
+    "blog": false
+  },
+  "i18n": {
+    "defaultLocale": "en",
+    "supportedLocales": ["en"],
+    "localePrefix": "as-needed",
+    "localeDetection": false,
+    "strictPublishing": true
+  },
+  "configVersion": 1
+}

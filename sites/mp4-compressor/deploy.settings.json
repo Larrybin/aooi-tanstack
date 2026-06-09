@@ -1,0 +1,32 @@
+{
+  "configVersion": 1,
+  "bindingRequirements": {
+    "bindings": {
+      "hyperdrive": false,
+      "workersAi": false
+    },
+    "secrets": {
+      "authSharedSecret": false,
+      "googleOauth": false,
+      "githubOauth": false,
+      "removerCleanup": false,
+      "turnstile": false
+    },
+    "vars": {
+      "storagePublicBaseUrl": true
+    }
+  },
+  "workers": {
+    "router": "aooi-mp4-compressor-router",
+    "state": "aooi-mp4-compressor-state",
+    "public-web": "aooi-mp4-compressor-public-web"
+  },
+  "resources": {
+    "incrementalCacheBucket": "aooi-mp4-compressor-opennext-cache",
+    "appStorageBucket": "aooi-mp4-compressor-storage",
+    "hyperdriveId": "00000000000000000000000000000005"
+  },
+  "state": {
+    "schemaVersion": 1
+  }
+}
