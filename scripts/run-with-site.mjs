@@ -23,6 +23,7 @@ const SITE_REQUIRED_COMMANDS = [
   'pnpm exec @better-auth/cli generate',
   'node --import tsx scripts/check-cloudflare-config.mjs',
   'pnpm exec opennextjs-cloudflare build',
+  'node --import tsx scripts/site-gate.mjs',
   'node --import tsx scripts/smoke.mjs',
   'node --import tsx scripts/run-cf-app-deploy.mjs',
   'node --import tsx scripts/run-cf-state-deploy.mjs',
