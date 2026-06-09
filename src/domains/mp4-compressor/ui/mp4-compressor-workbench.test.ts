@@ -150,3 +150,21 @@ test('workbench ignores dropped files while compression is busy', async () => {
       )
   );
 });
+
+test('workbench ignores stale metadata reads before updating the selected file', async () => {
+  const source = await readWorkbenchSource();
+  const chooseFileStart = source.indexOf('async function chooseFile(');
+  const metadataRead = source.indexOf('await readVideoMetadata(nextFile)');
+  const staleCheck = source.indexOf(
+    'fileSelectionIdRef.current !== selectionId',
+    metadataRead
+  );
+  const setVideo = source.indexOf('setVideo((current) => {', metadataRead);
+
+  assert.equal(source.includes('const fileSelectionIdRef = useRef(0);'), true);
+  assert.ok(chooseFileStart > 0);
+  assert.ok(metadataRead > chooseFileStart);
+  assert.ok(staleCheck > metadataRead);
+  assert.ok(staleCheck < setVideo);
+  assert.equal(source.includes('URL.revokeObjectURL(nextVideo.url);'), true);
+});

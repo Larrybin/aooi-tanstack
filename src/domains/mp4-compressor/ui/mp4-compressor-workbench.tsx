@@ -602,6 +602,7 @@ export function Mp4CompressorWorkbench({
   );
   const compressionRunRef = useRef<CompressionRun | null>(null);
   const compressionRunIdRef = useRef(0);
+  const fileSelectionIdRef = useRef(0);
   const videoUrlRef = useRef<string | null>(null);
   const resultUrlRef = useRef<string | null>(null);
   const [status, setStatus] = useState<WorkbenchStatus>('demo');
@@ -692,6 +693,8 @@ export function Mp4CompressorWorkbench({
   async function chooseFile(nextFile: File | undefined) {
     if (busy) return;
 
+    const selectionId = fileSelectionIdRef.current + 1;
+    fileSelectionIdRef.current = selectionId;
     setError('');
     clearResult();
     if (!nextFile) return;
@@ -704,6 +707,11 @@ export function Mp4CompressorWorkbench({
 
     try {
       const nextVideo = await readVideoMetadata(nextFile);
+      if (fileSelectionIdRef.current !== selectionId) {
+        URL.revokeObjectURL(nextVideo.url);
+        return;
+      }
+
       const suggestedTargetMb = Math.floor((nextVideo.sizeBytes * 0.42) / MB);
       setVideo((current) => {
         if (current?.url) URL.revokeObjectURL(current.url);
@@ -712,6 +720,10 @@ export function Mp4CompressorWorkbench({
       setTargetSizeMb(Math.max(0, suggestedTargetMb));
       setStatus('ready');
     } catch {
+      if (fileSelectionIdRef.current !== selectionId) {
+        return;
+      }
+
       setStatus('failed');
       setError(copy.openError);
     }
