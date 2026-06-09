@@ -1041,12 +1041,14 @@ export function Mp4CompressorWorkbench({
                   <button
                     key={item.value}
                     type="button"
+                    disabled={busy}
                     onClick={() => {
+                      if (busy) return;
                       clearResult();
                       setMode(item.value as CompressionMode);
                     }}
                     className={[
-                      'min-h-10 px-4 text-sm font-medium transition',
+                      'min-h-10 px-4 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-70',
                       mode === item.value
                         ? 'bg-[#0F5AE8] text-white'
                         : 'bg-white text-[#475569] hover:bg-[#F8FAFC]',
@@ -1074,12 +1076,14 @@ export function Mp4CompressorWorkbench({
                 <input
                   type="number"
                   min="0"
+                  disabled={busy}
                   value={targetSizeMb}
                   onChange={(event) => {
+                    if (busy) return;
                     clearResult();
                     setTargetSizeMb(Math.max(0, Number(event.target.value)));
                   }}
-                  className="h-11 flex-1 rounded-md border border-[#CBD5E1] bg-white px-3 text-sm font-medium text-[#111827]"
+                  className="h-11 flex-1 rounded-md border border-[#CBD5E1] bg-white px-3 text-sm font-medium text-[#111827] disabled:cursor-not-allowed disabled:bg-[#F1F5F9] disabled:text-[#64748B]"
                 />
                 <span className="rounded-md bg-[#F1F5F9] px-3 py-2 text-sm font-semibold text-[#475569]">
                   MB
@@ -1098,11 +1102,13 @@ export function Mp4CompressorWorkbench({
               </span>
               <select
                 value={resolution}
+                disabled={busy}
                 onChange={(event) => {
+                  if (busy) return;
                   clearResult();
                   setResolution(event.target.value as ResolutionOption);
                 }}
-                className="h-11 w-full rounded-md border border-[#CBD5E1] bg-white px-3 text-sm font-medium text-[#111827]"
+                className="h-11 w-full rounded-md border border-[#CBD5E1] bg-white px-3 text-sm font-medium text-[#111827] disabled:cursor-not-allowed disabled:bg-[#F1F5F9] disabled:text-[#64748B]"
               >
                 <option value="original">Original</option>
                 <option value="1080p">1080p (1920 x 1080)</option>
@@ -1128,12 +1134,14 @@ export function Mp4CompressorWorkbench({
                   <button
                     key={item.value}
                     type="button"
+                    disabled={busy}
                     onClick={() => {
+                      if (busy) return;
                       clearResult();
                       setAudio(item.value as AudioOption);
                     }}
                     className={[
-                      'min-h-10 px-4 text-sm font-medium transition',
+                      'min-h-10 px-4 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-70',
                       audio === item.value
                         ? 'bg-[#0F5AE8] text-white'
                         : 'bg-white text-[#475569] hover:bg-[#F8FAFC]',

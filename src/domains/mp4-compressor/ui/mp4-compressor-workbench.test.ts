@@ -206,3 +206,26 @@ test('workbench clears stale compression results when settings change', async ()
     assert.ok(source.lastIndexOf('clearResult();', updateIndex) > 0);
   }
 });
+
+test('workbench freezes compression settings while a run is active', async () => {
+  const source = await readWorkbenchSource();
+  const modeUpdate = source.indexOf('setMode(item.value as CompressionMode);');
+  const targetUpdate = source.indexOf(
+    'setTargetSizeMb(Math.max(0, Number(event.target.value)));'
+  );
+  const resolutionUpdate = source.indexOf(
+    'setResolution(event.target.value as ResolutionOption);'
+  );
+  const audioUpdate = source.indexOf('setAudio(item.value as AudioOption);');
+
+  for (const updateIndex of [
+    modeUpdate,
+    targetUpdate,
+    resolutionUpdate,
+    audioUpdate,
+  ]) {
+    assert.ok(updateIndex > 0);
+    assert.ok(source.lastIndexOf('disabled={busy}', updateIndex) > 0);
+    assert.ok(source.lastIndexOf('if (busy) return;', updateIndex) > 0);
+  }
+});
