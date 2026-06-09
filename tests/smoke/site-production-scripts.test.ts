@@ -9,6 +9,7 @@ import {
   buildProductionWorkerName,
   getMissingProductionReleaseEnvNames,
   hasUnsafeProductionReleaseTestDatabase,
+  isProductionAuthRequired,
   isProductionHyperdrivePlaceholder,
   isProductionHyperdriveRequired,
   updateProductionDeploySettingsHyperdriveId,
@@ -205,6 +206,38 @@ test('site production helpers detect whether Hyperdrive is required', () => {
   );
 });
 
+test('site production helpers detect whether auth is required', () => {
+  assert.equal(
+    isProductionAuthRequired({
+      deploySettings: baseDeploySettings,
+      siteConfig: baseSiteConfig,
+    }),
+    true
+  );
+  assert.equal(
+    isProductionAuthRequired({
+      deploySettings: {
+        ...baseDeploySettings,
+        bindingRequirements: {
+          ...baseDeploySettings.bindingRequirements,
+          secrets: {
+            ...baseDeploySettings.bindingRequirements.secrets,
+            authSharedSecret: false,
+          },
+        },
+      },
+      siteConfig: {
+        ...baseSiteConfig,
+        capabilities: {
+          ...baseSiteConfig.capabilities,
+          auth: false,
+        },
+      },
+    }),
+    false
+  );
+});
+
 test('site production provision writes deploy settings JSON with a real Hyperdrive id', () => {
   assert.equal(
     buildProductionDeploySettingsJson({
@@ -277,6 +310,23 @@ test('site production doctor does not require database env for Hyperdrive-free s
         STORAGE_PUBLIC_BASE_URL: 'https://assets.example.com/',
       },
       { hyperdriveRequired: false }
+    ),
+    []
+  );
+});
+
+test('site production doctor does not require auth env for auth-free sites', () => {
+  assert.deepEqual(
+    getMissingProductionReleaseEnvNames(
+      {
+        CLOUDFLARE_ACCOUNT_ID: 'account-id',
+        CLOUDFLARE_API_TOKEN: 'api-token',
+        DATABASE_PROVIDER: 'postgresql',
+        PRODUCTION_DATABASE_URL: 'postgresql://production-db',
+        RELEASE_TEST_DATABASE_URL: 'postgresql://release-test-db',
+        STORAGE_PUBLIC_BASE_URL: 'https://assets.example.com/',
+      },
+      { authRequired: false }
     ),
     []
   );

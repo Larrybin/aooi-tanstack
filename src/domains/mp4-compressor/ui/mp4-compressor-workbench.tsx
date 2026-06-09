@@ -1041,7 +1041,10 @@ export function Mp4CompressorWorkbench({
                   <button
                     key={item.value}
                     type="button"
-                    onClick={() => setMode(item.value as CompressionMode)}
+                    onClick={() => {
+                      clearResult();
+                      setMode(item.value as CompressionMode);
+                    }}
                     className={[
                       'min-h-10 px-4 text-sm font-medium transition',
                       mode === item.value
@@ -1072,9 +1075,10 @@ export function Mp4CompressorWorkbench({
                   type="number"
                   min="0"
                   value={targetSizeMb}
-                  onChange={(event) =>
-                    setTargetSizeMb(Math.max(0, Number(event.target.value)))
-                  }
+                  onChange={(event) => {
+                    clearResult();
+                    setTargetSizeMb(Math.max(0, Number(event.target.value)));
+                  }}
                   className="h-11 flex-1 rounded-md border border-[#CBD5E1] bg-white px-3 text-sm font-medium text-[#111827]"
                 />
                 <span className="rounded-md bg-[#F1F5F9] px-3 py-2 text-sm font-semibold text-[#475569]">
@@ -1094,9 +1098,10 @@ export function Mp4CompressorWorkbench({
               </span>
               <select
                 value={resolution}
-                onChange={(event) =>
-                  setResolution(event.target.value as ResolutionOption)
-                }
+                onChange={(event) => {
+                  clearResult();
+                  setResolution(event.target.value as ResolutionOption);
+                }}
                 className="h-11 w-full rounded-md border border-[#CBD5E1] bg-white px-3 text-sm font-medium text-[#111827]"
               >
                 <option value="original">Original</option>
@@ -1123,7 +1128,10 @@ export function Mp4CompressorWorkbench({
                   <button
                     key={item.value}
                     type="button"
-                    onClick={() => setAudio(item.value as AudioOption)}
+                    onClick={() => {
+                      clearResult();
+                      setAudio(item.value as AudioOption);
+                    }}
                     className={[
                       'min-h-10 px-4 text-sm font-medium transition',
                       audio === item.value

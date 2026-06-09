@@ -45,6 +45,7 @@ const PRODUCTION_DATABASE_ENV_KEYS = new Set([
   'RELEASE_TEST_DATABASE_URL',
   'PRODUCTION_DATABASE_URL',
 ]);
+const PRODUCTION_AUTH_ENV_KEYS = new Set(['RESEND_API_KEY']);
 
 function trimEnvValue(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -89,12 +90,22 @@ export function isProductionHyperdriveRequired(deploySettings) {
   return deploySettings.bindingRequirements.bindings.hyperdrive === true;
 }
 
+export function isProductionAuthRequired({ deploySettings, siteConfig }) {
+  return (
+    siteConfig.capabilities.auth !== false ||
+    deploySettings.bindingRequirements.secrets.authSharedSecret === true
+  );
+}
+
 export function getMissingProductionReleaseEnvNames(
   env,
-  { hyperdriveRequired = true } = {}
+  { authRequired = true, hyperdriveRequired = true } = {}
 ) {
   const missing = PRODUCTION_RELEASE_ENV_KEYS.filter((name) => {
     if (!hyperdriveRequired && PRODUCTION_DATABASE_ENV_KEYS.has(name)) {
+      return false;
+    }
+    if (!authRequired && PRODUCTION_AUTH_ENV_KEYS.has(name)) {
       return false;
     }
 
@@ -105,7 +116,11 @@ export function getMissingProductionReleaseEnvNames(
     return !trimEnvValue(env[name]);
   });
 
-  if (!trimEnvValue(env.BETTER_AUTH_SECRET) && !trimEnvValue(env.AUTH_SECRET)) {
+  if (
+    authRequired &&
+    !trimEnvValue(env.BETTER_AUTH_SECRET) &&
+    !trimEnvValue(env.AUTH_SECRET)
+  ) {
     missing.push('BETTER_AUTH_SECRET or AUTH_SECRET');
   }
 
@@ -244,6 +259,7 @@ function createProductionContext({
     rootDir,
     siteConfig,
     siteKey,
+    authRequired: isProductionAuthRequired({ deploySettings, siteConfig }),
     hyperdriveRequired: isProductionHyperdriveRequired(deploySettings),
   };
 }
@@ -264,14 +280,19 @@ function requireProductionOperatorValues(context) {
   }
 }
 
-function printProductionEnvStatus(env, { hyperdriveRequired }) {
+function printProductionEnvStatus(env, { authRequired, hyperdriveRequired }) {
   const missing = getMissingProductionReleaseEnvNames(env, {
+    authRequired,
     hyperdriveRequired,
   });
   const missingSet = new Set(missing);
   for (const name of PRODUCTION_RELEASE_ENV_KEYS) {
     if (!hyperdriveRequired && PRODUCTION_DATABASE_ENV_KEYS.has(name)) {
       printStatus('skip', name, 'Hyperdrive disabled');
+      continue;
+    }
+    if (!authRequired && PRODUCTION_AUTH_ENV_KEYS.has(name)) {
+      printStatus('skip', name, 'Auth disabled');
       continue;
     }
 
@@ -286,7 +307,9 @@ function printProductionEnvStatus(env, { hyperdriveRequired }) {
     }
   }
 
-  if (missingSet.has('BETTER_AUTH_SECRET or AUTH_SECRET')) {
+  if (!authRequired) {
+    printStatus('skip', 'BETTER_AUTH_SECRET or AUTH_SECRET', 'Auth disabled');
+  } else if (missingSet.has('BETTER_AUTH_SECRET or AUTH_SECRET')) {
     printStatus('missing', 'BETTER_AUTH_SECRET or AUTH_SECRET');
   } else {
     printStatus('ok', 'BETTER_AUTH_SECRET or AUTH_SECRET');
@@ -395,6 +418,7 @@ async function runDoctor() {
   }
 
   failures += printProductionEnvStatus(env, {
+    authRequired: context.authRequired,
     hyperdriveRequired: context.hyperdriveRequired,
   });
 
