@@ -1,8 +1,20 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 
 import { buildScaleArgs, fetchGzipBytes } from './mp4-compressor-workbench';
+
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
+
+async function readWorkbenchSource() {
+  return readFile(
+    path.resolve(currentDir, './mp4-compressor-workbench.tsx'),
+    'utf8'
+  );
+}
 
 test('buildScaleArgs does not upscale landscape videos to the selected height', () => {
   assert.deepEqual(
@@ -68,4 +80,32 @@ test('fetchGzipBytes inflates a gzip response for wasm blob loading', async () =
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test('workbench keeps ffmpeg cancellable during load', async () => {
+  const source = await readWorkbenchSource();
+
+  assert.ok(
+    source.indexOf('ffmpegRef.current = ffmpeg;') <
+      source.indexOf('await ffmpeg.load(')
+  );
+  assert.equal(
+    source.includes('compressionRunRef.current?.abortController.abort();'),
+    true
+  );
+  assert.equal(source.includes('createBlobUrl('), true);
+  assert.equal(source.includes('{ signal }'), true);
+});
+
+test('workbench ignores dropped files while compression is busy', async () => {
+  const source = await readWorkbenchSource();
+
+  assert.equal(source.includes('if (busy) return;'), true);
+  assert.ok(
+    source.indexOf('onDrop={(event) => {') <
+      source.indexOf(
+        'if (busy) return;',
+        source.indexOf('onDrop={(event) => {')
+      )
+  );
 });

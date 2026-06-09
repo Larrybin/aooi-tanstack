@@ -75,6 +75,11 @@ type CompressionGlobals = typeof globalThis & {
   DecompressionStream?: typeof DecompressionStream;
 };
 
+type CompressionRun = {
+  id: number;
+  abortController: AbortController;
+};
+
 const MODE_SETTINGS: Record<
   CompressionMode,
   { crf: number; labelKey: 'bestQuality' | 'balanced' | 'smallestFile' }
@@ -270,22 +275,30 @@ async function loadFfmpegGlobals() {
   };
 }
 
-async function fetchBytes(url: string) {
-  const response = await fetch(url);
+function createAbortError() {
+  return new Error('Compression cancelled');
+}
+
+async function fetchBytes(url: string, signal?: AbortSignal) {
+  const response = await fetch(url, { signal });
   if (!response.ok) {
     throw new Error(`failed to load ${url}`);
   }
   return new Uint8Array(await response.arrayBuffer());
 }
 
-async function createBlobUrl(url: string, mimeType: string) {
+async function createBlobUrl(
+  url: string,
+  mimeType: string,
+  signal?: AbortSignal
+) {
   return URL.createObjectURL(
-    new Blob([await fetchBytes(url)], { type: mimeType })
+    new Blob([await fetchBytes(url, signal)], { type: mimeType })
   );
 }
 
-export async function fetchGzipBytes(url: string) {
-  const response = await fetch(url);
+export async function fetchGzipBytes(url: string, signal?: AbortSignal) {
+  const response = await fetch(url, { signal });
   if (!response.ok) {
     throw new Error(`failed to load ${url}`);
   }
@@ -301,9 +314,13 @@ export async function fetchGzipBytes(url: string) {
   return new Uint8Array(await new Response(decompressed).arrayBuffer());
 }
 
-async function createGzipBlobUrl(url: string, mimeType: string) {
+async function createGzipBlobUrl(
+  url: string,
+  mimeType: string,
+  signal?: AbortSignal
+) {
   return URL.createObjectURL(
-    new Blob([await fetchGzipBytes(url)], { type: mimeType })
+    new Blob([await fetchGzipBytes(url, signal)], { type: mimeType })
   );
 }
 
@@ -396,6 +413,8 @@ export function Mp4CompressorWorkbench({
   const progressCallbackRef = useRef<((event: ProgressEvent) => void) | null>(
     null
   );
+  const compressionRunRef = useRef<CompressionRun | null>(null);
+  const compressionRunIdRef = useRef(0);
   const videoUrlRef = useRef<string | null>(null);
   const resultUrlRef = useRef<string | null>(null);
   const [status, setStatus] = useState<WorkbenchStatus>('demo');
@@ -486,6 +505,8 @@ export function Mp4CompressorWorkbench({
   }
 
   async function chooseFile(nextFile: File | undefined) {
+    if (busy) return;
+
     setError('');
     clearResult();
     if (!nextFile) return;
@@ -511,31 +532,66 @@ export function Mp4CompressorWorkbench({
     }
   }
 
-  async function getFfmpeg() {
+  function isCurrentCompressionRun(runId: number) {
+    const run = compressionRunRef.current;
+    return run?.id === runId && !run.abortController.signal.aborted;
+  }
+
+  async function getFfmpeg(signal: AbortSignal) {
     if (ffmpegRef.current?.loaded) {
       return ffmpegRef.current;
     }
 
     const { FFmpeg } = await loadFfmpegGlobals();
+    if (signal.aborted) {
+      throw createAbortError();
+    }
+
     const ffmpeg = new FFmpeg();
     const progressCallback = ({ progress: nextProgress }: ProgressEvent) => {
+      if (signal.aborted) {
+        return;
+      }
       if (Number.isFinite(nextProgress)) {
         setProgress(Math.max(1, Math.min(99, Math.round(nextProgress * 100))));
       }
     };
     progressCallbackRef.current = progressCallback;
     ffmpeg.on('progress', progressCallback);
-    await ffmpeg.load({
-      coreURL: await createBlobUrl(
-        '/vendor/ffmpeg/ffmpeg-core.js',
-        'text/javascript'
-      ),
-      wasmURL: await createGzipBlobUrl(
-        '/vendor/ffmpeg/ffmpeg-core.wasm.gz',
-        'application/wasm'
-      ),
-    });
     ffmpegRef.current = ffmpeg;
+
+    try {
+      await ffmpeg.load(
+        {
+          coreURL: await createBlobUrl(
+            '/vendor/ffmpeg/ffmpeg-core.js',
+            'text/javascript',
+            signal
+          ),
+          wasmURL: await createGzipBlobUrl(
+            '/vendor/ffmpeg/ffmpeg-core.wasm.gz',
+            'application/wasm',
+            signal
+          ),
+        },
+        { signal }
+      );
+    } catch (error) {
+      ffmpeg.off('progress', progressCallback);
+      if (ffmpegRef.current === ffmpeg) {
+        ffmpegRef.current = null;
+      }
+      if (progressCallbackRef.current === progressCallback) {
+        progressCallbackRef.current = null;
+      }
+      ffmpeg.terminate();
+      throw error;
+    }
+
+    if (signal.aborted) {
+      throw createAbortError();
+    }
+
     return ffmpeg;
   }
 
@@ -548,14 +604,26 @@ export function Mp4CompressorWorkbench({
     setProgress(1);
     setError('');
     clearResult();
+    const runId = compressionRunIdRef.current + 1;
+    const abortController = new AbortController();
+    compressionRunIdRef.current = runId;
+    compressionRunRef.current = { id: runId, abortController };
 
     try {
-      const ffmpeg = await getFfmpeg();
+      const ffmpeg = await getFfmpeg(abortController.signal);
+      if (!isCurrentCompressionRun(runId)) {
+        return;
+      }
+
       setStatus('processing');
       await ffmpeg.writeFile(
         'input.mp4',
         new Uint8Array(await video.file.arrayBuffer())
       );
+      if (!isCurrentCompressionRun(runId)) {
+        return;
+      }
+
       const exitCode = await ffmpeg.exec(
         buildCompressionArgs({
           mode,
@@ -565,11 +633,19 @@ export function Mp4CompressorWorkbench({
           video,
         })
       );
+      if (!isCurrentCompressionRun(runId)) {
+        return;
+      }
+
       if (exitCode !== 0) {
         throw new Error(copy.compressError);
       }
 
       const data = await ffmpeg.readFile('output.mp4');
+      if (!isCurrentCompressionRun(runId)) {
+        return;
+      }
+
       if (typeof data === 'string') {
         throw new Error(copy.compressError);
       }
@@ -586,12 +662,22 @@ export function Mp4CompressorWorkbench({
         ffmpeg.deleteFile('output.mp4'),
       ]);
     } catch (err: unknown) {
+      if (!isCurrentCompressionRun(runId)) {
+        return;
+      }
+
       setStatus('failed');
       setError(err instanceof Error ? err.message : copy.compressError);
+    } finally {
+      if (compressionRunRef.current?.id === runId) {
+        compressionRunRef.current = null;
+      }
     }
   }
 
   function cancel() {
+    compressionRunRef.current?.abortController.abort();
+    compressionRunRef.current = null;
     const ffmpeg = ffmpegRef.current;
     const progressCallback = progressCallbackRef.current;
     if (ffmpeg && progressCallback) {
@@ -926,12 +1012,14 @@ export function Mp4CompressorWorkbench({
           ].join(' ')}
           onDragOver={(event) => {
             event.preventDefault();
+            if (busy) return;
             setIsDragging(true);
           }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={(event) => {
             event.preventDefault();
             setIsDragging(false);
+            if (busy) return;
             void chooseFile(event.dataTransfer.files?.[0]);
           }}
         >
