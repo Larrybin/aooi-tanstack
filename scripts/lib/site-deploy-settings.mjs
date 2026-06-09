@@ -61,7 +61,10 @@ export const CLOUDFLARE_VAR_REQUIREMENT_KEYS = Object.freeze([
   'storagePublicBaseUrl',
 ]);
 
-export const CLOUDFLARE_BINDING_REQUIREMENT_KEYS = Object.freeze(['workersAi']);
+export const CLOUDFLARE_BINDING_REQUIREMENT_KEYS = Object.freeze([
+  'hyperdrive',
+  'workersAi',
+]);
 
 const FORBIDDEN_TOP_LEVEL_KEYS = Object.freeze([
   'payment',

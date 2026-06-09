@@ -32,6 +32,7 @@ const baseSiteConfig = {
 const baseDeploySettings = {
   bindingRequirements: {
     bindings: {
+      hyperdrive: true,
       workersAi: false,
     },
     secrets: {

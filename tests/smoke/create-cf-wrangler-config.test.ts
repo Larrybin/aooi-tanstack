@@ -25,6 +25,10 @@ const textToSpeechContract = resolveSiteDeployContract({
   rootDir: process.cwd(),
   siteKey: 'text-to-speech-generator',
 });
+const mp4CompressorContract = resolveSiteDeployContract({
+  rootDir: process.cwd(),
+  siteKey: 'mp4-compressor',
+});
 
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -691,4 +695,52 @@ NEXT_PUBLIC_APP_URL = "https://example.com"
   );
   assert.doesNotMatch(config, /\[\[r2_buckets\]\]/);
   assert.match(config, /STORAGE_PUBLIC_BASE_URL = ""/);
+});
+
+test('buildCloudflareWranglerConfig 为 no-DB worker 移除 Hyperdrive binding', () => {
+  const template = `
+name = "public-web-template"
+main = "workers/server-public-web.ts"
+
+[assets]
+directory = "../.open-next/assets"
+
+[[r2_buckets]]
+binding = "NEXT_INC_CACHE_R2_BUCKET"
+bucket_name = "placeholder-cache"
+
+[[r2_buckets]]
+binding = "APP_STORAGE_R2_BUCKET"
+bucket_name = "placeholder-storage"
+
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "d208cd72765b46a7b0849fc687e2fb61"
+localConnectionString = ""
+
+[[durable_objects.bindings]]
+name = "STATEFUL_LIMITERS"
+class_name = "StatefulLimitersDurableObject"
+script_name = "placeholder-state"
+
+[observability]
+enabled = true
+
+[vars]
+DEPLOY_TARGET = "cloudflare"
+NEXT_PUBLIC_APP_URL = "https://example.com"
+STORAGE_PUBLIC_BASE_URL = ""
+`;
+
+  const config = buildCloudflareWranglerConfig({
+    template,
+    contract: mp4CompressorContract,
+    workerSlot: 'public-web',
+    databaseUrl: 'postgresql://unused-preview-db',
+    templatePath: '/repo/cloudflare/wrangler.server-public-web.toml',
+    outputPath: '/repo/.tmp/server/default.toml',
+  });
+
+  assert.doesNotMatch(config, /\[\[hyperdrive\]\]/);
+  assert.doesNotMatch(config, /localConnectionString/);
 });

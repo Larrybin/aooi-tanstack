@@ -177,6 +177,10 @@ function buildPreviewDeploySettings({
   productionDeploySettings,
   previewSettings,
 }) {
+  const hyperdriveId =
+    previewSettings?.resources.hyperdriveId ??
+    productionDeploySettings.resources.hyperdriveId;
+
   return {
     ...productionDeploySettings,
     workers: Object.fromEntries(
@@ -188,9 +192,13 @@ function buildPreviewDeploySettings({
     resources: {
       incrementalCacheBucket: buildPreviewBucketName(siteKey, 'opennext-cache'),
       appStorageBucket: buildPreviewBucketName(siteKey, 'storage'),
-      hyperdriveId: previewSettings.resources.hyperdriveId,
+      hyperdriveId,
     },
   };
+}
+
+function requiresHyperdrive(deploySettings) {
+  return deploySettings.bindingRequirements.bindings.hyperdrive === true;
 }
 
 function buildTopologySignature(contract) {
@@ -263,7 +271,11 @@ export function resolveSiteDeployContractFromSources({
     );
   }
 
-  if (deployProfile === 'preview' && !previewSettings) {
+  if (
+    deployProfile === 'preview' &&
+    requiresHyperdrive(deploySettings) &&
+    !previewSettings
+  ) {
     throw new Error(`preview deploy settings are required for SITE=${siteKey}`);
   }
 
@@ -420,7 +432,7 @@ export function resolveSiteDeployContract({
   const site = readCurrentSiteConfig({ rootDir, siteKey });
   const deploySettings = readSiteDeploySettings({ rootDir, siteKey });
   const previewSettings =
-    resolvedDeployProfile === 'preview'
+    resolvedDeployProfile === 'preview' && requiresHyperdrive(deploySettings)
       ? readSitePreviewDeploySettings({ rootDir, siteKey })
       : null;
   return resolveSiteDeployContractFromSources({
