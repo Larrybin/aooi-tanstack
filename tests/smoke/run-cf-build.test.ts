@@ -254,6 +254,7 @@ test('cf:build real public-only free tool topology must prune disabled SaaS rout
 
   assert.deepEqual(Object.keys(contract.serverWorkers), ['public-web']);
   assert.ok(prunePaths.includes('src/app/api/auth'));
+  assert.ok(prunePaths.includes('src/app/api/config'));
   assert.ok(prunePaths.includes('src/app/[locale]/(admin)'));
   assert.ok(prunePaths.includes('src/app/[locale]/(landing)/settings'));
   assert.ok(prunePaths.includes('src/app/[locale]/(landing)/blog'));

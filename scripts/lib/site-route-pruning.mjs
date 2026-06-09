@@ -18,6 +18,7 @@ const FREE_TOOL_ROUTE_PRUNE_PATHS = Object.freeze([
   'src/app/api/auth',
   'src/app/api/background-remover',
   'src/app/api/chat',
+  'src/app/api/config',
   'src/app/api/docs',
   'src/app/api/email',
   'src/app/api/payment',
