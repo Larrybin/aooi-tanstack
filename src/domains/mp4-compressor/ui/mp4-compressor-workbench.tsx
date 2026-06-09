@@ -1,17 +1,20 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   AlertTriangle,
+  ArrowRight,
   CheckCircle2,
+  Clock3,
   Download,
   FileVideo,
   Gauge,
+  HardDrive,
+  Info,
   Loader2,
-  LockKeyhole,
+  Monitor,
+  Music2,
   Play,
-  RotateCcw,
-  Settings2,
   ShieldCheck,
   UploadCloud,
   Volume2,
@@ -403,6 +406,184 @@ function UploadedVideoPreview({
   );
 }
 
+function FileSummaryRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="grid grid-cols-[1.5rem_1fr_auto] items-center gap-3 border-t border-[#D9E1EC] px-4 py-3 text-sm first:border-t-0">
+      <span className="text-[#64748B]">{icon}</span>
+      <span className="text-[#475569]">{label}</span>
+      <span className="font-medium text-[#334155]">{value}</span>
+    </div>
+  );
+}
+
+function SmallVideoThumb({
+  video,
+  label,
+}: {
+  video: VideoInfo | null;
+  label: string;
+}) {
+  return (
+    <div className="relative flex aspect-video w-28 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#CBD5E1] text-white">
+      {video ? (
+        <video
+          src={video.url}
+          muted
+          playsInline
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <div className="h-full w-full bg-[linear-gradient(135deg,#CBD5E1,#94A3B8)]" />
+      )}
+      <span className="absolute inset-0 bg-black/15" />
+      <Play className="relative z-10 size-5 fill-current" />
+      <span className="absolute right-1.5 bottom-1 rounded bg-black/65 px-1.5 py-0.5 text-[10px] leading-none text-white">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function PreviewStrip({
+  video,
+  result,
+  estimatedBytes,
+}: {
+  video: VideoInfo | null;
+  result: CompressionResult | null;
+  estimatedBytes: number;
+}) {
+  const compressedSize = result?.sizeBytes ?? estimatedBytes;
+  return (
+    <div className="grid gap-4 border-t border-[#D9E1EC] bg-[#F8FAFC] p-5 md:grid-cols-[1fr_auto_1fr] md:items-center">
+      <div className="min-w-0">
+        <p className="mb-2 text-sm font-semibold text-[#111827]">Original</p>
+        <div className="flex items-center gap-3">
+          <SmallVideoThumb
+            video={video}
+            label={formatDuration(video?.duration ?? 117)}
+          />
+          <div className="min-w-0 text-sm text-[#475569]">
+            <p className="truncate font-medium text-[#111827]">
+              {video?.name ?? 'launch-demo.mp4'}
+            </p>
+            <p>
+              {video ? `${video.width} x ${video.height}` : '4K (3840 x 2160)'}
+            </p>
+            <p>
+              {formatDuration(video?.duration ?? 222)} ·{' '}
+              {formatBytes(video?.sizeBytes ?? 248 * MB)}
+            </p>
+          </div>
+        </div>
+      </div>
+      <ArrowRight className="mx-auto hidden size-7 text-[#64748B] md:block" />
+      <div className="min-w-0">
+        <p className="mb-2 text-sm font-semibold text-[#111827]">
+          Compressed preview
+        </p>
+        <div className="flex items-center gap-3">
+          <SmallVideoThumb
+            video={video && result ? { ...video, url: result.url } : video}
+            label={formatDuration(video?.duration ?? 117)}
+          />
+          <div className="min-w-0 text-sm text-[#475569]">
+            <p className="truncate font-medium text-[#111827]">
+              {video?.name
+                ? `${video.name.replace(/\.mp4$/i, '')} (compressed).mp4`
+                : 'launch-demo (compressed).mp4'}
+            </p>
+            <p>1080p (1920 x 1080)</p>
+            <p>
+              {formatDuration(video?.duration ?? 222)} · ~
+              {formatBytes(compressedSize)}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ResultComparison({
+  video,
+  result,
+  estimatedBytes,
+  savedPercent,
+  copy,
+}: {
+  video: VideoInfo | null;
+  result: CompressionResult | null;
+  estimatedBytes: number;
+  savedPercent: number;
+  copy: Mp4CompressorWorkbenchCopy;
+}) {
+  const originalSize = video?.sizeBytes ?? 9.7 * MB;
+  const compressedSize = result?.sizeBytes ?? estimatedBytes;
+  const displaySavedPercent =
+    result && video
+      ? savedPercent
+      : calculateSavedPercent(originalSize, compressedSize);
+
+  return (
+    <section className="mt-5 rounded-lg border border-[#D7E0ED] bg-white p-4 sm:p-5">
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <h2 className="text-xl font-semibold tracking-normal text-[#10182B]">
+          Compare before and after
+        </h2>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E6FAF1] px-3 py-1 text-xs font-semibold text-[#08744B]">
+          <CheckCircle2 className="size-3.5" />
+          {result ? copy.statusComplete : 'Preview estimate'}
+        </span>
+      </div>
+      <div className="grid gap-5 lg:grid-cols-2">
+        {video ? (
+          <UploadedVideoPreview
+            title={copy.original}
+            video={video}
+            sizeBytes={originalSize}
+          />
+        ) : (
+          <DemoVideoPreview
+            title={copy.original}
+            size={formatBytes(originalSize)}
+          />
+        )}
+        {video ? (
+          <UploadedVideoPreview
+            title={copy.compressed}
+            video={{ ...video, url: result?.url ?? video.url }}
+            sizeBytes={compressedSize}
+            badge={
+              displaySavedPercent > 0
+                ? `${displaySavedPercent}% smaller`
+                : 'MP4 preview'
+            }
+          />
+        ) : (
+          <DemoVideoPreview
+            title={copy.compressed}
+            size={formatBytes(compressedSize)}
+            badge={
+              displaySavedPercent > 0
+                ? `${displaySavedPercent}% smaller`
+                : 'MP4 preview'
+            }
+          />
+        )}
+      </div>
+    </section>
+  );
+}
+
 export function Mp4CompressorWorkbench({
   copy,
 }: {
@@ -425,7 +606,6 @@ export function Mp4CompressorWorkbench({
   const [resolution, setResolution] = useState<ResolutionOption>('1080p');
   const [audio, setAudio] = useState<AudioOption>('keep');
   const [targetSizeMb, setTargetSizeMb] = useState(75);
-  const [showSettings, setShowSettings] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState('');
 
@@ -483,10 +663,9 @@ export function Mp4CompressorWorkbench({
         ? `Great! Your video is ${savedPercent}% smaller.`
         : 'Compression complete. Download your MP4 below.';
     }
-    return copy.demoSuccess;
+    return 'Choose an MP4 file to start compressing in your browser.';
   }, [
     copy.compressError,
-    copy.demoSuccess,
     copy.loadingMessage,
     copy.processingMessage,
     copy.readyMessage,
@@ -690,125 +869,262 @@ export function Mp4CompressorWorkbench({
     setProgress(0);
   }
 
-  function reset() {
-    cancel();
-    setVideo((current) => {
-      if (current?.url) URL.revokeObjectURL(current.url);
-      return null;
-    });
-    clearResult();
-    setError('');
-    setStatus('demo');
-  }
-
-  const showRealVideo = Boolean(video);
-  const showResult = status === 'demo' || status === 'succeeded';
+  const displayVideoName = video?.name ?? 'No MP4 selected';
+  const displayResolution = video
+    ? `${video.width} x ${video.height}`
+    : 'Choose a file';
+  const displayDuration = video ? formatDuration(video.duration) : '0:00';
+  const displayedCompressedBytes = result?.sizeBytes ?? estimatedBytes;
 
   return (
-    <div id="compressor" className="mt-8 lg:mt-10">
-      <div className="grid gap-7 lg:grid-cols-[0.68fr_1.32fr] lg:items-start">
-        <div className="pt-3">
-          <h1 className="max-w-md text-5xl font-semibold tracking-normal text-[#10182B] sm:text-6xl">
-            Make MP4 files smaller
-          </h1>
-          <p className="mt-5 max-w-md text-lg leading-8 text-[#334155]">
-            Compress videos for sharing, storage, and faster uploads while
-            choosing your quality tradeoff.
-          </p>
+    <div id="compressor" className="mt-2 scroll-mt-24 pt-4">
+      <div className="mb-6">
+        <h1 className="max-w-4xl text-4xl font-semibold tracking-normal text-[#10182B] sm:text-5xl">
+          Compress MP4 videos with control
+        </h1>
+        <p className="mt-3 max-w-3xl text-lg leading-8 text-[#475569]">
+          Pick a smaller size, preserve visual quality, and keep the file on
+          your device.
+        </p>
+      </div>
 
-          <div className="mt-8 grid gap-3 text-sm text-[#172033] sm:grid-cols-3 lg:grid-cols-1">
-            <div className="flex items-start gap-3">
-              <ShieldCheck className="mt-0.5 size-5 text-[#08744B]" />
-              <span>
-                <strong className="block">Local processing</strong>
-                <span className="text-[#64748B]">Nothing uploaded</span>
-              </span>
+      <div className="grid gap-5 lg:grid-cols-[0.84fr_1fr]">
+        <div className="rounded-lg border border-[#D7E0ED] bg-white p-4 sm:p-5">
+          <div
+            className={[
+              'grid min-h-52 place-items-center rounded-lg border border-dashed p-6 text-center transition',
+              isDragging
+                ? 'border-[#0F5AE8] bg-[#EFF6FF]'
+                : 'border-[#B7C4D6] bg-[#FBFDFF]',
+            ].join(' ')}
+            onDragOver={(event) => {
+              event.preventDefault();
+              if (busy) return;
+              setIsDragging(true);
+            }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={(event) => {
+              event.preventDefault();
+              setIsDragging(false);
+              if (busy) return;
+              void chooseFile(event.dataTransfer.files?.[0]);
+            }}
+          >
+            <div>
+              <UploadCloud className="mx-auto size-11 text-[#0F5AE8]" />
+              <p className="mt-4 text-lg font-semibold text-[#111827]">
+                Select or drop an MP4 file
+              </p>
+              <p className="mt-2 text-sm text-[#475569]">
+                MP4 only. No uploads. All processing happens on your device.
+              </p>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => inputRef.current?.click()}
+                className="mt-5 inline-flex min-h-11 items-center justify-center rounded-md bg-[#0F5AE8] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0B48BC] disabled:cursor-not-allowed disabled:bg-[#93A4BD]"
+              >
+                {copy.chooseFile}
+              </button>
+              <input
+                ref={inputRef}
+                type="file"
+                accept="video/mp4,.mp4"
+                className="sr-only"
+                onChange={(event) => {
+                  void chooseFile(event.target.files?.[0]);
+                  event.currentTarget.value = '';
+                }}
+              />
             </div>
-            <div className="flex items-start gap-3">
-              <LockKeyhole className="mt-0.5 size-5 text-[#0F5AE8]" />
-              <span>
-                <strong className="block">No watermark</strong>
-                <span className="text-[#64748B]">100% free</span>
-              </span>
+          </div>
+
+          <div className="mt-7 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="flex size-16 shrink-0 items-center justify-center rounded-md border border-[#CBD5E1] bg-[#EFF6FF] text-[#0F5AE8]">
+                <FileVideo className="size-9" />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-lg font-semibold text-[#111827]">
+                  {displayVideoName}
+                </p>
+                <p className="mt-1 text-base text-[#64748B]">
+                  {formatBytes(sourceBytes)}
+                </p>
+              </div>
             </div>
-            <div className="flex items-start gap-3">
-              <FileVideo className="mt-0.5 size-5 text-[#0F5AE8]" />
-              <span>
-                <strong className="block">MP4 output</strong>
-                <span className="text-[#64748B]">H.264 + AAC</span>
-              </span>
-            </div>
+            <span className="inline-flex items-center gap-2 text-sm font-medium text-[#08744B]">
+              <CheckCircle2 className="size-5" />
+              Local only
+            </span>
+          </div>
+
+          <div className="mt-5 overflow-hidden rounded-md border border-[#D9E1EC]">
+            <FileSummaryRow
+              icon={<Monitor className="size-5" />}
+              label="Resolution"
+              value={displayResolution}
+            />
+            <FileSummaryRow
+              icon={<Clock3 className="size-5" />}
+              label="Duration"
+              value={displayDuration}
+            />
+            <FileSummaryRow
+              icon={<FileVideo className="size-5" />}
+              label="Video codec"
+              value={video ? 'H.264' : '-'}
+            />
+            <FileSummaryRow
+              icon={<Music2 className="size-5" />}
+              label="Audio codec"
+              value={audio === 'remove' ? 'Removed' : 'AAC'}
+            />
+            <FileSummaryRow
+              icon={<HardDrive className="size-5" />}
+              label="File size"
+              value={formatBytes(sourceBytes)}
+            />
+            <FileSummaryRow
+              icon={<ShieldCheck className="size-5" />}
+              label="Privacy"
+              value="Local only"
+            />
           </div>
         </div>
 
-        <div className="rounded-lg border border-[#D7E0ED] bg-white p-5 shadow-[0_18px_60px_rgba(15,31,56,0.08)] sm:p-7">
-          <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="overflow-hidden rounded-lg border border-[#D7E0ED] bg-white">
+          <div className="border-b border-[#D9E1EC] px-5 py-4">
+            <h2 className="text-xl font-semibold tracking-normal text-[#111827]">
+              Compression settings
+            </h2>
+          </div>
+          <div className="space-y-5 p-5">
             <div>
-              <div className="flex items-center gap-3">
-                {status === 'failed' ? (
-                  <AlertTriangle className="size-5 text-[#C2410C]" />
-                ) : busy ? (
-                  <Loader2 className="size-5 animate-spin text-[#0F5AE8]" />
-                ) : (
-                  <CheckCircle2 className="size-5 text-[#08744B]" />
-                )}
-                <h2 className="font-semibold text-[#0F172A]">{statusTitle}</h2>
+              <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#111827]">
+                Compression mode
+                <Info className="size-4 text-[#64748B]" />
               </div>
-              <p className="mt-2 text-sm text-[#475569]">{statusMessage}</p>
+              <div className="grid overflow-hidden rounded-md border border-[#CBD5E1] sm:grid-cols-3">
+                {[
+                  { value: 'best', label: copy.bestQuality },
+                  { value: 'balanced', label: copy.balanced },
+                  { value: 'smallest', label: copy.smallestFile },
+                ].map((item) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    onClick={() => setMode(item.value as CompressionMode)}
+                    className={[
+                      'min-h-10 px-4 text-sm font-medium transition',
+                      mode === item.value
+                        ? 'bg-[#0F5AE8] text-white'
+                        : 'bg-white text-[#475569] hover:bg-[#F8FAFC]',
+                    ].join(' ')}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-sm text-[#64748B]">
+                {mode === 'best'
+                  ? copy.bestQualityHint
+                  : mode === 'balanced'
+                    ? 'Balanced gives you a good mix of quality and file size.'
+                    : copy.smallestFileHint}
+              </p>
             </div>
-            {busy ? (
-              <button
-                type="button"
-                onClick={cancel}
-                className="rounded-md border border-[#CFD9E8] px-4 py-2 text-sm font-semibold text-[#172033] transition hover:bg-[#F6F9FC]"
+
+            <label className="block">
+              <span className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#111827]">
+                Approx target size (MB)
+                <Info className="size-4 text-[#64748B]" />
+              </span>
+              <div className="flex items-center gap-3">
+                <input
+                  type="number"
+                  min="0"
+                  value={targetSizeMb}
+                  onChange={(event) =>
+                    setTargetSizeMb(Math.max(0, Number(event.target.value)))
+                  }
+                  className="h-11 flex-1 rounded-md border border-[#CBD5E1] bg-white px-3 text-sm font-medium text-[#111827]"
+                />
+                <span className="rounded-md bg-[#F1F5F9] px-3 py-2 text-sm font-semibold text-[#475569]">
+                  MB
+                </span>
+                <span className="text-sm text-[#64748B]">approximate</span>
+              </div>
+              <span className="mt-2 block text-sm text-[#64748B]">
+                Enter the desired file size. Actual size may vary.
+              </span>
+            </label>
+
+            <label className="block">
+              <span className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#111827]">
+                {copy.resolution}
+                <Info className="size-4 text-[#64748B]" />
+              </span>
+              <select
+                value={resolution}
+                onChange={(event) =>
+                  setResolution(event.target.value as ResolutionOption)
+                }
+                className="h-11 w-full rounded-md border border-[#CBD5E1] bg-white px-3 text-sm font-medium text-[#111827]"
               >
-                {copy.cancel}
-              </button>
-            ) : null}
-          </div>
+                <option value="original">Original</option>
+                <option value="1080p">1080p (1920 x 1080)</option>
+                <option value="720p">720p (1280 x 720)</option>
+                <option value="480p">480p (854 x 480)</option>
+              </select>
+              <span className="mt-2 block text-sm text-[#64748B]">
+                Lower resolution reduces file size and may affect sharpness.
+              </span>
+            </label>
 
-          {busy ? (
-            <div className="mt-5 h-2 overflow-hidden rounded-full bg-[#E8EEF6]">
-              <div
-                className="h-full rounded-full bg-[#0F5AE8] transition-all"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          ) : null}
-
-          <div className="mt-6 grid rounded-lg border border-[#D7E0ED] text-center sm:grid-cols-3">
-            <div className="p-5">
-              <p className="text-sm text-[#475569]">{copy.original}</p>
-              <p className="mt-2 text-4xl font-semibold text-[#10182B]">
-                {formatBytes(sourceBytes)}
+            <div>
+              <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#111827]">
+                {copy.audio}
+                <Info className="size-4 text-[#64748B]" />
+              </div>
+              <div className="grid overflow-hidden rounded-md border border-[#CBD5E1] sm:grid-cols-3">
+                {[
+                  { value: 'keep', label: copy.keep },
+                  { value: 'reduce', label: copy.reduce },
+                  { value: 'remove', label: copy.remove },
+                ].map((item) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    onClick={() => setAudio(item.value as AudioOption)}
+                    className={[
+                      'min-h-10 px-4 text-sm font-medium transition',
+                      audio === item.value
+                        ? 'bg-[#0F5AE8] text-white'
+                        : 'bg-white text-[#475569] hover:bg-[#F8FAFC]',
+                    ].join(' ')}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-sm text-[#64748B]">
+                Keep original audio quality and track(s).
               </p>
             </div>
-            <div className="border-y border-[#D7E0ED] p-5 sm:border-x sm:border-y-0">
-              <p className="text-sm text-[#475569]">{copy.compressed}</p>
-              <p className="mt-2 text-4xl font-semibold text-[#08744B]">
-                {showResult
-                  ? formatBytes(outputBytes)
-                  : formatBytes(estimatedBytes)}
-              </p>
-            </div>
-            <div className="p-5">
-              <p className="text-sm text-[#475569]">{copy.saved}</p>
-              <p className="mt-2 text-4xl font-semibold text-[#08744B]">
-                {showResult
-                  ? `${savedPercent}%`
-                  : `${calculateSavedPercent(sourceBytes, estimatedBytes)}%`}
-              </p>
-            </div>
-          </div>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-md border border-[#BFD7FF] bg-[#EFF6FF] px-4 py-3 text-sm font-medium text-[#0F5AE8]">
+              {copy.estimatedOutput}: ~{formatBytes(displayedCompressedBytes)}.{' '}
+              {copy.actualMayVary}
+            </div>
+
             {result?.url ? (
               <a
                 href={result.url}
                 download={`compressed-${video?.name ?? 'video.mp4'}`}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-[#0F5AE8] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0B48BC]"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-[#0F5AE8] px-5 py-3 text-base font-semibold text-white transition hover:bg-[#0B48BC]"
               >
-                <Download className="size-4" />
+                <Download className="size-5" />
                 {copy.downloadMp4}
               </a>
             ) : (
@@ -818,248 +1134,64 @@ export function Mp4CompressorWorkbench({
                 onClick={() => {
                   void compress();
                 }}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-[#0F5AE8] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0B48BC] disabled:cursor-not-allowed disabled:bg-[#93A4BD]"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-[#0F5AE8] px-5 py-3 text-base font-semibold text-white transition hover:bg-[#0B48BC] disabled:cursor-not-allowed disabled:bg-[#93A4BD]"
               >
-                <Gauge className="size-4" />
-                {copy.startCompress}
+                {busy ? (
+                  <Loader2 className="size-5 animate-spin" />
+                ) : (
+                  <Gauge className="size-5" />
+                )}
+                {busy ? statusTitle : copy.startCompress}
               </button>
             )}
-            <button
-              type="button"
-              onClick={reset}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md border border-[#9DB1CC] px-5 py-3 text-sm font-semibold text-[#172033] transition hover:bg-[#F6F9FC]"
-            >
-              <RotateCcw className="size-4" />
-              {copy.compressAnother}
-            </button>
+
+            {busy ? (
+              <div>
+                <div className="h-2 overflow-hidden rounded-full bg-[#E8EEF6]">
+                  <div
+                    className="h-full rounded-full bg-[#0F5AE8] transition-all"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={cancel}
+                  className="mt-3 text-sm font-semibold text-[#334155] underline underline-offset-4"
+                >
+                  {copy.cancel}
+                </button>
+              </div>
+            ) : null}
+
+            <div className="flex items-center gap-2 text-sm text-[#64748B]">
+              {status === 'failed' ? (
+                <AlertTriangle className="size-4 text-[#C2410C]" />
+              ) : (
+                <Clock3 className="size-4" />
+              )}
+              <span>{riskyFile ? copy.riskHint : statusMessage}</span>
+            </div>
           </div>
+          <PreviewStrip
+            video={video}
+            result={result}
+            estimatedBytes={estimatedBytes}
+          />
         </div>
       </div>
 
-      <div className="mt-7 rounded-lg border border-[#D7E0ED] bg-white p-5 sm:p-7">
-        <div className="grid gap-7 lg:grid-cols-2">
-          {showRealVideo && video ? (
-            <UploadedVideoPreview
-              title={copy.original}
-              video={video}
-              sizeBytes={video.sizeBytes}
-            />
-          ) : (
-            <DemoVideoPreview title={copy.original} size="186 MB" />
-          )}
+      <ResultComparison
+        video={video}
+        result={result}
+        estimatedBytes={estimatedBytes}
+        savedPercent={savedPercent}
+        copy={copy}
+      />
 
-          {showRealVideo && video && result ? (
-            <UploadedVideoPreview
-              title={copy.compressed}
-              video={{ ...video, url: result.url }}
-              sizeBytes={result.sizeBytes}
-              badge={
-                savedPercent > 0 ? `${savedPercent}% smaller` : 'MP4 ready'
-              }
-            />
-          ) : (
-            <DemoVideoPreview
-              title={copy.compressed}
-              size={showRealVideo ? formatBytes(estimatedBytes) : '74 MB'}
-              badge={
-                showRealVideo
-                  ? `${calculateSavedPercent(sourceBytes, estimatedBytes)}% estimate`
-                  : '60% smaller'
-              }
-            />
-          )}
-        </div>
-
-        <div className="mt-6 rounded-lg border border-[#C7F0DE] bg-[#F2FBF7] p-4">
-          <div className="grid gap-4 md:grid-cols-[1fr_1fr_1fr_1fr_auto] md:items-center">
-            <div>
-              <p className="text-xs font-semibold text-[#64748B]">
-                {copy.mode}
-              </p>
-              <p className="mt-1 font-semibold text-[#172033]">
-                {copy[MODE_SETTINGS[mode].labelKey]}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-[#64748B]">
-                {copy.resolution}
-              </p>
-              <p className="mt-1 font-semibold text-[#172033]">
-                {resolution === 'original' ? 'Original' : resolution}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-[#64748B]">
-                {copy.audio}
-              </p>
-              <p className="mt-1 font-semibold text-[#172033]">
-                {audio === 'keep'
-                  ? copy.keep
-                  : audio === 'reduce'
-                    ? copy.reduce
-                    : copy.remove}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-[#64748B]">
-                {copy.targetSize}
-              </p>
-              <p className="mt-1 font-semibold text-[#172033]">
-                ~{formatBytes(estimatedBytes)}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowSettings((value) => !value)}
-              className="inline-flex items-center justify-center gap-2 rounded-md border border-[#B9DCCF] bg-white px-4 py-2.5 text-sm font-semibold text-[#172033] transition hover:bg-[#F7FFFB]"
-            >
-              <Settings2 className="size-4" />
-              {copy.editSettings}
-            </button>
-          </div>
-
-          {showSettings ? (
-            <div className="mt-5 grid gap-4 border-t border-[#C7F0DE] pt-5 lg:grid-cols-4">
-              <label className="block">
-                <span className="text-sm font-semibold text-[#172033]">
-                  {copy.mode}
-                </span>
-                <select
-                  value={mode}
-                  onChange={(event) =>
-                    setMode(event.target.value as CompressionMode)
-                  }
-                  className="mt-2 h-11 w-full rounded-md border border-[#C8D4E4] bg-white px-3 text-sm"
-                >
-                  <option value="best">{copy.bestQuality}</option>
-                  <option value="balanced">{copy.balanced}</option>
-                  <option value="smallest">{copy.smallestFile}</option>
-                </select>
-              </label>
-              <label className="block">
-                <span className="text-sm font-semibold text-[#172033]">
-                  {copy.resolution}
-                </span>
-                <select
-                  value={resolution}
-                  onChange={(event) =>
-                    setResolution(event.target.value as ResolutionOption)
-                  }
-                  className="mt-2 h-11 w-full rounded-md border border-[#C8D4E4] bg-white px-3 text-sm"
-                >
-                  <option value="original">Original</option>
-                  <option value="1080p">1080p</option>
-                  <option value="720p">720p</option>
-                  <option value="480p">480p</option>
-                </select>
-              </label>
-              <label className="block">
-                <span className="text-sm font-semibold text-[#172033]">
-                  {copy.audio}
-                </span>
-                <select
-                  value={audio}
-                  onChange={(event) =>
-                    setAudio(event.target.value as AudioOption)
-                  }
-                  className="mt-2 h-11 w-full rounded-md border border-[#C8D4E4] bg-white px-3 text-sm"
-                >
-                  <option value="keep">{copy.keep}</option>
-                  <option value="reduce">{copy.reduce}</option>
-                  <option value="remove">{copy.remove}</option>
-                </select>
-              </label>
-              <label className="block">
-                <span className="text-sm font-semibold text-[#172033]">
-                  {copy.targetSize}
-                </span>
-                <input
-                  type="number"
-                  min="0"
-                  value={targetSizeMb}
-                  onChange={(event) =>
-                    setTargetSizeMb(Math.max(0, Number(event.target.value)))
-                  }
-                  className="mt-2 h-11 w-full rounded-md border border-[#C8D4E4] bg-white px-3 text-sm"
-                />
-                <span className="mt-1 block text-xs text-[#64748B]">
-                  {copy.approximate}
-                </span>
-              </label>
-            </div>
-          ) : null}
-        </div>
-
-        <div className="mt-5 flex justify-center">
-          <p className="inline-flex items-center gap-2 rounded-md bg-[#E6FAF1] px-4 py-2 text-sm font-semibold text-[#08744B]">
-            <ShieldCheck className="size-4" />
-            {copy.privacyNote}
-          </p>
-        </div>
-
-        {riskyFile ? (
-          <div className="mt-5 rounded-md border border-[#FED7AA] bg-[#FFF7ED] p-3 text-sm text-[#9A3412]">
-            {copy.riskHint}
-          </div>
-        ) : null}
-
-        <div
-          className={[
-            'mt-7 grid gap-5 rounded-lg border border-dashed p-6 transition md:grid-cols-[1fr_auto_1fr] md:items-center',
-            isDragging
-              ? 'border-[#0F5AE8] bg-[#EFF6FF]'
-              : 'border-[#88B6F8] bg-[#F8FBFF]',
-          ].join(' ')}
-          onDragOver={(event) => {
-            event.preventDefault();
-            if (busy) return;
-            setIsDragging(true);
-          }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={(event) => {
-            event.preventDefault();
-            setIsDragging(false);
-            if (busy) return;
-            void chooseFile(event.dataTransfer.files?.[0]);
-          }}
-        >
-          <div className="text-center">
-            <UploadCloud className="mx-auto size-12 text-[#0F5AE8]" />
-            <p className="mt-3 text-lg font-semibold text-[#0F5AE8]">
-              {copy.chooseFile}{' '}
-              <span className="text-sm font-normal text-[#475569]">
-                {copy.dropHint}
-              </span>
-            </p>
-            <p className="mt-1 text-sm text-[#475569]">{copy.fileHint}</p>
-          </div>
-          <div className="hidden h-16 w-px bg-[#D7E0ED] md:block" />
-          <div className="text-center">
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => inputRef.current?.click()}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-[#0F5AE8] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#0B48BC] disabled:cursor-not-allowed disabled:bg-[#93A4BD]"
-            >
-              <FileVideo className="size-4" />
-              {copy.chooseFile}
-            </button>
-            <input
-              ref={inputRef}
-              type="file"
-              accept="video/mp4,.mp4"
-              className="sr-only"
-              onChange={(event) => {
-                void chooseFile(event.target.files?.[0]);
-                event.currentTarget.value = '';
-              }}
-            />
-          </div>
-        </div>
-
-        <p className="mt-3 text-center text-sm text-[#64748B]">
-          {copy.estimatedOutput}: ~{formatBytes(estimatedBytes)}.{' '}
-          {copy.actualMayVary}
+      <div className="mt-6 flex justify-center">
+        <p className="inline-flex items-center gap-2 rounded-md bg-[#E6FAF1] px-4 py-2 text-sm font-semibold text-[#08744B]">
+          <ShieldCheck className="size-4" />
+          {copy.privacyNote}
         </p>
       </div>
     </div>

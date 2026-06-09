@@ -26,19 +26,12 @@ export function buildMp4CompressorHeaderFooter(
     },
     nav: {
       items: [
-        { title: copy.compressor, url: '#compressor', icon: 'FileVideo' },
         { title: copy.howTo, url: '#how-to', icon: 'ListChecks' },
-        { title: copy.settings, url: '#settings', icon: 'SlidersHorizontal' },
         { title: copy.faq, url: '#faq', icon: 'CircleHelp' },
+        { title: 'Privacy', url: '/privacy-policy', icon: 'ShieldCheck' },
       ],
     },
-    buttons: [
-      {
-        title: copy.chooseMp4,
-        url: '#compressor',
-        icon: 'Upload',
-      },
-    ],
+    buttons: [],
     user_nav: {
       show_name: false,
       show_credits: false,
