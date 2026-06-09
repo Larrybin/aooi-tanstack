@@ -160,24 +160,25 @@ function readVideoMetadata(file: File): Promise<VideoInfo> {
   });
 }
 
-function buildScaleArgs({
+export function buildScaleArgs({
   resolution,
   video,
 }: {
   resolution: ResolutionOption;
-  video: VideoInfo;
+  video: Pick<VideoInfo, 'width' | 'height'>;
 }) {
   if (resolution === 'original') {
     return [];
   }
 
   const target = RESOLUTION_HEIGHTS[resolution];
-  const longestEdge = Math.max(video.width, video.height);
-  if (longestEdge <= target) {
+  const isLandscape = video.width >= video.height;
+  const scaledDimension = isLandscape ? video.height : video.width;
+  if (scaledDimension <= target) {
     return [];
   }
 
-  const scale = video.width >= video.height ? `-2:${target}` : `${target}:-2`;
+  const scale = isLandscape ? `-2:${target}` : `${target}:-2`;
   return ['-vf', `scale=${scale}`];
 }
 
@@ -368,6 +369,8 @@ export function Mp4CompressorWorkbench({
   const progressCallbackRef = useRef<((event: ProgressEvent) => void) | null>(
     null
   );
+  const videoUrlRef = useRef<string | null>(null);
+  const resultUrlRef = useRef<string | null>(null);
   const [status, setStatus] = useState<WorkbenchStatus>('demo');
   const [isDragging, setIsDragging] = useState(false);
   const [video, setVideo] = useState<VideoInfo | null>(null);
@@ -394,12 +397,20 @@ export function Mp4CompressorWorkbench({
   const busy = status === 'loading' || status === 'processing';
 
   useEffect(() => {
+    videoUrlRef.current = video?.url ?? null;
+  }, [video?.url]);
+
+  useEffect(() => {
+    resultUrlRef.current = result?.url ?? null;
+  }, [result?.url]);
+
+  useEffect(() => {
     return () => {
-      if (video?.url) URL.revokeObjectURL(video.url);
-      if (result?.url) URL.revokeObjectURL(result.url);
+      if (videoUrlRef.current) URL.revokeObjectURL(videoUrlRef.current);
+      if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current);
       ffmpegRef.current?.terminate();
     };
-  }, [result?.url, video?.url]);
+  }, []);
 
   const statusTitle = useMemo(() => {
     if (status === 'ready') return copy.statusReady;
