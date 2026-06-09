@@ -168,3 +168,19 @@ test('workbench ignores stale metadata reads before updating the selected file',
   assert.ok(staleCheck < setVideo);
   assert.equal(source.includes('URL.revokeObjectURL(nextVideo.url);'), true);
 });
+
+test('workbench clears stale selected video when replacement selection fails', async () => {
+  const source = await readWorkbenchSource();
+  const invalidTypeCheck = source.indexOf(
+    "nextFile.type !== 'video/mp4' && !nextFile.name.endsWith('.mp4')"
+  );
+  const invalidClear = source.indexOf('clearVideo();', invalidTypeCheck);
+  const metadataCatch = source.indexOf('} catch {', invalidTypeCheck);
+  const metadataClear = source.indexOf('clearVideo();', metadataCatch);
+
+  assert.equal(source.includes('function clearVideo()'), true);
+  assert.ok(invalidTypeCheck > 0);
+  assert.ok(invalidClear > invalidTypeCheck);
+  assert.ok(invalidClear < metadataCatch);
+  assert.ok(metadataClear > metadataCatch);
+});

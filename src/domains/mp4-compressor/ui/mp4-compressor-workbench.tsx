@@ -690,6 +690,13 @@ export function Mp4CompressorWorkbench({
     });
   }
 
+  function clearVideo() {
+    setVideo((current) => {
+      if (current?.url) URL.revokeObjectURL(current.url);
+      return null;
+    });
+  }
+
   async function chooseFile(nextFile: File | undefined) {
     if (busy) return;
 
@@ -700,6 +707,7 @@ export function Mp4CompressorWorkbench({
     if (!nextFile) return;
 
     if (nextFile.type !== 'video/mp4' && !nextFile.name.endsWith('.mp4')) {
+      clearVideo();
       setStatus('failed');
       setError(copy.invalidTypeError);
       return;
@@ -724,6 +732,7 @@ export function Mp4CompressorWorkbench({
         return;
       }
 
+      clearVideo();
       setStatus('failed');
       setError(copy.openError);
     }
