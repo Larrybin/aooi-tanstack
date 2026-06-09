@@ -1,0 +1,164 @@
+{
+  "metadata": {
+    "title": "Free MP4 Compressor Online",
+    "description": "Reduce MP4 file size in your browser. Choose the balance between smaller files and better visual quality, then download a compressed MP4.",
+    "keywords": [
+      "mp4 compressor",
+      "compress mp4",
+      "video compressor",
+      "reduce video size",
+      "video size reducer online",
+      "compress video online"
+    ]
+  },
+  "shell": {
+    "compressor": "Compressor",
+    "howTo": "How to",
+    "settings": "Settings",
+    "faq": "FAQ",
+    "chooseMp4": "Choose MP4",
+    "footerDescription": "Reduce MP4 file size in your browser. No upload required.",
+    "productGroup": "Product",
+    "tool": "MP4 Compressor",
+    "trustGroup": "Trust",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "copyrightSuffix": "All rights reserved."
+  },
+  "hero": {
+    "title": "Make MP4 files smaller",
+    "description": "Compress videos for sharing, storage, and faster uploads while choosing your quality tradeoff.",
+    "trustNotes": [
+      {
+        "title": "Local processing",
+        "description": "Nothing uploaded"
+      },
+      {
+        "title": "No watermark",
+        "description": "100% free"
+      },
+      {
+        "title": "MP4 output",
+        "description": "H.264 + AAC"
+      }
+    ]
+  },
+  "workbench": {
+    "statusComplete": "Compression complete",
+    "statusReady": "Ready to compress",
+    "statusLoading": "Loading compressor",
+    "statusProcessing": "Compressing",
+    "statusFailed": "Compression failed",
+    "demoSuccess": "Great! Your video is 60% smaller.",
+    "readyMessage": "Choose settings, then compress your MP4 in this browser.",
+    "loadingMessage": "Preparing the local video compressor.",
+    "processingMessage": "Keep this tab open while your MP4 is compressed.",
+    "original": "Original",
+    "compressed": "Compressed",
+    "saved": "Saved",
+    "downloadMp4": "Download MP4",
+    "compressAnother": "Compress another",
+    "chooseFile": "Choose MP4 File",
+    "dropHint": "or drag and drop",
+    "fileHint": "MP4 only",
+    "riskHint": "Large files may be slower on low-memory devices.",
+    "privacyNote": "Processed in your browser. Nothing was uploaded.",
+    "mode": "Mode",
+    "bestQuality": "Best Quality",
+    "balanced": "Balanced",
+    "smallestFile": "Smallest File",
+    "bestQualityHint": "Highest visual quality",
+    "balancedHint": "Good quality, smaller size",
+    "smallestFileHint": "More compression",
+    "resolution": "Resolution",
+    "audio": "Audio",
+    "targetSize": "Target size",
+    "approximate": "Approximate",
+    "editSettings": "Edit settings",
+    "estimatedOutput": "Estimated output",
+    "actualMayVary": "Actual size may vary.",
+    "startCompress": "Compress MP4",
+    "cancel": "Cancel",
+    "keep": "Keep",
+    "reduce": "Reduce",
+    "remove": "Remove",
+    "invalidTypeError": "This version supports MP4 files only.",
+    "openError": "This MP4 could not be opened in your browser.",
+    "compressError": "The video could not be compressed. Try a smaller file or a lower resolution."
+  },
+  "howTo": {
+    "title": "How to reduce MP4 file size online",
+    "steps": [
+      {
+        "title": "Upload MP4",
+        "description": "Choose your MP4 file from your device. Your video never leaves your browser."
+      },
+      {
+        "title": "Choose quality",
+        "description": "Pick your preferred balance between smaller file size and better visual quality."
+      },
+      {
+        "title": "Download smaller MP4",
+        "description": "Compress it on your device, then download the smaller MP4 instantly."
+      }
+    ]
+  },
+  "settings": {
+    "title": "Best settings for smaller MP4 files",
+    "description": "Choose a mode that matches your goal.",
+    "items": [
+      {
+        "title": "Best Quality",
+        "description": "Highest visual quality with minimal compression.",
+        "bullets": ["Larger file size", "Ideal for archiving and editing"]
+      },
+      {
+        "title": "Balanced",
+        "label": "Recommended",
+        "description": "Great balance between quality and smaller file size.",
+        "bullets": ["Good quality", "Best for most everyday use"]
+      },
+      {
+        "title": "Smallest File",
+        "description": "Smallest file size with more compression.",
+        "bullets": ["Lower visual quality", "Best for sharing and websites"]
+      }
+    ],
+    "note": "Target size is approximate. The final size depends on your video content and the settings you choose."
+  },
+  "faq": {
+    "title": "MP4 compressor FAQ",
+    "items": [
+      {
+        "question": "Are my videos uploaded?",
+        "answer": "No. The MVP compresses MP4 files locally in your browser. Your video is not uploaded to a backend server."
+      },
+      {
+        "question": "Can I compress videos without losing quality?",
+        "answer": "Any real video compression can change visual quality. This tool lets you choose the tradeoff between smaller file size and better visual quality."
+      },
+      {
+        "question": "Why is my final size different from the target?",
+        "answer": "Target size is approximate because the final size depends on motion, detail, duration, source bitrate, resolution, and audio settings."
+      },
+      {
+        "question": "Does it work on mobile?",
+        "answer": "The page works on mobile, but large videos may be slow or fail on low-memory devices because compression runs in the browser."
+      }
+    ]
+  },
+  "footerTrust": [
+    {
+      "title": "Private & secure",
+      "description": "100% local processing in your browser. Your files never leave your device."
+    },
+    {
+      "title": "Fast & free",
+      "description": "No sign-up. No limits. Compress as many as you want."
+    },
+    {
+      "title": "Works everywhere",
+      "description": "Modern browsers on Windows, Mac, Linux, Android, and iOS."
+    }
+  ]
+}

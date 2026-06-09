@@ -10,6 +10,9 @@ import { TextToSpeechGeneratorHome } from '@/domains/text-to-speech-generator/ui
 import { resolveTextToSpeechGeneratorHomeCopy } from '@/domains/text-to-speech-generator/ui/text-to-speech-home-copy';
 import { buildTextToSpeechGeneratorHeaderFooter } from '@/domains/text-to-speech-generator/ui/text-to-speech-shell';
 import { getServerPublicEnvConfigs } from '@/infra/runtime/env.server';
+import { Mp4CompressorHome } from '@/domains/mp4-compressor/ui/mp4-compressor-home';
+import { resolveMp4CompressorHomeCopy } from '@/domains/mp4-compressor/ui/mp4-compressor-home-copy';
+import { buildMp4CompressorHeaderFooter } from '@/domains/mp4-compressor/ui/mp4-compressor-shell';
 import {
   buildCanonicalUrl,
   buildLanguageAlternates,
@@ -99,6 +102,25 @@ const PRODUCT_LANDINGS = {
     ),
     metadata: (context) =>
       resolveTextToSpeechGeneratorHomeCopy(context.homeContent, context.locale)
+        .metadata,
+  },
+  'mp4-compressor': {
+    buildHeaderFooter: (brand, context) =>
+      buildMp4CompressorHeaderFooter(
+        brand,
+        resolveMp4CompressorHomeCopy(context.homeContent, context.locale).shell
+      ),
+    render: (context) => (
+      <Mp4CompressorHome
+        copy={resolveMp4CompressorHomeCopy(
+          context.homeContent,
+          context.locale
+        )}
+        locale={context.locale}
+      />
+    ),
+    metadata: (context) =>
+      resolveMp4CompressorHomeCopy(context.homeContent, context.locale)
         .metadata,
   },
 } as const satisfies Record<string, ProductLanding>;

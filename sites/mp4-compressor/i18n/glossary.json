@@ -1,0 +1,12 @@
+{
+  "preserve": ["MP4 Compressor", "MP4", "H.264", "AAC"],
+  "terms": {},
+  "forbidden": {
+    "allLocales": [
+      "without losing quality",
+      "lossless compression",
+      "unlimited file size",
+      "YouTube to MP4"
+    ]
+  }
+}

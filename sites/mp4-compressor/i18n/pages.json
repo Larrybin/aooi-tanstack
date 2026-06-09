@@ -1,0 +1,40 @@
+{
+  "pages": [
+    {
+      "pageId": "home",
+      "path": "/",
+      "type": "seo",
+      "indexable": true,
+      "required": true,
+      "source": {
+        "kind": "app-route",
+        "path": "src/app/[locale]/(landing)/page.tsx"
+      },
+      "hashScope": "seo"
+    },
+    {
+      "pageId": "legal.privacy-policy",
+      "path": "/privacy-policy",
+      "type": "legal",
+      "indexable": true,
+      "required": true,
+      "source": {
+        "kind": "site-content",
+        "path": "content/pages/privacy-policy.mdx"
+      },
+      "hashScope": "content"
+    },
+    {
+      "pageId": "legal.terms-of-service",
+      "path": "/terms-of-service",
+      "type": "legal",
+      "indexable": true,
+      "required": true,
+      "source": {
+        "kind": "site-content",
+        "path": "content/pages/terms-of-service.mdx"
+      },
+      "hashScope": "content"
+    }
+  ]
+}

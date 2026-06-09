@@ -1,0 +1,52 @@
+{
+  "metadata": {
+    "title": "MP4 Compressor Pricing",
+    "description": "MP4 Compressor is free in the MVP. Compress MP4 files locally in your browser with no sign-up and no checkout."
+  },
+  "pricing": {
+    "id": "pricing",
+    "sr_only_title": "MP4 Compressor Pricing",
+    "title": "MP4 Compressor Pricing",
+    "description": "The MVP is free: no account, no checkout, and no server-side video processing.",
+    "items": [
+      {
+        "title": "Free",
+        "description": "Compress MP4 files locally in your browser.",
+        "features_title": "Includes",
+        "features": [
+          "Browser-based MP4 compression",
+          "No video upload",
+          "No watermark",
+          "H.264 + AAC MP4 output"
+        ],
+        "interval": "month",
+        "amount": 0,
+        "currency": "USD",
+        "price": "$0",
+        "unit": "",
+        "button": {
+          "title": "Compress MP4",
+          "url": "/",
+          "icon": "RiFlashlightFill"
+        },
+        "product_id": "free",
+        "product_name": "MP4 Compressor Free",
+        "plan_name": "Free",
+        "checkout_enabled": false,
+        "entitlements": {
+          "local_browser_compression": true
+        }
+      }
+    ]
+  },
+  "faq": {
+    "id": "pricing-faq",
+    "title": "MP4 Compressor pricing questions",
+    "items": [
+      {
+        "question": "Is MP4 Compressor free?",
+        "answer": "Yes. The MVP is free and does not require sign-up or checkout."
+      }
+    ]
+  }
+}
