@@ -15,12 +15,15 @@ pnpm check
 SITE=dev-local pnpm build
 SITE=background-remover pnpm contract:check
 SITE=background-remover pnpm cf:check
+SITE=background-remover STORAGE_PUBLIC_BASE_URL=<url> AUTH_SECRET=<secret> BETTER_AUTH_SECRET=<secret> GOOGLE_CLIENT_ID=<id> GOOGLE_CLIENT_SECRET=<secret> RESEND_API_KEY=<secret> REMOVER_CLEANUP_SECRET=<secret> CREEM_API_KEY=<secret> CREEM_SIGNING_SECRET=<secret> pnpm cf:check
 SITE=background-remover pnpm cf:build:no-db --site=background-remover
 ```
 
 ## Result
 
-- Status: passed with one local environment blocker
+- Status: passed for local code gates. Cloudflare config verification is
+  environment-sensitive: the bare command fails without required runtime vars,
+  and the same config check passes when those vars are supplied.
 - Passed:
   - `SITE=dev-local pnpm tanstack:inventory`
   - `SITE=dev-local pnpm tanstack:validate`
@@ -32,12 +35,13 @@ SITE=background-remover pnpm cf:build:no-db --site=background-remover
   - `pnpm check`
   - `SITE=dev-local pnpm build`
   - `SITE=background-remover pnpm contract:check`
+  - `SITE=background-remover ...required runtime vars... pnpm cf:check`
   - `SITE=background-remover pnpm cf:build:no-db --site=background-remover`
-- Blocked by local environment/config:
+- Blocked:
   - `SITE=background-remover pnpm cf:check` failed because
     `router.vars.STORAGE_PUBLIC_BASE_URL` is required as the R2 public asset
-    base URL. The no-db Cloudflare build supplies that preview binding and
-    passed.
+    base URL. This is expected unless the deploy runtime vars/secrets are
+    supplied explicitly.
 
 ## SSR smoke
 

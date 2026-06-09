@@ -8,3 +8,4 @@ Generated inventories from `.`.
 - Files with generateMetadata: 15
 - Files with generateStaticParams: 5
 - Files with params: Promise: 55
+- Build/test/Cloudflare command scripts: 36

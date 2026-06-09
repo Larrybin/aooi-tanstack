@@ -13,8 +13,13 @@ SITE=background-remover pnpm contract:check
 TanStack-specific build scripts are additive only:
 
 ```bash
-pnpm tanstack:build
-pnpm tanstack:cf:build
+SITE=dev-local pnpm tanstack:build
+SITE=<site-key> pnpm tanstack:cf:build
 ```
 
-`cf:build` and `cf:build:no-db` must not be reduced to plain `vite build`. Gate 6 may replace the internal OpenNext build step with TanStack Start + Cloudflare Workers build, but it must preserve site-scoped checks, `site.config.json`, `deploy.settings.json`, i18n checks, multi-build checks, and Cloudflare config checks.
+`cf:build` and `cf:build:no-db` must not be reduced to plain `vite build`.
+`tanstack:cf:build` is a Vite/TanStack build probe and requires an explicit
+`SITE`; it is not a deploy acceptance gate. Gate 6 may replace the internal
+OpenNext build step with TanStack Start + Cloudflare Workers build, but it must
+preserve site-scoped checks, `site.config.json`, `deploy.settings.json`, i18n
+checks, multi-build checks, and Cloudflare config checks.

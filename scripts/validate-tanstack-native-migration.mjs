@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { dirname, join, relative } from 'node:path';
 
 const root = process.cwd();
 
@@ -28,6 +28,103 @@ function walk(dir, acc = []) {
 
 function contains(path, regex) {
   return regex.test(readFileSync(path, 'utf8'));
+}
+
+function normalizePath(path) {
+  return path.split('\\').join('/');
+}
+
+function stripSourceExtension(path) {
+  return path.replace(/\.(ts|tsx|js|jsx|mjs|cjs)$/, '');
+}
+
+function sourceFilesIn(dir) {
+  return walk(join(root, dir)).filter((file) =>
+    /\.(ts|tsx|js|jsx|mjs|cjs)$/.test(file)
+  );
+}
+
+function resolveSourceFile(basePath) {
+  const candidates = [
+    basePath,
+    `${basePath}.ts`,
+    `${basePath}.tsx`,
+    `${basePath}.js`,
+    `${basePath}.jsx`,
+    `${basePath}.mjs`,
+    `${basePath}.cjs`,
+    join(basePath, 'index.ts'),
+    join(basePath, 'index.tsx'),
+    join(basePath, 'index.js'),
+    join(basePath, 'index.jsx'),
+    join(basePath, 'index.mjs'),
+    join(basePath, 'index.cjs'),
+  ];
+
+  return (
+    candidates.find(
+      (candidate) => existsSync(candidate) && statSync(candidate).isFile()
+    ) ?? null
+  );
+}
+
+function resolveLocalImport(fromFile, rawSpecifier) {
+  const specifier = rawSpecifier.split('?')[0];
+  if (specifier.startsWith('@/')) {
+    return resolveSourceFile(join(root, 'src', specifier.slice(2)));
+  }
+
+  if (specifier.startsWith('.')) {
+    return resolveSourceFile(join(dirname(fromFile), specifier));
+  }
+
+  return null;
+}
+
+function extractRuntimeImportSpecifiers(source) {
+  const specifiers = [];
+  const fromImportRegex =
+    /^\s*(?:import|export)\s+(type\s+)?[\s\S]*?\s+from\s+['"]([^'"]+)['"]/gm;
+  const sideEffectImportRegex = /^\s*import\s+['"]([^'"]+)['"]/gm;
+  const dynamicImportRegex = /\bimport\(\s*['"]([^'"]+)['"]\s*\)/g;
+  let match;
+
+  while ((match = fromImportRegex.exec(source))) {
+    if (!match[1]) {
+      specifiers.push(match[2]);
+    }
+  }
+
+  while ((match = sideEffectImportRegex.exec(source))) {
+    specifiers.push(match[1]);
+  }
+
+  while ((match = dynamicImportRegex.exec(source))) {
+    specifiers.push(match[1]);
+  }
+
+  return specifiers;
+}
+
+function localRuntimeClosure(entryFiles) {
+  const visited = new Set();
+  const stack = [...entryFiles];
+
+  while (stack.length > 0) {
+    const current = stack.pop();
+    if (!current || visited.has(current)) continue;
+    visited.add(current);
+
+    const source = readFileSync(current, 'utf8');
+    for (const specifier of extractRuntimeImportSpecifiers(source)) {
+      const resolved = resolveLocalImport(current, specifier);
+      if (resolved && !visited.has(resolved)) {
+        stack.push(resolved);
+      }
+    }
+  }
+
+  return [...visited].sort();
 }
 
 const requiredFiles = [
@@ -81,6 +178,21 @@ if (/vite build/.test(scripts['cf:build'] || '')) {
 if (/vite build/.test(scripts['cf:build:no-db'] || '')) {
   fail('cf:build:no-db must not be simplified to vite build');
 }
+if (!/tanstack:validate/.test(scripts.check || '')) {
+  fail('check must include tanstack:validate');
+}
+if (!/tanstack:typecheck/.test(scripts.check || '')) {
+  fail('check must include tanstack:typecheck');
+}
+if (!/tanstack:build/.test(scripts.ci || '')) {
+  fail('ci must include tanstack:build');
+}
+if (/\$\{SITE:-/.test(scripts['tanstack:cf:build'] || '')) {
+  fail('tanstack:cf:build must not default SITE');
+}
+if (!/SITE is required/.test(scripts['tanstack:cf:build'] || '')) {
+  fail('tanstack:cf:build must require an explicit SITE');
+}
 
 const allDeps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
 if (allDeps['@cloudflare/vite-plugin'] === '^2.2.0') {
@@ -112,6 +224,55 @@ for (const file of strictFiles) {
   for (const [regex, label] of forbiddenPatterns) {
     if (contains(file, regex)) {
       fail(`${label} found in ${relative(root, file)}`);
+    }
+  }
+}
+
+const routeTreeFile = join(root, 'apps/web/src/routeTree.gen.ts');
+const routeTreeSource = readFileSync(routeTreeFile, 'utf8');
+const routeTreeImports = new Set(
+  [...routeTreeSource.matchAll(/from\s+['"](\.\/routes\/[^'"]+)['"]/g)].map(
+    (match) => match[1]
+  )
+);
+const expectedRouteImports = new Set(
+  walk(join(root, 'apps/web/src/routes'))
+    .filter((file) => /\.(ts|tsx)$/.test(file))
+    .map((file) => {
+      const rel = normalizePath(relative(join(root, 'apps/web/src'), file));
+      return `./${stripSourceExtension(rel)}`;
+    })
+);
+
+for (const expectedImport of expectedRouteImports) {
+  if (!routeTreeImports.has(expectedImport)) {
+    fail(`routeTree.gen.ts missing route import ${expectedImport}`);
+  }
+}
+
+for (const actualImport of routeTreeImports) {
+  if (!expectedRouteImports.has(actualImport)) {
+    fail(`routeTree.gen.ts has stale route import ${actualImport}`);
+  }
+}
+
+const tanstackClosureFiles = localRuntimeClosure(sourceFilesIn('apps/web/src'));
+const tanstackForbiddenRuntimePatterns = [
+  [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
+  [/^\s*import\s+['"]next(?:\/|['"])/m, 'next side-effect import'],
+  [/@\/shared\/lib\/next-cache|shared\/lib\/next-cache/, 'next-cache import'],
+  [
+    /@\/domains\/settings\/application\/settings-runtime\.query|domains\/settings\/application\/settings-runtime\.query/,
+    'settings-runtime.query import',
+  ],
+];
+
+for (const file of tanstackClosureFiles) {
+  for (const [regex, label] of tanstackForbiddenRuntimePatterns) {
+    if (contains(file, regex)) {
+      fail(
+        `${label} found in TanStack runtime closure: ${relative(root, file)}`
+      );
     }
   }
 }
