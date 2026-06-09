@@ -81,7 +81,13 @@
     "site:production:provision": "node scripts/site-production.mjs provision",
     "release:cf": "node --import tsx scripts/run-local-cloudflare-release.mjs",
     "cf:typegen": "node scripts/run-with-site.mjs node --import tsx scripts/run-cf-typegen.mjs",
-    "cf:typegen:check": "node scripts/run-with-site.mjs node --import tsx scripts/check-cf-typegen.mjs"
+    "cf:typegen:check": "node scripts/run-with-site.mjs node --import tsx scripts/check-cf-typegen.mjs",
+    "tanstack:dev": "node scripts/run-with-site.mjs pnpm exec vite dev --config vite.config.mts",
+    "tanstack:build": "node scripts/run-with-site.mjs pnpm exec vite build --config vite.config.mts",
+    "tanstack:typecheck": "node scripts/run-with-site.mjs pnpm exec tsc --noEmit --pretty false --incremental false --project tsconfig.tanstack.json",
+    "tanstack:inventory": "node scripts/tanstack-native-inventory.mjs",
+    "tanstack:validate": "node scripts/validate-tanstack-native-migration.mjs",
+    "tanstack:cf:build": "SITE=${SITE:-dev-local} node scripts/run-with-site.mjs pnpm exec vite build --config vite.config.mts"
   },
   "dependencies": {
     "@ai-sdk/react": "^2.0.89",
@@ -161,7 +167,11 @@
     "use-stick-to-bottom": "^1.1.6",
     "uuid": "^14.0.0",
     "vaul": "^1.1.2",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "@tanstack/react-start": "1.168.25",
+    "@tanstack/react-router": "1.170.15",
+    "@tanstack/react-query": "5.101.0",
+    "@tanstack/react-form": "1.33.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
@@ -189,7 +199,10 @@
     "tsx": "^4.22.4",
     "tw-animate-css": "^1.3.5",
     "typescript": "^5",
-    "wrangler": "4.99.0"
+    "wrangler": "4.99.0",
+    "vite": "8.0.16",
+    "@vitejs/plugin-react": "6.0.2",
+    "@cloudflare/vite-plugin": "1.40.1"
   },
   "pnpm": {
     "overrides": {

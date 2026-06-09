@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": ".tanstack/tsconfig.tsbuildinfo",
+    "plugins": [],
+    "types": ["node"],
+    "noEmit": true
+  },
+  "include": [
+    ".generated/**/*.ts",
+    "apps/web/src/**/*.ts",
+    "apps/web/src/**/*.tsx",
+    "src/shared/types/**/*.d.ts",
+    "src/shared/seo/**/*.ts",
+    "src/shared/i18n/**/*.ts",
+    "src/shared/brand/**/*.ts",
+    "src/domains/pricing/**/*.ts",
+    "src/infra/platform/auth/session-by-request.ts"
+  ],
+  "exclude": ["node_modules", ".next", ".open-next", "out", "dist"]
+}

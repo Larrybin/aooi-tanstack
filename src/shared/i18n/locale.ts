@@ -1,0 +1,24 @@
+import { defaultLocale, locales, type Locale } from '@/config/locale';
+
+export function normalizeLocale(
+  value: string | undefined | null
+): Locale | null {
+  if (!value) return null;
+  return locales.includes(value as Locale) ? (value as Locale) : null;
+}
+
+export function requireSupportedLocale(
+  value: string | undefined | null
+): Locale {
+  const locale = normalizeLocale(value);
+  if (!locale) {
+    throw new Response('Not found', { status: 404 });
+  }
+  return locale;
+}
+
+export function localePath(path: string, locale: string): string {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  if (locale === defaultLocale) return normalizedPath;
+  return `/${locale}${normalizedPath}`;
+}
