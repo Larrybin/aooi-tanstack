@@ -16,7 +16,7 @@ function getAuthSecret(): string | null {
 }
 
 function isAuthEnabled(): boolean {
-  return site.capabilities.auth !== false;
+  return Boolean(site.capabilities.auth);
 }
 
 function formatConfigError(parts: string[]): Error {

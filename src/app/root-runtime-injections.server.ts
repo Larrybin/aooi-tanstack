@@ -19,13 +19,23 @@ import {
   type RootRuntimeInjectionDeps,
 } from './root-runtime-injections';
 
+type RuntimeSettingCapabilities = {
+  auth: boolean;
+  payment: string;
+  ai: boolean;
+  docs: boolean;
+  blog: boolean;
+};
+
 function shouldReadRuntimeSettings(): boolean {
+  const capabilities: RuntimeSettingCapabilities = site.capabilities;
+
   return (
-    site.capabilities.auth !== false ||
-    site.capabilities.payment !== 'none' ||
-    site.capabilities.ai !== false ||
-    site.capabilities.docs !== false ||
-    site.capabilities.blog !== false
+    capabilities.auth ||
+    capabilities.payment !== 'none' ||
+    capabilities.ai ||
+    capabilities.docs ||
+    capabilities.blog
   );
 }
 

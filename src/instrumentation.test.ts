@@ -13,7 +13,8 @@ test('instrumentation 只保留已启用 auth 站点的 secret 校验，不再�
   );
 
   assert.equal(content.includes("import { site } from '@/site';"), true);
-  assert.equal(content.includes('site.capabilities.auth !== false'), true);
+  assert.equal(content.includes('Boolean(site.capabilities.auth)'), true);
+  assert.equal(content.includes('site.capabilities.auth !== false'), false);
   assert.equal(content.includes('BETTER_AUTH_SECRET'), true);
   assert.equal(content.includes('DATABASE_URL'), false);
   assert.equal(content.includes('assertRoleDeletedAtColumnExists'), false);
