@@ -31,6 +31,7 @@ export type RootRuntimeInjections = {
 export type RootRuntimeInjectionDeps = {
   isProductionEnv: () => boolean;
   isDebugEnv: () => boolean;
+  shouldReadRuntimeSettings?: () => boolean;
   readAdsRuntimeSettingsCached: () => Promise<AdsRuntimeSettings>;
   readAnalyticsRuntimeSettingsCached: () => Promise<AnalyticsRuntimeSettings>;
   readAffiliateRuntimeSettingsCached: () => Promise<AffiliateRuntimeSettings>;
@@ -62,10 +63,19 @@ const emptyRootRuntimeInjections: RootRuntimeInjections = {
   customerServiceBodyScripts: null,
 };
 
+function shouldReadRuntimeSettings(deps: RootRuntimeInjectionDeps): boolean {
+  return deps.shouldReadRuntimeSettings
+    ? deps.shouldReadRuntimeSettings()
+    : true;
+}
+
 export async function resolveRootRuntimeInjections(
   deps: RootRuntimeInjectionDeps
 ): Promise<RootRuntimeInjections> {
-  if (!deps.isProductionEnv() && !deps.isDebugEnv()) {
+  if (
+    (!deps.isProductionEnv() && !deps.isDebugEnv()) ||
+    !shouldReadRuntimeSettings(deps)
+  ) {
     return { ...emptyRootRuntimeInjections };
   }
 

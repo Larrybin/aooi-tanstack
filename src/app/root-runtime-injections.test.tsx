@@ -213,3 +213,40 @@ test('root runtime injections: non production/debug env does not read runtime se
   assert.equal(injections.affiliateBodyScripts, null);
   assert.equal(injections.customerServiceMetaTags, null);
 });
+
+test('root runtime injections: disabled runtime settings gate skips DB-backed readers in production', async () => {
+  const injections = await resolveRootRuntimeInjections({
+    isProductionEnv: () => true,
+    isDebugEnv: () => false,
+    shouldReadRuntimeSettings: () => false,
+    readAdsRuntimeSettingsCached: async () => {
+      throw new Error('ads settings should not be read');
+    },
+    readAnalyticsRuntimeSettingsCached: async () => {
+      throw new Error('analytics settings should not be read');
+    },
+    readAffiliateRuntimeSettingsCached: async () => {
+      throw new Error('affiliate settings should not be read');
+    },
+    readCustomerServiceRuntimeSettingsCached: async () => {
+      throw new Error('customer service settings should not be read');
+    },
+    createAdsRuntime: () => {
+      throw new Error('ads factory should not run');
+    },
+    createAnalyticsManager: () => {
+      throw new Error('analytics factory should not run');
+    },
+    createAffiliateManager: () => {
+      throw new Error('affiliate factory should not run');
+    },
+    createCustomerServiceManager: () => {
+      throw new Error('customer service factory should not run');
+    },
+  });
+
+  assert.equal(injections.adsMetaTags, null);
+  assert.equal(injections.analyticsHeadScripts, null);
+  assert.equal(injections.affiliateBodyScripts, null);
+  assert.equal(injections.customerServiceMetaTags, null);
+});

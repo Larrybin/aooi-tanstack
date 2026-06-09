@@ -1,4 +1,5 @@
 import { getServerRuntimeEnv } from '@/infra/runtime/env.server';
+import { site } from '@/site';
 
 import { getTrimmedEnvValue } from '@/config/env-contract';
 import { isProductionEnv } from '@/shared/lib/env';
@@ -14,6 +15,10 @@ function getAuthSecret(): string | null {
   return isNonEmptyString(secret) ? secret.trim() : null;
 }
 
+function isAuthEnabled(): boolean {
+  return site.capabilities.auth !== false;
+}
+
 function formatConfigError(parts: string[]): Error {
   return new Error(parts.filter(Boolean).join(' '));
 }
@@ -25,6 +30,10 @@ export async function register() {
   }
 
   if (!isProductionEnv()) {
+    return;
+  }
+
+  if (!isAuthEnabled()) {
     return;
   }
 
