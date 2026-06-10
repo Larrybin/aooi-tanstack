@@ -1,9 +1,10 @@
+import { sitePricing } from '@/site';
+
 import type {
   Pricing,
   PricingCurrency,
   PricingItem,
 } from '@/shared/types/blocks/pricing';
-import { sitePricing } from '@/site';
 
 import { PaymentInterval, PaymentType } from './payment';
 

@@ -2,8 +2,9 @@ import {
   ALL_SETTINGS,
   type KnownSettingKey,
 } from '@/domains/settings/registry';
-import { resolveSitePaymentCapability } from '@/config/payment-capability';
 import type { SettingTabName } from '@/domains/settings/tab-names';
+
+import { resolveSitePaymentCapability } from '@/config/payment-capability';
 
 import type {
   ModuleGuideSlug,

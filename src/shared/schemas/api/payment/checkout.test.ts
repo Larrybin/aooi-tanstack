@@ -10,7 +10,10 @@ test('PaymentCheckoutBodySchema 不再接受 payment_provider', () => {
   });
 
   assert.equal(result.success, false);
-  assert.match(JSON.stringify(result.error?.issues ?? []), /unrecognized_keys/i);
+  assert.match(
+    JSON.stringify(result.error?.issues ?? []),
+    /unrecognized_keys/i
+  );
 });
 
 test('PaymentCheckoutBodySchema 不再接受客户端 metadata', () => {
@@ -22,7 +25,10 @@ test('PaymentCheckoutBodySchema 不再接受客户端 metadata', () => {
   });
 
   assert.equal(result.success, false);
-  assert.match(JSON.stringify(result.error?.issues ?? []), /unrecognized_keys/i);
+  assert.match(
+    JSON.stringify(result.error?.issues ?? []),
+    /unrecognized_keys/i
+  );
 });
 
 test('PaymentCheckoutBodySchema 接受最小 checkout body', () => {

@@ -30,8 +30,12 @@ export type PaymentNotifyRouteDeps = PaymentNotifyDeps & {
   markPaymentWebhookInboxProcessed: PaymentNotifyFlowDeps['markPaymentWebhookInboxProcessed'];
   serializePaymentWebhookHeaders: PaymentNotifyFlowDeps['serializePaymentWebhookHeaders'];
   resolveConfigConsistencyMode: (req: Request) => 'cached' | 'fresh';
-  readBillingRuntimeSettingsCached: () => Promise<ActiveBillingRuntimeSettings | BillingRuntimeSettingsForNone>;
-  readBillingRuntimeSettingsFresh: () => Promise<ActiveBillingRuntimeSettings | BillingRuntimeSettingsForNone>;
+  readBillingRuntimeSettingsCached: () => Promise<
+    ActiveBillingRuntimeSettings | BillingRuntimeSettingsForNone
+  >;
+  readBillingRuntimeSettingsFresh: () => Promise<
+    ActiveBillingRuntimeSettings | BillingRuntimeSettingsForNone
+  >;
   readPaymentRuntimeBindings: () => ActivePaymentRuntimeBindings;
   createPaymentService: (input: {
     settings: ActiveBillingRuntimeSettings;
@@ -44,9 +48,7 @@ type BillingRuntimeSettingsForNone = {
   provider: 'none';
 };
 
-export function buildPaymentNotifyPostLogic(
-  deps: PaymentNotifyRouteDeps
-) {
+export function buildPaymentNotifyPostLogic(deps: PaymentNotifyRouteDeps) {
   return async (req: Request) => {
     const provider = deps.requirePaymentCapability();
     const api = deps.createApiContext(req);
@@ -57,7 +59,9 @@ export function buildPaymentNotifyPostLogic(
         ? await deps.readBillingRuntimeSettingsFresh()
         : await deps.readBillingRuntimeSettingsCached();
     if (settings.provider === 'none') {
-      throw new Error('payment notify settings cannot be resolved for payment=none');
+      throw new Error(
+        'payment notify settings cannot be resolved for payment=none'
+      );
     }
 
     const bindings = deps.readPaymentRuntimeBindings();

@@ -31,10 +31,12 @@ export function RemoverDownloadButton({
       });
 
       if (!response.ok) {
-        const data = (await response.json().catch(() => null)) as
-          | { message?: string }
-          | null;
-        throw new Error(data?.message || `Download failed with ${response.status}`);
+        const data = (await response.json().catch(() => null)) as {
+          message?: string;
+        } | null;
+        throw new Error(
+          data?.message || `Download failed with ${response.status}`
+        );
       }
 
       const blob = await response.blob();

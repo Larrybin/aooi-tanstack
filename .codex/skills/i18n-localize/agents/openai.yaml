@@ -1,7 +1,7 @@
 interface:
-  display_name: "Aooi I18n Localize"
-  short_description: "Generate pending aooi localized content"
-  default_prompt: "Use $i18n-localize to generate pending localized content for an aooi site."
+  display_name: 'Aooi I18n Localize'
+  short_description: 'Generate pending aooi localized content'
+  default_prompt: 'Use $i18n-localize to generate pending localized content for an aooi site.'
 
 policy:
   allow_implicit_invocation: true

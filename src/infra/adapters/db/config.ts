@@ -3,7 +3,6 @@ import { loadEnvConfig } from '@next/env';
 import { defineConfig } from 'drizzle-kit';
 
 import { getTrimmedEnvValue, isProductionEnv } from '@/config/env-contract';
-
 import siteEnvModule from '@/config/site-env.cjs';
 
 const { applySiteLocalEnvOverlay } = siteEnvModule;

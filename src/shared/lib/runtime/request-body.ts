@@ -8,7 +8,10 @@ function contentLength(req: Request): number | null {
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
 }
 
-function assertContentLengthWithinLimit(req: Request, limitBytes: number): void {
+function assertContentLengthWithinLimit(
+  req: Request,
+  limitBytes: number
+): void {
   const length = contentLength(req);
   if (length !== null && length > limitBytes) {
     throw new PayloadTooLargeError('payload too large');

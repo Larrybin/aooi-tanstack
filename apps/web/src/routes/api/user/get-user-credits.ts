@@ -1,5 +1,5 @@
-import { createUserCreditsPostAction } from '@/app/api/user/get-user-credits/action';
 import { getRemainingCreditsSummary } from '@/domains/account/infra/credit';
+import { createUserCreditsPostAction } from '@/server/api/user/get-user-credits-action';
 import { createFileRoute } from '@tanstack/react-router';
 
 import { withApi } from '@/shared/lib/api/route';

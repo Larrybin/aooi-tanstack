@@ -169,6 +169,8 @@ const eslintConfig = [
       '**/.source/**',
       '**/.codex/**',
       '**/.gstack/**',
+      '**/dist/**',
+      'apps/web/src/routeTree.gen.ts',
       '**/output/**',
       'src/shared/types/cloudflare.d.ts',
       'temp/**',

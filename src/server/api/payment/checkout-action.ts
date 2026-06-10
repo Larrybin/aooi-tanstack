@@ -20,7 +20,11 @@ type CheckoutApiContext = {
     currency?: string;
     locale?: string;
   }>;
-  requireUser(): Promise<{ id: string; email?: string | null; name?: string | null }>;
+  requireUser(): Promise<{
+    id: string;
+    email?: string | null;
+    name?: string | null;
+  }>;
 };
 
 type CheckoutPostActionDeps<TSettings, TBindings> = {

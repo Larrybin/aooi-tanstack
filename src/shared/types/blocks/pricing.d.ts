@@ -1,4 +1,5 @@
 import type { Button } from '@/types/blocks/base/button';
+
 import type {
   FAQ as FAQType,
   Testimonials as TestimonialsType,

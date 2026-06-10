@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { createUserCreditsPostAction } from '@/server/api/user/get-user-credits-action';
 
 import { withApi } from '@/shared/lib/api/route';
-
-import { createUserCreditsPostAction } from './action';
 
 test('user credits action reads authenticated user credits with no-store response', async () => {
   let requiredUser = false;

@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-
 import type { RemoverActor } from '@/domains/remover/domain/types';
 import type { RemoverJob } from '@/domains/remover/infra/job';
 

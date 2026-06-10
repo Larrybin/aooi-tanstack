@@ -2,7 +2,6 @@
 // cache: no-store (request-bound auth/RBAC)
 // reason: billing data is sensitive; avoid caching across users/roles
 import { notFound } from 'next/navigation';
-import { resolveSitePaymentCapability } from '@/config/payment-capability';
 import {
   ADMIN_PAYMENT_FILTER_STATUSES,
   listAdminPaymentsQuery,
@@ -15,6 +14,7 @@ import {
   type AdminPaymentsListQuery,
 } from '@/surfaces/admin/schemas/list';
 
+import { resolveSitePaymentCapability } from '@/config/payment-capability';
 import { PERMISSIONS } from '@/shared/constants/rbac-permissions';
 
 export default createAdminTablePage<AdminPaymentRow, AdminPaymentsListQuery>({

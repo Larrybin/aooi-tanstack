@@ -29,6 +29,7 @@ build
 # Generated files
 *.d.ts
 !src/**/*.d.ts
+apps/web/src/routeTree.gen.ts
 
 # Public assets
 public

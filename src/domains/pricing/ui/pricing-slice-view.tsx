@@ -136,6 +136,50 @@ export function PricingSliceView({ data }: { data: PricingRouteData }) {
           />
         ))}
       </section>
+      {data.faq ? (
+        <section id={data.faq.id} className="pricing-faq">
+          <div className="pricing-section-heading">
+            <h2>{data.faq.title}</h2>
+            {data.faq.description ? <p>{data.faq.description}</p> : null}
+          </div>
+          {data.faq.items?.length ? (
+            <div className="pricing-faq-list">
+              {data.faq.items.map((item) => (
+                <article key={item.question} className="pricing-faq-item">
+                  <h3>{item.question}</h3>
+                  {item.answer ? <p>{item.answer}</p> : null}
+                </article>
+              ))}
+            </div>
+          ) : null}
+          {data.faq.tip ? <p className="pricing-tip">{data.faq.tip}</p> : null}
+        </section>
+      ) : null}
+      {data.testimonials ? (
+        <section id={data.testimonials.id} className="pricing-testimonials">
+          <div className="pricing-section-heading">
+            <h2>{data.testimonials.title}</h2>
+            {data.testimonials.description ? (
+              <p>{data.testimonials.description}</p>
+            ) : null}
+          </div>
+          {data.testimonials.items?.length ? (
+            <div className="pricing-testimonial-list">
+              {data.testimonials.items.map((item) => (
+                <article key={item.name} className="pricing-testimonial">
+                  {item.quote ? <p>{item.quote}</p> : null}
+                  <div>
+                    <div>
+                      {item.name ? <strong>{item.name}</strong> : null}
+                      {item.role ? <span>{item.role}</span> : null}
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
     </main>
   );
 }

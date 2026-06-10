@@ -1,9 +1,9 @@
 import type { ApiContext } from '@/app/api/_lib/context';
+import { serializeRemoverJobForClient } from '@/domains/remover/application/job-response';
 import type {
   claimRemoverJobForActor,
   getRemoverJobForActor,
 } from '@/domains/remover/application/jobs';
-import { serializeRemoverJobForClient } from '@/domains/remover/application/job-response';
 import type {
   refreshRemoverJobStatus,
   submitRemoverJobToProvider,
@@ -35,13 +35,13 @@ type JobStatusActionDeps = {
 };
 
 export function createRemoverJobGetAction(deps: JobStatusActionDeps) {
-  return async (
-    req: Request,
-    context: { params: Promise<{ id: string }> }
-  ) => {
+  return async (req: Request, context: { params: Promise<{ id: string }> }) => {
     const api = deps.createApiContext(req);
     const actor = await deps.resolveActor(req);
-    const params = await api.parseParams(context.params, RemoverJobParamsSchema);
+    const params = await api.parseParams(
+      context.params,
+      RemoverJobParamsSchema
+    );
     const accessibleJob = await deps.getRemoverJobForActor({
       actor,
       jobId: params.id,

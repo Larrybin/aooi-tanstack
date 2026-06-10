@@ -7,12 +7,12 @@ import type {
   SitePricing,
 } from '@/shared/types/blocks/pricing';
 
-type LocalizedPricingMessages = {
+export type LocalizedPricingMessages = {
   metadata?: SitePricing['metadata'];
   pricing: PricingType;
 };
 
-type LocalizedLandingMessages = {
+export type LocalizedLandingMessages = {
   faq?: FAQType;
   testimonials?: TestimonialsType;
 };

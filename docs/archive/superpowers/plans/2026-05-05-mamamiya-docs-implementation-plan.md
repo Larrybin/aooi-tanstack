@@ -94,6 +94,7 @@
 ## Task 1: Scaffold the grouped docs tree
 
 **Files:**
+
 - Create: `sites/mamamiya/content/docs/customize/`
 - Create: `sites/mamamiya/content/docs/deploy/`
 - Create: `sites/mamamiya/content/docs/core/`
@@ -225,6 +226,7 @@ git commit -m "docs(mamamiya): scaffold grouped docs tree"
 ## Task 2: Migrate Quick Start and create Customize section
 
 **Files:**
+
 - Modify: `sites/mamamiya/content/docs/quick-start.mdx`
 - Modify: `sites/mamamiya/content/docs/quick-start.zh.mdx`
 - Create: `sites/mamamiya/content/docs/customize/index.mdx`
@@ -418,6 +420,7 @@ git commit -m "docs(mamamiya): split quick start and customize docs"
 ## Task 3: Add Deploy section pages
 
 **Files:**
+
 - Create: `sites/mamamiya/content/docs/deploy/index.mdx`
 - Create: `sites/mamamiya/content/docs/deploy/index.zh.mdx`
 - Create: `sites/mamamiya/content/docs/deploy/local-development.mdx`
@@ -463,7 +466,7 @@ description: 为 Mamamiya 准备本地开发、环境变量配置和 Cloudflare 
 
 English:
 
-```mdx
+````mdx
 ---
 title: Local Development
 description: Run the Mamamiya site locally with the correct site key and local environment file.
@@ -474,13 +477,15 @@ description: Run the Mamamiya site locally with the correct site key and local e
 ```bash
 SITE=mamamiya pnpm dev
 ```
+````
 
 ## Local Defaults
 
 - local default test site is `dev-local`
 - explicit `SITE=mamamiya` is required when validating Mamamiya content
 - use `.env.development` for local runtime values
-```
+
+````
 
 Chinese:
 
@@ -494,8 +499,9 @@ description: 使用正确的站点 key 和本地环境文件启动 Mamamiya。
 
 ```bash
 SITE=mamamiya pnpm dev
-```
-```
+````
+
+````
 
 - [ ] **Step 3: Create `deploy/environment-variables*` from the quick-start env section**
 
@@ -518,7 +524,7 @@ description: Configure the minimum required environment variables for Mamamiya l
 - `NEXT_PUBLIC_APP_URL` must match the Mamamiya site origin
 - `DATABASE_PROVIDER=postgresql`
 - `DB_SINGLETON_ENABLED=true`
-```
+````
 
 Chinese:
 
@@ -533,7 +539,7 @@ description: 配置 Mamamiya 在本地和生产环境运行所需的最小环境
 
 English:
 
-```mdx
+````mdx
 ---
 title: Cloudflare Deployment
 description: Deploy Mamamiya with the repository's tracked Cloudflare Workers workflow.
@@ -547,6 +553,7 @@ SITE=mamamiya pnpm cf:build
 SITE=mamamiya pnpm test:cf-local-smoke
 SITE=mamamiya pnpm cf:deploy
 ```
+````
 
 ## Required Services
 
@@ -556,7 +563,8 @@ SITE=mamamiya pnpm cf:deploy
 - `APP_STORAGE_R2_BUCKET`
 - `IMAGES`
 - `STORAGE_PUBLIC_BASE_URL`
-```
+
+````
 
 Create the Chinese page with matching command blocks and translated headings.
 
@@ -571,11 +579,12 @@ Expected: stdout contains `[content] generated mamamiya:build-`
 ```bash
 git add sites/mamamiya/content/docs/deploy
 git commit -m "docs(mamamiya): add deploy section"
-```
+````
 
 ## Task 4: Add Core section pages
 
 **Files:**
+
 - Create: `sites/mamamiya/content/docs/core/index.mdx`
 - Create: `sites/mamamiya/content/docs/core/index.zh.mdx`
 - Create: `sites/mamamiya/content/docs/core/auth.mdx`
@@ -641,7 +650,7 @@ Chinese page should mirror the same file references and config items.
 
 English:
 
-```mdx
+````mdx
 ---
 title: Database
 description: Configure PostgreSQL, run migrations, and validate schema health for Mamamiya.
@@ -654,13 +663,15 @@ pnpm db:migrate
 pnpm db:check
 pnpm db:studio
 ```
+````
 
 ## Requirements
 
 - PostgreSQL only
 - valid `DATABASE_URL`
 - Cloudflare production uses Hyperdrive
-```
+
+````
 
 Chinese page should mirror the same command set and requirements.
 
@@ -679,8 +690,9 @@ description: Access the admin area, seed RBAC, and grant super admin access.
 ```bash
 pnpm rbac:init
 pnpm rbac:assign -- --email="admin@your-domain.com" --role="super_admin"
-```
-```
+````
+
+````
 
 Settings page:
 
@@ -696,7 +708,7 @@ description: Configure integrations through admin settings after the app is runn
 - `/admin/settings/payment`
 - `/admin/settings/email`
 - `/admin/settings/general`
-```
+````
 
 Create translated Chinese versions with the same command blocks and tab paths.
 
@@ -716,6 +728,7 @@ git commit -m "docs(mamamiya): add core section"
 ## Task 5: Add Extensions section pages and migrate existing extension docs
 
 **Files:**
+
 - Create: `sites/mamamiya/content/docs/extensions/index.mdx`
 - Create: `sites/mamamiya/content/docs/extensions/index.zh.mdx`
 - Create: `sites/mamamiya/content/docs/extensions/billing.mdx`
@@ -859,7 +872,8 @@ This page is maintained in Chinese and linked here for navigation completeness.
 
 - [Chinese version](./code-review-checklist)
 ```
-```
+
+````
 
 Chinese:
 
@@ -875,7 +889,7 @@ title: Code Review Checklist（定制版）
 description: 面向 Next.js 16 + Tailwind + TypeScript 的实战 PR 审查清单。
 icon: ListChecks
 ---
-```
+````
 
 - [ ] **Step 5: Delete the old flat extension pages and regenerate content**
 
@@ -902,6 +916,7 @@ git commit -m "docs(mamamiya): add extensions section"
 ## Task 6: Add content-source tests for the new Mamamiya docs tree
 
 **Files:**
+
 - Create: `src/domains/content/application/docs-content.query.test.ts`
 - Modify: `tests/content-source-module.test.ts`
 
@@ -910,7 +925,6 @@ git commit -m "docs(mamamiya): add extensions section"
 ```ts
 import assert from 'node:assert/strict';
 import test from 'node:test';
-
 import {
   readDocsPage,
   readDocsPageTree,
@@ -920,7 +934,9 @@ test('mamamiya docs: grouped english pages resolve', () => {
   process.env.SITE = 'mamamiya';
 
   assert.ok(readDocsPage({ locale: 'en', slug: ['customize', 'app-info'] }));
-  assert.ok(readDocsPage({ locale: 'en', slug: ['deploy', 'local-development'] }));
+  assert.ok(
+    readDocsPage({ locale: 'en', slug: ['deploy', 'local-development'] })
+  );
   assert.ok(readDocsPage({ locale: 'en', slug: ['core', 'auth'] }));
   assert.ok(readDocsPage({ locale: 'en', slug: ['extensions', 'logging'] }));
 });
@@ -929,7 +945,9 @@ test('mamamiya docs: grouped chinese pages resolve', () => {
   process.env.SITE = 'mamamiya';
 
   assert.ok(readDocsPage({ locale: 'zh', slug: ['customize', 'app-info'] }));
-  assert.ok(readDocsPage({ locale: 'zh', slug: ['deploy', 'local-development'] }));
+  assert.ok(
+    readDocsPage({ locale: 'zh', slug: ['deploy', 'local-development'] })
+  );
   assert.ok(readDocsPage({ locale: 'zh', slug: ['core', 'auth'] }));
   assert.ok(readDocsPage({ locale: 'zh', slug: ['extensions', 'logging'] }));
 });
@@ -991,6 +1009,7 @@ git commit -m "test(mamamiya): cover grouped docs tree"
 ## Task 7: Verify rendered docs behavior for Mamamiya
 
 **Files:**
+
 - Modify if needed after QA: `sites/mamamiya/content/docs/**`
 
 - [ ] **Step 1: Start the dev server for the Mamamiya site**

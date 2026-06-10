@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import type { Pricing } from '@/shared/types/blocks/pricing';
+
 import {
   findPricingItemByProductId,
   isPricingItemCheckoutEnabled,
   resolvePricingEntitlements,
 } from './pricing';
-
-import type { Pricing } from '@/shared/types/blocks/pricing';
 
 const pricing = {
   items: [
