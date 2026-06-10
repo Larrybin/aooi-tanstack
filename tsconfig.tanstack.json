@@ -14,7 +14,13 @@
     "src/shared/seo/**/*.ts",
     "src/shared/i18n/**/*.ts",
     "src/shared/brand/**/*.ts",
+    "src/surfaces/landing/**/*.ts",
+    "src/surfaces/landing/**/*.tsx",
+    "src/surfaces/system/**/*.ts",
+    "src/surfaces/system/**/*.tsx",
     "src/domains/pricing/**/*.ts",
+    "src/domains/pricing/**/*.tsx",
+    "src/server/pricing/**/*.ts",
     "src/infra/platform/auth/session-by-request.ts"
   ],
   "exclude": ["node_modules", ".next", ".open-next", "out", "dist"]

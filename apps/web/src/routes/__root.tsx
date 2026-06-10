@@ -1,3 +1,4 @@
+import { NotFoundSurfaceView } from '@/surfaces/system/not-found/not-found.view';
 import {
   createRootRoute,
   HeadContent,
@@ -17,6 +18,7 @@ export const Route = createRootRoute({
     ],
     links: [{ rel: 'stylesheet', href: appCss }],
   }),
+  notFoundComponent: NotFoundSurfaceView,
   component: RootDocument,
 });
 

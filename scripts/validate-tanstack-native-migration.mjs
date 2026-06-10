@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 
@@ -36,6 +37,10 @@ function normalizePath(path) {
 
 function stripSourceExtension(path) {
   return path.replace(/\.(ts|tsx|js|jsx|mjs|cjs)$/, '');
+}
+
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function sourceFilesIn(dir) {
@@ -127,6 +132,15 @@ function localRuntimeClosure(entryFiles) {
   return [...visited].sort();
 }
 
+function importPathToRoutePath(routeImport) {
+  const routePath = routeImport
+    .replace(/^\.\/routes\//, '')
+    .replace(/\/index$/, '')
+    .replace(/^index$/, '');
+
+  return routePath ? `/${routePath}` : '/';
+}
+
 const requiredFiles = [
   'apps/web/src/routes/__root.tsx',
   'apps/web/src/routeTree.gen.ts',
@@ -136,7 +150,6 @@ const requiredFiles = [
   'apps/web/src/routes/api/payment/notify.ts',
   'apps/web/src/routes/api/user/get-user-credits.ts',
   'apps/web/src/server/api-context.ts',
-  'apps/web/src/server/pricing-route-data.ts',
   'src/server/api/payment/checkout-action.ts',
   'src/server/api/payment/notify-action.ts',
   'src/server/api/user/get-user-credits-action.ts',
@@ -144,6 +157,14 @@ const requiredFiles = [
   'src/shared/i18n/locale.ts',
   'src/domains/pricing/application/pricing-page.ts',
   'src/server/pricing/pricing-page-messages.ts',
+  'src/server/pricing/pricing-route-data.ts',
+  'src/surfaces/landing/pricing/pricing.data.ts',
+  'src/surfaces/landing/pricing/pricing.seo.ts',
+  'src/surfaces/landing/pricing/pricing.view.tsx',
+  'src/surfaces/landing/pricing/pricing.types.ts',
+  'src/surfaces/system/not-found/not-found.view.tsx',
+  'scripts/tanstack-gate-4-plan.mjs',
+  'docs/migration/gate-4-page-migration-plan.generated.md',
   'vite.config.mts',
   'tsconfig.tanstack.json',
 ];
@@ -218,6 +239,15 @@ if (allDeps['@cloudflare/vite-plugin'] === '^2.2.0') {
   fail('@cloudflare/vite-plugin ^2.2.0 is not a valid baseline');
 }
 
+try {
+  execFileSync('node', ['scripts/tanstack-gate-4-plan.mjs', '--check'], {
+    cwd: root,
+    stdio: 'inherit',
+  });
+} catch {
+  fail('Gate 4 generated page migration matrix is stale');
+}
+
 const strictDirs = [
   'apps/web',
   'src/shared/i18n',
@@ -277,6 +307,28 @@ for (const actualImport of routeTreeImports) {
   }
 }
 
+for (const expectedImport of expectedRouteImports) {
+  if (expectedImport === './routes/__root') continue;
+
+  const routePath = importPathToRoutePath(expectedImport);
+  if (!contains(routeTreeFile, new RegExp(`'${escapeRegex(routePath)}'`))) {
+    fail(`routeTree.gen.ts missing route path ${routePath}`);
+  }
+  if (
+    !contains(routeTreeFile, new RegExp(`id:\\s*'${escapeRegex(routePath)}'`))
+  ) {
+    fail(`routeTree.gen.ts missing route id ${routePath}`);
+  }
+  if (
+    !contains(
+      routeTreeFile,
+      new RegExp(`fullPath:\\s*'${escapeRegex(routePath)}'`)
+    )
+  ) {
+    fail(`routeTree.gen.ts missing fullPath type ${routePath}`);
+  }
+}
+
 const tanstackClosureFiles = localRuntimeClosure(sourceFilesIn('apps/web/src'));
 const tanstackForbiddenRuntimePatterns = [
   [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
@@ -286,6 +338,12 @@ const tanstackForbiddenRuntimePatterns = [
     /@\/domains\/settings\/application\/settings-runtime\.query|domains\/settings\/application\/settings-runtime\.query/,
     'settings-runtime.query import',
   ],
+  [/@\/app\/|src\/app\//, 'legacy app import'],
+  [/@\/themes\/|src\/themes\//, 'theme import'],
+  [/React\.use\(Promise\.resolve/, 'legacy page wrapper'],
+  [/generateMetadata/, 'generateMetadata'],
+  [/generateStaticParams/, 'generateStaticParams'],
+  [/params\s*:\s*Promise/, 'params: Promise'],
 ];
 
 for (const file of tanstackClosureFiles) {
@@ -298,18 +356,83 @@ for (const file of tanstackClosureFiles) {
   }
 }
 
-const routeFiles = [
-  'apps/web/src/routes/index.tsx',
-  'apps/web/src/routes/pricing.tsx',
-  'apps/web/src/routes/$locale/pricing.tsx',
-  'apps/web/src/routes/api/payment/checkout.ts',
-  'apps/web/src/routes/api/payment/notify.ts',
-  'apps/web/src/routes/api/user/get-user-credits.ts',
-];
-for (const file of routeFiles) {
+const routeFiles = walk(join(root, 'apps/web/src/routes'))
+  .filter((file) => /\.(ts|tsx)$/.test(file))
+  .map((file) => normalizePath(relative(root, file)))
+  .sort();
+for (const file of routeFiles.filter(
+  (routeFile) => routeFile !== 'apps/web/src/routes/__root.tsx'
+)) {
   const abs = join(root, file);
   if (!contains(abs, /createFileRoute/)) {
     fail(`${file} must use createFileRoute`);
+  }
+}
+
+const tanstackPageRouteFiles = routeFiles.filter(
+  (file) => !file.includes('/api/') && file !== 'apps/web/src/routes/index.tsx'
+);
+const pageRouteForbiddenPatterns = [
+  [/@\/domains\//, '@/domains import'],
+  [/@\/themes\//, '@/themes import'],
+  [/@\/app\//, '@/app import'],
+  [/src\/app\//, 'src/app import'],
+  [/new\s+Response\(\s*['"]Not found['"]/, 'plain not-found Response'],
+  [/from\s+['"]next\//, 'next/* import'],
+  [/from\s+['"]next-intl/, 'next-intl import'],
+  [/React\.use\(Promise\.resolve/, 'legacy page wrapper'],
+  [/generateMetadata/, 'generateMetadata'],
+  [/generateStaticParams/, 'generateStaticParams'],
+  [/params\s*:\s*Promise/, 'params: Promise'],
+];
+
+for (const file of tanstackPageRouteFiles) {
+  const abs = join(root, file);
+  for (const [regex, label] of pageRouteForbiddenPatterns) {
+    if (contains(abs, regex)) {
+      fail(`${file} must not contain ${label}`);
+    }
+  }
+  if (
+    !contains(abs, /@\/surfaces\//) &&
+    !contains(abs, /notFoundComponent:\s*\w+/)
+  ) {
+    fail(`${file} must use a surface helper`);
+  }
+}
+
+const rootRouteFile = 'apps/web/src/routes/__root.tsx';
+const rootRouteAbs = join(root, rootRouteFile);
+if (!contains(rootRouteAbs, /notFoundComponent:\s*NotFoundSurfaceView/)) {
+  fail(`${rootRouteFile} must use the shared not-found surface`);
+}
+if (
+  contains(rootRouteAbs, /NotFoundRoute|new\s+Response\(\s*['"]Not found['"]/)
+) {
+  fail(
+    `${rootRouteFile} must use TanStack notFoundComponent, not legacy 404 handling`
+  );
+}
+
+for (const file of [
+  'apps/web/src/routes/pricing.tsx',
+  'apps/web/src/routes/$locale/pricing.tsx',
+]) {
+  const abs = join(root, file);
+  if (!contains(abs, /notFound\(\)/)) {
+    fail(`${file} must throw TanStack notFound() for missing route data`);
+  }
+  for (const surfaceFile of [
+    'pricing.data',
+    'pricing.seo',
+    'pricing.view',
+    'pricing.types',
+  ]) {
+    if (
+      !contains(abs, new RegExp(`@/surfaces/landing/pricing/${surfaceFile}`))
+    ) {
+      fail(`${file} must use ${surfaceFile} surface helper`);
+    }
   }
 }
 
@@ -409,6 +532,6 @@ for (const [regex, label] of [
 
 if (!process.exitCode) {
   console.log(
-    'tanstack native validation passed for Gate 0-3 baseline, Gate 3.1 slice contracts, and Gate 3.2 pricing/composition contracts.'
+    'tanstack native validation passed for Gate 0-3, Gate 3.1, Gate 3.2, and Gate 4 foundation contracts.'
   );
 }

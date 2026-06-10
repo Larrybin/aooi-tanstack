@@ -1,32 +1,24 @@
-import { useEffect } from 'react';
-import type { PricingRouteData } from '@/domains/pricing/application/pricing-page';
-import { PricingSliceView } from '@/domains/pricing/ui/pricing-slice-view';
-import { createFileRoute } from '@tanstack/react-router';
+import { loadPricingSurfaceData } from '@/surfaces/landing/pricing/pricing.data';
+import { getPricingSurfaceHead } from '@/surfaces/landing/pricing/pricing.seo';
+import type { PricingRouteData } from '@/surfaces/landing/pricing/pricing.types';
+import { PricingSurfaceView } from '@/surfaces/landing/pricing/pricing.view';
+import { createFileRoute, notFound } from '@tanstack/react-router';
 
-import { defaultLocale, isRtlLocale } from '@/config/locale';
-
-import { loadPricingRouteData } from '../server/pricing-route-data';
+import { defaultLocale } from '@/config/locale';
 
 export const Route = createFileRoute('/pricing')({
   loader: async () => {
-    const data = await loadPricingRouteData({
-      data: { locale: defaultLocale },
-    });
+    const data = await loadPricingSurfaceData(defaultLocale);
     if (!data) {
-      throw new Response('Not found', { status: 404 });
+      throw notFound();
     }
     return data as PricingRouteData;
   },
-  head: ({ loaderData }) => loaderData?.head ?? {},
+  head: ({ loaderData }) => getPricingSurfaceHead(loaderData ?? null),
   component: PricingRoute,
 });
 
 function PricingRoute() {
   const data = Route.useLoaderData();
-  useEffect(() => {
-    document.documentElement.lang = data.locale;
-    document.documentElement.dir = isRtlLocale(data.locale) ? 'rtl' : 'ltr';
-  }, [data.locale]);
-
-  return <PricingSliceView data={data} />;
+  return <PricingSurfaceView data={data} />;
 }

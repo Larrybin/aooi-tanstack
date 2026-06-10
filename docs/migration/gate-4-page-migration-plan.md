@@ -41,6 +41,19 @@ node scripts/tanstack-gate-4-plan.mjs --check
 
 The generated file is a freshness-checked source-of-truth snapshot of current `src/app` pages/layouts/not-found files. Do not edit it manually.
 
+## Foundation Validation
+
+Gate 4 migration rules are enforced by `SITE=dev-local pnpm tanstack:validate`.
+The validator must fail if:
+
+- `docs/migration/gate-4-page-migration-plan.generated.md` is stale.
+- `apps/web/src/routeTree.gen.ts` is missing or has stale route imports, ids, paths, or fullPath types.
+- TanStack runtime code imports `src/app/**`, `src/themes/**`, `next/*`, `next-intl`, or legacy page wrappers.
+- A migrated page route imports domain UI directly instead of using `src/surfaces/**`.
+- A migrated page route uses `generateMetadata`, `generateStaticParams`, `params: Promise`, or `React.use(Promise.resolve(...))`.
+- A migrated page route uses plain `Response('Not found')` instead of TanStack `notFound()`.
+- The root route does not provide a shared `notFoundComponent`.
+
 ## Route and Surface Rules
 
 ### TanStack route files
@@ -286,7 +299,7 @@ Each Gate 4 sub-batch must produce a verification document:
 Each verification must include a parity table:
 
 | page | URL parity | SEO/head parity | canonical/hreflang parity | i18n parity | layout parity | notFound/redirect parity | status | notes |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ---- | ---------- | --------------- | ------------------------- | ----------- | ------------- | ------------------------ | ------ | ----- |
 
 ## Non-goals
 
