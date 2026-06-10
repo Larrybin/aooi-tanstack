@@ -13,7 +13,10 @@ export function resolveRemoverGuestIp(req: Request): string {
     return cloudflareIp;
   }
 
-  const forwardedFor = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+  const forwardedFor = req.headers
+    .get('x-forwarded-for')
+    ?.split(',')[0]
+    ?.trim();
   return forwardedFor || 'unknown';
 }
 

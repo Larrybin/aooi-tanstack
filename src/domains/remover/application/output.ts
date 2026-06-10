@@ -24,7 +24,9 @@ const LOW_RES_MIME_TYPE = 'image/webp';
 
 export type StoreRemoverOutputImageDeps = {
   storageService: Pick<StorageService, 'uploadFile' | 'deleteFiles'>;
-  createAssets: (assets: NewRemoverImageAsset[]) => Promise<RemoverImageAsset[]>;
+  createAssets: (
+    assets: NewRemoverImageAsset[]
+  ) => Promise<RemoverImageAsset[]>;
   transformLowResImage?: (input: {
     buffer: Buffer;
     mimeType: string;
@@ -162,7 +164,9 @@ export async function storeRemoverOutputImage({
     return { outputAsset, thumbnailAsset };
   } catch (error) {
     if (uploadedKeys.length) {
-      await deps.storageService.deleteFiles(uploadedKeys).catch(() => undefined);
+      await deps.storageService
+        .deleteFiles(uploadedKeys)
+        .catch(() => undefined);
     }
     throw error;
   }
@@ -289,9 +293,8 @@ export async function transformLowResImageWithCloudflareImages({
 }) {
   let binding = images;
   if (!binding) {
-    const { getCloudflareImagesBinding } = await import(
-      '@/infra/runtime/env.server'
-    );
+    const { getCloudflareImagesBinding } =
+      await import('@/infra/runtime/env.server');
     binding = getCloudflareImagesBinding();
   }
   if (!binding) {

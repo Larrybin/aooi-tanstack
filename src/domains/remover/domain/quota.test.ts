@@ -26,8 +26,7 @@ test('assertQuotaAvailable rejects requests that exceed the configured limit', (
     assertQuotaAvailable({ usedUnits: 1, requestedUnits: 1, limit: 2 })
   );
   assert.throws(
-    () =>
-      assertQuotaAvailable({ usedUnits: 2, requestedUnits: 1, limit: 2 }),
+    () => assertQuotaAvailable({ usedUnits: 2, requestedUnits: 1, limit: 2 }),
     /remover quota exceeded/
   );
 });

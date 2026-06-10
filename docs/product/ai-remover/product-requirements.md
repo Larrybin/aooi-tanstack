@@ -138,11 +138,11 @@ Must not have:
 
 Default plans:
 
-| Plan | Price | Entitlements |
-| --- | ---: | --- |
-| Guest | $0 | 2 images/day, low-res download |
-| Free | $0 | 5 images/day, 3 sign-up high-res downloads |
-| Pro | $9.99/month | 500 images/month, 300 high-res downloads, advanced mode |
+| Plan   |        Price | Entitlements                                                 |
+| ------ | -----------: | ------------------------------------------------------------ |
+| Guest  |           $0 | 2 images/day, low-res download                               |
+| Free   |           $0 | 5 images/day, 3 sign-up high-res downloads                   |
+| Pro    |  $9.99/month | 500 images/month, 300 high-res downloads, advanced mode      |
 | Studio | $29.99/month | 2,000 images/month, 1,500 high-res downloads, priority queue |
 
 All limits must be configurable through product settings or plan entitlement
@@ -206,4 +206,3 @@ The product must state:
 - One-time credit purchases.
 - Full professional image editor.
 - Active watermark/logo detection.
-

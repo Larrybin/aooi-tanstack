@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import siteEnvModule from '../../src/config/site-env.cjs';
 import {
   isValidHyperdriveId,
   parseHyperdriveIdFromOutput,
@@ -13,6 +12,7 @@ import {
   buildPreviewDeploySettingsJson,
   buildPreviewResourceNames,
 } from '../../scripts/site-preview.mjs';
+import siteEnvModule from '../../src/config/site-env.cjs';
 
 const { applySiteLocalEnvOverlay } = siteEnvModule;
 
@@ -89,8 +89,10 @@ test('site preview provision fails fast on invalid preview deploy settings', () 
     () =>
       assertPreviewSettingsCanProvision({
         previewSettings: {
-          error: 'site deploy preview settings.resources.hyperdriveId must be valid',
-          filePath: '/repo/sites/background-remover/deploy.preview.settings.json',
+          error:
+            'site deploy preview settings.resources.hyperdriveId must be valid',
+          filePath:
+            '/repo/sites/background-remover/deploy.preview.settings.json',
           state: 'invalid',
         },
         rootDir: '/repo',

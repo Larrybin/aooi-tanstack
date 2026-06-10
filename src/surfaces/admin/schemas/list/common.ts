@@ -37,16 +37,20 @@ function normalizePositiveInt(value: unknown, fallback: number) {
   return parsed;
 }
 
-export const adminPageQuerySchema = z.preprocess(
-  (value) => normalizePositiveInt(value, DEFAULT_PAGE),
-  z.number().int().min(1)
-).default(DEFAULT_PAGE);
+export const adminPageQuerySchema = z
+  .preprocess(
+    (value) => normalizePositiveInt(value, DEFAULT_PAGE),
+    z.number().int().min(1)
+  )
+  .default(DEFAULT_PAGE);
 
-export const adminPageSizeQuerySchema = z.preprocess(
-  (value) =>
-    Math.min(normalizePositiveInt(value, DEFAULT_PAGE_SIZE), MAX_PAGE_SIZE),
-  z.number().int().min(1).max(MAX_PAGE_SIZE)
-).default(DEFAULT_PAGE_SIZE);
+export const adminPageSizeQuerySchema = z
+  .preprocess(
+    (value) =>
+      Math.min(normalizePositiveInt(value, DEFAULT_PAGE_SIZE), MAX_PAGE_SIZE),
+    z.number().int().min(1).max(MAX_PAGE_SIZE)
+  )
+  .default(DEFAULT_PAGE_SIZE);
 
 export const adminPaginationQuerySchema = z.object({
   page: adminPageQuerySchema,

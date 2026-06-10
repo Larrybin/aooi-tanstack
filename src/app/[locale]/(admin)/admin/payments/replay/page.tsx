@@ -2,7 +2,6 @@
 // cache: no-store (request-bound auth/RBAC)
 import { notFound, redirect } from 'next/navigation';
 import { requirePagePermission } from '@/app/[locale]/(admin)/_guards/page-access';
-import { resolveSitePaymentCapability } from '@/config/payment-capability';
 import {
   buildPaymentReplayReturnPath,
   getPaymentReplayPreviewLabel,
@@ -13,6 +12,7 @@ import {
 } from '@/domains/billing/application/admin-payment-replay';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
+import { resolveSitePaymentCapability } from '@/config/payment-capability';
 import { Header, Main, MainHeader } from '@/shared/blocks/workspace';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';

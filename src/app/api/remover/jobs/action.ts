@@ -1,8 +1,8 @@
 import type { ApiContext } from '@/app/api/_lib/context';
+import { serializeRemoverJobForClient } from '@/domains/remover/application/job-response';
 import type { createQueuedRemoverJob } from '@/domains/remover/application/jobs';
 import type { submitRemoverJobToProvider } from '@/domains/remover/application/processing';
 import type { RemoverProviderAdapter } from '@/domains/remover/application/provider';
-import { serializeRemoverJobForClient } from '@/domains/remover/application/job-response';
 import type { RemoverActor } from '@/domains/remover/domain/types';
 
 import { jsonOk } from '@/shared/lib/api/response';
@@ -32,7 +32,10 @@ export function createRemoverJobsPostAction(deps: JobsActionDeps) {
     const body = await api.parseJson(RemoverJobCreateBodySchema);
     const providerAdapter: RemoverProviderAdapter =
       await deps.resolveProviderAdapter();
-    const releaseGuestIpLimit = await deps.acquireGuestIpLimit?.({ actor, req });
+    const releaseGuestIpLimit = await deps.acquireGuestIpLimit?.({
+      actor,
+      req,
+    });
     try {
       const result = await deps.createQueuedRemoverJob({
         actor,

@@ -1,8 +1,16 @@
 import { site } from '@/site';
 
-import { NotFoundError, ServiceUnavailableError } from '@/shared/lib/api/errors';
+import {
+  NotFoundError,
+  ServiceUnavailableError,
+} from '@/shared/lib/api/errors';
 
-export const PAYMENT_CAPABILITIES = ['none', 'stripe', 'creem', 'paypal'] as const;
+export const PAYMENT_CAPABILITIES = [
+  'none',
+  'stripe',
+  'creem',
+  'paypal',
+] as const;
 
 export type PaymentCapability = (typeof PAYMENT_CAPABILITIES)[number];
 export type ActivePaymentCapability = Exclude<PaymentCapability, 'none'>;
@@ -125,15 +133,15 @@ function collectMissingSecrets(
 export function resolveSitePaymentCapability(): PaymentCapability {
   const capability = site.capabilities.payment;
   if (!isPaymentCapability(capability)) {
-    throw new Error(`Unsupported site payment capability: ${String(capability)}`);
+    throw new Error(
+      `Unsupported site payment capability: ${String(capability)}`
+    );
   }
 
   return capability;
 }
 
-export function assertPaymentCapabilityContract(
-  input: PaymentContractInput
-): {
+export function assertPaymentCapabilityContract(input: PaymentContractInput): {
   capability: PaymentCapability;
   activeProvider: ActivePaymentCapability | null;
   requiredSecrets: readonly string[];
@@ -177,7 +185,9 @@ export function assertPaymentCapabilityContract(
   };
 }
 
-export function resolvePaymentHealth(input: PaymentContractInput): PaymentHealth {
+export function resolvePaymentHealth(
+  input: PaymentContractInput
+): PaymentHealth {
   if (input.capability === 'none') {
     return {
       capability: 'none',

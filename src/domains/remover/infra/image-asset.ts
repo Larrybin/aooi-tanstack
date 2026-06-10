@@ -8,9 +8,7 @@ import { removerImageAsset } from '@/config/db/schema';
 export type RemoverImageAsset = typeof removerImageAsset.$inferSelect;
 export type NewRemoverImageAsset = typeof removerImageAsset.$inferInsert;
 
-export async function createRemoverImageAsset(
-  newAsset: NewRemoverImageAsset
-) {
+export async function createRemoverImageAsset(newAsset: NewRemoverImageAsset) {
   const [asset] = await db()
     .insert(removerImageAsset)
     .values(newAsset)

@@ -19,8 +19,4 @@ export const ADMIN_PAYMENT_TYPES = [
 
 export const ADMIN_PAYMENT_STATUSES = ['paid', 'created', 'failed'] as const;
 
-export const ADMIN_PAYMENT_PROVIDERS = [
-  'stripe',
-  'creem',
-  'paypal',
-] as const;
+export const ADMIN_PAYMENT_PROVIDERS = ['stripe', 'creem', 'paypal'] as const;

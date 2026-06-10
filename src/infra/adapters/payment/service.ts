@@ -14,9 +14,7 @@ import type {
 } from '@/domains/settings/application/settings-runtime.contracts';
 import { createUseCaseLogger } from '@/infra/platform/logging/logger.server';
 
-import {
-  ServiceUnavailableError,
-} from '@/shared/lib/api/errors';
+import { ServiceUnavailableError } from '@/shared/lib/api/errors';
 import { isProductionEnv } from '@/shared/lib/env';
 
 const log = createUseCaseLogger({

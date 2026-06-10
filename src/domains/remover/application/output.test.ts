@@ -59,7 +59,10 @@ test('storeRemoverOutputImage stores a guarded provider output image when fetch 
     result.thumbnailAsset.storageKey,
     'remover/anonymous/anon_1/thumbnail/thumbnail_1.webp'
   );
-  assert.notEqual(result.outputAsset.storageKey, result.thumbnailAsset.storageKey);
+  assert.notEqual(
+    result.outputAsset.storageKey,
+    result.thumbnailAsset.storageKey
+  );
   assert.deepEqual(uploads, [
     {
       key: 'remover/anonymous/anon_1/output/output_1.png',

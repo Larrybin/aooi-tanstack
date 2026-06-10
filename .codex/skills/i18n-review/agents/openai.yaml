@@ -1,7 +1,7 @@
 interface:
-  display_name: "Aooi I18n Review"
-  short_description: "Review and approve aooi i18n pages"
-  default_prompt: "Use $i18n-review to review pending aooi localized pages before approval."
+  display_name: 'Aooi I18n Review'
+  short_description: 'Review and approve aooi i18n pages'
+  default_prompt: 'Use $i18n-review to review pending aooi localized pages before approval.'
 
 policy:
   allow_implicit_invocation: true

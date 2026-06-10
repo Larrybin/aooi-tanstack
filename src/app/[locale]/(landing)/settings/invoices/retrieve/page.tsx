@@ -2,10 +2,10 @@
 // cache: no-store (request-bound auth)
 // reason: user-specific invoice retrieval; do not cache redirects
 import { notFound, redirect } from 'next/navigation';
-import { resolveSitePaymentCapability } from '@/config/payment-capability';
 import { retrieveMemberInvoiceUrl } from '@/domains/billing/application/member-billing.actions';
 import { getSignedInUserIdentity } from '@/infra/platform/auth/session.server';
 
+import { resolveSitePaymentCapability } from '@/config/payment-capability';
 import { Empty } from '@/shared/blocks/common/empty';
 import { toErrorMessage } from '@/shared/lib/errors';
 

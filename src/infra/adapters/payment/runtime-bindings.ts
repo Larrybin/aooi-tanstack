@@ -1,11 +1,12 @@
 import 'server-only';
 
+import type { PaymentRuntimeBindings } from '@/domains/settings/application/settings-runtime.contracts';
+import { getRuntimeEnvString } from '@/infra/runtime/env.server';
+
 import {
   assertPaymentCapabilityContract,
   resolveSitePaymentCapability,
 } from '@/config/payment-capability';
-import type { PaymentRuntimeBindings } from '@/domains/settings/application/settings-runtime.contracts';
-import { getRuntimeEnvString } from '@/infra/runtime/env.server';
 
 function readPaymentRuntimeBindings(): PaymentRuntimeBindings {
   const capability = resolveSitePaymentCapability();
