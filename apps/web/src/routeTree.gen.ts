@@ -8,90 +8,87 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import type { createStart } from '@tanstack/react-start';
-
-import type { getRouter } from './router.tsx';
-import { Route as rootRouteImport } from './routes/__root';
-import { Route as LocalePricingRouteImport } from './routes/$locale/pricing';
-import { Route as ApiPaymentCheckoutRouteImport } from './routes/api/payment/checkout';
-import { Route as ApiPaymentNotifyRouteImport } from './routes/api/payment/notify';
-import { Route as ApiUserGetUserCreditsRouteImport } from './routes/api/user/get-user-credits';
-import { Route as IndexRouteImport } from './routes/index';
-import { Route as PricingRouteImport } from './routes/pricing';
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as LocalePricingRouteImport } from './routes/$locale/pricing'
+import { Route as ApiUserGetUserCreditsRouteImport } from './routes/api/user/get-user-credits'
+import { Route as ApiPaymentNotifyRouteImport } from './routes/api/payment/notify'
+import { Route as ApiPaymentCheckoutRouteImport } from './routes/api/payment/checkout'
 
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const LocalePricingRoute = LocalePricingRouteImport.update({
   id: '/$locale/pricing',
   path: '/$locale/pricing',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiUserGetUserCreditsRoute = ApiUserGetUserCreditsRouteImport.update({
   id: '/api/user/get-user-credits',
   path: '/api/user/get-user-credits',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiPaymentNotifyRoute = ApiPaymentNotifyRouteImport.update({
   id: '/api/payment/notify',
   path: '/api/payment/notify',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiPaymentCheckoutRoute = ApiPaymentCheckoutRouteImport.update({
   id: '/api/payment/checkout',
   path: '/api/payment/checkout',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute;
-  '/pricing': typeof PricingRoute;
-  '/$locale/pricing': typeof LocalePricingRoute;
-  '/api/payment/checkout': typeof ApiPaymentCheckoutRoute;
-  '/api/payment/notify': typeof ApiPaymentNotifyRoute;
-  '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute;
+  '/': typeof IndexRoute
+  '/pricing': typeof PricingRoute
+  '/$locale/pricing': typeof LocalePricingRoute
+  '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
+  '/api/payment/notify': typeof ApiPaymentNotifyRoute
+  '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute;
-  '/pricing': typeof PricingRoute;
-  '/$locale/pricing': typeof LocalePricingRoute;
-  '/api/payment/checkout': typeof ApiPaymentCheckoutRoute;
-  '/api/payment/notify': typeof ApiPaymentNotifyRoute;
-  '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute;
+  '/': typeof IndexRoute
+  '/pricing': typeof PricingRoute
+  '/$locale/pricing': typeof LocalePricingRoute
+  '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
+  '/api/payment/notify': typeof ApiPaymentNotifyRoute
+  '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport;
-  '/': typeof IndexRoute;
-  '/pricing': typeof PricingRoute;
-  '/$locale/pricing': typeof LocalePricingRoute;
-  '/api/payment/checkout': typeof ApiPaymentCheckoutRoute;
-  '/api/payment/notify': typeof ApiPaymentNotifyRoute;
-  '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute;
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/pricing': typeof PricingRoute
+  '/$locale/pricing': typeof LocalePricingRoute
+  '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
+  '/api/payment/notify': typeof ApiPaymentNotifyRoute
+  '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
+  fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/pricing'
     | '/$locale/pricing'
     | '/api/payment/checkout'
     | '/api/payment/notify'
-    | '/api/user/get-user-credits';
-  fileRoutesByTo: FileRoutesByTo;
+    | '/api/user/get-user-credits'
+  fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/pricing'
     | '/$locale/pricing'
     | '/api/payment/checkout'
     | '/api/payment/notify'
-    | '/api/user/get-user-credits';
+    | '/api/user/get-user-credits'
   id:
     | '__root__'
     | '/'
@@ -99,62 +96,62 @@ export interface FileRouteTypes {
     | '/$locale/pricing'
     | '/api/payment/checkout'
     | '/api/payment/notify'
-    | '/api/user/get-user-credits';
-  fileRoutesById: FileRoutesById;
+    | '/api/user/get-user-credits'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
-  PricingRoute: typeof PricingRoute;
-  LocalePricingRoute: typeof LocalePricingRoute;
-  ApiPaymentCheckoutRoute: typeof ApiPaymentCheckoutRoute;
-  ApiPaymentNotifyRoute: typeof ApiPaymentNotifyRoute;
-  ApiUserGetUserCreditsRoute: typeof ApiUserGetUserCreditsRoute;
+  IndexRoute: typeof IndexRoute
+  PricingRoute: typeof PricingRoute
+  LocalePricingRoute: typeof LocalePricingRoute
+  ApiPaymentCheckoutRoute: typeof ApiPaymentCheckoutRoute
+  ApiPaymentNotifyRoute: typeof ApiPaymentNotifyRoute
+  ApiUserGetUserCreditsRoute: typeof ApiUserGetUserCreditsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/pricing': {
-      id: '/pricing';
-      path: '/pricing';
-      fullPath: '/pricing';
-      preLoaderRoute: typeof PricingRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
-      id: '/';
-      path: '/';
-      fullPath: '/';
-      preLoaderRoute: typeof IndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$locale/pricing': {
-      id: '/$locale/pricing';
-      path: '/$locale/pricing';
-      fullPath: '/$locale/pricing';
-      preLoaderRoute: typeof LocalePricingRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/$locale/pricing'
+      path: '/$locale/pricing'
+      fullPath: '/$locale/pricing'
+      preLoaderRoute: typeof LocalePricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/user/get-user-credits': {
-      id: '/api/user/get-user-credits';
-      path: '/api/user/get-user-credits';
-      fullPath: '/api/user/get-user-credits';
-      preLoaderRoute: typeof ApiUserGetUserCreditsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/api/user/get-user-credits'
+      path: '/api/user/get-user-credits'
+      fullPath: '/api/user/get-user-credits'
+      preLoaderRoute: typeof ApiUserGetUserCreditsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/payment/notify': {
-      id: '/api/payment/notify';
-      path: '/api/payment/notify';
-      fullPath: '/api/payment/notify';
-      preLoaderRoute: typeof ApiPaymentNotifyRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/api/payment/notify'
+      path: '/api/payment/notify'
+      fullPath: '/api/payment/notify'
+      preLoaderRoute: typeof ApiPaymentNotifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/payment/checkout': {
-      id: '/api/payment/checkout';
-      path: '/api/payment/checkout';
-      fullPath: '/api/payment/checkout';
-      preLoaderRoute: typeof ApiPaymentCheckoutRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/api/payment/checkout'
+      path: '/api/payment/checkout'
+      fullPath: '/api/payment/checkout'
+      preLoaderRoute: typeof ApiPaymentCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -165,14 +162,16 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPaymentCheckoutRoute: ApiPaymentCheckoutRoute,
   ApiPaymentNotifyRoute: ApiPaymentNotifyRoute,
   ApiUserGetUserCreditsRoute: ApiUserGetUserCreditsRoute,
-};
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+  ._addFileTypes<FileRouteTypes>()
 
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
 declare module '@tanstack/react-start' {
   interface Register {
-    ssr: true;
-    router: Awaited<ReturnType<typeof getRouter>>;
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
   }
 }
