@@ -18,3 +18,18 @@ test('pricing page messages load pricing and landing namespaces from the same so
     '用户对 Roller Rabbit 的评价'
   );
 });
+
+test('pricing page messages fall back when optional localized landing namespace is missing', async () => {
+  const { localizedPricingMessages, localizedLandingMessages } =
+    await loadPricingPageMessages('ja');
+
+  assert.equal(localizedPricingMessages.metadata?.title, '料金');
+  assert.equal(
+    localizedLandingMessages.faq?.title,
+    'Questions founders usually ask before buying'
+  );
+  assert.equal(
+    localizedLandingMessages.testimonials?.title,
+    'What teams say after launch'
+  );
+});

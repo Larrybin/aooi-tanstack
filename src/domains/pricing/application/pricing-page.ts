@@ -14,8 +14,11 @@ import {
 } from '@/shared/seo/canonical';
 import type { SitePricing } from '@/shared/types/blocks/pricing';
 
-import { resolvePricingPageContent } from './pricing-page-content';
-import { loadPricingPageMessages } from './pricing-page-messages';
+import {
+  resolvePricingPageContent,
+  type LocalizedLandingMessages,
+  type LocalizedPricingMessages,
+} from './pricing-page-content';
 
 type SiteLocalizedPricing = Record<string, SitePricing>;
 
@@ -33,8 +36,12 @@ export type PricingRouteData = {
 
 export async function resolvePricingRouteData({
   locale: localeInput,
+  localizedPricingMessages,
+  localizedLandingMessages,
 }: {
   locale: string;
+  localizedPricingMessages?: LocalizedPricingMessages;
+  localizedLandingMessages?: LocalizedLandingMessages;
 }): Promise<PricingRouteData | null> {
   const locale = normalizeLocale(localeInput);
   if (!locale) {
@@ -50,8 +57,6 @@ export async function resolvePricingRouteData({
   }
 
   const brand = buildBrandPlaceholderValues();
-  const { localizedPricingMessages, localizedLandingMessages } =
-    await loadPricingPageMessages(locale);
   const pricingContent = replaceBrandPlaceholdersDeep(
     resolvePricingPageContent({
       sitePricing,

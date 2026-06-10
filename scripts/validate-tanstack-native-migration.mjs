@@ -143,7 +143,7 @@ const requiredFiles = [
   'src/shared/seo/canonical.ts',
   'src/shared/i18n/locale.ts',
   'src/domains/pricing/application/pricing-page.ts',
-  'src/domains/pricing/application/pricing-page-messages.ts',
+  'src/server/pricing/pricing-page-messages.ts',
   'vite.config.mts',
   'tsconfig.tanstack.json',
 ];
@@ -158,6 +158,7 @@ const forbiddenFiles = [
   'src/app/api/payment/checkout/action.ts',
   'src/app/api/payment/notify/route-logic.ts',
   'src/app/api/user/get-user-credits/action.ts',
+  'src/domains/pricing/application/pricing-page-messages.ts',
 ];
 
 for (const file of forbiddenFiles) {
@@ -298,6 +299,7 @@ for (const file of tanstackClosureFiles) {
 }
 
 const routeFiles = [
+  'apps/web/src/routes/index.tsx',
   'apps/web/src/routes/pricing.tsx',
   'apps/web/src/routes/$locale/pricing.tsx',
   'apps/web/src/routes/api/payment/checkout.ts',
@@ -366,6 +368,31 @@ for (const contract of sharedRouteActionContracts) {
     if (contains(abs, regex)) {
       fail(`${contract.file} must not inline ${label}`);
     }
+  }
+}
+
+const indexRouteFile = 'apps/web/src/routes/index.tsx';
+const indexRouteAbs = join(root, indexRouteFile);
+if (!contains(indexRouteAbs, /to:\s*['"]\/pricing['"]/)) {
+  fail(`${indexRouteFile} must redirect to canonical /pricing`);
+}
+if (contains(indexRouteAbs, /\/\$locale\/pricing|params:\s*\{/)) {
+  fail(
+    `${indexRouteFile} must not redirect through the locale-prefixed pricing route`
+  );
+}
+
+const pricingMessagesFile = 'src/server/pricing/pricing-page-messages.ts';
+const pricingMessagesAbs = join(root, pricingMessagesFile);
+if (!contains(pricingMessagesAbs, /getScopedMessages/)) {
+  fail(`${pricingMessagesFile} must reuse getScopedMessages`);
+}
+for (const [regex, label] of [
+  [/config\/locale\/messages\/\$\{locale\}/, 'direct locale message import'],
+  [/mergeDeep/, 'custom message merge'],
+]) {
+  if (contains(pricingMessagesAbs, regex)) {
+    fail(`${pricingMessagesFile} must not keep ${label}`);
   }
 }
 

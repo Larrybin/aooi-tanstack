@@ -99,6 +99,16 @@ test('getScopedMessages 只加载当前请求需要的 namespace', async () => {
   assert.equal('settings' in messages, false);
 });
 
+test('getScopedMessages 对非严格 locale 缺失 namespace 回退到基础语言', async () => {
+  const messages = await getScopedMessages('ja', ['landing']);
+  const landing = messages.landing as Record<string, unknown>;
+
+  assert.equal(
+    (landing.faq as { title?: string } | undefined)?.title,
+    'Questions founders usually ask before buying'
+  );
+});
+
 test('getScopedMessages 对同一文件内的 common 子 namespace 做精确裁剪', async () => {
   const messages = await getScopedMessages('en', ['common.sign']);
   const common = messages.common as Record<string, unknown>;

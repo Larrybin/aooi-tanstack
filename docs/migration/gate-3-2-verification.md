@@ -15,9 +15,11 @@ Gate 3.1.
   `src/server/api/**` composition layer.
 - Render pricing FAQ and testimonials in the TanStack pricing view.
 - Load pricing and landing messages from the same JSON message source used by
-  the Next pricing page, without importing `next-intl` into TanStack paths.
+  the Next pricing page through `getScopedMessages(...)`, without importing
+  `next-intl` into TanStack paths.
 - Add `/pricing` as the default-locale TanStack route so canonical URLs resolve
   to an implemented route.
+- Redirect `/` directly to canonical `/pricing`.
 
 ## Changes Verified
 
@@ -28,17 +30,25 @@ Gate 3.1.
   kept as re-export wrappers.
 - `PricingSliceView` renders `faq` and `testimonials` content.
 - `resolvePricingRouteData(...)` loads pricing and landing message JSON through
-  a framework-neutral loader.
+  messages passed in from the server composition layer.
+- `src/server/pricing/pricing-page-messages.ts` reuses the existing scoped i18n
+  loader, so pricing follows the same base-locale fallback behavior as Next.
 - `apps/web/src/routes/pricing.tsx` implements `/pricing` for the default
   locale.
+- `apps/web/src/routes/index.tsx` redirects `/` to `/pricing`, not
+  `/$locale/pricing`.
+- Missing optional localized namespaces for non-strict locales, such as
+  `ja/landing.json`, fall back to base locale messages.
 - `scripts/validate-tanstack-native-migration.mjs` now rejects old
   `src/app/api/**` composition files, TanStack imports from `@/app/api/**`, and
-  missing pricing FAQ/testimonials rendering.
+  missing pricing FAQ/testimonials rendering. It also rejects root redirects
+  through `/$locale/pricing` and custom pricing message merge loaders.
 
 ## Commands
 
 ```bash
-node --test --import tsx src/domains/pricing/application/pricing-page-messages.test.ts src/domains/pricing/ui/pricing-slice-view.test.tsx src/app/api/payment/checkout/route.test.ts src/app/api/user/get-user-credits/action.test.ts tests/contract/payment-notify-route.test.ts
+node --test --import tsx src/infra/platform/i18n/messages.test.ts src/server/pricing/pricing-page-messages.test.ts
+node --test --import tsx src/server/pricing/pricing-page-messages.test.ts src/domains/pricing/ui/pricing-slice-view.test.tsx src/app/api/payment/checkout/route.test.ts src/app/api/user/get-user-credits/action.test.ts tests/contract/payment-notify-route.test.ts
 SITE=dev-local pnpm tanstack:build
 SITE=dev-local pnpm tanstack:validate
 SITE=dev-local pnpm tanstack:typecheck

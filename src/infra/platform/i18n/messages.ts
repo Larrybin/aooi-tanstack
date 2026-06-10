@@ -48,6 +48,7 @@ const isMissingModuleError = (error: unknown): boolean => {
         : '';
 
   return (
+    message.includes('Cannot find package') ||
     message.includes('Cannot find module') ||
     message.includes('Module not found') ||
     message.includes("Can't resolve")
@@ -199,10 +200,13 @@ export async function getScopedMessages(
 
   const loadedMessages = new Map(
     await Promise.all(
-      messagePaths.map(async (messagePath) => [
-        messagePath,
-        await loadMergedMessagesForPath(locale, messagePath),
-      ] as const)
+      messagePaths.map(
+        async (messagePath) =>
+          [
+            messagePath,
+            await loadMergedMessagesForPath(locale, messagePath),
+          ] as const
+      )
     )
   );
 
