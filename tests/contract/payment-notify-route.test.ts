@@ -1,15 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  buildPaymentNotifyPostLogic,
-  type PaymentNotifyRouteDeps,
-} from '@/app/api/payment/notify/route-logic';
-import {
   PaymentEventType,
   WebhookPayloadError,
   WebhookVerificationError,
   type PaymentEvent,
 } from '@/domains/billing/domain/payment';
+import {
+  buildPaymentNotifyPostLogic,
+  type PaymentNotifyRouteDeps,
+} from '@/server/api/payment/notify-action';
 import { site } from '@/site';
 
 function createRequest() {

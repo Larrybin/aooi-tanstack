@@ -1,6 +1,6 @@
-import { createPaymentCheckoutPostAction } from '@/app/api/payment/checkout/action';
 import { createPaymentCheckoutSession } from '@/domains/billing/application/checkout';
 import { getPaymentRuntimeBindings } from '@/infra/adapters/payment/runtime-bindings';
+import { createPaymentCheckoutPostAction } from '@/server/api/payment/checkout-action';
 import { sitePricing } from '@/site';
 import { createFileRoute } from '@tanstack/react-router';
 

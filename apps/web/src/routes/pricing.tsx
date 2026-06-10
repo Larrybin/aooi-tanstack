@@ -3,14 +3,14 @@ import type { PricingRouteData } from '@/domains/pricing/application/pricing-pag
 import { PricingSliceView } from '@/domains/pricing/ui/pricing-slice-view';
 import { createFileRoute } from '@tanstack/react-router';
 
-import { isRtlLocale } from '@/config/locale';
+import { defaultLocale, isRtlLocale } from '@/config/locale';
 
-import { loadPricingRouteData } from '../../server/pricing-route-data';
+import { loadPricingRouteData } from '../server/pricing-route-data';
 
-export const Route = createFileRoute('/$locale/pricing')({
-  loader: async ({ params }) => {
+export const Route = createFileRoute('/pricing')({
+  loader: async () => {
     const data = await loadPricingRouteData({
-      data: { locale: params.locale },
+      data: { locale: defaultLocale },
     });
     if (!data) {
       throw new Response('Not found', { status: 404 });

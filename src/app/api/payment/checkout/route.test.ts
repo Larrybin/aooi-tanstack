@@ -1,10 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { createPaymentCheckoutPostAction } from '@/server/api/payment/checkout-action';
 
 import { withApi } from '@/shared/lib/api/route';
 import type { SitePricing } from '@/shared/types/blocks/pricing';
-
-import { createPaymentCheckoutPostAction } from './action';
 
 const sitePricing = {
   pricing: {

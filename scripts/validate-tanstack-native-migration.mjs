@@ -130,15 +130,20 @@ function localRuntimeClosure(entryFiles) {
 const requiredFiles = [
   'apps/web/src/routes/__root.tsx',
   'apps/web/src/routeTree.gen.ts',
+  'apps/web/src/routes/pricing.tsx',
   'apps/web/src/routes/$locale/pricing.tsx',
   'apps/web/src/routes/api/payment/checkout.ts',
   'apps/web/src/routes/api/payment/notify.ts',
   'apps/web/src/routes/api/user/get-user-credits.ts',
   'apps/web/src/server/api-context.ts',
-  'src/app/api/user/get-user-credits/action.ts',
+  'apps/web/src/server/pricing-route-data.ts',
+  'src/server/api/payment/checkout-action.ts',
+  'src/server/api/payment/notify-action.ts',
+  'src/server/api/user/get-user-credits-action.ts',
   'src/shared/seo/canonical.ts',
   'src/shared/i18n/locale.ts',
   'src/domains/pricing/application/pricing-page.ts',
+  'src/domains/pricing/application/pricing-page-messages.ts',
   'vite.config.mts',
   'tsconfig.tanstack.json',
 ];
@@ -146,6 +151,18 @@ const requiredFiles = [
 for (const file of requiredFiles) {
   if (!existsSync(join(root, file))) {
     fail(`missing required file ${file}`);
+  }
+}
+
+const forbiddenFiles = [
+  'src/app/api/payment/checkout/action.ts',
+  'src/app/api/payment/notify/route-logic.ts',
+  'src/app/api/user/get-user-credits/action.ts',
+];
+
+for (const file of forbiddenFiles) {
+  if (existsSync(join(root, file))) {
+    fail(`obsolete Gate 3.1 HTTP composition file must be removed: ${file}`);
   }
 }
 
@@ -212,6 +229,7 @@ const forbiddenPatterns = [
   [/from\s+['"]next\//, 'next/* import'],
   [/from\s+['"]next-intl/, 'next-intl import'],
   [/@next\/next/, '@next/next rule reference'],
+  [/@\/app\/api\//, '@/app/api import'],
   [/next-shims/, 'next-shims reference'],
   [/React\.use\(Promise\.resolve/, 'React.use(Promise.resolve(...))'],
   [/params\s*:\s*Promise/, 'params: Promise'],
@@ -280,6 +298,7 @@ for (const file of tanstackClosureFiles) {
 }
 
 const routeFiles = [
+  'apps/web/src/routes/pricing.tsx',
   'apps/web/src/routes/$locale/pricing.tsx',
   'apps/web/src/routes/api/payment/checkout.ts',
   'apps/web/src/routes/api/payment/notify.ts',
@@ -297,8 +316,10 @@ const sharedRouteActionContracts = [
     file: 'apps/web/src/routes/api/payment/checkout.ts',
     required: [
       [/createPaymentCheckoutPostAction/, 'createPaymentCheckoutPostAction'],
+      [/@\/server\/api\/payment\/checkout-action/, 'server checkout action'],
     ],
     forbidden: [
+      [/@\/app\/api\//, '@/app/api import'],
       [/findPricingItemByProductId/, 'pricing item lookup'],
       [/PaymentCheckoutBodySchema/, 'checkout body schema parsing'],
       [/BadRequestError|NotFoundError/, 'checkout HTTP error branching'],
@@ -306,8 +327,12 @@ const sharedRouteActionContracts = [
   },
   {
     file: 'apps/web/src/routes/api/payment/notify.ts',
-    required: [[/buildPaymentNotifyPostLogic/, 'buildPaymentNotifyPostLogic']],
+    required: [
+      [/buildPaymentNotifyPostLogic/, 'buildPaymentNotifyPostLogic'],
+      [/@\/server\/api\/payment\/notify-action/, 'server notify action'],
+    ],
     forbidden: [
+      [/@\/app\/api\//, '@/app/api import'],
       [/handlePaymentNotifyRequest/, 'payment notify flow invocation'],
       [/PaymentNotifyFlowDeps/, 'payment notify flow deps assembly'],
       [/onProcessFailure/, 'payment notify process-failure handler assembly'],
@@ -315,8 +340,15 @@ const sharedRouteActionContracts = [
   },
   {
     file: 'apps/web/src/routes/api/user/get-user-credits.ts',
-    required: [[/createUserCreditsPostAction/, 'createUserCreditsPostAction']],
+    required: [
+      [/createUserCreditsPostAction/, 'createUserCreditsPostAction'],
+      [
+        /@\/server\/api\/user\/get-user-credits-action/,
+        'server user credits action',
+      ],
+    ],
     forbidden: [
+      [/@\/app\/api\//, '@/app/api import'],
       [/readAccountCreditsSummaryUseCase/, 'credits use-case invocation'],
       [/jsonOk/, 'credits HTTP response construction'],
     ],
@@ -337,8 +369,19 @@ for (const contract of sharedRouteActionContracts) {
   }
 }
 
+const pricingViewFile = 'src/domains/pricing/ui/pricing-slice-view.tsx';
+const pricingViewAbs = join(root, pricingViewFile);
+for (const [regex, label] of [
+  [/data\.faq/, 'FAQ content'],
+  [/data\.testimonials/, 'testimonials content'],
+]) {
+  if (!contains(pricingViewAbs, regex)) {
+    fail(`${pricingViewFile} must render ${label}`);
+  }
+}
+
 if (!process.exitCode) {
   console.log(
-    'tanstack native validation passed for Gate 0-3 baseline and Gate 3.1 slice contracts.'
+    'tanstack native validation passed for Gate 0-3 baseline, Gate 3.1 slice contracts, and Gate 3.2 pricing/composition contracts.'
   );
 }

@@ -1,8 +1,4 @@
 import {
-  buildPaymentNotifyPostLogic,
-  type PaymentNotifyRouteDeps,
-} from '@/app/api/payment/notify/route-logic';
-import {
   handleCheckoutSuccess,
   handleSubscriptionCanceled,
   handleSubscriptionRenewal,
@@ -25,6 +21,10 @@ import {
 import { findSubscriptionByProviderSubscriptionId } from '@/domains/billing/infra/subscription';
 import { getPaymentRuntimeBindings } from '@/infra/adapters/payment/runtime-bindings';
 import { getPaymentService } from '@/infra/adapters/payment/service';
+import {
+  buildPaymentNotifyPostLogic,
+  type PaymentNotifyRouteDeps,
+} from '@/server/api/payment/notify-action';
 import { createFileRoute } from '@tanstack/react-router';
 
 import { assertPaymentCapabilityEnabled } from '@/config/payment-capability';

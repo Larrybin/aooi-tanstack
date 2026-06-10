@@ -15,8 +15,8 @@ import { recordPaymentWebhookAudit } from '@/domains/billing/infra/payment-webho
 import {
   createPaymentWebhookInboxReceipt,
   markPaymentWebhookInboxAttempt,
-  markPaymentWebhookInboxProcessFailed,
   markPaymentWebhookInboxProcessed,
+  markPaymentWebhookInboxProcessFailed,
   recordPaymentWebhookInboxCanonicalEvent,
   serializePaymentWebhookHeaders,
 } from '@/domains/billing/infra/payment-webhook-inbox';
@@ -27,15 +27,14 @@ import {
 } from '@/domains/settings/application/settings-runtime.query';
 import { getPaymentRuntimeBindings } from '@/infra/adapters/payment/runtime-bindings';
 import { getPaymentService } from '@/infra/adapters/payment/service';
+import {
+  buildPaymentNotifyPostLogic,
+  type PaymentNotifyRouteDeps,
+} from '@/server/api/payment/notify-action';
 
 import { ServiceUnavailableError } from '@/shared/lib/api/errors';
 import { withApi } from '@/shared/lib/api/route';
 import { resolveConfigConsistencyMode } from '@/shared/lib/config-consistency';
-
-import {
-  buildPaymentNotifyPostLogic,
-  type PaymentNotifyRouteDeps,
-} from './route-logic';
 
 const routeDeps: PaymentNotifyRouteDeps = {
   createApiContext,

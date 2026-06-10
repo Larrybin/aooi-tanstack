@@ -158,3 +158,78 @@ a {
   color: #476280;
   font-size: 14px;
 }
+
+.pricing-faq,
+.pricing-testimonials {
+  margin-top: 56px;
+}
+
+.pricing-section-heading {
+  max-width: 720px;
+  margin: 0 auto 24px;
+  text-align: center;
+}
+
+.pricing-section-heading h2 {
+  margin: 0 0 10px;
+  font-size: 32px;
+  letter-spacing: -0.03em;
+}
+
+.pricing-section-heading p {
+  margin: 0;
+  color: #5c667a;
+  line-height: 1.65;
+}
+
+.pricing-faq-list,
+.pricing-testimonial-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.pricing-faq-item,
+.pricing-testimonial {
+  border: 1px solid #dfe5f2;
+  border-radius: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 16px 48px rgba(22, 34, 64, 0.06);
+}
+
+.pricing-faq-item h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.pricing-faq-item p,
+.pricing-testimonial p {
+  margin: 0;
+  color: #4c566a;
+  line-height: 1.65;
+}
+
+.pricing-testimonial {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.pricing-testimonial > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pricing-testimonial strong,
+.pricing-testimonial span {
+  display: block;
+}
+
+.pricing-testimonial span {
+  margin-top: 2px;
+  color: #667085;
+  font-size: 14px;
+}

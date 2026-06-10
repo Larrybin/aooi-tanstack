@@ -15,6 +15,7 @@ import {
 import type { SitePricing } from '@/shared/types/blocks/pricing';
 
 import { resolvePricingPageContent } from './pricing-page-content';
+import { loadPricingPageMessages } from './pricing-page-messages';
 
 type SiteLocalizedPricing = Record<string, SitePricing>;
 
@@ -49,10 +50,14 @@ export async function resolvePricingRouteData({
   }
 
   const brand = buildBrandPlaceholderValues();
+  const { localizedPricingMessages, localizedLandingMessages } =
+    await loadPricingPageMessages(locale);
   const pricingContent = replaceBrandPlaceholdersDeep(
     resolvePricingPageContent({
       sitePricing,
       siteLocalePricing: getSiteLocalePricing(locale),
+      localizedPricingMessages,
+      localizedLandingMessages,
     }),
     brand
   ) as SitePricing;
