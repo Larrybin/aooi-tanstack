@@ -135,6 +135,7 @@ const requiredFiles = [
   'apps/web/src/routes/api/payment/notify.ts',
   'apps/web/src/routes/api/user/get-user-credits.ts',
   'apps/web/src/server/api-context.ts',
+  'src/app/api/user/get-user-credits/action.ts',
   'src/shared/seo/canonical.ts',
   'src/shared/i18n/locale.ts',
   'src/domains/pricing/application/pricing-page.ts',
@@ -210,6 +211,7 @@ const strictFiles = strictDirs.flatMap((dir) => walk(join(root, dir)));
 const forbiddenPatterns = [
   [/from\s+['"]next\//, 'next/* import'],
   [/from\s+['"]next-intl/, 'next-intl import'],
+  [/@next\/next/, '@next/next rule reference'],
   [/next-shims/, 'next-shims reference'],
   [/React\.use\(Promise\.resolve/, 'React.use(Promise.resolve(...))'],
   [/params\s*:\s*Promise/, 'params: Promise'],
@@ -290,6 +292,53 @@ for (const file of routeFiles) {
   }
 }
 
+const sharedRouteActionContracts = [
+  {
+    file: 'apps/web/src/routes/api/payment/checkout.ts',
+    required: [
+      [/createPaymentCheckoutPostAction/, 'createPaymentCheckoutPostAction'],
+    ],
+    forbidden: [
+      [/findPricingItemByProductId/, 'pricing item lookup'],
+      [/PaymentCheckoutBodySchema/, 'checkout body schema parsing'],
+      [/BadRequestError|NotFoundError/, 'checkout HTTP error branching'],
+    ],
+  },
+  {
+    file: 'apps/web/src/routes/api/payment/notify.ts',
+    required: [[/buildPaymentNotifyPostLogic/, 'buildPaymentNotifyPostLogic']],
+    forbidden: [
+      [/handlePaymentNotifyRequest/, 'payment notify flow invocation'],
+      [/PaymentNotifyFlowDeps/, 'payment notify flow deps assembly'],
+      [/onProcessFailure/, 'payment notify process-failure handler assembly'],
+    ],
+  },
+  {
+    file: 'apps/web/src/routes/api/user/get-user-credits.ts',
+    required: [[/createUserCreditsPostAction/, 'createUserCreditsPostAction']],
+    forbidden: [
+      [/readAccountCreditsSummaryUseCase/, 'credits use-case invocation'],
+      [/jsonOk/, 'credits HTTP response construction'],
+    ],
+  },
+];
+
+for (const contract of sharedRouteActionContracts) {
+  const abs = join(root, contract.file);
+  for (const [regex, label] of contract.required) {
+    if (!contains(abs, regex)) {
+      fail(`${contract.file} must use shared route action: ${label}`);
+    }
+  }
+  for (const [regex, label] of contract.forbidden) {
+    if (contains(abs, regex)) {
+      fail(`${contract.file} must not inline ${label}`);
+    }
+  }
+}
+
 if (!process.exitCode) {
-  console.log('tanstack native validation passed for Gate 0-3 baseline.');
+  console.log(
+    'tanstack native validation passed for Gate 0-3 baseline and Gate 3.1 slice contracts.'
+  );
 }

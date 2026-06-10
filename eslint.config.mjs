@@ -481,6 +481,12 @@ const eslintConfig = [
       ],
     },
   },
+  {
+    files: ['apps/web/**/*.{ts,tsx}'],
+    rules: {
+      '@next/next/no-head-element': 'off',
+    },
+  },
 ];
 
 export default eslintConfig;
