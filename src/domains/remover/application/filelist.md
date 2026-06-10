@@ -1,0 +1,23 @@
+# File List
+
+- `actor-session.ts`: 实现 remover 业务域的 actor session 逻辑。
+- `actor.test.ts`: 验证 actor 相关行为的自动化测试。
+- `cleanup.test.ts`: 验证 cleanup 相关行为的自动化测试。
+- `cleanup.ts`: 实现 remover 业务域的 cleanup 逻辑。
+- `delete-image.test.ts`: 验证 delete image 相关行为的自动化测试。
+- `delete-image.ts`: 实现 remover 业务域的 delete image 逻辑。
+- `download.test.ts`: 验证 download 相关行为的自动化测试。
+- `download.ts`: 实现 remover 业务域的 download 逻辑。
+- `filelist.md`: 记录当前目录下一层文件和子目录的大致作用。
+- `job-response.test.ts`: 验证 job response 相关行为的自动化测试。
+- `job-response.ts`: 实现 remover 业务域的 job response 逻辑。
+- `jobs.test.ts`: 验证 jobs 相关行为的自动化测试。
+- `jobs.ts`: 实现 remover 业务域的 jobs 逻辑。
+- `output.test.ts`: 验证 output 相关行为的自动化测试。
+- `output.ts`: 实现 remover 业务域的 output 逻辑。
+- `processing.test.ts`: 验证 processing 相关行为的自动化测试。
+- `processing.ts`: 实现 remover 业务域的 processing 逻辑。
+- `provider.test.ts`: 验证 provider 相关行为的自动化测试。
+- `provider.ts`: 实现 remover 业务域的 provider 逻辑。
+- `upload.test.ts`: 验证 upload 相关行为的自动化测试。
+- `upload.ts`: 实现 remover 业务域的 upload 逻辑。

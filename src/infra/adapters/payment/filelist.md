@@ -1,0 +1,23 @@
+# File List
+
+- `creem-mapper.ts`: 实现 creem mapper 平台基础设施或外部服务集成逻辑。
+- `creem-transport.test.ts`: 验证 creem transport 相关行为的自动化测试。
+- `creem-transport.ts`: 实现 creem transport 平台基础设施或外部服务集成逻辑。
+- `creem-webhook.ts`: 实现 creem webhook 平台基础设施或外部服务集成逻辑。
+- `creem.test.ts`: 验证 creem 相关行为的自动化测试。
+- `creem.ts`: 实现 creem 平台基础设施或外部服务集成逻辑。
+- `filelist.md`: 记录当前目录下一层文件和子目录的大致作用。
+- `paypal-mapper.ts`: 实现 paypal mapper 平台基础设施或外部服务集成逻辑。
+- `paypal-transport.test.ts`: 验证 paypal transport 相关行为的自动化测试。
+- `paypal-transport.ts`: 实现 paypal transport 平台基础设施或外部服务集成逻辑。
+- `paypal.ts`: 实现 paypal 平台基础设施或外部服务集成逻辑。
+- `provider-contract.test.ts`: 验证 provider contract 相关行为的自动化测试。
+- `provider-contract.ts`: 实现 provider contract 平台基础设施或外部服务集成逻辑。
+- `provider-facade.test.ts`: 验证 provider facade 相关行为的自动化测试。
+- `provider-mappers.test.ts`: 验证 provider mappers 相关行为的自动化测试。
+- `runtime-bindings.ts`: 实现 runtime bindings 平台基础设施或外部服务集成逻辑。
+- `service.ts`: 实现 service 平台基础设施或外部服务集成逻辑。
+- `stripe-mapper.ts`: 实现 stripe mapper 平台基础设施或外部服务集成逻辑。
+- `stripe-transport.test.ts`: 验证 stripe transport 相关行为的自动化测试。
+- `stripe-transport.ts`: 实现 stripe transport 平台基础设施或外部服务集成逻辑。
+- `stripe.ts`: 实现 stripe 平台基础设施或外部服务集成逻辑。

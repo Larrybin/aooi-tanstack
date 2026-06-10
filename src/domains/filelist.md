@@ -1,0 +1,21 @@
+# File List
+
+- `access-control/`: access-control 业务域的应用、领域、基础设施和 UI 代码目录。
+- `account/`: account 业务域的应用、领域、基础设施和 UI 代码目录。
+- `ai/`: ai 业务域的应用、领域、基础设施和 UI 代码目录。
+- `background-remover/`: background-remover 业务域的应用、领域、基础设施和 UI 代码目录。
+- `billing/`: billing 业务域的应用、领域、基础设施和 UI 代码目录。
+- `chat/`: chat 业务域的应用、领域、基础设施和 UI 代码目录。
+- `content/`: content 业务域的应用、领域、基础设施和 UI 代码目录。
+- `entitlements/`: entitlements 业务域的应用、领域、基础设施和 UI 代码目录。
+- `mp4-compressor/`: mp4-compressor 业务域的应用、领域、基础设施和 UI 代码目录。
+- `pricing/`: pricing 业务域的应用、领域、基础设施和 UI 代码目录。
+- `product-access/`: product-access 业务域的应用、领域、基础设施和 UI 代码目录。
+- `product-entitlements/`: product-entitlements 业务域的应用、领域、基础设施和 UI 代码目录。
+- `product-quota/`: product-quota 业务域的应用、领域、基础设施和 UI 代码目录。
+- `product-runtime/`: product-runtime 业务域的应用、领域、基础设施和 UI 代码目录。
+- `remover/`: remover 业务域的应用、领域、基础设施和 UI 代码目录。
+- `settings/`: settings 业务域的应用、领域、基础设施和 UI 代码目录。
+- `text-to-speech-generator/`: text-to-speech-generator 业务域的应用、领域、基础设施和 UI 代码目录。
+- `.gitkeep`: 保留当前空目录或占位目录，使其能被 Git 跟踪。
+- `filelist.md`: 记录当前目录下一层文件和子目录的大致作用。

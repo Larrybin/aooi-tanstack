@@ -1,0 +1,34 @@
+# File List
+
+- `harness/`: harness 相关文件的归类目录。
+- `admin-settings-smoke.ts`: 执行 admin settings smoke 相关的项目维护或自动化任务。
+- `cf-oauth-spike-report.test.ts`: 验证 cf oauth spike report 相关行为的自动化测试。
+- `cf-oauth-spike-report.ts`: 执行 cf oauth spike report 相关的项目维护或自动化任务。
+- `cf-oauth-spike.test.ts`: 验证 cf oauth spike 相关行为的自动化测试。
+- `cf-oauth-spike.ts`: 执行 cf oauth spike 相关的项目维护或自动化任务。
+- `cli-db.ts`: 执行 cli db 相关的项目维护或自动化任务。
+- `cloudflare-build-artifacts.mjs`: 执行 cloudflare build artifacts 相关的项目维护或自动化任务。
+- `cloudflare-command-entrypoints.mjs`: 执行 cloudflare command entrypoints 相关的项目维护或自动化任务。
+- `cloudflare-dev-runtime.mjs`: 执行 cloudflare dev runtime 相关的项目维护或自动化任务。
+- `cloudflare-local-topology.mjs`: 执行 cloudflare local topology 相关的项目维护或自动化任务。
+- `cloudflare-preview-optional-secrets.mjs`: 执行 cloudflare preview optional secrets 相关的项目维护或自动化任务。
+- `cloudflare-preview-smoke.mjs`: 执行 cloudflare preview smoke 相关的项目维护或自动化任务。
+- `cloudflare-provisioning.mjs`: 执行 cloudflare provisioning 相关的项目维护或自动化任务。
+- `cloudflare-runtime-bindings.mjs`: 执行 cloudflare runtime bindings 相关的项目维护或自动化任务。
+- `current-site.mjs`: 执行 current site 相关的项目维护或自动化任务。
+- `filelist.md`: 记录当前目录下一层文件和子目录的大致作用。
+- `node-process-env.mjs`: 执行 node process env 相关的项目维护或自动化任务。
+- `product-runtime-contracts.mjs`: 执行 product runtime contracts 相关的项目维护或自动化任务。
+- `site-bootstrap.mjs`: 执行 site bootstrap 相关的项目维护或自动化任务。
+- `site-config.mjs`: 执行 site config 相关的项目维护或自动化任务。
+- `site-content-config.mjs`: 执行 site content config 相关的项目维护或自动化任务。
+- `site-deploy-contract.mjs`: 执行 site deploy contract 相关的项目维护或自动化任务。
+- `site-deploy-profile.mjs`: 执行 site deploy profile 相关的项目维护或自动化任务。
+- `site-deploy-settings.mjs`: 执行 site deploy settings 相关的项目维护或自动化任务。
+- `site-i18n-check.mjs`: 执行 site i18n check 相关的项目维护或自动化任务。
+- `site-i18n-content-assets.mjs`: 执行 site i18n content assets 相关的项目维护或自动化任务。
+- `site-i18n-content-gates.mjs`: 执行 site i18n content gates 相关的项目维护或自动化任务。
+- `site-i18n-glossary.mjs`: 执行 site i18n glossary 相关的项目维护或自动化任务。
+- `site-i18n-pages.mjs`: 执行 site i18n pages 相关的项目维护或自动化任务。
+- `site-pricing.mjs`: 执行 site pricing 相关的项目维护或自动化任务。
+- `site-route-pruning.mjs`: 执行 site route pruning 相关的项目维护或自动化任务。

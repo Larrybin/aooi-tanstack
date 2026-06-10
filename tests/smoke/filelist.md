@@ -1,0 +1,56 @@
+# File List
+
+- `admin-settings-module-contract.test.ts`: 验证 admin settings module contract 相关行为的自动化测试。
+- `ai-remover-cloudflare-dev.test.ts`: 验证 ai remover cloudflare dev 相关行为的自动化测试。
+- `auth-dual-runtime.test.ts`: 验证 auth dual runtime 相关行为的自动化测试。
+- `auth-error-url-cases.ts`: 覆盖 auth error url cases 相关仓库级行为的测试。
+- `auth-spike-logic.test.ts`: 验证 auth spike logic 相关行为的自动化测试。
+- `auth-spike.browser.test.ts`: 验证 auth spike browser 相关行为的自动化测试。
+- `cf-app-smoke.test.ts`: 验证 cf app smoke 相关行为的自动化测试。
+- `cf-preview-smoke.test.ts`: 验证 cf preview smoke 相关行为的自动化测试。
+- `check-cf-typegen.test.ts`: 验证 check cf typegen 相关行为的自动化测试。
+- `check-cloudflare-config.test.ts`: 验证 check cloudflare config 相关行为的自动化测试。
+- `check-release-inputs.test.ts`: 验证 check release inputs 相关行为的自动化测试。
+- `cloudflare-command-entry-consistency.test.ts`: 验证 cloudflare command entry consistency 相关行为的自动化测试。
+- `cloudflare-dev-runtime.test.ts`: 验证 cloudflare dev runtime 相关行为的自动化测试。
+- `cloudflare-local-release-governance.test.ts`: 验证 cloudflare local release governance 相关行为的自动化测试。
+- `cloudflare-local-topology.test.ts`: 验证 cloudflare local topology 相关行为的自动化测试。
+- `cloudflare-multi-worker-contract.test.ts`: 验证 cloudflare multi worker contract 相关行为的自动化测试。
+- `cloudflare-router-forwarding.test.ts`: 验证 cloudflare router forwarding 相关行为的自动化测试。
+- `cloudflare-runtime-bindings.test.ts`: 验证 cloudflare runtime bindings 相关行为的自动化测试。
+- `codex-i18n-skills.test.ts`: 验证 codex i18n skills 相关行为的自动化测试。
+- `create-cf-secrets-file.test.ts`: 验证 create cf secrets file 相关行为的自动化测试。
+- `create-cf-wrangler-config.test.ts`: 验证 create cf wrangler config 相关行为的自动化测试。
+- `deploy-contract-resolver-purity.test.ts`: 验证 deploy contract resolver purity 相关行为的自动化测试。
+- `detect-cloudflare-acceptance-changes.test.ts`: 验证 detect cloudflare acceptance changes 相关行为的自动化测试。
+- `filelist.md`: 记录当前目录下一层文件和子目录的大致作用。
+- `harness.test.ts`: 验证 harness 相关行为的自动化测试。
+- `local-auth-spike.test.ts`: 验证 local auth spike 相关行为的自动化测试。
+- `mp4-compressor-assets.test.ts`: 验证 mp4 compressor assets 相关行为的自动化测试。
+- `multi-site-topology-signature.test.ts`: 验证 multi site topology signature 相关行为的自动化测试。
+- `oauth-spike.browser.test.ts`: 验证 oauth spike browser 相关行为的自动化测试。
+- `oauth-spike.shared.test.ts`: 验证 oauth spike shared 相关行为的自动化测试。
+- `remover-guest-limiter-smoke.test.ts`: 验证 remover guest limiter smoke 相关行为的自动化测试。
+- `remover-workers-ai-spike.test.ts`: 验证 remover workers ai spike 相关行为的自动化测试。
+- `run-auth-spike.test.ts`: 验证 run auth spike 相关行为的自动化测试。
+- `run-cf-admin-settings-smoke.test.ts`: 验证 run cf admin settings smoke 相关行为的自动化测试。
+- `run-cf-app-deploy.test.ts`: 验证 run cf app deploy 相关行为的自动化测试。
+- `run-cf-build.test.ts`: 验证 run cf build 相关行为的自动化测试。
+- `run-cf-local-smoke.test.ts`: 验证 run cf local smoke 相关行为的自动化测试。
+- `run-cf-multi-build-check.test.ts`: 验证 run cf multi build check 相关行为的自动化测试。
+- `run-cf-state-deploy.test.ts`: 验证 run cf state deploy 相关行为的自动化测试。
+- `run-local-cloudflare-release.test.ts`: 验证 run local cloudflare release 相关行为的自动化测试。
+- `run-with-site.test.ts`: 验证 run with site 相关行为的自动化测试。
+- `runtime-parity.test.ts`: 验证 runtime parity 相关行为的自动化测试。
+- `site-contract.test.ts`: 验证 site contract 相关行为的自动化测试。
+- `site-deploy-settings.test.ts`: 验证 site deploy settings 相关行为的自动化测试。
+- `site-env.test.ts`: 验证 site env 相关行为的自动化测试。
+- `site-gate.test.ts`: 验证 site gate 相关行为的自动化测试。
+- `site-i18n-check.test.ts`: 验证 site i18n check 相关行为的自动化测试。
+- `site-i18n-content-assets.test.ts`: 验证 site i18n content assets 相关行为的自动化测试。
+- `site-i18n-content-gates.test.ts`: 验证 site i18n content gates 相关行为的自动化测试。
+- `site-i18n-schema.test.ts`: 验证 site i18n schema 相关行为的自动化测试。
+- `site-preview-scripts.test.ts`: 验证 site preview scripts 相关行为的自动化测试。
+- `site-production-scripts.test.ts`: 验证 site production scripts 相关行为的自动化测试。
+- `site-schema.test.ts`: 验证 site schema 相关行为的自动化测试。
+- `smoke-runner.test.ts`: 验证 smoke runner 相关行为的自动化测试。

@@ -1,0 +1,41 @@
+# File List
+
+- `action/`: action 相关文件的归类目录。
+- `api/`: api 相关文件的归类目录。
+- `date/`: date 相关文件的归类目录。
+- `dom/`: dom 相关文件的归类目录。
+- `fetch/`: fetch 相关文件的归类目录。
+- `i18n/`: i18n 相关文件的归类目录。
+- `providers/`: providers 相关文件的归类目录。
+- `runtime/`: runtime 相关文件的归类目录。
+- `brand-url.test.ts`: 验证 brand url 相关行为的自动化测试。
+- `brand-url.ts`: 提供可复用的 brand url 共享能力。
+- `cache.ts`: 提供可复用的 cache 共享能力。
+- `callback-url.ts`: 提供可复用的 callback url 共享能力。
+- `cloudflare-local-smoke-config.test.ts`: 验证 cloudflare local smoke config 相关行为的自动化测试。
+- `cloudflare-local-smoke-config.ts`: 提供可复用的 cloudflare local smoke config 共享能力。
+- `config-consistency.test.ts`: 验证 config consistency 相关行为的自动化测试。
+- `config-consistency.ts`: 提供可复用的 config consistency 共享能力。
+- `cookie.ts`: 提供可复用的 cookie 共享能力。
+- `email.ts`: 提供可复用的 email 共享能力。
+- `env.ts`: 提供可复用的 env 共享能力。
+- `errors.ts`: 提供可复用的 errors 共享能力。
+- `filelist.md`: 记录当前目录下一层文件和子目录的大致作用。
+- `general-ui.client.ts`: 提供可复用的 general ui client 共享能力。
+- `general-ui.schema.ts`: 提供可复用的 general ui schema 共享能力。
+- `general-ui.ts`: 提供可复用的 general ui 共享能力。
+- `hash.ts`: 提供可复用的 hash 共享能力。
+- `json.ts`: 提供可复用的 json 共享能力。
+- `localize-callback-url.ts`: 提供可复用的 localize callback url 共享能力。
+- `map-cleanup.test.ts`: 验证 map cleanup 相关行为的自动化测试。
+- `map-cleanup.ts`: 提供可复用的 map cleanup 共享能力。
+- `middleware-request-headers.test.ts`: 验证 middleware request headers 相关行为的自动化测试。
+- `middleware-request-headers.ts`: 提供可复用的 middleware request headers 共享能力。
+- `next-cache.ts`: 提供可复用的 next cache 共享能力。
+- `post-date.ts`: 提供可复用的 post date 共享能力。
+- `storage-public-url.ts`: 提供可复用的 storage public url 共享能力。
+- `support-email.test.ts`: 验证 support email 相关行为的自动化测试。
+- `support-email.ts`: 提供可复用的 support email 共享能力。
+- `time.ts`: 提供可复用的 time 共享能力。
+- `utf8.ts`: 提供可复用的 utf8 共享能力。
+- `utils.ts`: 提供可复用的 utils 共享能力。

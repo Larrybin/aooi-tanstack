@@ -1,0 +1,58 @@
+# File List
+
+- `lib/`: 脚本复用工具和执行辅助函数目录。
+- `assign-role.ts`: 执行 assign role 相关的项目维护或自动化任务。
+- `bundle-cf-server-functions.mjs`: 执行 bundle cf server functions 相关的项目维护或自动化任务。
+- `check-cf-topology-signature.mjs`: 执行 check cf topology signature 相关的项目维护或自动化任务。
+- `check-cf-typegen.mjs`: 执行 check cf typegen 相关的项目维护或自动化任务。
+- `check-cloudflare-config.mjs`: 执行 check cloudflare config 相关的项目维护或自动化任务。
+- `check-db-schema.ts`: 执行 check db schema 相关的项目维护或自动化任务。
+- `check-release-inputs.mjs`: 执行 check release inputs 相关的项目维护或自动化任务。
+- `check-saas-product-contract.mjs`: 执行 check saas product contract 相关的项目维护或自动化任务。
+- `check-saas-product-contract.test.ts`: 验证 check saas product contract 相关行为的自动化测试。
+- `check-site-i18n-glossary.mjs`: 执行 check site i18n glossary 相关的项目维护或自动化任务。
+- `check-site-i18n-schema.mjs`: 执行 check site i18n schema 相关的项目维护或自动化任务。
+- `check-site-i18n.mjs`: 执行 check site i18n 相关的项目维护或自动化任务。
+- `conventions-index.mjs`: 执行 conventions index 相关的项目维护或自动化任务。
+- `create-cf-secrets-file.mjs`: 执行 create cf secrets file 相关的项目维护或自动化任务。
+- `create-cf-wrangler-config.mjs`: 执行 create cf wrangler config 相关的项目维护或自动化任务。
+- `detect-cloudflare-acceptance-changes.mjs`: 执行 detect cloudflare acceptance changes 相关的项目维护或自动化任务。
+- `filelist.md`: 记录当前目录下一层文件和子目录的大致作用。
+- `generate-content-source-module.mjs`: 执行 generate content source module 相关的项目维护或自动化任务。
+- `generate-site-module.mjs`: 执行 generate site module 相关的项目维护或自动化任务。
+- `grant-entitlement.ts`: 执行 grant entitlement 相关的项目维护或自动化任务。
+- `init-rbac.ts`: 执行 init rbac 相关的项目维护或自动化任务。
+- `next-build.mjs`: 执行 next build 相关的项目维护或自动化任务。
+- `postinstall.mjs`: 执行 postinstall 相关的项目维护或自动化任务。
+- `run-admin-settings-module-contract-smoke.mjs`: 执行 run admin settings module contract smoke 相关的项目维护或自动化任务。
+- `run-ai-remover-cloudflare-dev.mjs`: 执行 run ai remover cloudflare dev 相关的项目维护或自动化任务。
+- `run-auth-spike.mjs`: 执行 run auth spike 相关的项目维护或自动化任务。
+- `run-cf-admin-settings-smoke.mjs`: 执行 run cf admin settings smoke 相关的项目维护或自动化任务。
+- `run-cf-app-deploy.mjs`: 执行 run cf app deploy 相关的项目维护或自动化任务。
+- `run-cf-app-smoke.mjs`: 执行 run cf app smoke 相关的项目维护或自动化任务。
+- `run-cf-auth-spike.mjs`: 执行 run cf auth spike 相关的项目维护或自动化任务。
+- `run-cf-build-no-db.mjs`: 执行 run cf build no db 相关的项目维护或自动化任务。
+- `run-cf-build.mjs`: 执行 run cf build 相关的项目维护或自动化任务。
+- `run-cf-local-smoke.mjs`: 执行 run cf local smoke 相关的项目维护或自动化任务。
+- `run-cf-multi-build-check.mjs`: 执行 run cf multi build check 相关的项目维护或自动化任务。
+- `run-cf-oauth-spike.mjs`: 执行 run cf oauth spike 相关的项目维护或自动化任务。
+- `run-cf-state-deploy.mjs`: 执行 run cf state deploy 相关的项目维护或自动化任务。
+- `run-cf-typegen.mjs`: 执行 run cf typegen 相关的项目维护或自动化任务。
+- `run-local-auth-spike.mjs`: 执行 run local auth spike 相关的项目维护或自动化任务。
+- `run-local-cloudflare-release.mjs`: 执行 run local cloudflare release 相关的项目维护或自动化任务。
+- `run-remover-guest-limiter-smoke.mjs`: 执行 run remover guest limiter smoke 相关的项目维护或自动化任务。
+- `run-remover-workers-ai-spike.mjs`: 执行 run remover workers ai spike 相关的项目维护或自动化任务。
+- `run-tests.mjs`: 执行 run tests 相关的项目维护或自动化任务。
+- `run-tests.test.mjs`: 执行 run tests test 相关的项目维护或自动化任务。
+- `run-with-site.mjs`: 执行 run with site 相关的项目维护或自动化任务。
+- `self-check-rbac.ts`: 执行 self check rbac 相关的项目维护或自动化任务。
+- `site-contract.mjs`: 执行 site contract 相关的项目维护或自动化任务。
+- `site-gate.mjs`: 执行 site gate 相关的项目维护或自动化任务。
+- `site-preview.mjs`: 执行 site preview 相关的项目维护或自动化任务。
+- `site-production.mjs`: 执行 site production 相关的项目维护或自动化任务。
+- `site-schema.mjs`: 执行 site schema 相关的项目维护或自动化任务。
+- `smoke.mjs`: 执行 smoke 相关的项目维护或自动化任务。
+- `sync-open-next-generated-types.mjs`: 执行 sync open next generated types 相关的项目维护或自动化任务。
+- `tanstack-native-inventory.mjs`: 执行 tanstack native inventory 相关的项目维护或自动化任务。
+- `upsert-configs.ts`: 执行 upsert configs 相关的项目维护或自动化任务。
+- `validate-tanstack-native-migration.mjs`: 执行 validate tanstack native migration 相关的项目维护或自动化任务。

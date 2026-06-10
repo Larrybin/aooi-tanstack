@@ -1,0 +1,24 @@
+# File List
+
+- `application/`: settings 业务域的应用用例和服务编排目录。
+- `definitions/`: definitions 相关文件的归类目录。
+- `validators/`: validators 相关文件的归类目录。
+- `.gitkeep`: 保留当前空目录或占位目录，使其能被 Git 跟踪。
+- `bootstrap.test.ts`: 验证 bootstrap 相关行为的自动化测试。
+- `bootstrap.ts`: 实现 settings 业务域的 bootstrap 逻辑。
+- `filelist.md`: 记录当前目录下一层文件和子目录的大致作用。
+- `index.ts`: 汇总并导出当前目录的主要 TypeScript API。
+- `registry.test.ts`: 验证 registry 相关行为的自动化测试。
+- `registry.ts`: 实现 settings 业务域的 registry 逻辑。
+- `settings-actions.test.ts`: 验证 settings actions 相关行为的自动化测试。
+- `settings-form-mapper.test.ts`: 验证 settings form mapper 相关行为的自动化测试。
+- `settings-form-mapper.ts`: 实现 settings 业务域的 settings form mapper 逻辑。
+- `settings-normalizers.test.ts`: 验证 settings normalizers 相关行为的自动化测试。
+- `settings-normalizers.ts`: 实现 settings 业务域的 settings normalizers 逻辑。
+- `settings-submit-merge.ts`: 实现 settings 业务域的 settings submit merge 逻辑。
+- `site-aware.test.ts`: 验证 site aware 相关行为的自动化测试。
+- `site-aware.ts`: 实现 settings 业务域的 site aware 逻辑。
+- `tab-names.ts`: 实现 settings 业务域的 tab names 逻辑。
+- `tabs.ts`: 实现 settings 业务域的 tabs 逻辑。
+- `types.ts`: 实现 settings 业务域的 types 逻辑。
+- `value-rules.ts`: 实现 settings 业务域的 value rules 逻辑。

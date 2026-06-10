@@ -1,0 +1,49 @@
+# File List
+
+- `accordion.tsx`: 提供可复用的 accordion 共享能力。
+- `animated-grid-pattern.tsx`: 提供可复用的 animated grid pattern 共享能力。
+- `animated-group.tsx`: 提供可复用的 animated group 共享能力。
+- `avatar.tsx`: 提供可复用的 avatar 共享能力。
+- `badge.tsx`: 提供可复用的 badge 共享能力。
+- `breadcrumb.tsx`: 提供可复用的 breadcrumb 共享能力。
+- `button-group.tsx`: 提供可复用的 button group 共享能力。
+- `button.tsx`: 提供可复用的 button 共享能力。
+- `card.tsx`: 提供可复用的 card 共享能力。
+- `carousel.tsx`: 提供可复用的 carousel 共享能力。
+- `chart.tsx`: 提供可复用的 chart 共享能力。
+- `checkbox.tsx`: 提供可复用的 checkbox 共享能力。
+- `collapsible.tsx`: 提供可复用的 collapsible 共享能力。
+- `command.tsx`: 提供可复用的 command 共享能力。
+- `dialog.tsx`: 提供可复用的 dialog 共享能力。
+- `drawer.tsx`: 提供可复用的 drawer 共享能力。
+- `dropdown-menu.tsx`: 提供可复用的 dropdown menu 共享能力。
+- `filelist.md`: 记录当前目录下一层文件和子目录的大致作用。
+- `form.tsx`: 提供可复用的 form 共享能力。
+- `highlighter.tsx`: 提供可复用的 highlighter 共享能力。
+- `hover-card.tsx`: 提供可复用的 hover card 共享能力。
+- `infinite-slider.tsx`: 提供可复用的 infinite slider 共享能力。
+- `input-group.tsx`: 提供可复用的 input group 共享能力。
+- `input.tsx`: 提供可复用的 input 共享能力。
+- `label.tsx`: 提供可复用的 label 共享能力。
+- `marquee.tsx`: 提供可复用的 marquee 共享能力。
+- `navigation-menu.tsx`: 提供可复用的 navigation menu 共享能力。
+- `pagination.tsx`: 提供可复用的 pagination 共享能力。
+- `progress.tsx`: 提供可复用的 progress 共享能力。
+- `progressive-blur.tsx`: 提供可复用的 progressive blur 共享能力。
+- `radio-group.tsx`: 提供可复用的 radio group 共享能力。
+- `scroll-animation.tsx`: 提供可复用的 scroll animation 共享能力。
+- `scroll-area.tsx`: 提供可复用的 scroll area 共享能力。
+- `select.tsx`: 提供可复用的 select 共享能力。
+- `separator.tsx`: 提供可复用的 separator 共享能力。
+- `sheet.tsx`: 提供可复用的 sheet 共享能力。
+- `sidebar.tsx`: 提供可复用的 sidebar 共享能力。
+- `skeleton.tsx`: 提供可复用的 skeleton 共享能力。
+- `sonner.tsx`: 提供可复用的 sonner 共享能力。
+- `switch.tsx`: 提供可复用的 switch 共享能力。
+- `table.tsx`: 提供可复用的 table 共享能力。
+- `tabs.tsx`: 提供可复用的 tabs 共享能力。
+- `text-effect.tsx`: 提供可复用的 text effect 共享能力。
+- `textarea.tsx`: 提供可复用的 textarea 共享能力。
+- `toggle-group.tsx`: 提供可复用的 toggle group 共享能力。
+- `toggle.tsx`: 提供可复用的 toggle 共享能力。
+- `tooltip.tsx`: 提供可复用的 tooltip 共享能力。

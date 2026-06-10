@@ -1,0 +1,22 @@
+# File List
+
+- `1.png`: 提供前端可直接访问的 1 静态资源。
+- `10.png`: 提供前端可直接访问的 10 静态资源。
+- `2.png`: 提供前端可直接访问的 2 静态资源。
+- `3.png`: 提供前端可直接访问的 3 静态资源。
+- `4.png`: 提供前端可直接访问的 4 静态资源。
+- `5.png`: 提供前端可直接访问的 5 静态资源。
+- `6.png`: 提供前端可直接访问的 6 静态资源。
+- `7.png`: 提供前端可直接访问的 7 静态资源。
+- `8.png`: 提供前端可直接访问的 8 静态资源。
+- `9.png`: 提供前端可直接访问的 9 静态资源。
+- `admin-dark.jpg`: 提供前端可直接访问的 admin dark 静态资源。
+- `admin-dark.png`: 提供前端可直接访问的 admin dark 静态资源。
+- `admin-settings.png`: 提供前端可直接访问的 admin settings 静态资源。
+- `admin.jpg`: 提供前端可直接访问的 admin 静态资源。
+- `admin.png`: 提供前端可直接访问的 admin 静态资源。
+- `filelist.md`: 记录当前目录下一层文件和子目录的大致作用。
+- `landing-page.png`: 提供前端可直接访问的 landing page 静态资源。
+- `music-dark.png`: 提供前端可直接访问的 music dark 静态资源。
+- `music.png`: 提供前端可直接访问的 music 静态资源。
+- `user-billing.png`: 提供前端可直接访问的 user billing 静态资源。

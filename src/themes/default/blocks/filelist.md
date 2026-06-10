@@ -1,0 +1,28 @@
+# File List
+
+- `blog-detail-inline-content.ts`: 实现 blog detail inline content TypeScript 逻辑。
+- `blog-detail.test.ts`: 验证 blog detail 相关行为的自动化测试。
+- `blog-detail.tsx`: 实现 blog detail React 组件或页面。
+- `blog.tsx`: 实现 blog React 组件或页面。
+- `cta.tsx`: 实现 cta React 组件或页面。
+- `faq.tsx`: 实现 faq React 组件或页面。
+- `features-accordion.tsx`: 实现 features accordion React 组件或页面。
+- `features-list.tsx`: 实现 features list React 组件或页面。
+- `features-step.tsx`: 实现 features step React 组件或页面。
+- `features.tsx`: 实现 features React 组件或页面。
+- `filelist.md`: 记录当前目录下一层文件和子目录的大致作用。
+- `footer.tsx`: 实现 footer React 组件或页面。
+- `header.tsx`: 实现 header React 组件或页面。
+- `hero.tsx`: 实现 hero React 组件或页面。
+- `index.tsx`: 汇总并导出当前目录的主要 React 组件 API。
+- `logos.tsx`: 实现 logos React 组件或页面。
+- `marketing-footer.tsx`: 实现 marketing footer React 组件或页面。
+- `marketing-header.tsx`: 实现 marketing header React 组件或页面。
+- `page-detail.tsx`: 实现 page detail React 组件或页面。
+- `pricing-auth-redirect.test.ts`: 验证 pricing auth redirect 相关行为的自动化测试。
+- `pricing-auth-redirect.ts`: 实现 pricing auth redirect TypeScript 逻辑。
+- `pricing.tsx`: 实现 pricing React 组件或页面。
+- `social-avatars.tsx`: 实现 social avatars React 组件或页面。
+- `stats.tsx`: 实现 stats React 组件或页面。
+- `subscribe.tsx`: 实现 subscribe React 组件或页面。
+- `testimonials.tsx`: 实现 testimonials React 组件或页面。

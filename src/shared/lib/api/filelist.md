@@ -1,0 +1,22 @@
+# File List
+
+- `client.ts`: 提供可复用的 client 共享能力。
+- `csrf.server.ts`: 提供可复用的 csrf server 共享能力。
+- `errors.test.ts`: 验证 errors 相关行为的自动化测试。
+- `errors.ts`: 提供可复用的 errors 共享能力。
+- `fetch-json.ts`: 提供可复用的 fetch json 共享能力。
+- `filelist.md`: 记录当前目录下一层文件和子目录的大致作用。
+- `limiters-config.test.ts`: 验证 limiters config 相关行为的自动化测试。
+- `limiters-config.ts`: 提供可复用的 limiters config 共享能力。
+- `limiters-factory.ts`: 提供可复用的 limiters factory 共享能力。
+- `limiters.test.ts`: 验证 limiters 相关行为的自动化测试。
+- `limiters.ts`: 提供可复用的 limiters 共享能力。
+- `parse.test.ts`: 验证 parse 相关行为的自动化测试。
+- `parse.ts`: 提供可复用的 parse 共享能力。
+- `rate-limit-store.ts`: 提供可复用的 rate limit store 共享能力。
+- `request-id.test.ts`: 验证 request id 相关行为的自动化测试。
+- `request-id.ts`: 提供可复用的 request id 共享能力。
+- `response-headers.ts`: 提供可复用的 response headers 共享能力。
+- `response.ts`: 提供可复用的 response 共享能力。
+- `route.test.ts`: 验证 route 相关行为的自动化测试。
+- `route.ts`: 定义当前 API 或特殊路由的请求处理逻辑。

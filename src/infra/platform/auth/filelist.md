@@ -1,0 +1,26 @@
+# File List
+
+- `auth-spike-redirect.test.ts`: 验证 auth spike redirect 相关行为的自动化测试。
+- `auth-spike-redirect.ts`: 实现 auth spike redirect 平台基础设施或外部服务集成逻辑。
+- `client.ts`: 实现 client 平台基础设施或外部服务集成逻辑。
+- `config.ts`: 实现 config 平台基础设施或外部服务集成逻辑。
+- `filelist.md`: 记录当前目录下一层文件和子目录的大致作用。
+- `index.ts`: 汇总并导出当前目录的主要 TypeScript API。
+- `oauth-spike-config.test.ts`: 验证 oauth spike config 相关行为的自动化测试。
+- `oauth-spike-config.ts`: 实现 oauth spike config 平台基础设施或外部服务集成逻辑。
+- `oauth-spike.mock.test.ts`: 验证 oauth spike mock 相关行为的自动化测试。
+- `oauth-spike.mock.ts`: 实现 oauth spike mock 平台基础设施或外部服务集成逻辑。
+- `reset-password-throttle.ts`: 实现 reset password throttle 平台基础设施或外部服务集成逻辑。
+- `runtime-origin.test.ts`: 验证 runtime origin 相关行为的自动化测试。
+- `runtime-origin.ts`: 实现 runtime origin 平台基础设施或外部服务集成逻辑。
+- `server-bindings.ts`: 实现 server bindings 平台基础设施或外部服务集成逻辑。
+- `session-by-request.ts`: 实现 session by request 平台基础设施或外部服务集成逻辑。
+- `session-cookie.test.ts`: 验证 session cookie 相关行为的自动化测试。
+- `session-cookie.ts`: 实现 session cookie 平台基础设施或外部服务集成逻辑。
+- `session-reader.test.ts`: 验证 session reader 相关行为的自动化测试。
+- `session-reader.ts`: 实现 session reader 平台基础设施或外部服务集成逻辑。
+- `session.server.ts`: 实现 session server 平台基础设施或外部服务集成逻辑。
+- `social-authorization-url.test.ts`: 验证 social authorization url 相关行为的自动化测试。
+- `social-authorization-url.ts`: 实现 social authorization url 平台基础设施或外部服务集成逻辑。
+- `user-snapshot.test.ts`: 验证 user snapshot 相关行为的自动化测试。
+- `user-snapshot.ts`: 实现 user snapshot 平台基础设施或外部服务集成逻辑。
