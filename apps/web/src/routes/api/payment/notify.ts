@@ -1,14 +1,13 @@
 import {
+  buildPaymentNotifyPostLogic,
+  type PaymentNotifyRouteDeps,
+} from '@/app/api/payment/notify/route-logic';
+import {
   handleCheckoutSuccess,
   handleSubscriptionCanceled,
   handleSubscriptionRenewal,
   handleSubscriptionUpdated,
 } from '@/domains/billing/application/flows';
-import {
-  handlePaymentNotifyRequest,
-  type PaymentNotifyFlowDeps,
-} from '@/domains/billing/application/payment-notify-flow';
-import type { PaymentNotifyDeps } from '@/domains/billing/application/process-payment-notify';
 import {
   findOrderByInvoiceId,
   findOrderByOrderNo,
@@ -24,16 +23,8 @@ import {
   serializePaymentWebhookHeaders,
 } from '@/domains/billing/infra/payment-webhook-inbox';
 import { findSubscriptionByProviderSubscriptionId } from '@/domains/billing/infra/subscription';
-import type {
-  ActiveBillingRuntimeSettings,
-  ActivePaymentRuntimeBindings,
-  BillingRuntimeSettings,
-} from '@/domains/settings/application/settings-runtime.contracts';
 import { getPaymentRuntimeBindings } from '@/infra/adapters/payment/runtime-bindings';
-import {
-  getPaymentService,
-  type PaymentService,
-} from '@/infra/adapters/payment/service';
+import { getPaymentService } from '@/infra/adapters/payment/service';
 import { createFileRoute } from '@tanstack/react-router';
 
 import { assertPaymentCapabilityEnabled } from '@/config/payment-capability';
@@ -44,24 +35,9 @@ import { resolveConfigConsistencyMode } from '@/shared/lib/config-consistency';
 import { createTanStackApiContext } from '../../../server/api-context';
 import { readTanStackBillingRuntimeSettings } from '../../../server/billing-runtime';
 
-type PaymentNotifyRouteDeps = PaymentNotifyDeps & {
-  createPaymentWebhookInboxReceipt: PaymentNotifyFlowDeps['createPaymentWebhookInboxReceipt'];
-  recordPaymentWebhookInboxCanonicalEvent: PaymentNotifyFlowDeps['recordPaymentWebhookInboxCanonicalEvent'];
-  markPaymentWebhookInboxAttempt: PaymentNotifyFlowDeps['markPaymentWebhookInboxAttempt'];
-  markPaymentWebhookInboxProcessFailed: PaymentNotifyFlowDeps['markPaymentWebhookInboxProcessFailed'];
-  markPaymentWebhookInboxProcessed: PaymentNotifyFlowDeps['markPaymentWebhookInboxProcessed'];
-  serializePaymentWebhookHeaders: PaymentNotifyFlowDeps['serializePaymentWebhookHeaders'];
-  readBillingRuntimeSettingsCached: () => Promise<BillingRuntimeSettings>;
-  readBillingRuntimeSettingsFresh: () => Promise<BillingRuntimeSettings>;
-  readPaymentRuntimeBindings: () => ActivePaymentRuntimeBindings;
-  createPaymentService: (input: {
-    settings: ActiveBillingRuntimeSettings;
-    bindings: ActivePaymentRuntimeBindings;
-  }) => Promise<PaymentService>;
-  now: PaymentNotifyFlowDeps['now'];
-};
-
 const paymentNotifyDeps: PaymentNotifyRouteDeps = {
+  createApiContext: createTanStackApiContext,
+  requirePaymentCapability: assertPaymentCapabilityEnabled,
   findOrderByInvoiceId,
   findOrderByOrderNo,
   findOrderByTransactionId,
@@ -77,6 +53,7 @@ const paymentNotifyDeps: PaymentNotifyRouteDeps = {
   markPaymentWebhookInboxProcessFailed,
   markPaymentWebhookInboxProcessed,
   serializePaymentWebhookHeaders,
+  resolveConfigConsistencyMode,
   readBillingRuntimeSettingsCached: readTanStackBillingRuntimeSettings,
   readBillingRuntimeSettingsFresh: readTanStackBillingRuntimeSettings,
   readPaymentRuntimeBindings: () => {
@@ -93,50 +70,9 @@ const paymentNotifyDeps: PaymentNotifyRouteDeps = {
   now: () => new Date(),
 };
 
-const postPaymentNotify = withApi(async (request: Request) => {
-  const provider = assertPaymentCapabilityEnabled();
-  const api = createTanStackApiContext(request);
-  const mode = resolveConfigConsistencyMode(request);
-  const settings =
-    mode === 'fresh'
-      ? await paymentNotifyDeps.readBillingRuntimeSettingsFresh()
-      : await paymentNotifyDeps.readBillingRuntimeSettingsCached();
-
-  if (settings.provider === 'none') {
-    throw new Error(
-      'payment notify settings cannot be resolved for payment=none'
-    );
-  }
-
-  const bindings = paymentNotifyDeps.readPaymentRuntimeBindings();
-  const paymentService = await paymentNotifyDeps.createPaymentService({
-    settings: settings as ActiveBillingRuntimeSettings,
-    bindings,
-  });
-
-  const flowDeps: PaymentNotifyFlowDeps = {
-    ...paymentNotifyDeps,
-    getPaymentEvent: (inputReq) =>
-      paymentService.getPaymentEvent({
-        req: inputReq,
-      }),
-    onProcessFailure: ({ provider: failedProvider, inboxId, error }) => {
-      api.log.error('payment: webhook inbox process failed', {
-        operation: 'process-webhook-inbox',
-        provider: failedProvider,
-        inboxId,
-        error,
-      });
-    },
-  };
-
-  return handlePaymentNotifyRequest({
-    provider,
-    req: request,
-    log: api.log,
-    deps: flowDeps,
-  });
-});
+const postPaymentNotify = withApi(
+  buildPaymentNotifyPostLogic(paymentNotifyDeps)
+);
 
 export const Route = createFileRoute('/api/payment/notify')({
   server: {
