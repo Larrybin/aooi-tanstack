@@ -30,8 +30,14 @@ const SITE_REQUIRED_COMMANDS = [
 ];
 const CONTENT_GENERATION_REQUIRED_COMMANDS = [
   'pnpm exec next',
+  'pnpm exec tsc',
+  'pnpm exec vite',
   'node scripts/next-build.mjs',
+  'node scripts/run-tests.mjs',
+  'node scripts/validate-tanstack-native-migration.mjs',
   'pnpm exec @better-auth/cli generate',
+  'pnpm exec opennextjs-cloudflare build',
+  'node --import tsx scripts/run-cf-build.mjs',
   'node --import tsx scripts/smoke.mjs',
   'node --import tsx scripts/run-cf-app-deploy.mjs',
   'node --import tsx scripts/run-cf-state-deploy.mjs',
@@ -59,7 +65,7 @@ function requiresExplicitSite(commandParts) {
   );
 }
 
-function requiresContentGeneration(commandParts) {
+export function requiresContentGeneration(commandParts) {
   const joinedCommand = joinCommand(commandParts);
   return CONTENT_GENERATION_REQUIRED_COMMANDS.some((prefix) =>
     joinedCommand.startsWith(prefix)

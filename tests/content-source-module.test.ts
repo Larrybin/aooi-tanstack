@@ -19,6 +19,10 @@ const generatedContentSourcePath = path.resolve(
   rootDir,
   '.generated/content-source.ts'
 );
+const generatedPublicContentPath = path.resolve(
+  rootDir,
+  '.generated/public-content.ts'
+);
 
 async function runGenerateContentSource(siteKey: string) {
   await execFileAsync(
@@ -36,6 +40,20 @@ async function runGenerateContentSource(siteKey: string) {
 
 async function readGeneratedContentSource() {
   return await readFile(generatedContentSourcePath, 'utf8');
+}
+
+async function readGeneratedPublicContent() {
+  return await readFile(generatedPublicContentPath, 'utf8');
+}
+
+async function runTanStackValidate(siteKey: string) {
+  await execFileAsync('pnpm', ['tanstack:validate'], {
+    cwd: rootDir,
+    env: {
+      ...process.env,
+      SITE: siteKey,
+    },
+  });
 }
 
 async function readGeneratedArtifactIndex(siteKey: string) {
@@ -80,12 +98,69 @@ test('@/content-source: SITE=dev-local points to versioned .source/dev-local art
   assert.match(pointer.versionId, /^build-\d+-\d+$/);
 });
 
+test('@/public-content: SITE=dev-local emits serializable public content manifest', async () => {
+  await runGenerateContentSource('dev-local');
+
+  const publicContentSource = await readGeneratedPublicContent();
+
+  assert.match(publicContentSource, /collection": "pages"/);
+  assert.match(publicContentSource, /publicContentSiteKey = "dev-local"/);
+  assert.match(
+    publicContentSource,
+    /publicContentArtifactVersion = "build-\d+-\d+"/
+  );
+  assert.match(publicContentSource, /slug": "privacy-policy"/);
+  assert.match(publicContentSource, /content":/);
+  assert.doesNotMatch(publicContentSource, /from ['"]react['"]/);
+  assert.doesNotMatch(publicContentSource, /from ['"]fumadocs/);
+  assert.doesNotMatch(publicContentSource, /@\/mdx-components/);
+  assert.doesNotMatch(publicContentSource, /docs\.css/);
+});
+
+test('@/public-content: manifest TOC heading ids match markdown renderer slugs', async () => {
+  await runGenerateContentSource('dev-local');
+
+  const publicContentSource = await readGeneratedPublicContent();
+
+  assert.match(publicContentSource, /#8-性能next--tailwind--ts-交叉点/);
+  assert.match(publicContentSource, /"title": "Database",\n\s+"url": "#database"/);
+  assert.doesNotMatch(publicContentSource, /"url": "#database-1"/);
+  assert.doesNotMatch(publicContentSource, /"url": "#auth-secret"/);
+  assert.doesNotMatch(
+    publicContentSource,
+    /"url": "#openssl-rand--base64-32"/
+  );
+});
+
+test('@/public-content: tanstack validation regenerates stale site manifest', async () => {
+  await runGenerateContentSource('mamamiya');
+  assert.match(
+    await readGeneratedPublicContent(),
+    /publicContentSiteKey = "mamamiya"/
+  );
+
+  await runTanStackValidate('dev-local');
+
+  assert.match(
+    await readGeneratedPublicContent(),
+    /publicContentSiteKey = "dev-local"/
+  );
+});
+
 test('@/content-source: SITE=mamamiya points to versioned .source/mamamiya artifact', async () => {
   await runGenerateContentSource('mamamiya');
   const pointer = parseGeneratedPointer(await readGeneratedContentSource());
 
   assert.equal(pointer.siteKey, 'mamamiya');
   assert.match(pointer.versionId, /^build-\d+-\d+$/);
+});
+
+test('@/public-content: SITE=mamamiya skips unsupported locale suffixes', async () => {
+  await runGenerateContentSource('mamamiya');
+
+  const publicContentSource = await readGeneratedPublicContent();
+
+  assert.doesNotMatch(publicContentSource, /terms-of-service\.zh-TW/);
 });
 
 test('@/content-source: SITE=mamamiya includes grouped docs entrypoints', async () => {

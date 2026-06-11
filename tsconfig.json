@@ -23,7 +23,8 @@
     "paths": {
       "@/*": ["./src/*"],
       "@/site": ["./.generated/site.ts"],
-      "@/content-source": ["./.generated/content-source.ts"]
+      "@/content-source": ["./.generated/content-source.ts"],
+      "@/public-content": ["./.generated/public-content.ts"]
     }
   },
   "include": [

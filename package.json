@@ -86,7 +86,7 @@
     "tanstack:build": "node scripts/run-with-site.mjs pnpm exec vite build --config vite.config.mts",
     "tanstack:typecheck": "node scripts/run-with-site.mjs pnpm exec tsc --noEmit --pretty false --incremental false --project tsconfig.tanstack.json",
     "tanstack:inventory": "node scripts/tanstack-native-inventory.mjs",
-    "tanstack:validate": "node scripts/validate-tanstack-native-migration.mjs",
+    "tanstack:validate": "node scripts/run-with-site.mjs node scripts/validate-tanstack-native-migration.mjs",
     "tanstack:cf:build": "node -e \"if (!process.env.SITE) { console.error('SITE is required'); process.exit(1); }\" && node scripts/run-with-site.mjs pnpm exec vite build --config vite.config.mts"
   },
   "dependencies": {
