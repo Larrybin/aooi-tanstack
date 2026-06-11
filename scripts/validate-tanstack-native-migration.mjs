@@ -417,8 +417,11 @@ for (const file of routeFiles.filter(
 }
 
 const tanstackPageRouteFiles = routeFiles.filter(
-  (file) => !file.includes('/api/') && file !== 'apps/web/src/routes/index.tsx'
+  (file) => !file.includes('/api/')
 );
+const surfaceHelperExemptPageRoutes = new Set([
+  'apps/web/src/routes/index.tsx',
+]);
 const tanstackPageRouteClosureFiles = localRuntimeClosure(
   tanstackPageRouteFiles.map((file) => join(root, file))
 );
@@ -464,6 +467,7 @@ for (const file of tanstackPageRouteFiles) {
     }
   }
   if (
+    !surfaceHelperExemptPageRoutes.has(file) &&
     !contains(abs, /@\/surfaces\//) &&
     !contains(abs, /notFoundComponent:\s*\w+/)
   ) {
