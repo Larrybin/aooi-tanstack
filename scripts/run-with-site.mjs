@@ -36,6 +36,7 @@ const CONTENT_GENERATION_REQUIRED_COMMANDS = [
   'node scripts/run-tests.mjs',
   'node scripts/validate-tanstack-native-migration.mjs',
   'pnpm exec @better-auth/cli generate',
+  'pnpm exec opennextjs-cloudflare build',
   'node --import tsx scripts/run-cf-build.mjs',
   'node --import tsx scripts/smoke.mjs',
   'node --import tsx scripts/run-cf-app-deploy.mjs',

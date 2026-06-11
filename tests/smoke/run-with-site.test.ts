@@ -114,6 +114,15 @@ test('run-with-site regenerates content for TanStack commands', () => {
     true
   );
   assert.equal(
+    requiresContentGeneration([
+      'pnpm',
+      'exec',
+      'opennextjs-cloudflare',
+      'build',
+    ]),
+    true
+  );
+  assert.equal(
     requiresContentGeneration(['pnpm', 'exec', 'eslint', '.']),
     false
   );
