@@ -99,7 +99,7 @@ Count: 1
 
 ## Files with generateMetadata
 
-Count: 15
+Count: 16
 
 - `src/app/[locale]/(auth)/forgot-password/page.tsx`
 - `src/app/[locale]/(auth)/reset-password/page.tsx`
@@ -116,6 +116,7 @@ Count: 15
 - `src/app/[locale]/(landing)/page.tsx`
 - `src/app/[locale]/(landing)/pricing/page.tsx`
 - `src/app/[locale]/layout.tsx`
+- `src/app/_metadata/public-page-metadata.ts`
 
 ## Files with generateStaticParams
 
@@ -129,7 +130,7 @@ Count: 5
 
 ## Files with params: Promise
 
-Count: 55
+Count: 57
 
 - `src/app/[locale]/(admin)/admin/categories/[id]/edit/page.tsx`
 - `src/app/[locale]/(admin)/admin/categories/add/page.tsx`
@@ -178,6 +179,8 @@ Count: 55
 - `src/app/[locale]/(landing)/settings/layout.tsx`
 - `src/app/[locale]/(landing)/settings/page.tsx`
 - `src/app/[locale]/layout.tsx`
+- `src/app/_admin-support/create-admin-table-page.tsx`
+- `src/app/_metadata/public-page-metadata.ts`
 - `src/app/api/ai/notify-route.server.test.ts`
 - `src/app/api/ai/notify/[provider]/route.ts`
 - `src/app/api/background-remover/download/[id]/route.ts`

@@ -2,7 +2,7 @@
 // cache: default (no request-bound auth; no explicit fetch)
 // reason: public interactive page; keep server output cache-friendly
 import { MusicGenerator } from '@/domains/ai/ui';
-import { getMetadata } from '@/surfaces/public/seo/metadata';
+import { getMetadata } from '@/app/_metadata/public-page-metadata';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { PageHeader } from '@/shared/blocks/common/page-header';

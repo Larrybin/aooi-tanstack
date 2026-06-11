@@ -7,7 +7,7 @@ import {
   TaxonomyStatus,
   TaxonomyType,
 } from '@/domains/content/domain/taxonomy-types';
-import { buildAdminCrumbs, setupAdminPage } from '@/surfaces/admin/server';
+import { buildAdminCrumbs, setupAdminPage } from '@/app/_admin-support';
 import { getTranslations } from 'next-intl/server';
 
 import { Empty } from '@/shared/blocks/common/empty';

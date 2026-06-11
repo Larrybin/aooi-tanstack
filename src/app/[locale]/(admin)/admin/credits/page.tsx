@@ -9,7 +9,7 @@ import {
   ACCOUNT_CREDIT_TRANSACTION_TYPE,
   type AccountCreditTransactionType,
 } from '@/domains/account/application/use-cases';
-import { createAdminTablePage } from '@/surfaces/admin/create-admin-table-page';
+import { createAdminTablePage } from '@/app/_admin-support/create-admin-table-page';
 import {
   AdminCreditsListQuerySchema,
   type AdminCreditsListQuery,

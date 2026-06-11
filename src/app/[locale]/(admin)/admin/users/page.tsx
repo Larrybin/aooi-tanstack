@@ -5,7 +5,7 @@ import { accessControlRuntimeDeps } from '@/app/access-control/runtime-deps';
 import { accountRuntimeDeps } from '@/app/account/runtime-deps';
 import { listAdminUsersQuery } from '@/domains/account/application/admin-users.query';
 import type { AccountAdminUserRecord } from '@/domains/account/application/use-cases';
-import { createAdminTablePage } from '@/surfaces/admin/create-admin-table-page';
+import { createAdminTablePage } from '@/app/_admin-support/create-admin-table-page';
 import {
   AdminUsersListQuerySchema,
   type AdminUsersListQuery,

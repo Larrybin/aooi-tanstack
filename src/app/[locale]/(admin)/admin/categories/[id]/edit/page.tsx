@@ -2,7 +2,7 @@
 // cache: no-store (request-bound auth/RBAC)
 // reason: admin write flow; avoid caching across users/roles
 import { findTaxonomy } from '@/domains/content/application/taxonomy.query';
-import { buildAdminCrumbs, setupAdminPage } from '@/surfaces/admin/server';
+import { buildAdminCrumbs, setupAdminPage } from '@/app/_admin-support';
 import { getTranslations } from 'next-intl/server';
 
 import { Empty } from '@/shared/blocks/common/empty';

@@ -8,7 +8,7 @@ import { accessControlRuntimeDeps } from '@/app/access-control/runtime-deps';
 import { accountRuntimeDeps } from '@/app/account/runtime-deps';
 import { readAdminUserQuery } from '@/domains/account/application/admin-user.query';
 import { AdminUserUpdateFormSchema } from '@/surfaces/admin/schemas/user';
-import { validateAndParseForm } from '@/surfaces/admin/server/action-utils';
+import { validateAndParseForm } from '@/app/_admin-support/action-utils';
 import { z } from 'zod';
 
 import { PERMISSIONS } from '@/shared/constants/rbac-permissions';

@@ -1,13 +1,12 @@
 import 'server-only';
 
-import { getTranslations, setRequestLocale } from 'next-intl/server';
-
 import { buildBrandPlaceholderValues } from '@/infra/platform/brand/placeholders.server';
 import {
   buildCanonicalUrl,
   buildLanguageAlternates,
   buildMetadataBaseUrl,
 } from '@/infra/url/canonical';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 type MetadataFields = {
   title: string;
@@ -15,14 +14,13 @@ type MetadataFields = {
   keywords: string;
 };
 
-// get metadata for page component
 export function getMetadata(
   options: {
     title?: string;
     description?: string;
     keywords?: string;
     metadataKey?: string;
-    canonicalUrl?: string; // relative path or full url
+    canonicalUrl?: string;
     imageUrl?: string;
     appName?: string;
     noIndex?: boolean;
@@ -37,22 +35,17 @@ export function getMetadata(
     setRequestLocale(locale);
 
     const brand = buildBrandPlaceholderValues();
-
-    // passed metadata
     const passedMetadata = {
       title: options.title,
       description: options.description,
       keywords: options.keywords,
     };
-
-    // default metadata
     const defaultMetadata = applyBrandToMetadataFields(
       await getTranslatedMetadata(defaultMetadataKey, locale),
       { appName: brand.appName }
     );
-
-    // translated metadata
     let translatedMetadata: Partial<MetadataFields> = {};
+
     if (options.metadataKey) {
       translatedMetadata = applyBrandToMetadataFields(
         await getTranslatedMetadata(options.metadataKey, locale),
@@ -60,7 +53,6 @@ export function getMetadata(
       );
     }
 
-    // canonical url
     const canonicalUrl = buildCanonicalUrl(options.canonicalUrl || '/', locale);
     const canonicalPathForAlternates =
       options.canonicalUrl && options.canonicalUrl.startsWith('http')
@@ -69,42 +61,27 @@ export function getMetadata(
     const languageAlternates = canonicalPathForAlternates
       ? buildLanguageAlternates(canonicalPathForAlternates)
       : undefined;
-
     const title =
       passedMetadata.title || translatedMetadata.title || defaultMetadata.title;
     const description =
       passedMetadata.description ||
       translatedMetadata.description ||
       defaultMetadata.description;
-
-    // image url
-    let imageUrl = options.imageUrl || brand.appOgImage || '/logo.png';
-    if (imageUrl.startsWith('http')) {
-      imageUrl = imageUrl;
-    } else {
-      imageUrl = `${brand.appUrl}${imageUrl}`;
-    }
-
-    // app name
-    let appName = options.appName;
-    if (!appName) {
-      appName = brand.appName || '';
-    }
+    const keywords =
+      passedMetadata.keywords ||
+      translatedMetadata.keywords ||
+      defaultMetadata.keywords;
+    const imageUrl = normalizeImageUrl(
+      options.imageUrl || brand.appOgImage || '/logo.png',
+      brand.appUrl
+    );
+    const appName = options.appName || brand.appName || '';
 
     return {
       metadataBase: buildMetadataBaseUrl(),
-      title:
-        passedMetadata.title ||
-        translatedMetadata.title ||
-        defaultMetadata.title,
-      description:
-        passedMetadata.description ||
-        translatedMetadata.description ||
-        defaultMetadata.description,
-      keywords:
-        passedMetadata.keywords ||
-        translatedMetadata.keywords ||
-        defaultMetadata.keywords,
+      title,
+      description,
+      keywords,
       alternates: {
         canonical: canonicalUrl,
         ...(languageAlternates ? { languages: languageAlternates } : {}),
@@ -113,25 +90,22 @@ export function getMetadata(
         icon: brand.appFavicon,
         shortcut: brand.appFavicon,
       },
-
       openGraph: {
         type: 'website',
-        locale: locale,
+        locale,
         url: canonicalUrl,
         title,
         description,
         siteName: appName,
-        images: [imageUrl.toString()],
+        images: [imageUrl],
       },
-
       twitter: {
         card: 'summary_large_image',
         title,
         description,
-        images: [imageUrl.toString()],
+        images: [imageUrl],
         site: brand.appUrl,
       },
-
       robots: {
         index: options.noIndex ? false : true,
         follow: options.noIndex ? false : true,
@@ -165,4 +139,8 @@ function applyBrandToMetadataFields(
     description: fields.description.replaceAll('Roller Rabbit', appName),
     keywords: fields.keywords.replaceAll('Roller Rabbit', appName),
   };
+}
+
+function normalizeImageUrl(imageUrl: string, appUrl: string) {
+  return imageUrl.startsWith('http') ? imageUrl : `${appUrl}${imageUrl}`;
 }

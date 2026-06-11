@@ -165,6 +165,8 @@ const requiredFiles = [
   'src/surfaces/system/not-found/not-found.view.tsx',
   'scripts/tanstack-gate-4-plan.mjs',
   'docs/migration/gate-4-page-migration-plan.generated.md',
+  'docs/migration/gate-1-3-tanstack-nativity-review.md',
+  'docs/migration/gate-4-surface-taint-audit.md',
   'vite.config.mts',
   'tsconfig.tanstack.json',
 ];
@@ -279,6 +281,28 @@ for (const file of strictFiles) {
   }
 }
 
+const surfaceFiles = sourceFilesIn('src/surfaces');
+const surfaceTaintPatterns = [
+  [/^\s*import\s+['"]server-only['"]/m, 'server-only marker'],
+  [/from\s+['"]next(?:\/|['"])/, 'next runtime import'],
+  [/from\s+['"]next-intl\/server['"]/, 'next-intl/server import'],
+  [/@\/app\//, '@/app import'],
+  [/src\/app\//, 'src/app import'],
+  [/src\/legacy\//, 'src/legacy import'],
+  [/Metadata\s+from\s+['"]next['"]/, 'Next Metadata type import'],
+  [/params\s*:\s*Promise/, 'params: Promise'],
+  [/generateMetadata/, 'generateMetadata'],
+  [/generateStaticParams/, 'generateStaticParams'],
+];
+
+for (const file of surfaceFiles) {
+  for (const [regex, label] of surfaceTaintPatterns) {
+    if (contains(file, regex)) {
+      fail(`${label} found in surface layer: ${relative(root, file)}`);
+    }
+  }
+}
+
 const routeTreeFile = join(root, 'apps/web/src/routeTree.gen.ts');
 const routeTreeSource = readFileSync(routeTreeFile, 'utf8');
 const routeTreeImports = new Set(
@@ -333,12 +357,15 @@ const tanstackClosureFiles = localRuntimeClosure(sourceFilesIn('apps/web/src'));
 const tanstackForbiddenRuntimePatterns = [
   [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
   [/^\s*import\s+['"]next(?:\/|['"])/m, 'next side-effect import'],
+  [/from\s+['"]next-intl\/server['"]/, 'next-intl/server import'],
   [/@\/shared\/lib\/next-cache|shared\/lib\/next-cache/, 'next-cache import'],
   [
     /@\/domains\/settings\/application\/settings-runtime\.query|domains\/settings\/application\/settings-runtime\.query/,
     'settings-runtime.query import',
   ],
   [/@\/app\/|src\/app\//, 'legacy app import'],
+  [/@\/app\/_legacy\/|src\/app\/_legacy\//, 'app legacy helper import'],
+  [/@\/legacy\/|src\/legacy\//, 'legacy helper import'],
   [/@\/themes\/|src\/themes\//, 'theme import'],
   [/React\.use\(Promise\.resolve/, 'legacy page wrapper'],
   [/generateMetadata/, 'generateMetadata'],
@@ -372,6 +399,29 @@ for (const file of routeFiles.filter(
 const tanstackPageRouteFiles = routeFiles.filter(
   (file) => !file.includes('/api/') && file !== 'apps/web/src/routes/index.tsx'
 );
+const tanstackPageRouteClosureFiles = localRuntimeClosure(
+  tanstackPageRouteFiles.map((file) => join(root, file))
+);
+const tanstackPageRuntimeForbiddenPatterns = [
+  [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
+  [/^\s*import\s+['"]next(?:\/|['"])/m, 'next side-effect import'],
+  [/from\s+['"]next-intl\/server['"]/, 'next-intl/server import'],
+  [/^\s*import\s+['"]server-only['"]/m, 'server-only marker'],
+  [/@\/app\/|src\/app\//, 'legacy app import'],
+  [/@\/app\/_legacy\/|src\/app\/_legacy\//, 'app legacy helper import'],
+  [/@\/legacy\/|src\/legacy\//, 'legacy helper import'],
+];
+
+for (const file of tanstackPageRouteClosureFiles) {
+  for (const [regex, label] of tanstackPageRuntimeForbiddenPatterns) {
+    if (contains(file, regex)) {
+      fail(
+        `${label} found in TanStack page route closure: ${relative(root, file)}`
+      );
+    }
+  }
+}
+
 const pageRouteForbiddenPatterns = [
   [/@\/domains\//, '@/domains import'],
   [/@\/themes\//, '@/themes import'],

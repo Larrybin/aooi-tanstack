@@ -11,7 +11,7 @@ import {
   TaxonomyType,
 } from '@/domains/content/domain/taxonomy-types';
 import { AdminCategoryFormSchema } from '@/surfaces/admin/schemas/category';
-import { validateAndParseForm } from '@/surfaces/admin/server/action-utils';
+import { validateAndParseForm } from '@/app/_admin-support/action-utils';
 
 import { PERMISSIONS } from '@/shared/constants/rbac-permissions';
 import { ActionError } from '@/shared/lib/action/errors';

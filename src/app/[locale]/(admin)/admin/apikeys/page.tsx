@@ -5,7 +5,7 @@ import {
   listAdminApikeysQuery,
   type AdminApikeyRow,
 } from '@/domains/account/application/admin-apikeys.query';
-import { createAdminTablePage } from '@/surfaces/admin/create-admin-table-page';
+import { createAdminTablePage } from '@/app/_admin-support/create-admin-table-page';
 import {
   AdminApikeysListQuerySchema,
   type AdminApikeysListQuery,

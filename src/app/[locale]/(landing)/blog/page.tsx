@@ -8,7 +8,7 @@ import {
 } from '@/infra/platform/brand/placeholders.server';
 import { getLocaleStaticParams } from '@/infra/platform/i18n/static-params';
 import { createUseCaseLogger } from '@/infra/platform/logging/logger.server';
-import { getMetadata } from '@/surfaces/public/seo/metadata';
+import { getMetadata } from '@/app/_metadata/public-page-metadata';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { locales } from '@/config/locale';

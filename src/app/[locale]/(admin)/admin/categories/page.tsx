@@ -7,7 +7,7 @@ import {
   type Taxonomy,
 } from '@/domains/content/application/taxonomy.query';
 import { TaxonomyType } from '@/domains/content/domain/taxonomy-types';
-import { createAdminTablePage } from '@/surfaces/admin/create-admin-table-page';
+import { createAdminTablePage } from '@/app/_admin-support/create-admin-table-page';
 import {
   AdminCategoriesListQuerySchema,
   type AdminCategoriesListQuery,

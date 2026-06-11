@@ -8,7 +8,7 @@ import {
   type AdminPaymentRow,
 } from '@/domains/billing/application/member-billing.query';
 import { PaymentType } from '@/domains/billing/domain/payment';
-import { createAdminTablePage } from '@/surfaces/admin/create-admin-table-page';
+import { createAdminTablePage } from '@/app/_admin-support/create-admin-table-page';
 import {
   AdminPaymentsListQuerySchema,
   type AdminPaymentsListQuery,

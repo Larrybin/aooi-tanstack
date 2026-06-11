@@ -8,7 +8,7 @@ import {
 } from '@/domains/content/application/post.query';
 import { getTaxonomies } from '@/domains/content/application/taxonomy.query';
 import { PostType } from '@/domains/content/domain/post-types';
-import { createAdminTablePage } from '@/surfaces/admin/create-admin-table-page';
+import { createAdminTablePage } from '@/app/_admin-support/create-admin-table-page';
 import {
   AdminPostsListQuerySchema,
   type AdminPostsListQuery,
