@@ -16,12 +16,10 @@ import {
 import { isPublishedLocaleForPath } from '@/infra/url/canonical';
 import { site, siteHomeContent } from '@/site';
 import { filterLandingButtons } from '@/surfaces/public/navigation/landing-visibility';
-import {
-  buildProductLandingMetadata,
-  getProductLanding,
-} from '@/surfaces/public/product-landing';
+import { getProductLanding } from '@/surfaces/public/product-landing';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
+import { buildProductLandingMetadata } from '@/app/_metadata/product-landing-metadata';
 import type {
   Footer as FooterType,
   Header as HeaderType,

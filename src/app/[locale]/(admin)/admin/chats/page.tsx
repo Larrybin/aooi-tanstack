@@ -8,7 +8,7 @@ import {
   type AdminChatRow,
 } from '@/domains/chat/application/admin-chats.query';
 import { readPublicUiConfigCached } from '@/domains/settings/application/settings-runtime.query';
-import { createAdminTablePage } from '@/surfaces/admin/create-admin-table-page';
+import { createAdminTablePage } from '@/app/_admin-support/create-admin-table-page';
 import {
   AdminChatsListQuerySchema,
   type AdminChatsListQuery,

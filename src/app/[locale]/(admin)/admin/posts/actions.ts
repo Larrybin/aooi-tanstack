@@ -8,7 +8,7 @@ import {
 import { findPost } from '@/domains/content/application/post.query';
 import { PostStatus, PostType } from '@/domains/content/domain/post-types';
 import { AdminPostFormSchema } from '@/surfaces/admin/schemas/post';
-import { validateAndParseForm } from '@/surfaces/admin/server/action-utils';
+import { validateAndParseForm } from '@/app/_admin-support/action-utils';
 
 import { PERMISSIONS } from '@/shared/constants/rbac-permissions';
 import { ActionError } from '@/shared/lib/action/errors';

@@ -1,4 +1,3 @@
-import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { BackgroundRemoverHome } from '@/domains/background-remover/ui/background-remover-home';
 import { resolveBackgroundRemoverHomeCopy } from '@/domains/background-remover/ui/background-remover-home-copy';
@@ -13,18 +12,13 @@ import { getServerPublicEnvConfigs } from '@/infra/runtime/env.server';
 import { Mp4CompressorHome } from '@/domains/mp4-compressor/ui/mp4-compressor-home';
 import { resolveMp4CompressorHomeCopy } from '@/domains/mp4-compressor/ui/mp4-compressor-home-copy';
 import { buildMp4CompressorHeaderFooter } from '@/domains/mp4-compressor/ui/mp4-compressor-shell';
-import {
-  buildCanonicalUrl,
-  buildLanguageAlternates,
-  buildMetadataBaseUrl,
-} from '@/infra/url/canonical';
 
 import type {
   Footer as FooterType,
   Header as HeaderType,
 } from '@/shared/types/blocks/landing';
 
-type ProductLanding = {
+export type ProductLanding = {
   buildHeaderFooter: (
     brand: {
       appName: string;
@@ -127,55 +121,4 @@ const PRODUCT_LANDINGS = {
 
 export function getProductLanding(siteKey: string): ProductLanding | null {
   return PRODUCT_LANDINGS[siteKey as keyof typeof PRODUCT_LANDINGS] ?? null;
-}
-
-export function buildProductLandingMetadata({
-  landing,
-  locale,
-  brand,
-  homeContent,
-}: {
-  landing: ProductLanding;
-  locale: string;
-  brand: {
-    appName: string;
-    appUrl: string;
-    appOgImage: string;
-  };
-  homeContent: unknown;
-}): Metadata {
-  const metadata = landing.metadata({ locale, homeContent });
-  const canonicalUrl = buildCanonicalUrl('/', locale);
-  const imageUrl = brand.appOgImage.startsWith('http')
-    ? brand.appOgImage
-    : `${brand.appUrl}${brand.appOgImage}`;
-
-  return {
-    metadataBase: buildMetadataBaseUrl(),
-    title: {
-      absolute: metadata.title,
-    },
-    description: metadata.description,
-    keywords: [...metadata.keywords],
-    alternates: {
-      canonical: canonicalUrl,
-      languages: buildLanguageAlternates('/'),
-    },
-    openGraph: {
-      type: 'website',
-      locale,
-      url: canonicalUrl,
-      title: metadata.title,
-      description: metadata.description,
-      siteName: brand.appName,
-      images: [imageUrl],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: metadata.title,
-      description: metadata.description,
-      images: [imageUrl],
-      site: brand.appUrl,
-    },
-  };
 }

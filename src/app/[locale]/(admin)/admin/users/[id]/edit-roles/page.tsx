@@ -6,7 +6,7 @@ import { accessControlRuntimeDeps } from '@/app/access-control/runtime-deps';
 import { accountRuntimeDeps } from '@/app/account/runtime-deps';
 import { readAdminUserRoleOptionsUseCase } from '@/domains/access-control/application/checker';
 import { readAdminUserQuery } from '@/domains/account/application/admin-user.query';
-import { buildAdminCrumbs, setupAdminPage } from '@/surfaces/admin/server';
+import { buildAdminCrumbs, setupAdminPage } from '@/app/_admin-support';
 import { getTranslations } from 'next-intl/server';
 
 import { Empty } from '@/shared/blocks/common/empty';

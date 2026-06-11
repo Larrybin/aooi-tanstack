@@ -8,7 +8,7 @@ import {
 } from '@/domains/ai/application/admin-ai-tasks.query';
 import { isAiEnabled } from '@/domains/ai/domain/enablement';
 import { readPublicUiConfigCached } from '@/domains/settings/application/settings-runtime.query';
-import { createAdminTablePage } from '@/surfaces/admin/create-admin-table-page';
+import { createAdminTablePage } from '@/app/_admin-support/create-admin-table-page';
 import {
   AdminAiTasksListQuerySchema,
   type AdminAiTasksListQuery,

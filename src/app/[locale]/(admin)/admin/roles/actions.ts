@@ -11,7 +11,7 @@ import { AdminRoleUpdateFormSchema } from '@/surfaces/admin/schemas/role';
 import {
   validateAndParseForm,
   validatePermission,
-} from '@/surfaces/admin/server/action-utils';
+} from '@/app/_admin-support/action-utils';
 import { z } from 'zod';
 
 import { PERMISSIONS } from '@/shared/constants/rbac-permissions';

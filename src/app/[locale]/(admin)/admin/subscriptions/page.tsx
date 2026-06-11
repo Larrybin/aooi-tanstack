@@ -5,7 +5,7 @@ import {
   listAdminSubscriptionsQuery,
   type AdminSubscriptionRow,
 } from '@/domains/billing/application/member-billing.query';
-import { createAdminTablePage } from '@/surfaces/admin/create-admin-table-page';
+import { createAdminTablePage } from '@/app/_admin-support/create-admin-table-page';
 import {
   AdminSubscriptionsListQuerySchema,
   type AdminSubscriptionsListQuery,

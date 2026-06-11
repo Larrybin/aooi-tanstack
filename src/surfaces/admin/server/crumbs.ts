@@ -1,5 +1,3 @@
-import 'server-only';
-
 import type { Crumb } from '@/shared/types/blocks/common';
 
 type TranslationFunction = (key: string) => string;

@@ -3,7 +3,7 @@
 // reason: user edit form is permission-gated and user-specific
 import { accountRuntimeDeps } from '@/app/account/runtime-deps';
 import { readAdminUserQuery } from '@/domains/account/application/admin-user.query';
-import { buildAdminCrumbs, setupAdminPage } from '@/surfaces/admin/server';
+import { buildAdminCrumbs, setupAdminPage } from '@/app/_admin-support';
 import { getTranslations } from 'next-intl/server';
 
 import { Empty } from '@/shared/blocks/common/empty';

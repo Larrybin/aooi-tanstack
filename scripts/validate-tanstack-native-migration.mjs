@@ -165,6 +165,8 @@ const requiredFiles = [
   'src/surfaces/system/not-found/not-found.view.tsx',
   'scripts/tanstack-gate-4-plan.mjs',
   'docs/migration/gate-4-page-migration-plan.generated.md',
+  'docs/migration/gate-1-3-tanstack-nativity-review.md',
+  'docs/migration/gate-4-surface-taint-audit.md',
   'vite.config.mts',
   'tsconfig.tanstack.json',
 ];
@@ -172,6 +174,26 @@ const requiredFiles = [
 for (const file of requiredFiles) {
   if (!existsSync(join(root, file))) {
     fail(`missing required file ${file}`);
+  }
+}
+
+const surfaceTaintAuditFile = join(
+  root,
+  'docs/migration/gate-4-surface-taint-audit.md'
+);
+for (const [regex, label] of [
+  [/TanStack page route closure forbids `server-only`/, 'page closure rule'],
+  [
+    /TanStack API routes are not page migrations/,
+    'API route migration exception',
+  ],
+  [
+    /Existing API route closure may still reach `server-only`/,
+    'API server-only exception',
+  ],
+]) {
+  if (!contains(surfaceTaintAuditFile, regex)) {
+    fail(`surface taint audit must document ${label}`);
   }
 }
 
@@ -279,6 +301,28 @@ for (const file of strictFiles) {
   }
 }
 
+const surfaceFiles = sourceFilesIn('src/surfaces');
+const surfaceTaintPatterns = [
+  [/^\s*import\s+['"]server-only['"]/m, 'server-only marker'],
+  [/from\s+['"]next(?:\/|['"])/, 'next runtime import'],
+  [/from\s+['"]next-intl\/server['"]/, 'next-intl/server import'],
+  [/@\/app\//, '@/app import'],
+  [/src\/app\//, 'src/app import'],
+  [/src\/legacy\//, 'src/legacy import'],
+  [/Metadata\s+from\s+['"]next['"]/, 'Next Metadata type import'],
+  [/params\s*:\s*Promise/, 'params: Promise'],
+  [/generateMetadata/, 'generateMetadata'],
+  [/generateStaticParams/, 'generateStaticParams'],
+];
+
+for (const file of surfaceFiles) {
+  for (const [regex, label] of surfaceTaintPatterns) {
+    if (contains(file, regex)) {
+      fail(`${label} found in surface layer: ${relative(root, file)}`);
+    }
+  }
+}
+
 const routeTreeFile = join(root, 'apps/web/src/routeTree.gen.ts');
 const routeTreeSource = readFileSync(routeTreeFile, 'utf8');
 const routeTreeImports = new Set(
@@ -329,16 +373,21 @@ for (const expectedImport of expectedRouteImports) {
   }
 }
 
-const tanstackClosureFiles = localRuntimeClosure(sourceFilesIn('apps/web/src'));
-const tanstackForbiddenRuntimePatterns = [
+const tanstackRouteClosureFiles = localRuntimeClosure(
+  sourceFilesIn('apps/web/src')
+);
+const tanstackRouteRuntimeForbiddenPatterns = [
   [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
   [/^\s*import\s+['"]next(?:\/|['"])/m, 'next side-effect import'],
+  [/from\s+['"]next-intl\/server['"]/, 'next-intl/server import'],
   [/@\/shared\/lib\/next-cache|shared\/lib\/next-cache/, 'next-cache import'],
   [
     /@\/domains\/settings\/application\/settings-runtime\.query|domains\/settings\/application\/settings-runtime\.query/,
     'settings-runtime.query import',
   ],
   [/@\/app\/|src\/app\//, 'legacy app import'],
+  [/@\/app\/_legacy\/|src\/app\/_legacy\//, 'app legacy helper import'],
+  [/@\/legacy\/|src\/legacy\//, 'legacy helper import'],
   [/@\/themes\/|src\/themes\//, 'theme import'],
   [/React\.use\(Promise\.resolve/, 'legacy page wrapper'],
   [/generateMetadata/, 'generateMetadata'],
@@ -346,12 +395,10 @@ const tanstackForbiddenRuntimePatterns = [
   [/params\s*:\s*Promise/, 'params: Promise'],
 ];
 
-for (const file of tanstackClosureFiles) {
-  for (const [regex, label] of tanstackForbiddenRuntimePatterns) {
+for (const file of tanstackRouteClosureFiles) {
+  for (const [regex, label] of tanstackRouteRuntimeForbiddenPatterns) {
     if (contains(file, regex)) {
-      fail(
-        `${label} found in TanStack runtime closure: ${relative(root, file)}`
-      );
+      fail(`${label} found in TanStack route closure: ${relative(root, file)}`);
     }
   }
 }
@@ -370,8 +417,34 @@ for (const file of routeFiles.filter(
 }
 
 const tanstackPageRouteFiles = routeFiles.filter(
-  (file) => !file.includes('/api/') && file !== 'apps/web/src/routes/index.tsx'
+  (file) => !file.includes('/api/')
 );
+const surfaceHelperExemptPageRoutes = new Set([
+  'apps/web/src/routes/index.tsx',
+]);
+const tanstackPageRouteClosureFiles = localRuntimeClosure(
+  tanstackPageRouteFiles.map((file) => join(root, file))
+);
+const tanstackPageRuntimeForbiddenPatterns = [
+  [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
+  [/^\s*import\s+['"]next(?:\/|['"])/m, 'next side-effect import'],
+  [/from\s+['"]next-intl(?:\/|['"])/, 'next-intl import'],
+  [/^\s*import\s+['"]server-only['"]/m, 'server-only marker'],
+  [/@\/app\/|src\/app\//, 'legacy app import'],
+  [/@\/app\/_legacy\/|src\/app\/_legacy\//, 'app legacy helper import'],
+  [/@\/legacy\/|src\/legacy\//, 'legacy helper import'],
+];
+
+for (const file of tanstackPageRouteClosureFiles) {
+  for (const [regex, label] of tanstackPageRuntimeForbiddenPatterns) {
+    if (contains(file, regex)) {
+      fail(
+        `${label} found in TanStack page route closure: ${relative(root, file)}`
+      );
+    }
+  }
+}
+
 const pageRouteForbiddenPatterns = [
   [/@\/domains\//, '@/domains import'],
   [/@\/themes\//, '@/themes import'],
@@ -394,6 +467,7 @@ for (const file of tanstackPageRouteFiles) {
     }
   }
   if (
+    !surfaceHelperExemptPageRoutes.has(file) &&
     !contains(abs, /@\/surfaces\//) &&
     !contains(abs, /notFoundComponent:\s*\w+/)
   ) {
@@ -419,7 +493,7 @@ for (const file of [
   'apps/web/src/routes/$locale/pricing.tsx',
 ]) {
   const abs = join(root, file);
-  if (!contains(abs, /notFound\(\)/)) {
+  if (!contains(abs, /throw\s+notFound\s*\(/)) {
     fail(`${file} must throw TanStack notFound() for missing route data`);
   }
   for (const surfaceFile of [
@@ -507,16 +581,21 @@ if (contains(indexRouteAbs, /\/\$locale\/pricing|params:\s*\{/)) {
 
 const pricingMessagesFile = 'src/server/pricing/pricing-page-messages.ts';
 const pricingMessagesAbs = join(root, pricingMessagesFile);
-if (!contains(pricingMessagesAbs, /getScopedMessages/)) {
-  fail(`${pricingMessagesFile} must reuse getScopedMessages`);
+if (
+  contains(
+    pricingMessagesAbs,
+    /getScopedMessages|@\/infra\/platform\/i18n\/messages|next-intl/
+  )
+) {
+  fail(`${pricingMessagesFile} must not use legacy next-intl message loaders`);
 }
-for (const [regex, label] of [
-  [/config\/locale\/messages\/\$\{locale\}/, 'direct locale message import'],
-  [/mergeDeep/, 'custom message merge'],
-]) {
-  if (contains(pricingMessagesAbs, regex)) {
-    fail(`${pricingMessagesFile} must not keep ${label}`);
-  }
+if (
+  !contains(
+    pricingMessagesAbs,
+    /@\/config\/locale\/messages\/\$\{locale\}\/\$\{path\}\.json/
+  )
+) {
+  fail(`${pricingMessagesFile} must load local JSON message modules directly`);
 }
 
 const pricingViewFile = 'src/domains/pricing/ui/pricing-slice-view.tsx';
