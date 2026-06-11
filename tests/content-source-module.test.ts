@@ -117,6 +117,14 @@ test('@/public-content: SITE=dev-local emits serializable public content manifes
   assert.doesNotMatch(publicContentSource, /docs\.css/);
 });
 
+test('@/public-content: manifest TOC heading ids match markdown renderer slugs', async () => {
+  await runGenerateContentSource('dev-local');
+
+  const publicContentSource = await readGeneratedPublicContent();
+
+  assert.match(publicContentSource, /#8-性能next--tailwind--ts-交叉点/);
+});
+
 test('@/public-content: tanstack validation regenerates stale site manifest', async () => {
   await runGenerateContentSource('mamamiya');
   assert.match(

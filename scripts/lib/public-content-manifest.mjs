@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import GithubSlugger from 'github-slugger';
 
 import {
   CONTENT_COLLECTION_KEYS,
@@ -58,10 +59,6 @@ function parseFrontmatter(source) {
   }
 
   return { frontmatter, content };
-}
-
-function escapeRegex(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function readRegisteredLocaleCodes(rootDir) {
@@ -135,26 +132,9 @@ function slugToPath(collection, slug) {
   return `${basePath.replace(/\/$/, '')}/${slug}`;
 }
 
-function slugifyHeading(value, seen) {
-  const base =
-    value
-      .toLowerCase()
-      .trim()
-      .replace(/`([^`]+)`/g, '$1')
-      .replace(/<[^>]+>/g, '')
-      .replace(/[^\p{Letter}\p{Number}\s-]/gu, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '') || 'section';
-
-  const count = seen.get(base) ?? 0;
-  seen.set(base, count + 1);
-  return count === 0 ? base : `${base}-${count}`;
-}
-
 function buildToc(content) {
-  const seen = new Map();
   const toc = [];
+  const slugger = new GithubSlugger();
   const headingRegex = /^(#{1,6})\s+(.+)$/gm;
   let match;
 
@@ -162,7 +142,7 @@ function buildToc(content) {
     const title = match[2].trim();
     toc.push({
       title,
-      url: `#${slugifyHeading(title, seen)}`,
+      url: `#${slugger.slug(title)}`,
       depth: match[1].length,
     });
   }
