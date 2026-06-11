@@ -146,6 +146,7 @@ const requiredFiles = [
   'apps/web/src/routeTree.gen.ts',
   'apps/web/src/routes/pricing.tsx',
   'apps/web/src/routes/$locale/pricing.tsx',
+  'apps/web/src/routes/$locale/$slug.tsx',
   'apps/web/src/routes/api/payment/checkout.ts',
   'apps/web/src/routes/api/payment/notify.ts',
   'apps/web/src/routes/api/user/get-user-credits.ts',
@@ -162,15 +163,22 @@ const requiredFiles = [
   'src/domains/content/application/public-content-manifest.ts',
   'src/server/pricing/pricing-page-messages.ts',
   'src/server/pricing/pricing-route-data.ts',
+  'src/server/landing/slug-route-data.ts',
+  'src/server/landing/slug-route-resolver.ts',
   'src/surfaces/landing/pricing/pricing.data.ts',
   'src/surfaces/landing/pricing/pricing.seo.ts',
   'src/surfaces/landing/pricing/pricing.view.tsx',
   'src/surfaces/landing/pricing/pricing.types.ts',
+  'src/surfaces/landing/slug/slug.data.ts',
+  'src/surfaces/landing/slug/slug.seo.ts',
+  'src/surfaces/landing/slug/slug.view.tsx',
+  'src/surfaces/landing/slug/slug.types.ts',
   'src/surfaces/system/not-found/not-found.view.tsx',
   'scripts/tanstack-gate-4-plan.mjs',
   'docs/migration/gate-4-page-migration-plan.generated.md',
   'docs/migration/gate-1-3-tanstack-nativity-review.md',
   'docs/migration/gate-4-surface-taint-audit.md',
+  'docs/migration/gate-4-a-slug-verification.md',
   'project.inlang/settings.json',
   'messages/en.json',
   'messages/zh.json',
@@ -578,6 +586,40 @@ for (const file of [
       fail(`${file} must use ${surfaceFile} surface helper`);
     }
   }
+}
+
+const slugRouteFile = 'apps/web/src/routes/$locale/$slug.tsx';
+const slugRouteAbs = join(root, slugRouteFile);
+if (!contains(slugRouteAbs, /throw\s+notFound\s*\(/)) {
+  fail(
+    `${slugRouteFile} must throw TanStack notFound() for missing route data`
+  );
+}
+for (const surfaceFile of [
+  'slug.data',
+  'slug.seo',
+  'slug.view',
+  'slug.types',
+]) {
+  if (
+    !contains(
+      slugRouteAbs,
+      new RegExp(`@/surfaces/landing/slug/${surfaceFile}`)
+    )
+  ) {
+    fail(`${slugRouteFile} must use ${surfaceFile} surface helper`);
+  }
+}
+
+const slugRouteResolverFile = 'src/server/landing/slug-route-resolver.ts';
+const slugRouteResolverAbs = join(root, slugRouteResolverFile);
+if (!contains(slugRouteResolverAbs, /getLocalPublicContentDocument/)) {
+  fail(`${slugRouteResolverFile} must read from generated public content`);
+}
+if (contains(slugRouteResolverAbs, /public-content\.query|getDocsPage/)) {
+  fail(
+    `${slugRouteResolverFile} must not depend on legacy public-content query`
+  );
 }
 
 const sharedRouteActionContracts = [
