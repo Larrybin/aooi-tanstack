@@ -19,7 +19,12 @@ Taint patterns:
 
 ## Current Result
 
-No current file under `src/surfaces/**` matches the taint patterns above.
+No current file under `src/surfaces/**` matches the F1 taint patterns above.
+One surface has a separate runtime-closure risk outside the F1 taint list:
+`src/surfaces/public/product-landing.tsx` imports `getServerPublicEnvConfigs`,
+which reaches `@opennextjs/cloudflare` through `src/infra/runtime/env.server.ts`.
+Do not migrate the TanStack homepage until that runtime-env dependency is moved
+out of the shared surface closure.
 
 ## Route Closure Boundary
 
@@ -31,14 +36,14 @@ F1 separates TanStack page route closure from TanStack API route closure:
 
 ## Required Checks
 
-| File                                             | Matched taint       | Classification | Impact on Gate 4-A/B/C/D                                        | Recommended extraction target                                  |
-| ------------------------------------------------ | ------------------- | -------------- | --------------------------------------------------------------- | -------------------------------------------------------------- |
-| `src/surfaces/public/product-landing.tsx`        | none                | TanStack-safe  | No current blocker for 4-A/B/C/D                                | Keep framework-neutral in `src/surfaces/public/**`             |
-| `src/surfaces/public/seo/metadata.ts`            | removed / extracted | Legacy-only    | Would block page routes if reintroduced into surfaces           | `src/app/_metadata/public-page-metadata.ts`                    |
-| `src/surfaces/admin/create-admin-table-page.tsx` | removed / extracted | Legacy-only    | Would block admin route migration if reintroduced into surfaces | `src/app/_admin-support/create-admin-table-page.tsx`           |
-| `src/surfaces/admin/server/action-utils.ts`      | removed / extracted | Legacy-only    | Would taint future admin surface reuse                          | `src/app/_admin-support/action-utils.ts`                       |
-| `src/surfaces/admin/server/page-setup.ts`        | removed / extracted | Legacy-only    | Would taint future admin route migration                        | `src/app/_admin-support/page-setup.ts`                         |
-| `src/surfaces/admin/server/crumbs.ts`            | none                | TanStack-safe  | No current blocker for 4-A/B/C/D                                | Keep in `src/surfaces/admin/server/**` while framework-neutral |
+| File                                             | Matched taint                                         | Classification                | Impact on Gate 4-A/B/C/D                                                                                                     | Recommended extraction target                                                                             |
+| ------------------------------------------------ | ----------------------------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `src/surfaces/public/product-landing.tsx`        | none for F1 taint; indirect `env.server` runtime risk | Needs extraction for homepage | Blocks `/$locale` homepage migration until runtime env access is moved out of the surface closure; no blocker for slug route | Make the homepage surface prop-driven and move runtime env loading into a server/home route-data boundary |
+| `src/surfaces/public/seo/metadata.ts`            | removed / extracted                                   | Legacy-only                   | Would block page routes if reintroduced into surfaces                                                                        | `src/app/_metadata/public-page-metadata.ts`                                                               |
+| `src/surfaces/admin/create-admin-table-page.tsx` | removed / extracted                                   | Legacy-only                   | Would block admin route migration if reintroduced into surfaces                                                              | `src/app/_admin-support/create-admin-table-page.tsx`                                                      |
+| `src/surfaces/admin/server/action-utils.ts`      | removed / extracted                                   | Legacy-only                   | Would taint future admin surface reuse                                                                                       | `src/app/_admin-support/action-utils.ts`                                                                  |
+| `src/surfaces/admin/server/page-setup.ts`        | removed / extracted                                   | Legacy-only                   | Would taint future admin route migration                                                                                     | `src/app/_admin-support/page-setup.ts`                                                                    |
+| `src/surfaces/admin/server/crumbs.ts`            | none                                                  | TanStack-safe                 | No current blocker for 4-A/B/C/D                                                                                             | Keep in `src/surfaces/admin/server/**` while framework-neutral                                            |
 
 ## Decision
 
@@ -49,3 +54,8 @@ F1 separates TanStack page route closure from TanStack API route closure:
 - `src/app/_legacy/**` only when a helper has no clearer app-private home
 
 TanStack routes, TanStack surfaces, server composition, and domains must not import app-private legacy helpers.
+
+Future changes to `src/surfaces/**` must keep passing the validator. The
+validator enforces the F1 taint list directly; runtime-specific dependencies
+outside that list still require migration-specific closure review before a
+page route is retried.

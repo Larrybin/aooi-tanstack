@@ -46,6 +46,20 @@ Gate 4-F1 does not introduce Paraglide, does not build the public content founda
 3. Add minimal Paraglide support for TanStack new paths in Gate 4-F3.
 4. Retry Gate 4-A slug migration only after F1-F3 pass.
 
+## Current Foundation-Validation Baseline
+
+The order above describes the intended split of the foundation train. After the
+F1/F2/F3 PRs were merged, `codex/gate-4-foundation-validation` intentionally
+became the combined foundation baseline:
+
+- F1 keeps its original scope: surface boundary, audit, and validation only.
+- F2 adds generated serializable public content.
+- F3 adds minimal Paraglide support for new TanStack paths.
+
+This does not change the core decision: continue the original in-place
+migration, keep TanStack-native / TanStack-friendly first, and proceed
+foundation-first before retrying page migration.
+
 ## Compatibility Decision
 
 Compatibility required: no for TanStack paths.
