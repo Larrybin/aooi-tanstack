@@ -21,6 +21,14 @@ Taint patterns:
 
 No current file under `src/surfaces/**` matches the taint patterns above.
 
+## Route Closure Boundary
+
+F1 separates TanStack page route closure from TanStack API route closure:
+
+- TanStack page route closure forbids `server-only` because pages are the Gate 4-A/B/C/D migration surface.
+- TanStack API routes are not page migrations in this train. Existing API route closure may still reach `server-only` server action/domain modules.
+- TanStack API route closure still forbids `next/*`, `next-intl/server`, `@/app/**`, `src/app/**`, and legacy helper imports.
+
 ## Required Checks
 
 | File                                             | Matched taint       | Classification | Impact on Gate 4-A/B/C/D                                        | Recommended extraction target                                  |

@@ -177,6 +177,26 @@ for (const file of requiredFiles) {
   }
 }
 
+const surfaceTaintAuditFile = join(
+  root,
+  'docs/migration/gate-4-surface-taint-audit.md'
+);
+for (const [regex, label] of [
+  [/TanStack page route closure forbids `server-only`/, 'page closure rule'],
+  [
+    /TanStack API routes are not page migrations/,
+    'API route migration exception',
+  ],
+  [
+    /Existing API route closure may still reach `server-only`/,
+    'API server-only exception',
+  ],
+]) {
+  if (!contains(surfaceTaintAuditFile, regex)) {
+    fail(`surface taint audit must document ${label}`);
+  }
+}
+
 const forbiddenFiles = [
   'src/app/api/payment/checkout/action.ts',
   'src/app/api/payment/notify/route-logic.ts',
@@ -353,8 +373,10 @@ for (const expectedImport of expectedRouteImports) {
   }
 }
 
-const tanstackClosureFiles = localRuntimeClosure(sourceFilesIn('apps/web/src'));
-const tanstackForbiddenRuntimePatterns = [
+const tanstackRouteClosureFiles = localRuntimeClosure(
+  sourceFilesIn('apps/web/src')
+);
+const tanstackRouteRuntimeForbiddenPatterns = [
   [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
   [/^\s*import\s+['"]next(?:\/|['"])/m, 'next side-effect import'],
   [/from\s+['"]next-intl\/server['"]/, 'next-intl/server import'],
@@ -373,12 +395,10 @@ const tanstackForbiddenRuntimePatterns = [
   [/params\s*:\s*Promise/, 'params: Promise'],
 ];
 
-for (const file of tanstackClosureFiles) {
-  for (const [regex, label] of tanstackForbiddenRuntimePatterns) {
+for (const file of tanstackRouteClosureFiles) {
+  for (const [regex, label] of tanstackRouteRuntimeForbiddenPatterns) {
     if (contains(file, regex)) {
-      fail(
-        `${label} found in TanStack runtime closure: ${relative(root, file)}`
-      );
+      fail(`${label} found in TanStack route closure: ${relative(root, file)}`);
     }
   }
 }
