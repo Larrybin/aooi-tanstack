@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LocalePricingRouteImport } from './routes/$locale/pricing'
 import { Route as LocaleSlugRouteImport } from './routes/$locale/$slug'
@@ -20,6 +21,11 @@ import { Route as ApiPaymentCheckoutRouteImport } from './routes/api/payment/che
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SlugRoute = SlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -55,6 +61,7 @@ const ApiPaymentCheckoutRoute = ApiPaymentCheckoutRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
   '/pricing': typeof PricingRoute
   '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/pricing': typeof LocalePricingRoute
@@ -64,6 +71,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
   '/pricing': typeof PricingRoute
   '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/pricing': typeof LocalePricingRoute
@@ -74,6 +82,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
   '/pricing': typeof PricingRoute
   '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/pricing': typeof LocalePricingRoute
@@ -85,6 +94,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$slug'
     | '/pricing'
     | '/$locale/$slug'
     | '/$locale/pricing'
@@ -94,6 +104,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$slug'
     | '/pricing'
     | '/$locale/$slug'
     | '/$locale/pricing'
@@ -103,6 +114,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/$slug'
     | '/pricing'
     | '/$locale/$slug'
     | '/$locale/pricing'
@@ -113,6 +125,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SlugRoute: typeof SlugRoute
   PricingRoute: typeof PricingRoute
   LocaleSlugRoute: typeof LocaleSlugRoute
   LocalePricingRoute: typeof LocalePricingRoute
@@ -128,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$slug': {
+      id: '/$slug'
+      path: '/$slug'
+      fullPath: '/$slug'
+      preLoaderRoute: typeof SlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -177,6 +197,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SlugRoute: SlugRoute,
   PricingRoute: PricingRoute,
   LocaleSlugRoute: LocaleSlugRoute,
   LocalePricingRoute: LocalePricingRoute,
