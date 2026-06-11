@@ -18,10 +18,12 @@ export async function resolveSlugRouteData({
   locale: localeInput,
   slug: slugInput,
 }: {
-  locale: string;
-  slug: string;
+  locale: unknown;
+  slug: unknown;
 }): Promise<SlugRouteData | null> {
-  const locale = normalizeLocale(localeInput);
+  const locale = normalizeLocale(
+    typeof localeInput === 'string' ? localeInput : null
+  );
   const slug = normalizeSlug(slugInput);
   if (!locale || !slug) {
     return null;
@@ -68,13 +70,41 @@ export async function resolveSlugRouteData({
       title,
       description,
       content,
-      createdAt: page.created_at,
+      createdAt: formatSlugPageDate(page.created_at, locale),
       toc: page.toc,
     },
   };
 }
 
-function normalizeSlug(value: string) {
+function normalizeSlug(value: unknown) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
   const slug = value.trim().replace(/^\/+|\/+$/g, '');
   return slug && !slug.includes('/') ? slug : null;
+}
+
+function formatSlugPageDate(createdAt: string, locale: string) {
+  if (!createdAt) {
+    return '';
+  }
+
+  const date = new Date(`${createdAt}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) {
+    return createdAt;
+  }
+
+  if (locale === 'zh') {
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    return `${date.getUTCFullYear()}/${month}/${day}`;
+  }
+
+  return new Intl.DateTimeFormat('en', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(date);
 }
