@@ -10,8 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LocalePricingRouteImport } from './routes/$locale/pricing'
+import { Route as LocaleSlugRouteImport } from './routes/$locale/$slug'
 import { Route as ApiUserGetUserCreditsRouteImport } from './routes/api/user/get-user-credits'
 import { Route as ApiPaymentNotifyRouteImport } from './routes/api/payment/notify'
 import { Route as ApiPaymentCheckoutRouteImport } from './routes/api/payment/checkout'
@@ -19,6 +21,11 @@ import { Route as ApiPaymentCheckoutRouteImport } from './routes/api/payment/che
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SlugRoute = SlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
 const LocalePricingRoute = LocalePricingRouteImport.update({
   id: '/$locale/pricing',
   path: '/$locale/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocaleSlugRoute = LocaleSlugRouteImport.update({
+  id: '/$locale/$slug',
+  path: '/$locale/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiUserGetUserCreditsRoute = ApiUserGetUserCreditsRouteImport.update({
@@ -49,7 +61,9 @@ const ApiPaymentCheckoutRoute = ApiPaymentCheckoutRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
   '/pricing': typeof PricingRoute
+  '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/pricing': typeof LocalePricingRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
@@ -57,7 +71,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
   '/pricing': typeof PricingRoute
+  '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/pricing': typeof LocalePricingRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
@@ -66,7 +82,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
   '/pricing': typeof PricingRoute
+  '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/pricing': typeof LocalePricingRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
@@ -76,7 +94,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$slug'
     | '/pricing'
+    | '/$locale/$slug'
     | '/$locale/pricing'
     | '/api/payment/checkout'
     | '/api/payment/notify'
@@ -84,7 +104,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$slug'
     | '/pricing'
+    | '/$locale/$slug'
     | '/$locale/pricing'
     | '/api/payment/checkout'
     | '/api/payment/notify'
@@ -92,7 +114,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/$slug'
     | '/pricing'
+    | '/$locale/$slug'
     | '/$locale/pricing'
     | '/api/payment/checkout'
     | '/api/payment/notify'
@@ -101,7 +125,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SlugRoute: typeof SlugRoute
   PricingRoute: typeof PricingRoute
+  LocaleSlugRoute: typeof LocaleSlugRoute
   LocalePricingRoute: typeof LocalePricingRoute
   ApiPaymentCheckoutRoute: typeof ApiPaymentCheckoutRoute
   ApiPaymentNotifyRoute: typeof ApiPaymentNotifyRoute
@@ -117,6 +143,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$slug': {
+      id: '/$slug'
+      path: '/$slug'
+      fullPath: '/$slug'
+      preLoaderRoute: typeof SlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -129,6 +162,13 @@ declare module '@tanstack/react-router' {
       path: '/$locale/pricing'
       fullPath: '/$locale/pricing'
       preLoaderRoute: typeof LocalePricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/$slug': {
+      id: '/$locale/$slug'
+      path: '/$locale/$slug'
+      fullPath: '/$locale/$slug'
+      preLoaderRoute: typeof LocaleSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/user/get-user-credits': {
@@ -157,7 +197,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SlugRoute: SlugRoute,
   PricingRoute: PricingRoute,
+  LocaleSlugRoute: LocaleSlugRoute,
   LocalePricingRoute: LocalePricingRoute,
   ApiPaymentCheckoutRoute: ApiPaymentCheckoutRoute,
   ApiPaymentNotifyRoute: ApiPaymentNotifyRoute,
