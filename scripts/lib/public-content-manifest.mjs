@@ -6,6 +6,8 @@ import {
   resolveSiteCollectionDir,
 } from './site-content-config.mjs';
 
+let registeredLocaleCodes;
+
 const COLLECTION_BASE_PATHS = Object.freeze({
   docs: '/docs',
   pages: '/',
@@ -62,7 +64,32 @@ function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function readLocalizedSlug({ relPath, defaultLocale, locales }) {
+function readRegisteredLocaleCodes(rootDir) {
+  if (registeredLocaleCodes) return registeredLocaleCodes;
+
+  const registryPath = path.resolve(
+    rootDir,
+    'src',
+    'config',
+    'locale',
+    'registry.json'
+  );
+  const registry = JSON.parse(readFileSync(registryPath, 'utf8'));
+  registeredLocaleCodes = new Set(
+    registry
+      .map((entry) => entry?.code)
+      .filter((code) => typeof code === 'string' && code.length > 0)
+  );
+
+  return registeredLocaleCodes;
+}
+
+function readLocalizedSlug({
+  relPath,
+  defaultLocale,
+  locales,
+  registeredLocales,
+}) {
   const normalized = relPath.split(path.sep).join('/');
   const withoutExtension = normalized.replace(/\.mdx$/, '');
   const sortedLocales = [...locales].sort((a, b) => b.length - a.length);
@@ -74,6 +101,20 @@ function readLocalizedSlug({ relPath, defaultLocale, locales }) {
         locale,
         slug: normalizeSlug(withoutExtension.slice(0, -suffix.length)),
       };
+    }
+  }
+
+  const supportedLocales = new Set(locales);
+  const sortedRegisteredLocales = [...registeredLocales].sort(
+    (a, b) => b.length - a.length
+  );
+
+  for (const locale of sortedRegisteredLocales) {
+    if (supportedLocales.has(locale)) continue;
+
+    const suffix = `.${locale}`;
+    if (withoutExtension.endsWith(suffix)) {
+      return null;
     }
   }
 
@@ -133,18 +174,24 @@ function readCollectionDocuments({ rootDir, siteKey, site, collection }) {
   const dirPath = resolveSiteCollectionDir({ rootDir, siteKey, collection });
   const defaultLocale = site.i18n.defaultLocale;
   const locales = site.i18n.supportedLocales;
+  const registeredLocales = readRegisteredLocaleCodes(rootDir);
+  const documents = [];
 
-  return walkFiles(dirPath).map((filePath) => {
+  for (const filePath of walkFiles(dirPath)) {
     const relPath = path.relative(dirPath, filePath);
     const source = readFileSync(filePath, 'utf8');
     const { frontmatter, content } = parseFrontmatter(source);
-    const { locale, slug } = readLocalizedSlug({
+    const localizedSlug = readLocalizedSlug({
       relPath,
       defaultLocale,
       locales,
+      registeredLocales,
     });
 
-    return {
+    if (!localizedSlug) continue;
+
+    const { locale, slug } = localizedSlug;
+    documents.push({
       collection,
       locale,
       slug,
@@ -158,8 +205,10 @@ function readCollectionDocuments({ rootDir, siteKey, site, collection }) {
       image: frontmatter.image ?? '',
       content,
       toc: buildToc(content),
-    };
-  });
+    });
+  }
+
+  return documents;
 }
 
 export function buildPublicContentDocuments({ rootDir, siteKey, site }) {

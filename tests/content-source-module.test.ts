@@ -140,6 +140,14 @@ test('@/content-source: SITE=mamamiya points to versioned .source/mamamiya artif
   assert.match(pointer.versionId, /^build-\d+-\d+$/);
 });
 
+test('@/public-content: SITE=mamamiya skips unsupported locale suffixes', async () => {
+  await runGenerateContentSource('mamamiya');
+
+  const publicContentSource = await readGeneratedPublicContent();
+
+  assert.doesNotMatch(publicContentSource, /terms-of-service\.zh-TW/);
+});
+
 test('@/content-source: SITE=mamamiya includes grouped docs entrypoints', async () => {
   await runGenerateContentSource('mamamiya');
 
