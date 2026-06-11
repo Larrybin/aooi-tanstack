@@ -82,6 +82,7 @@
     "release:cf": "node --import tsx scripts/run-local-cloudflare-release.mjs",
     "cf:typegen": "node scripts/run-with-site.mjs node --import tsx scripts/run-cf-typegen.mjs",
     "cf:typegen:check": "node scripts/run-with-site.mjs node --import tsx scripts/check-cf-typegen.mjs",
+    "paraglide:compile": "pnpm exec paraglide-js compile --project ./project.inlang --outdir ./src/paraglide --strategy globalVariable baseLocale --is-server 'import.meta.env.SSR' --emit-ts-declarations --no-emit-git-ignore --no-emit-prettier-ignore --no-emit-readme",
     "tanstack:dev": "node scripts/run-with-site.mjs pnpm exec vite dev --config vite.config.mts",
     "tanstack:build": "node scripts/run-with-site.mjs pnpm exec vite build --config vite.config.mts",
     "tanstack:typecheck": "node scripts/run-with-site.mjs pnpm exec tsc --noEmit --pretty false --incremental false --project tsconfig.tanstack.json",
@@ -176,6 +177,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
     "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
+    "@inlang/paraglide-js": "2.18.2",
     "@opennextjs/cloudflare": "1.19.11",
     "@tailwindcss/postcss": "^4",
     "@types/markdown-it": "^14.1.2",

@@ -1,0 +1,5 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "tanstack_page_not_found": "页面未找到",
+  "tanstack_back_home": "返回首页"
+}
