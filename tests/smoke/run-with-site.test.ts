@@ -105,6 +105,15 @@ test('run-with-site regenerates content for TanStack commands', () => {
     true
   );
   assert.equal(
+    requiresContentGeneration([
+      'node',
+      '--import',
+      'tsx',
+      'scripts/run-cf-build.mjs',
+    ]),
+    true
+  );
+  assert.equal(
     requiresContentGeneration(['pnpm', 'exec', 'eslint', '.']),
     false
   );
