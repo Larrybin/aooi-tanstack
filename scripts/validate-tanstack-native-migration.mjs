@@ -627,13 +627,39 @@ const generatedPublicContentAbs = join(root, generatedPublicContentFile);
 if (!existsSync(generatedPublicContentAbs)) {
   fail(`${generatedPublicContentFile} must be generated`);
 } else {
+  const generatedPublicContentSource = readFileSync(
+    generatedPublicContentAbs,
+    'utf8'
+  );
+  const expectedPublicContentSiteKey = process.env.SITE?.trim() || 'dev-local';
+  const publicContentSiteKeyMatch = generatedPublicContentSource.match(
+    /export const publicContentSiteKey = "([^"]+)"/
+  );
+  const publicContentArtifactVersionMatch = generatedPublicContentSource.match(
+    /export const publicContentArtifactVersion = "([^"]+)"/
+  );
+
+  if (publicContentSiteKeyMatch?.[1] !== expectedPublicContentSiteKey) {
+    fail(
+      `${generatedPublicContentFile} must be generated for SITE=${expectedPublicContentSiteKey}`
+    );
+  }
+  if (
+    !publicContentArtifactVersionMatch ||
+    !/^build-\d+-\d+$/.test(publicContentArtifactVersionMatch[1])
+  ) {
+    fail(
+      `${generatedPublicContentFile} must include artifact version metadata`
+    );
+  }
+
   for (const [regex, label] of [
     [/from\s+['"]react['"]/, 'React import'],
     [/from\s+['"]fumadocs/, 'Fumadocs import'],
     [/@\/mdx-components/, 'MDX component import'],
     [/docs\.css/, 'docs CSS import'],
   ]) {
-    if (contains(generatedPublicContentAbs, regex)) {
+    if (regex.test(generatedPublicContentSource)) {
       fail(`${generatedPublicContentFile} must not contain ${label}`);
     }
   }

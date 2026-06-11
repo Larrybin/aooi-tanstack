@@ -30,7 +30,10 @@ const SITE_REQUIRED_COMMANDS = [
 ];
 const CONTENT_GENERATION_REQUIRED_COMMANDS = [
   'pnpm exec next',
+  'pnpm exec tsc',
+  'pnpm exec vite',
   'node scripts/next-build.mjs',
+  'node scripts/validate-tanstack-native-migration.mjs',
   'pnpm exec @better-auth/cli generate',
   'node --import tsx scripts/smoke.mjs',
   'node --import tsx scripts/run-cf-app-deploy.mjs',
@@ -59,7 +62,7 @@ function requiresExplicitSite(commandParts) {
   );
 }
 
-function requiresContentGeneration(commandParts) {
+export function requiresContentGeneration(commandParts) {
   const joinedCommand = joinCommand(commandParts);
   return CONTENT_GENERATION_REQUIRED_COMMANDS.some((prefix) =>
     joinedCommand.startsWith(prefix)

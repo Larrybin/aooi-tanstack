@@ -46,6 +46,16 @@ async function readGeneratedPublicContent() {
   return await readFile(generatedPublicContentPath, 'utf8');
 }
 
+async function runTanStackValidate(siteKey: string) {
+  await execFileAsync('pnpm', ['tanstack:validate'], {
+    cwd: rootDir,
+    env: {
+      ...process.env,
+      SITE: siteKey,
+    },
+  });
+}
+
 async function readGeneratedArtifactIndex(siteKey: string) {
   const pointer = parseGeneratedPointer(await readGeneratedContentSource());
   assert.equal(pointer.siteKey, siteKey);
@@ -94,12 +104,32 @@ test('@/public-content: SITE=dev-local emits serializable public content manifes
   const publicContentSource = await readGeneratedPublicContent();
 
   assert.match(publicContentSource, /collection": "pages"/);
+  assert.match(publicContentSource, /publicContentSiteKey = "dev-local"/);
+  assert.match(
+    publicContentSource,
+    /publicContentArtifactVersion = "build-\d+-\d+"/
+  );
   assert.match(publicContentSource, /slug": "privacy-policy"/);
   assert.match(publicContentSource, /content":/);
   assert.doesNotMatch(publicContentSource, /from ['"]react['"]/);
   assert.doesNotMatch(publicContentSource, /from ['"]fumadocs/);
   assert.doesNotMatch(publicContentSource, /@\/mdx-components/);
   assert.doesNotMatch(publicContentSource, /docs\.css/);
+});
+
+test('@/public-content: tanstack validation regenerates stale site manifest', async () => {
+  await runGenerateContentSource('mamamiya');
+  assert.match(
+    await readGeneratedPublicContent(),
+    /publicContentSiteKey = "mamamiya"/
+  );
+
+  await runTanStackValidate('dev-local');
+
+  assert.match(
+    await readGeneratedPublicContent(),
+    /publicContentSiteKey = "dev-local"/
+  );
 });
 
 test('@/content-source: SITE=mamamiya points to versioned .source/mamamiya artifact', async () => {

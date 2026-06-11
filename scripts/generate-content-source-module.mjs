@@ -118,9 +118,11 @@ async function generateSiteContentArtifacts({
   });
   const tempGeneratedPublicContentPath = `${generatedPublicContentPath}.tmp-${process.pid}-${Date.now()}`;
   const fumadocsCacheOutDir = resolveFumadocsCacheOutDir({ rootDir, siteKey });
-  const publicContentManifestSource = toPublicContentManifestSource(
-    buildPublicContentDocuments({ rootDir, siteKey, site })
-  );
+  const publicContentManifestSource = toPublicContentManifestSource({
+    documents: buildPublicContentDocuments({ rootDir, siteKey, site }),
+    siteKey,
+    versionId,
+  });
 
   await rm(tempOutDir, { recursive: true, force: true });
   await rm(targetOutDir, { recursive: true, force: true });

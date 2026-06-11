@@ -175,8 +175,15 @@ export function buildPublicContentDocuments({ rootDir, siteKey, site }) {
   });
 }
 
-export function toPublicContentManifestSource(documents) {
-  return `export type PublicContentCollection = 'docs' | 'pages' | 'posts';
+export function toPublicContentManifestSource({
+  documents,
+  siteKey,
+  versionId,
+}) {
+  return `export const publicContentSiteKey = ${JSON.stringify(siteKey)};
+export const publicContentArtifactVersion = ${JSON.stringify(versionId)};
+
+export type PublicContentCollection = 'docs' | 'pages' | 'posts';
 
 export type PublicContentTocItem = {
   title: string;

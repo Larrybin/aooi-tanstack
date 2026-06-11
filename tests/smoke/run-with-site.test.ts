@@ -3,7 +3,10 @@ import { execFile } from 'node:child_process';
 import test from 'node:test';
 import { promisify } from 'node:util';
 
-import { buildSiteEnv } from '../../scripts/run-with-site.mjs';
+import {
+  buildSiteEnv,
+  requiresContentGeneration,
+} from '../../scripts/run-with-site.mjs';
 
 const execFileAsync = promisify(execFile);
 
@@ -79,6 +82,28 @@ test('run-with-site 对 site gate 命令要求显式 SITE', async () => {
   assert.equal(result.ok, false);
   assert.match(result.stderr, /SITE is required for this command/);
   assert.match(result.stderr, /scripts\/site-gate\.mjs/);
+});
+
+test('run-with-site regenerates content for TanStack commands', () => {
+  assert.equal(
+    requiresContentGeneration(['pnpm', 'exec', 'vite', 'build']),
+    true
+  );
+  assert.equal(
+    requiresContentGeneration(['pnpm', 'exec', 'tsc', '--noEmit']),
+    true
+  );
+  assert.equal(
+    requiresContentGeneration([
+      'node',
+      'scripts/validate-tanstack-native-migration.mjs',
+    ]),
+    true
+  );
+  assert.equal(
+    requiresContentGeneration(['pnpm', 'exec', 'eslint', '.']),
+    false
+  );
 });
 
 test('run-with-site 对 lint 使用内部 dev-local site fallback', async () => {
