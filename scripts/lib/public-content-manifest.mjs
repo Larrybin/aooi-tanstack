@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import GithubSlugger from 'github-slugger';
+import MarkdownIt from 'markdown-it';
 
 import {
   CONTENT_COLLECTION_KEYS,
@@ -13,6 +14,11 @@ const COLLECTION_BASE_PATHS = Object.freeze({
   docs: '/docs',
   pages: '/',
   posts: '/blog',
+});
+const markdown = new MarkdownIt({
+  html: false,
+  linkify: true,
+  breaks: true,
 });
 
 function walkFiles(dirPath, acc = []) {
@@ -135,15 +141,22 @@ function slugToPath(collection, slug) {
 function buildToc(content) {
   const toc = [];
   const slugger = new GithubSlugger();
-  const headingRegex = /^(#{1,6})\s+(.+)$/gm;
-  let match;
+  const tokens = markdown.parse(content, {});
 
-  while ((match = headingRegex.exec(content)) !== null) {
-    const title = match[2].trim();
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    if (token.type !== 'heading_open') continue;
+
+    const inlineToken = tokens[index + 1];
+    if (!inlineToken || inlineToken.type !== 'inline') continue;
+
+    const title = inlineToken.content.trim();
+    if (!title) continue;
+
     toc.push({
       title,
       url: `#${slugger.slug(title)}`,
-      depth: match[1].length,
+      depth: Number(token.tag.slice(1)),
     });
   }
 

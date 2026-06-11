@@ -123,6 +123,13 @@ test('@/public-content: manifest TOC heading ids match markdown renderer slugs',
   const publicContentSource = await readGeneratedPublicContent();
 
   assert.match(publicContentSource, /#8-性能next--tailwind--ts-交叉点/);
+  assert.match(publicContentSource, /"title": "Database",\n\s+"url": "#database"/);
+  assert.doesNotMatch(publicContentSource, /"url": "#database-1"/);
+  assert.doesNotMatch(publicContentSource, /"url": "#auth-secret"/);
+  assert.doesNotMatch(
+    publicContentSource,
+    /"url": "#openssl-rand--base64-32"/
+  );
 });
 
 test('@/public-content: tanstack validation regenerates stale site manifest', async () => {
