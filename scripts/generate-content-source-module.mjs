@@ -9,6 +9,10 @@ import {
 import path from 'node:path';
 import { postInstall } from 'fumadocs-mdx/next';
 
+import {
+  buildPublicContentDocuments,
+  toPublicContentManifestSource,
+} from './lib/public-content-manifest.mjs';
 import { readCurrentSiteConfig } from './lib/site-config.mjs';
 import {
   createContentArtifactVersionId,
@@ -16,6 +20,7 @@ import {
   resolveContentOutDir,
   resolveFumadocsCacheOutDir,
   resolveGeneratedContentSourcePath,
+  resolveGeneratedPublicContentPath,
   toContentSourceModuleSpecifier,
   validateSiteContentCompleteness,
 } from './lib/site-content-config.mjs';
@@ -108,7 +113,14 @@ async function generateSiteContentArtifacts({
   const tempOutDir = `${targetOutDir}.tmp`;
   const generatedSourcePath = resolveGeneratedContentSourcePath({ rootDir });
   const tempGeneratedSourcePath = `${generatedSourcePath}.tmp-${process.pid}-${Date.now()}`;
+  const generatedPublicContentPath = resolveGeneratedPublicContentPath({
+    rootDir,
+  });
+  const tempGeneratedPublicContentPath = `${generatedPublicContentPath}.tmp-${process.pid}-${Date.now()}`;
   const fumadocsCacheOutDir = resolveFumadocsCacheOutDir({ rootDir, siteKey });
+  const publicContentManifestSource = toPublicContentManifestSource(
+    buildPublicContentDocuments({ rootDir, siteKey, site })
+  );
 
   await rm(tempOutDir, { recursive: true, force: true });
   await rm(targetOutDir, { recursive: true, force: true });
@@ -136,9 +148,15 @@ async function generateSiteContentArtifacts({
     toModuleSource({ siteKey, versionId }),
     'utf8'
   );
+  await writeFile(
+    tempGeneratedPublicContentPath,
+    publicContentManifestSource,
+    'utf8'
+  );
 
   await rename(tempOutDir, targetOutDir);
   await rename(tempGeneratedSourcePath, generatedSourcePath);
+  await rename(tempGeneratedPublicContentPath, generatedPublicContentPath);
   await removeLegacyContentArtifacts({ rootDir });
 
   await pruneOlderSiteVersions({

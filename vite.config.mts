@@ -37,6 +37,10 @@ export default defineConfig({
         find: '@/content-source',
         replacement: resolve(projectRoot, '.generated/content-source.ts'),
       },
+      {
+        find: '@/public-content',
+        replacement: resolve(projectRoot, '.generated/public-content.ts'),
+      },
       { find: '@', replacement: resolve(projectRoot, 'src') },
     ],
   },

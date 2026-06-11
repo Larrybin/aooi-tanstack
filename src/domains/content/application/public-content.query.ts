@@ -21,7 +21,6 @@ import {
   TaxonomyStatus,
   TaxonomyType,
 } from '@/domains/content/domain/taxonomy-types';
-import { postsI18n } from '@/domains/content/infra/source';
 import { createUseCaseLogger } from '@/infra/platform/logging/logger.server';
 
 import type {
@@ -41,6 +40,7 @@ import {
   getLocalPage,
   getLocalPost,
 } from './local-content';
+import { getLocalPublicContentDocuments } from './public-content-manifest';
 
 const log = createUseCaseLogger({
   domain: 'content',
@@ -190,21 +190,16 @@ export async function getBlogCategoryPostsAndCategories({
 }
 
 export async function getPublicBlogPostStaticSlugs() {
-  const [localSlugGroups, remotePosts] = await Promise.all([
-    Promise.all(
-      postsI18n.languages.map(async (locale) => {
-        const entries = await getLocalBlogPostEntries({ locale });
-        return entries
-          .map((entry) => entry.post.slug?.trim() || '')
-          .filter((slug) => slug.length > 0);
-      })
-    ),
+  const [localPosts, remotePosts] = await Promise.all([
+    getLocalPublicContentDocuments({ collection: 'posts' }),
     getPublishedRemoteBlogPosts(),
   ]);
 
   return Array.from(
     new Set([
-      ...localSlugGroups.flat(),
+      ...localPosts
+        .map((post) => post.slug.trim())
+        .filter((slug) => slug.length > 0),
       ...remotePosts
         .map((post) => post.slug?.trim() || '')
         .filter((slug) => slug.length > 0),

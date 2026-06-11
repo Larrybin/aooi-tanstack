@@ -19,6 +19,10 @@ const generatedContentSourcePath = path.resolve(
   rootDir,
   '.generated/content-source.ts'
 );
+const generatedPublicContentPath = path.resolve(
+  rootDir,
+  '.generated/public-content.ts'
+);
 
 async function runGenerateContentSource(siteKey: string) {
   await execFileAsync(
@@ -36,6 +40,10 @@ async function runGenerateContentSource(siteKey: string) {
 
 async function readGeneratedContentSource() {
   return await readFile(generatedContentSourcePath, 'utf8');
+}
+
+async function readGeneratedPublicContent() {
+  return await readFile(generatedPublicContentPath, 'utf8');
 }
 
 async function readGeneratedArtifactIndex(siteKey: string) {
@@ -78,6 +86,20 @@ test('@/content-source: SITE=dev-local points to versioned .source/dev-local art
 
   assert.equal(pointer.siteKey, 'dev-local');
   assert.match(pointer.versionId, /^build-\d+-\d+$/);
+});
+
+test('@/public-content: SITE=dev-local emits serializable public content manifest', async () => {
+  await runGenerateContentSource('dev-local');
+
+  const publicContentSource = await readGeneratedPublicContent();
+
+  assert.match(publicContentSource, /collection": "pages"/);
+  assert.match(publicContentSource, /slug": "privacy-policy"/);
+  assert.match(publicContentSource, /content":/);
+  assert.doesNotMatch(publicContentSource, /from ['"]react['"]/);
+  assert.doesNotMatch(publicContentSource, /from ['"]fumadocs/);
+  assert.doesNotMatch(publicContentSource, /@\/mdx-components/);
+  assert.doesNotMatch(publicContentSource, /docs\.css/);
 });
 
 test('@/content-source: SITE=mamamiya points to versioned .source/mamamiya artifact', async () => {

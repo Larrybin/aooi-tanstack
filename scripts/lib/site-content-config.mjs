@@ -59,6 +59,12 @@ export function resolveGeneratedContentSourcePath({
   return path.resolve(rootDir, '.generated', 'content-source.ts');
 }
 
+export function resolveGeneratedPublicContentPath({
+  rootDir = process.cwd(),
+} = {}) {
+  return path.resolve(rootDir, '.generated', 'public-content.ts');
+}
+
 export function resolveFumadocsCacheOutDir({
   rootDir = process.cwd(),
   siteKey = resolveContentArtifactSiteKey(),

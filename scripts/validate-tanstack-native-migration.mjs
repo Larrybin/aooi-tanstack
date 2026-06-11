@@ -156,6 +156,7 @@ const requiredFiles = [
   'src/shared/seo/canonical.ts',
   'src/shared/i18n/locale.ts',
   'src/domains/pricing/application/pricing-page.ts',
+  'src/domains/content/application/public-content-manifest.ts',
   'src/server/pricing/pricing-page-messages.ts',
   'src/server/pricing/pricing-route-data.ts',
   'src/surfaces/landing/pricing/pricing.data.ts',
@@ -596,6 +597,46 @@ if (
   )
 ) {
   fail(`${pricingMessagesFile} must load local JSON message modules directly`);
+}
+
+const publicContentManifestFile =
+  'src/domains/content/application/public-content-manifest.ts';
+const publicContentManifestAbs = join(root, publicContentManifestFile);
+if (!contains(publicContentManifestAbs, /@\/public-content/)) {
+  fail(
+    `${publicContentManifestFile} must read the generated public content manifest`
+  );
+}
+
+const localContentFile = 'src/domains/content/application/local-content.tsx';
+const localContentAbs = join(root, localContentFile);
+for (const [regex, label] of [
+  [/@\/mdx-components/, 'MDX component import'],
+  [/from\s+['"]react['"]/, 'React import'],
+  [/from\s+['"]fumadocs/, 'Fumadocs import'],
+  [/pagesSource|postsSource/, 'Fumadocs source usage'],
+  [/body\s*:/, 'React body route data'],
+]) {
+  if (contains(localContentAbs, regex)) {
+    fail(`${localContentFile} must not keep ${label}`);
+  }
+}
+
+const generatedPublicContentFile = '.generated/public-content.ts';
+const generatedPublicContentAbs = join(root, generatedPublicContentFile);
+if (!existsSync(generatedPublicContentAbs)) {
+  fail(`${generatedPublicContentFile} must be generated`);
+} else {
+  for (const [regex, label] of [
+    [/from\s+['"]react['"]/, 'React import'],
+    [/from\s+['"]fumadocs/, 'Fumadocs import'],
+    [/@\/mdx-components/, 'MDX component import'],
+    [/docs\.css/, 'docs CSS import'],
+  ]) {
+    if (contains(generatedPublicContentAbs, regex)) {
+      fail(`${generatedPublicContentFile} must not contain ${label}`);
+    }
+  }
 }
 
 const pricingViewFile = 'src/domains/pricing/ui/pricing-slice-view.tsx';
