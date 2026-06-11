@@ -428,7 +428,7 @@ const tanstackPageRouteClosureFiles = localRuntimeClosure(
 const tanstackPageRuntimeForbiddenPatterns = [
   [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
   [/^\s*import\s+['"]next(?:\/|['"])/m, 'next side-effect import'],
-  [/from\s+['"]next-intl\/server['"]/, 'next-intl/server import'],
+  [/from\s+['"]next-intl(?:\/|['"])/, 'next-intl import'],
   [/^\s*import\s+['"]server-only['"]/m, 'server-only marker'],
   [/@\/app\/|src\/app\//, 'legacy app import'],
   [/@\/app\/_legacy\/|src\/app\/_legacy\//, 'app legacy helper import'],
@@ -581,16 +581,21 @@ if (contains(indexRouteAbs, /\/\$locale\/pricing|params:\s*\{/)) {
 
 const pricingMessagesFile = 'src/server/pricing/pricing-page-messages.ts';
 const pricingMessagesAbs = join(root, pricingMessagesFile);
-if (!contains(pricingMessagesAbs, /getScopedMessages/)) {
-  fail(`${pricingMessagesFile} must reuse getScopedMessages`);
+if (
+  contains(
+    pricingMessagesAbs,
+    /getScopedMessages|@\/infra\/platform\/i18n\/messages|next-intl/
+  )
+) {
+  fail(`${pricingMessagesFile} must not use legacy next-intl message loaders`);
 }
-for (const [regex, label] of [
-  [/config\/locale\/messages\/\$\{locale\}/, 'direct locale message import'],
-  [/mergeDeep/, 'custom message merge'],
-]) {
-  if (contains(pricingMessagesAbs, regex)) {
-    fail(`${pricingMessagesFile} must not keep ${label}`);
-  }
+if (
+  !contains(
+    pricingMessagesAbs,
+    /@\/config\/locale\/messages\/\$\{locale\}\/\$\{path\}\.json/
+  )
+) {
+  fail(`${pricingMessagesFile} must load local JSON message modules directly`);
 }
 
 const pricingViewFile = 'src/domains/pricing/ui/pricing-slice-view.tsx';
