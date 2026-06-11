@@ -8,7 +8,7 @@ export const Route = createFileRoute('/$locale/pricing')({
   loader: async ({ params }) => {
     const data = await loadPricingSurfaceData(params.locale);
     if (!data) {
-      throw notFound();
+      throw notFound({ data: { locale: params.locale } });
     }
     return data as PricingRouteData;
   },

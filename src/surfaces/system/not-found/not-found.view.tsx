@@ -1,12 +1,12 @@
 import { site } from '@/site';
-import { Link } from '@tanstack/react-router';
+import { Link, type NotFoundRouteProps } from '@tanstack/react-router';
 
 import { SmartIcon } from '@/shared/blocks/common/smart-icon';
 import { Button } from '@/shared/components/ui/button';
 import { getTanStackNotFoundCopy } from '@/shared/i18n/tanstack-paraglide';
 
-export function NotFoundSurfaceView() {
-  const copy = getTanStackNotFoundCopy();
+export function NotFoundSurfaceView(props: NotFoundRouteProps) {
+  const copy = getTanStackNotFoundCopy(getNotFoundLocale(props.data));
 
   return (
     <div className="flex h-screen flex-col items-center justify-center gap-4">
@@ -28,4 +28,13 @@ export function NotFoundSurfaceView() {
       </Button>
     </div>
   );
+}
+
+function getNotFoundLocale(data: unknown) {
+  if (typeof data !== 'object' || data === null) {
+    return undefined;
+  }
+
+  const locale = (data as { locale?: unknown }).locale;
+  return typeof locale === 'string' ? locale : undefined;
 }
