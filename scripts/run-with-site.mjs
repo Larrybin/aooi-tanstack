@@ -33,6 +33,7 @@ const CONTENT_GENERATION_REQUIRED_COMMANDS = [
   'pnpm exec tsc',
   'pnpm exec vite',
   'node scripts/next-build.mjs',
+  'node scripts/run-tests.mjs',
   'node scripts/validate-tanstack-native-migration.mjs',
   'pnpm exec @better-auth/cli generate',
   'node --import tsx scripts/smoke.mjs',
