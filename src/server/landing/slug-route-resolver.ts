@@ -2,6 +2,8 @@ import { getLocalPublicContentDocument } from '@/domains/content/application/pub
 import { site } from '@/site';
 import type { SlugRouteData } from '@/surfaces/landing/slug/slug.types';
 
+import { formatPostDateForLocale } from '@/shared/lib/post-date-format';
+
 import {
   buildBrandPlaceholderValues,
   replaceBrandPlaceholders,
@@ -70,7 +72,9 @@ export async function resolveSlugRouteData({
       title,
       description,
       content,
-      createdAt: formatSlugPageDate(page.created_at, locale),
+      createdAt: page.created_at
+        ? formatPostDateForLocale(page.created_at, locale)
+        : '',
       toc: page.toc,
     },
   };
@@ -83,28 +87,4 @@ function normalizeSlug(value: unknown) {
 
   const slug = value.trim().replace(/^\/+|\/+$/g, '');
   return slug && !slug.includes('/') ? slug : null;
-}
-
-function formatSlugPageDate(createdAt: string, locale: string) {
-  if (!createdAt) {
-    return '';
-  }
-
-  const date = new Date(`${createdAt}T00:00:00.000Z`);
-  if (Number.isNaN(date.getTime())) {
-    return createdAt;
-  }
-
-  if (locale === 'zh') {
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(date.getUTCDate()).padStart(2, '0');
-    return `${date.getUTCFullYear()}/${month}/${day}`;
-  }
-
-  return new Intl.DateTimeFormat('en', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    timeZone: 'UTC',
-  }).format(date);
 }
