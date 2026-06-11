@@ -493,7 +493,7 @@ for (const file of [
   'apps/web/src/routes/$locale/pricing.tsx',
 ]) {
   const abs = join(root, file);
-  if (!contains(abs, /notFound\(\)/)) {
+  if (!contains(abs, /throw\s+notFound\s*\(/)) {
     fail(`${file} must throw TanStack notFound() for missing route data`);
   }
   for (const surfaceFile of [
