@@ -1,120 +1,122 @@
 import type { ReactNode } from 'react';
-import { site, sitePricing } from '@/site';
 
-import { defaultLocale } from '@/config/locale';
 import { LocaleDetector } from '@/shared/blocks/common/locale-detector';
 import { PublicAppProvider } from '@/shared/contexts/app';
 
-type PaymentCapability = 'none' | 'stripe' | 'creem' | 'paypal';
+import type {
+  SlugShellData,
+  SlugShellNavItem,
+} from '../slug/slug.types';
 
-function localizePath(path: string, locale: string) {
-  if (locale === defaultLocale) {
-    return path;
+function NavLinks({
+  items,
+  className,
+}: {
+  items: SlugShellNavItem[];
+  className: string;
+}) {
+  if (items.length === 0) {
+    return null;
   }
 
-  return path === '/' ? `/${locale}` : `/${locale}${path}`;
+  return (
+    <nav className={className} aria-label="Navigation">
+      {items.map((item) => (
+        <NavLink key={`${item.title}:${item.url ?? ''}`} item={item} />
+      ))}
+    </nav>
+  );
 }
 
-function buildBillingSettings(payment: PaymentCapability) {
-  const shared = {
-    locale: '',
-    defaultLocale,
-  } as const;
+function NavLink({ item }: { item: SlugShellNavItem }) {
+  const label = item.title;
+  const href = item.url || '#';
 
-  switch (payment) {
-    case 'stripe':
-      return {
-        ...shared,
-        provider: 'stripe' as const,
-        paymentCapability: 'stripe' as const,
-        stripePaymentMethods: '',
-      };
-    case 'creem':
-      return {
-        ...shared,
-        provider: 'creem' as const,
-        paymentCapability: 'creem' as const,
-        creemEnvironment: 'sandbox' as const,
-        creemProductIds: '',
-      };
-    case 'paypal':
-      return {
-        ...shared,
-        provider: 'paypal' as const,
-        paymentCapability: 'paypal' as const,
-        paypalEnvironment: 'sandbox' as const,
-      };
-    case 'none':
-      return {
-        ...shared,
-        provider: 'none' as const,
-        paymentCapability: 'none' as const,
-      };
-  }
+  return (
+    <a href={href} target={item.target} rel={item.target ? 'noreferrer' : undefined}>
+      {label}
+    </a>
+  );
 }
-
-const publicUiConfig = {
-  aiEnabled: Boolean(site.capabilities.ai),
-  localeSwitcherEnabled: false,
-  socialLinksEnabled: false,
-  socialLinksJson: '',
-  socialLinks: [],
-  affiliate: {
-    affonsoEnabled: false,
-    promotekitEnabled: false,
-  },
-};
-
-const authSettings = {
-  emailAuthEnabled: false,
-  googleAuthEnabled: false,
-  googleOneTapEnabled: false,
-  googleClientId: '',
-  githubAuthEnabled: false,
-};
 
 export function LandingShellView({
   children,
-  locale,
+  shell,
 }: {
   children: ReactNode;
-  locale: string;
+  shell: SlugShellData;
 }) {
-  const homeHref = localizePath('/', locale);
-  const pricingHref = localizePath('/pricing', locale);
-  const privacyHref = localizePath('/privacy-policy', locale);
-  const termsHref = localizePath('/terms-of-service', locale);
-  const billingSettings = buildBillingSettings(site.capabilities.payment);
-
   return (
     <PublicAppProvider
-      initialUiConfig={publicUiConfig}
-      initialAuthSettings={authSettings}
-      initialBillingSettings={billingSettings}
+      initialUiConfig={shell.publicUiConfig}
+      initialAuthSettings={shell.authSettings}
+      initialBillingSettings={shell.billingSettings}
     >
       <LocaleDetector />
       <div className="landing-shell">
         <header className="landing-shell-header">
-          <a className="landing-shell-brand" href={homeHref}>
-            {site.brand.logo ? (
-              <img src={site.brand.logo} alt="" aria-hidden="true" />
+          <a className="landing-shell-brand" href={shell.brand.url || '/'}>
+            {shell.brand.logo ? (
+              // eslint-disable-next-line @next/next/no-img-element -- TanStack routes cannot use next/image.
+              <img
+                src={shell.brand.logo.src}
+                alt={shell.brand.logo.alt}
+                aria-hidden={shell.brand.logo.alt ? undefined : true}
+              />
             ) : null}
-            <span>{site.brand.appName}</span>
+            <span>{shell.brand.title}</span>
           </a>
-          <nav className="landing-shell-nav" aria-label="Primary navigation">
-            <a href={homeHref}>Home</a>
-            {sitePricing ? <a href={pricingHref}>Pricing</a> : null}
-          </nav>
+
+          <div className="landing-shell-header-actions">
+            <NavLinks
+              items={shell.header.navItems}
+              className="landing-shell-nav"
+            />
+            <NavLinks
+              items={shell.header.userNavItems}
+              className="landing-shell-user-nav"
+            />
+            <NavLinks
+              items={shell.header.buttonItems}
+              className="landing-shell-button-nav"
+            />
+            {shell.header.showSign ? (
+              <a className="landing-shell-sign-link" href={shell.header.signInHref}>
+                {shell.header.signInLabel}
+              </a>
+            ) : null}
+          </div>
         </header>
 
         <main className="landing-shell-main">{children}</main>
 
         <footer className="landing-shell-footer">
-          <span>© {site.brand.appName}</span>
-          <nav aria-label="Legal navigation">
-            <a href={privacyHref}>Privacy Policy</a>
-            <a href={termsHref}>Terms of Service</a>
-          </nav>
+          <div className="landing-shell-footer-brand">
+            <strong>{shell.brand.title}</strong>
+            {shell.brand.description ? <p>{shell.brand.description}</p> : null}
+            <span>{shell.footer.copyright}</span>
+          </div>
+
+          {shell.footer.groups.length > 0 ? (
+            <div className="landing-shell-footer-groups">
+              {shell.footer.groups.map((group) => (
+                <nav
+                  key={group.title || group.items.map((item) => item.title).join(':')}
+                  aria-label={group.title || shell.footer.ariaLabel}
+                >
+                  {group.title ? <strong>{group.title}</strong> : null}
+                  {group.items.map((item) => (
+                    <NavLink key={`${item.title}:${item.url ?? ''}`} item={item} />
+                  ))}
+                </nav>
+              ))}
+            </div>
+          ) : null}
+
+          <NavLinks
+            items={shell.footer.agreementItems}
+            className="landing-shell-legal-nav"
+          />
         </footer>
       </div>
     </PublicAppProvider>

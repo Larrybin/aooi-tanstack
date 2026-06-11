@@ -1,5 +1,7 @@
 import { getLocalPublicContentDocument } from '@/domains/content/application/public-content-manifest';
 import { site } from '@/site';
+
+import { resolveLandingShellData } from './landing-shell-data';
 import type { SlugRouteData } from '@/surfaces/landing/slug/slug.types';
 
 import { formatPostDateForLocale } from '@/shared/lib/post-date-format';
@@ -58,6 +60,7 @@ export async function resolveSlugRouteData({
     locale,
     slug,
     canonicalPath,
+    shell: resolveLandingShellData(locale),
     head: buildSeoHead({
       title: `${title} | ${site.brand.appName}`,
       description,

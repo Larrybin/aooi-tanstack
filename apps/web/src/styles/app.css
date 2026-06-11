@@ -254,8 +254,11 @@ a {
 }
 
 .landing-shell-brand,
+.landing-shell-header-actions,
 .landing-shell-nav,
-.landing-shell-footer nav {
+.landing-shell-user-nav,
+.landing-shell-button-nav,
+.landing-shell-legal-nav {
   display: inline-flex;
   align-items: center;
 }
@@ -273,16 +276,37 @@ a {
   border-radius: 8px;
 }
 
+.landing-shell-header-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 18px;
+}
+
 .landing-shell-nav,
-.landing-shell-footer nav {
+.landing-shell-user-nav,
+.landing-shell-button-nav,
+.landing-shell-legal-nav {
+  flex-wrap: wrap;
   gap: 18px;
 }
 
 .landing-shell-nav a,
+.landing-shell-user-nav a,
+.landing-shell-button-nav a,
+.landing-shell-sign-link,
 .landing-shell-footer a {
   color: #4c566a;
   font-size: 14px;
   text-decoration: none;
+}
+
+.landing-shell-sign-link {
+  border: 1px solid #d9e0ef;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.8);
+  color: #151923;
+  font-weight: 700;
 }
 
 .landing-shell-main {
@@ -290,14 +314,49 @@ a {
 }
 
 .landing-shell-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  gap: 24px;
   border-top: 1px solid #dfe5f2;
   padding: 24px 0 32px;
   color: #667085;
   font-size: 14px;
+}
+
+.landing-shell-footer-brand {
+  display: grid;
+  gap: 8px;
+}
+
+.landing-shell-footer-brand strong {
+  color: #151923;
+}
+
+.landing-shell-footer-brand p {
+  max-width: 420px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.landing-shell-footer-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 24px;
+  min-width: min(480px, 100%);
+}
+
+.landing-shell-footer-groups nav {
+  display: grid;
+  gap: 10px;
+}
+
+.landing-shell-footer-groups strong {
+  color: #151923;
+}
+
+.landing-shell-legal-nav {
+  grid-column: 1 / -1;
+  justify-content: flex-end;
 }
 
 .slug-article {
@@ -341,10 +400,21 @@ a {
 }
 
 @media (max-width: 720px) {
-  .landing-shell-header,
-  .landing-shell-footer {
+  .landing-shell-header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .landing-shell-header-actions {
+    justify-content: flex-start;
+  }
+
+  .landing-shell-footer {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-shell-legal-nav {
+    justify-content: flex-start;
   }
 
   .slug-article-card {

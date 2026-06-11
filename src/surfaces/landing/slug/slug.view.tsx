@@ -14,7 +14,7 @@ export function SlugSurfaceView({ data }: { data: SlugRouteData }) {
   }, [data.locale]);
 
   return (
-    <LandingShellView locale={data.locale}>
+    <LandingShellView shell={data.shell}>
       <article className="slug-article">
         <header className="slug-article-header">
           <h1>
