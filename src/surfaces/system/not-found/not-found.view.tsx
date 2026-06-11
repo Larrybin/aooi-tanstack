@@ -1,10 +1,22 @@
 import { site } from '@/site';
-import { Link } from '@tanstack/react-router';
+import {
+  Link,
+  useLocation,
+  type NotFoundRouteProps,
+} from '@tanstack/react-router';
 
 import { SmartIcon } from '@/shared/blocks/common/smart-icon';
 import { Button } from '@/shared/components/ui/button';
+import { getTanStackNotFoundCopy } from '@/shared/i18n/tanstack-paraglide';
 
-export function NotFoundSurfaceView() {
+import { resolveNotFoundLocale } from './not-found.locale';
+
+export function NotFoundSurfaceView(props: NotFoundRouteProps) {
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const copy = getTanStackNotFoundCopy(
+    resolveNotFoundLocale(props.data, pathname)
+  );
+
   return (
     <div className="flex h-screen flex-col items-center justify-center gap-4">
       {/* TanStack surface: do not import next/image here. */}
@@ -16,11 +28,11 @@ export function NotFoundSurfaceView() {
         height={80}
         className="h-20 w-20 object-contain"
       />
-      <h1 className="text-2xl font-normal">Page not found</h1>
+      <h1 className="text-2xl font-normal">{copy.title}</h1>
       <Button asChild>
         <Link to="/" className="mt-4">
           <SmartIcon name="ArrowLeft" />
-          <span>Back to Home</span>
+          <span>{copy.backHome}</span>
         </Link>
       </Button>
     </div>

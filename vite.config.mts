@@ -1,5 +1,6 @@
 import { resolve } from 'node:path';
 import { cloudflare } from '@cloudflare/vite-plugin';
+import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
@@ -46,6 +47,16 @@ export default defineConfig({
   },
   plugins: [
     serverOnlyForSsr(),
+    paraglideVitePlugin({
+      project: './project.inlang',
+      outdir: './src/paraglide',
+      strategy: ['globalVariable', 'baseLocale'],
+      isServer: 'import.meta.env.SSR',
+      emitGitIgnore: false,
+      emitPrettierIgnore: false,
+      emitReadme: false,
+      emitTsDeclarations: true,
+    }),
     cloudflare({ viteEnvironment: { name: 'ssr' } }),
     tanstackStart({
       srcDirectory: 'apps/web/src',

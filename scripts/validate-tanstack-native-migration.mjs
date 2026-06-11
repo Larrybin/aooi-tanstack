@@ -155,6 +155,9 @@ const requiredFiles = [
   'src/server/api/user/get-user-credits-action.ts',
   'src/shared/seo/canonical.ts',
   'src/shared/i18n/locale.ts',
+  'src/shared/i18n/tanstack-paraglide.ts',
+  'src/paraglide/messages.js',
+  'src/paraglide/runtime.js',
   'src/domains/pricing/application/pricing-page.ts',
   'src/domains/content/application/public-content-manifest.ts',
   'src/server/pricing/pricing-page-messages.ts',
@@ -168,6 +171,10 @@ const requiredFiles = [
   'docs/migration/gate-4-page-migration-plan.generated.md',
   'docs/migration/gate-1-3-tanstack-nativity-review.md',
   'docs/migration/gate-4-surface-taint-audit.md',
+  'project.inlang/settings.json',
+  'messages/en.json',
+  'messages/zh.json',
+  'messages/zh-TW.json',
   'vite.config.mts',
   'tsconfig.tanstack.json',
 ];
@@ -261,6 +268,20 @@ const allDeps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
 if (allDeps['@cloudflare/vite-plugin'] === '^2.2.0') {
   fail('@cloudflare/vite-plugin ^2.2.0 is not a valid baseline');
 }
+if (!allDeps['@inlang/paraglide-js']) {
+  fail('@inlang/paraglide-js must be installed for TanStack i18n foundation');
+}
+if (pkg.devDependencies?.['@inlang/plugin-message-format'] !== '4.4.0') {
+  fail(
+    '@inlang/plugin-message-format 4.4.0 must be installed for local Paraglide compilation'
+  );
+}
+if (!scripts['paraglide:compile']) {
+  fail('missing Paraglide compile script');
+}
+if (!/paraglide-js compile/.test(scripts['paraglide:compile'] || '')) {
+  fail('paraglide:compile must run the Paraglide compiler');
+}
 
 try {
   execFileSync('node', ['scripts/tanstack-gate-4-plan.mjs', '--check'], {
@@ -322,6 +343,54 @@ for (const file of surfaceFiles) {
       fail(`${label} found in surface layer: ${relative(root, file)}`);
     }
   }
+}
+
+const viteConfigFile = join(root, 'vite.config.mts');
+if (!contains(viteConfigFile, /paraglideVitePlugin/)) {
+  fail('vite.config.mts must include the Paraglide Vite plugin');
+}
+if (contains(viteConfigFile, /strategy:\s*\[[^\]]*['"]url['"]/s)) {
+  fail('Paraglide foundation must not enable URL strategy in this phase');
+}
+
+const inlangSettingsFile = join(root, 'project.inlang/settings.json');
+const inlangSettings = JSON.parse(readFileSync(inlangSettingsFile, 'utf8'));
+const inlangModules = Array.isArray(inlangSettings.modules)
+  ? inlangSettings.modules
+  : [];
+const localMessageFormatPlugin =
+  './node_modules/@inlang/plugin-message-format/dist/index.js';
+
+if (inlangModules.some((modulePath) => /^https?:\/\//.test(modulePath))) {
+  fail('project.inlang/settings.json must not load remote Paraglide plugins');
+}
+if (!inlangModules.includes(localMessageFormatPlugin)) {
+  fail(
+    'project.inlang/settings.json must load the local message-format plugin'
+  );
+}
+if (inlangModules.some((modulePath) => /m-function-matcher/.test(modulePath))) {
+  fail(
+    'project.inlang/settings.json must not load the Sherlock matcher plugin'
+  );
+}
+if (!existsSync(join(root, localMessageFormatPlugin))) {
+  fail('@inlang/plugin-message-format local plugin file is missing');
+}
+
+const tanstackParaglideFile = 'src/shared/i18n/tanstack-paraglide.ts';
+const tanstackParaglideAbs = join(root, tanstackParaglideFile);
+if (!contains(tanstackParaglideAbs, /@\/paraglide\/messages/)) {
+  fail(`${tanstackParaglideFile} must use compiled Paraglide messages`);
+}
+if (contains(tanstackParaglideAbs, /next-intl|getScopedMessages/)) {
+  fail(`${tanstackParaglideFile} must not use legacy i18n loaders`);
+}
+
+const notFoundSurfaceFile = 'src/surfaces/system/not-found/not-found.view.tsx';
+const notFoundSurfaceAbs = join(root, notFoundSurfaceFile);
+if (!contains(notFoundSurfaceAbs, /getTanStackNotFoundCopy/)) {
+  fail(`${notFoundSurfaceFile} must consume TanStack Paraglide copy`);
 }
 
 const routeTreeFile = join(root, 'apps/web/src/routeTree.gen.ts');
