@@ -233,3 +233,121 @@ a {
   color: #667085;
   font-size: 14px;
 }
+
+.landing-shell {
+  min-height: 100vh;
+  color: #151923;
+}
+
+.landing-shell-header,
+.landing-shell-footer {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+.landing-shell-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 0;
+}
+
+.landing-shell-brand,
+.landing-shell-nav,
+.landing-shell-footer nav {
+  display: inline-flex;
+  align-items: center;
+}
+
+.landing-shell-brand {
+  gap: 10px;
+  color: #151923;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.landing-shell-brand img {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.landing-shell-nav,
+.landing-shell-footer nav {
+  gap: 18px;
+}
+
+.landing-shell-nav a,
+.landing-shell-footer a {
+  color: #4c566a;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.landing-shell-main {
+  min-height: calc(100vh - 160px);
+}
+
+.landing-shell-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-top: 1px solid #dfe5f2;
+  padding: 24px 0 32px;
+  color: #667085;
+  font-size: 14px;
+}
+
+.slug-article {
+  width: min(896px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 56px 0 72px;
+}
+
+.slug-article-header {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.slug-article-header h1 {
+  margin: 0;
+  font-size: clamp(34px, 6vw, 56px);
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+}
+
+.slug-article-description {
+  max-width: 720px;
+  margin: 16px auto 0;
+  color: #5c667a;
+  font-size: 18px;
+  line-height: 1.65;
+}
+
+.slug-article-date {
+  margin: 16px 0 0;
+  color: #667085;
+  font-size: 14px;
+}
+
+.slug-article-card {
+  border: 1px solid #dfe5f2;
+  border-radius: 28px;
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 20px 60px rgba(22, 34, 64, 0.08);
+}
+
+@media (max-width: 720px) {
+  .landing-shell-header,
+  .landing-shell-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .slug-article-card {
+    padding: 20px;
+  }
+}

@@ -3,6 +3,8 @@ import { MarkdownPreview } from '@/domains/content/ui/markdown-preview';
 
 import { isRtlLocale } from '@/config/locale';
 
+import { LandingShellView } from '../shell/landing-shell.view';
+
 import type { SlugRouteData } from './slug.types';
 
 export function SlugSurfaceView({ data }: { data: SlugRouteData }) {
@@ -12,28 +14,28 @@ export function SlugSurfaceView({ data }: { data: SlugRouteData }) {
   }, [data.locale]);
 
   return (
-    <main className="bg-background text-foreground min-h-screen">
-      <article className="mx-auto w-full max-w-4xl px-6 py-20 md:px-8 md:py-28">
-        <header className="mb-10 text-center">
-          <h1 className="text-3xl font-semibold tracking-normal md:text-5xl">
+    <LandingShellView locale={data.locale}>
+      <article className="slug-article">
+        <header className="slug-article-header">
+          <h1>
             {data.page.title}
           </h1>
           {data.page.description && (
-            <p className="text-muted-foreground mx-auto mt-4 max-w-2xl text-base md:text-lg">
+            <p className="slug-article-description">
               {data.page.description}
             </p>
           )}
           {data.page.createdAt && (
-            <p className="text-muted-foreground mt-4 text-sm">
+            <p className="slug-article-date">
               {data.page.createdAt}
             </p>
           )}
         </header>
 
-        <div className="bg-card rounded-lg border px-5 py-6 shadow-sm md:px-8 md:py-8">
+        <div className="slug-article-card">
           <MarkdownPreview content={data.page.content} />
         </div>
       </article>
-    </main>
+    </LandingShellView>
   );
 }
