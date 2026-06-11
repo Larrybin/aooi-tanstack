@@ -271,6 +271,11 @@ if (allDeps['@cloudflare/vite-plugin'] === '^2.2.0') {
 if (!allDeps['@inlang/paraglide-js']) {
   fail('@inlang/paraglide-js must be installed for TanStack i18n foundation');
 }
+if (pkg.devDependencies?.['@inlang/plugin-message-format'] !== '4.4.0') {
+  fail(
+    '@inlang/plugin-message-format 4.4.0 must be installed for local Paraglide compilation'
+  );
+}
 if (!scripts['paraglide:compile']) {
   fail('missing Paraglide compile script');
 }
@@ -346,6 +351,31 @@ if (!contains(viteConfigFile, /paraglideVitePlugin/)) {
 }
 if (contains(viteConfigFile, /strategy:\s*\[[^\]]*['"]url['"]/s)) {
   fail('Paraglide foundation must not enable URL strategy in this phase');
+}
+
+const inlangSettingsFile = join(root, 'project.inlang/settings.json');
+const inlangSettings = JSON.parse(readFileSync(inlangSettingsFile, 'utf8'));
+const inlangModules = Array.isArray(inlangSettings.modules)
+  ? inlangSettings.modules
+  : [];
+const localMessageFormatPlugin =
+  './node_modules/@inlang/plugin-message-format/dist/index.js';
+
+if (inlangModules.some((modulePath) => /^https?:\/\//.test(modulePath))) {
+  fail('project.inlang/settings.json must not load remote Paraglide plugins');
+}
+if (!inlangModules.includes(localMessageFormatPlugin)) {
+  fail(
+    'project.inlang/settings.json must load the local message-format plugin'
+  );
+}
+if (inlangModules.some((modulePath) => /m-function-matcher/.test(modulePath))) {
+  fail(
+    'project.inlang/settings.json must not load the Sherlock matcher plugin'
+  );
+}
+if (!existsSync(join(root, localMessageFormatPlugin))) {
+  fail('@inlang/plugin-message-format local plugin file is missing');
 }
 
 const tanstackParaglideFile = 'src/shared/i18n/tanstack-paraglide.ts';
