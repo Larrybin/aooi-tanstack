@@ -1,7 +1,5 @@
 import { createServerFn } from '@tanstack/react-start';
 
-import { resolveBlogPostRouteData } from './blog-post-route-resolver';
-
 type BlogPostRouteInput = {
   locale: string;
   slug: string;
@@ -17,4 +15,10 @@ export const loadBlogPostRouteData = createServerFn({ method: 'GET' })
       slug: typeof input.slug === 'string' ? input.slug : '',
     };
   })
-  .handler(async ({ data }) => resolveBlogPostRouteData(data));
+  .handler(async ({ data }) => {
+    const { resolveBlogPostRouteData } = await import(
+      './blog-post-route-resolver'
+    );
+
+    return resolveBlogPostRouteData(data);
+  });

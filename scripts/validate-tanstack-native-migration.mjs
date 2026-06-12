@@ -86,7 +86,10 @@ function resolveLocalImport(fromFile, rawSpecifier) {
   return null;
 }
 
-function extractRuntimeImportSpecifiers(source) {
+function extractRuntimeImportSpecifiers(
+  source,
+  { includeDynamicImports = true } = {}
+) {
   const specifiers = [];
   const fromImportRegex =
     /^\s*(?:import|export)\s+(type\s+)?[\s\S]*?\s+from\s+['"]([^'"]+)['"]/gm;
@@ -104,14 +107,16 @@ function extractRuntimeImportSpecifiers(source) {
     specifiers.push(match[1]);
   }
 
-  while ((match = dynamicImportRegex.exec(source))) {
-    specifiers.push(match[1]);
+  if (includeDynamicImports) {
+    while ((match = dynamicImportRegex.exec(source))) {
+      specifiers.push(match[1]);
+    }
   }
 
   return specifiers;
 }
 
-function localRuntimeClosure(entryFiles) {
+function localRuntimeClosure(entryFiles, options = {}) {
   const visited = new Set();
   const stack = [...entryFiles];
 
@@ -121,7 +126,7 @@ function localRuntimeClosure(entryFiles) {
     visited.add(current);
 
     const source = readFileSync(current, 'utf8');
-    for (const specifier of extractRuntimeImportSpecifiers(source)) {
+    for (const specifier of extractRuntimeImportSpecifiers(source, options)) {
       const resolved = resolveLocalImport(current, specifier);
       if (resolved && !visited.has(resolved)) {
         stack.push(resolved);
@@ -458,7 +463,8 @@ for (const expectedImport of expectedRouteImports) {
 }
 
 const tanstackRouteClosureFiles = localRuntimeClosure(
-  sourceFilesIn('apps/web/src')
+  sourceFilesIn('apps/web/src'),
+  { includeDynamicImports: false }
 );
 const tanstackRouteRuntimeForbiddenPatterns = [
   [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
@@ -507,7 +513,8 @@ const surfaceHelperExemptPageRoutes = new Set([
   'apps/web/src/routes/index.tsx',
 ]);
 const tanstackPageRouteClosureFiles = localRuntimeClosure(
-  tanstackPageRouteFiles.map((file) => join(root, file))
+  tanstackPageRouteFiles.map((file) => join(root, file)),
+  { includeDynamicImports: false }
 );
 const tanstackPageRuntimeForbiddenPatterns = [
   [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
@@ -651,15 +658,22 @@ for (const surfaceFile of [
   }
 }
 
+
+const blogPostSeoFile = 'src/surfaces/landing/blog-post/blog-post.seo.ts';
+const blogPostSeoAbs = join(root, blogPostSeoFile);
+if (!contains(blogPostSeoAbs, /noindex,nofollow/)) {
+  fail(`${blogPostSeoFile} must return noindex,nofollow for missing posts`);
+}
+
 const blogPostRouteResolverFile = 'src/server/landing/blog-post-route-resolver.ts';
 const blogPostRouteResolverAbs = join(root, blogPostRouteResolverFile);
-if (!contains(blogPostRouteResolverAbs, /getLocalPublicContentDocument/)) {
-  fail(`${blogPostRouteResolverFile} must read from generated public content`);
+if (!contains(blogPostRouteResolverAbs, /getBlogPost/)) {
+  fail(`${blogPostRouteResolverFile} must reuse getBlogPost route data semantics`);
 }
 for (const [regex, label] of [
-  [/public-content\.query|getBlogPost|getDocsPage/, 'legacy public content query'],
   [/next-intl/, 'next-intl import'],
   [/next\/navigation/, 'next/navigation import'],
+  [/@\/domains\/content\/infra|@\/infra\/adapters\/db/, 'direct content DB access'],
 ]) {
   if (contains(blogPostRouteResolverAbs, regex)) {
     fail(`${blogPostRouteResolverFile} must not depend on ${label}`);

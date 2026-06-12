@@ -1,4 +1,4 @@
-import { getLocalPublicContentDocument } from '@/domains/content/application/public-content-manifest';
+import { getBlogPost } from '@/domains/content/application/public-content.query';
 import enBlog from '@/config/locale/messages/en/blog.json';
 import zhBlog from '@/config/locale/messages/zh/blog.json';
 import zhTwBlog from '@/config/locale/messages/zh-TW/blog.json';
@@ -7,10 +7,6 @@ import { site } from '@/site';
 import { resolveLandingShellData } from './landing-shell-data';
 import type { BlogPostRouteData } from '@/surfaces/landing/blog-post/blog-post.types';
 
-import {
-  buildBrandPlaceholderValues,
-  replaceBrandPlaceholders,
-} from '@/shared/brand/placeholders';
 import { normalizeLocale } from '@/shared/i18n/locale';
 import {
   buildCanonicalUrl,
@@ -56,23 +52,14 @@ export async function resolveBlogPostRouteData({
     return null;
   }
 
-  const post = getLocalPublicContentDocument({
-    collection: 'posts',
-    slug,
-    locale,
-  });
+  const post = await getBlogPost({ slug, locale });
   if (!post) {
     return null;
   }
 
   const messages = blogMessagesByLocale[locale] ?? blogMessagesByLocale.en;
-  const brand = buildBrandPlaceholderValues();
-  const title = replaceBrandPlaceholders(post.title || slug, brand);
-  const description = replaceBrandPlaceholders(
-    post.description || messages.metadata.description,
-    brand
-  );
-  const content = replaceBrandPlaceholders(post.content, brand);
+  const title = post.title || slug;
+  const description = post.description || messages.metadata.description;
   const canonical = buildCanonicalUrl(canonicalPath, locale);
 
   return {
@@ -93,16 +80,23 @@ export async function resolveBlogPostRouteData({
       tocLabel: messages.page.toc,
     },
     post: {
-      id: post.sourcePath,
-      slug,
+      id: post.id || slug,
+      slug: post.slug || slug,
       title,
       description,
-      content,
-      createdAt: post.created_at,
-      authorName: post.author_name,
-      authorImage: post.author_image,
-      image: post.image,
-      toc: post.toc,
+      content: post.content || '',
+      createdAt: post.created_at || '',
+      authorName: post.author_name || '',
+      authorImage: post.author_image || '',
+      authorRole: post.author_role || '',
+      image: post.image || '',
+      toc: (post.toc || [])
+        .map((item) => ({
+          title: typeof item.title === 'string' ? item.title : '',
+          url: item.url || '',
+          depth: item.depth || 0,
+        }))
+        .filter((item) => item.title && item.url),
     },
   };
 }

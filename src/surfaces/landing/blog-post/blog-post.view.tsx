@@ -14,7 +14,8 @@ export function BlogPostSurfaceView({ data }: { data: BlogPostRouteData }) {
   }, [data.locale]);
 
   const hasToc = data.post.toc.length > 0;
-  const hasAuthor = data.post.authorName || data.post.authorImage;
+  const hasAuthor =
+    data.post.authorName || data.post.authorImage || data.post.authorRole;
 
   return (
     <LandingShellView shell={data.shell}>
@@ -61,6 +62,7 @@ export function BlogPostSurfaceView({ data }: { data: BlogPostRouteData }) {
                 <img src={data.post.authorImage} alt={data.post.authorName} />
               ) : null}
               {data.post.authorName ? <strong>{data.post.authorName}</strong> : null}
+              {data.post.authorRole ? <span>{data.post.authorRole}</span> : null}
             </aside>
           ) : null}
         </div>

@@ -10,6 +10,7 @@ export type BlogPostPageData = {
   createdAt: string;
   authorName: string;
   authorImage: string;
+  authorRole: string;
   image: string;
   toc: SlugPageTocItem[];
 };

@@ -12,7 +12,8 @@ export const Route = createFileRoute('/$locale/blog/$slug')({
     }
     return data as BlogPostRouteData;
   },
-  head: ({ loaderData }) => getBlogPostSurfaceHead(loaderData ?? null),
+  head: ({ loaderData, params }) =>
+    getBlogPostSurfaceHead(loaderData ?? null, params),
   component: BlogPostRoute,
 });
 
