@@ -519,6 +519,31 @@ a {
   object-fit: cover;
 }
 
+
+.blog-post-ad-zone {
+  margin: 32px 0;
+  border: 1px solid #dfe5f2;
+  border-radius: 24px;
+  background: rgba(248, 250, 252, 0.92);
+  padding: 16px;
+}
+
+.blog-post-ad-zone-label {
+  margin-bottom: 12px;
+  color: #667085;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.blog-post-ad-zone-content {
+  min-height: 120px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
 @media (max-width: 720px) {
   .landing-shell-header {
     align-items: flex-start;
