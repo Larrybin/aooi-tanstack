@@ -58,7 +58,7 @@ function shouldHideLandingUrl(
 }
 
 export function filterLandingNavItems(
-  items: NavItem[] | undefined,
+  items: readonly NavItem[] | undefined,
   publicConfig: PublicUiConfig | undefined
 ): NavItem[] {
   if (!items?.length) return [];
@@ -105,7 +105,7 @@ export function filterLandingNavItems(
 }
 
 export function filterLandingButtons(
-  buttons: Button[] | undefined,
+  buttons: readonly Button[] | undefined,
   publicConfig: PublicUiConfig | undefined
 ): Button[] {
   if (!buttons?.length) return [];

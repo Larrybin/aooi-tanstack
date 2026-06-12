@@ -153,6 +153,7 @@ function routePathToFullPath(routePath) {
 const requiredFiles = [
   'apps/web/src/routes/__root.tsx',
   'apps/web/src/routeTree.gen.ts',
+  'apps/web/src/routes/index.tsx',
   'apps/web/src/routes/pricing.tsx',
   'apps/web/src/routes/$locale/pricing.tsx',
   'apps/web/src/routes/$locale/$slug.tsx',
@@ -177,6 +178,8 @@ const requiredFiles = [
   'src/domains/content/application/public-content-manifest.ts',
   'src/server/pricing/pricing-page-messages.ts',
   'src/server/pricing/pricing-route-data.ts',
+  'src/server/landing/home-route-data.ts',
+  'src/server/landing/home-route-resolver.ts',
   'src/server/landing/slug-route-data.ts',
   'src/server/landing/slug-route-resolver.ts',
   'src/server/landing/blog-index-route-data.ts',
@@ -189,6 +192,10 @@ const requiredFiles = [
   'src/surfaces/landing/pricing/pricing.seo.ts',
   'src/surfaces/landing/pricing/pricing.view.tsx',
   'src/surfaces/landing/pricing/pricing.types.ts',
+  'src/surfaces/landing/home/home.data.ts',
+  'src/surfaces/landing/home/home.seo.ts',
+  'src/surfaces/landing/home/home.view.tsx',
+  'src/surfaces/landing/home/home.types.ts',
   'src/surfaces/landing/slug/slug.data.ts',
   'src/surfaces/landing/slug/slug.seo.ts',
   'src/surfaces/landing/slug/slug.view.tsx',
@@ -534,9 +541,7 @@ for (const file of routeFiles.filter(
 const tanstackPageRouteFiles = routeFiles.filter(
   (file) => !file.includes('/api/')
 );
-const surfaceHelperExemptPageRoutes = new Set([
-  'apps/web/src/routes/index.tsx',
-]);
+const surfaceHelperExemptPageRoutes = new Set([]);
 const tanstackPageRouteClosureFiles = localRuntimeClosure(
   tanstackPageRouteFiles.map((file) => join(root, file)),
   { includeDynamicImports: false }
@@ -602,6 +607,170 @@ if (
   fail(
     `${rootRouteFile} must use TanStack notFoundComponent, not legacy 404 handling`
   );
+}
+
+const defaultHomeRouteFile = 'apps/web/src/routes/index.tsx';
+const defaultHomeRouteAbs = join(root, defaultHomeRouteFile);
+if (!contains(defaultHomeRouteAbs, /throw\s+notFound\s*\(/)) {
+  fail(
+    `${defaultHomeRouteFile} must throw TanStack notFound() for missing data`
+  );
+}
+for (const surfaceFile of [
+  'home.data',
+  'home.seo',
+  'home.view',
+  'home.types',
+]) {
+  if (
+    !contains(
+      defaultHomeRouteAbs,
+      new RegExp(`@/surfaces/landing/home/${surfaceFile}`)
+    )
+  ) {
+    fail(`${defaultHomeRouteFile} must use ${surfaceFile} surface helper`);
+  }
+}
+if (!contains(defaultHomeRouteAbs, /defaultLocale/)) {
+  fail(`${defaultHomeRouteFile} must load the default-locale home route`);
+}
+if (contains(defaultHomeRouteAbs, /to:\s*['"]\/pricing['"]/)) {
+  fail(`${defaultHomeRouteFile} must not redirect to /pricing`);
+}
+
+const localizedHomeRouteFile = 'apps/web/src/routes/$locale_.tsx';
+const localizedHomeRouteAbs = join(root, localizedHomeRouteFile);
+if (existsSync(localizedHomeRouteAbs)) {
+  fail(
+    `${localizedHomeRouteFile} must not exist because it conflicts with root /$slug`
+  );
+}
+
+const singleSegmentRouteFile = 'apps/web/src/routes/$slug.tsx';
+const singleSegmentRouteAbs = join(root, singleSegmentRouteFile);
+for (const surfaceFile of [
+  'home.data',
+  'home.seo',
+  'home.view',
+  'home.types',
+]) {
+  if (
+    !contains(
+      singleSegmentRouteAbs,
+      new RegExp(`@/surfaces/landing/home/${surfaceFile}`)
+    )
+  ) {
+    fail(
+      `${singleSegmentRouteFile} must dispatch locale homes through ${surfaceFile}`
+    );
+  }
+}
+for (const surfaceFile of [
+  'slug.data',
+  'slug.seo',
+  'slug.view',
+  'slug.types',
+]) {
+  if (
+    !contains(
+      singleSegmentRouteAbs,
+      new RegExp(`@/surfaces/landing/slug/${surfaceFile}`)
+    )
+  ) {
+    fail(
+      `${singleSegmentRouteFile} must keep default-locale slug handling via ${surfaceFile}`
+    );
+  }
+}
+for (const [regex, label] of [
+  [/normalizeLocale\(\s*params\.slug\s*\)/, 'locale segment check'],
+  [/loadHomeSurfaceData\(\s*locale\s*\)/, 'locale home branch'],
+  [
+    /throw\s+notFound\(\s*\{\s*data:\s*\{\s*locale\s*\}/,
+    'missing locale home notFound',
+  ],
+  [
+    /loadSlugSurfaceData\(\s*defaultLocale\s*,\s*params\.slug\s*\)/,
+    'default slug branch',
+  ],
+  [/kind:\s*['"]home['"]/, 'home discriminator'],
+  [/kind:\s*['"]slug['"]/, 'slug discriminator'],
+]) {
+  if (!contains(singleSegmentRouteAbs, regex)) {
+    fail(`${singleSegmentRouteFile} must implement ${label}`);
+  }
+}
+
+const homeRouteTreeFile = 'apps/web/src/routeTree.gen.ts';
+const homeRouteTreeAbs = join(root, homeRouteTreeFile);
+if (!contains(homeRouteTreeAbs, /fullPath:\s*'\/'/)) {
+  fail(`${homeRouteTreeFile} must include / fullPath`);
+}
+if (contains(homeRouteTreeAbs, /fullPath:\s*'\/\$locale'/)) {
+  fail(`${homeRouteTreeFile} must not include root /$locale fullPath`);
+}
+if (contains(homeRouteTreeAbs, /LocaleRouteImport|LocaleRoute:/)) {
+  fail(`${homeRouteTreeFile} must not include the deleted root locale route`);
+}
+if (!contains(homeRouteTreeAbs, /fullPath:\s*'\/\$slug'/)) {
+  fail(
+    `${homeRouteTreeFile} must keep /$slug fullPath for single-segment dispatch`
+  );
+}
+
+const homeRouteDataFile = 'src/server/landing/home-route-data.ts';
+const homeRouteDataAbs = join(root, homeRouteDataFile);
+if (
+  !contains(
+    homeRouteDataAbs,
+    /await\s+import\(['"].\/home-route-resolver['"]\)/
+  )
+) {
+  fail(`${homeRouteDataFile} must dynamically import the home resolver`);
+}
+
+const homeRouteResolverFile = 'src/server/landing/home-route-resolver.ts';
+const homeRouteResolverAbs = join(root, homeRouteResolverFile);
+for (const [regex, label] of [
+  [/isPublishedLocaleForPath\(\s*['"]\/['"]/, 'home publish-locale gate'],
+  [/readBuildPublicUiConfig/, 'build-safe public UI config'],
+  [/readBuildAuthUiSettings/, 'build-safe auth UI settings'],
+  [/readBuildBillingUiSettings/, 'build-safe billing UI settings'],
+]) {
+  if (!contains(homeRouteResolverAbs, regex)) {
+    fail(`${homeRouteResolverFile} must use ${label}`);
+  }
+}
+for (const [regex, label] of [
+  [
+    /@\/domains\/content\/infra|@\/infra\/adapters\/db/,
+    'direct content DB access',
+  ],
+  [/next-intl/, 'next-intl import'],
+  [/next\/navigation/, 'next/navigation import'],
+]) {
+  if (contains(homeRouteResolverAbs, regex)) {
+    fail(`${homeRouteResolverFile} must not depend on ${label}`);
+  }
+}
+
+const homeSeoFile = 'src/surfaces/landing/home/home.seo.ts';
+const homeSeoAbs = join(root, homeSeoFile);
+if (!contains(homeSeoAbs, /noindex,nofollow/)) {
+  fail(`${homeSeoFile} must return noindex,nofollow for missing home data`);
+}
+
+const homeViewFile = 'src/surfaces/landing/home/home.view.tsx';
+const homeViewAbs = join(root, homeViewFile);
+for (const [regex, label] of [
+  [/from\s+['"]next(?:\/|['"])/, 'next import'],
+  [/from\s+['"]next-intl(?:\/|['"])/, 'next-intl import'],
+  [/@\/themes\//, '@/themes import'],
+  [/@\/app\//, '@/app import'],
+]) {
+  if (contains(homeViewAbs, regex)) {
+    fail(`${homeViewFile} must not depend on ${label}`);
+  }
 }
 
 for (const file of [
@@ -967,17 +1136,6 @@ for (const contract of sharedRouteActionContracts) {
       fail(`${contract.file} must not inline ${label}`);
     }
   }
-}
-
-const indexRouteFile = 'apps/web/src/routes/index.tsx';
-const indexRouteAbs = join(root, indexRouteFile);
-if (!contains(indexRouteAbs, /to:\s*['"]\/pricing['"]/)) {
-  fail(`${indexRouteFile} must redirect to canonical /pricing`);
-}
-if (contains(indexRouteAbs, /\/\$locale\/pricing|params:\s*\{/)) {
-  fail(
-    `${indexRouteFile} must not redirect through the locale-prefixed pricing route`
-  );
 }
 
 const pricingMessagesFile = 'src/server/pricing/pricing-page-messages.ts';

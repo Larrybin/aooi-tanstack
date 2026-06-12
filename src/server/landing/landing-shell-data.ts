@@ -1,32 +1,41 @@
-import { buildBackgroundRemoverHeaderFooter } from '@/domains/background-remover/ui/background-remover-shell';
 import { resolveBackgroundRemoverHomeCopy } from '@/domains/background-remover/ui/background-remover-home-copy';
-import { buildMp4CompressorHeaderFooter } from '@/domains/mp4-compressor/ui/mp4-compressor-shell';
-import { resolveMp4CompressorHomeCopy } from '@/domains/mp4-compressor/ui/mp4-compressor-home-copy';
-import { buildRemoverHeaderFooter } from '@/domains/remover/ui/remover-shell';
-import { resolveRemoverHomeCopy } from '@/domains/remover/ui/remover-home-copy';
+import { buildBackgroundRemoverHeaderFooter } from '@/domains/background-remover/ui/background-remover-shell';
 import { getLocalPublicContentDocument } from '@/domains/content/application/public-content-manifest';
-import { buildTextToSpeechGeneratorHeaderFooter } from '@/domains/text-to-speech-generator/ui/text-to-speech-shell';
+import { resolveMp4CompressorHomeCopy } from '@/domains/mp4-compressor/ui/mp4-compressor-home-copy';
+import { buildMp4CompressorHeaderFooter } from '@/domains/mp4-compressor/ui/mp4-compressor-shell';
+import { resolveRemoverHomeCopy } from '@/domains/remover/ui/remover-home-copy';
+import { buildRemoverHeaderFooter } from '@/domains/remover/ui/remover-shell';
+import type {
+  AuthUiRuntimeSettings,
+  BillingRuntimeSettings,
+  PublicUiConfig,
+} from '@/domains/settings/application/settings-runtime.contracts';
 import { resolveTextToSpeechGeneratorHomeCopy } from '@/domains/text-to-speech-generator/ui/text-to-speech-home-copy';
-import enCommon from '@/config/locale/messages/en/common.json';
-import jaCommon from '@/config/locale/messages/ja/common.json';
-import zhCommon from '@/config/locale/messages/zh/common.json';
-import zhTwCommon from '@/config/locale/messages/zh-TW/common.json';
+import { buildTextToSpeechGeneratorHeaderFooter } from '@/domains/text-to-speech-generator/ui/text-to-speech-shell';
 import {
   site,
   siteHomeContent,
   siteLocalizedPricing,
   sitePricing,
 } from '@/site';
+import type {
+  SerializablePublicUiConfig,
+  SerializablePublicUiNavItem,
+  SlugShellData,
+  SlugShellNavItem,
+} from '@/surfaces/landing/slug/slug.types';
 
 import { defaultLocale } from '@/config/locale';
+import enCommon from '@/config/locale/messages/en/common.json';
+import jaCommon from '@/config/locale/messages/ja/common.json';
+import zhTwCommon from '@/config/locale/messages/zh-TW/common.json';
+import zhCommon from '@/config/locale/messages/zh/common.json';
 import type { NavItem } from '@/shared/types/blocks/common';
 import type {
   Footer as FooterType,
   Header as HeaderType,
 } from '@/shared/types/blocks/landing';
 import type { SitePricing } from '@/shared/types/blocks/pricing';
-
-import type { SlugShellData, SlugShellNavItem } from '@/surfaces/landing/slug/slug.types';
 
 type HeaderFooter = {
   header: HeaderType;
@@ -52,13 +61,21 @@ export function resolveLandingShellData(locale: string): SlugShellData {
   const productShell = resolveProductHeaderFooter(locale);
 
   if (productShell) {
-    return toSlugShellData(productShell, locale);
+    return buildLandingShellData({
+      ...productShell,
+      locale,
+      publicUiConfig: buildPublicUiConfig(),
+      authSettings: buildAuthSettings(),
+      billingSettings: buildBillingSettings(),
+    });
   }
 
   return buildFallbackShellData(locale);
 }
 
-function resolveProductHeaderFooter(locale: string): HeaderFooter | null {
+export function resolveProductHeaderFooter(
+  locale: string
+): HeaderFooter | null {
   if (!siteHomeContent) {
     return null;
   }
@@ -96,17 +113,31 @@ function resolveProductHeaderFooter(locale: string): HeaderFooter | null {
   }
 }
 
-function toSlugShellData(shell: HeaderFooter, locale: string): SlugShellData {
-  const brand = shell.header.brand ?? shell.footer.brand;
-  const agreementItems = shell.footer.agreement?.items ?? [];
+export function buildLandingShellData({
+  header,
+  footer,
+  locale,
+  publicUiConfig,
+  authSettings,
+  billingSettings,
+}: {
+  header: HeaderType;
+  footer: FooterType;
+  locale: string;
+  publicUiConfig: PublicUiConfig;
+  authSettings: AuthUiRuntimeSettings;
+  billingSettings: BillingRuntimeSettings;
+}): SlugShellData {
+  const brand = header.brand ?? footer.brand;
+  const agreementItems = footer.agreement?.items ?? [];
 
   return {
-    publicUiConfig: buildPublicUiConfig(),
-    authSettings: buildAuthSettings(),
-    billingSettings: buildBillingSettings(),
+    publicUiConfig: toSerializablePublicUiConfig(publicUiConfig),
+    authSettings,
+    billingSettings,
     brand: {
       title: brand?.title || site.brand.appName,
-      description: shell.footer.brand?.description || '',
+      description: footer.brand?.description || '',
       url: localizeUrl(brand?.url || '/', locale),
       logo: brand?.logo
         ? {
@@ -116,18 +147,18 @@ function toSlugShellData(shell: HeaderFooter, locale: string): SlugShellData {
         : undefined,
     },
     header: {
-      navItems: toShellNavItems(shell.header.nav?.items ?? [], locale),
-      buttonItems: toShellNavItems(shell.header.buttons ?? [], locale),
-      userNavItems: toShellNavItems(shell.header.user_nav?.items ?? [], locale),
-      showSign: Boolean(shell.header.show_sign),
+      navItems: toShellNavItems(header.nav?.items ?? [], locale),
+      buttonItems: toShellNavItems(header.buttons ?? [], locale),
+      userNavItems: toShellNavItems(header.user_nav?.items ?? [], locale),
+      showSign: Boolean(header.show_sign),
       signInHref: localizeUrl('/sign-in', locale),
       signInLabel: getSignInLabel(locale),
       ariaLabel: site.brand.appName,
     },
     footer: {
-      groups: toFooterGroups(shell.footer.nav?.items ?? [], locale),
+      groups: toFooterGroups(footer.nav?.items ?? [], locale),
       agreementItems: toShellNavItems(agreementItems, locale),
-      copyright: shell.footer.copyright || `© ${site.brand.appName}`,
+      copyright: footer.copyright || `© ${site.brand.appName}`,
       ariaLabel: site.brand.appName,
     },
   };
@@ -142,7 +173,7 @@ function buildFallbackShellData(locale: string): SlugShellData {
     : [];
 
   return {
-    publicUiConfig: buildPublicUiConfig(),
+    publicUiConfig: toSerializablePublicUiConfig(buildPublicUiConfig()),
     authSettings: buildAuthSettings(),
     billingSettings: buildBillingSettings(),
     brand: {
@@ -166,8 +197,14 @@ function buildFallbackShellData(locale: string): SlugShellData {
         {
           title: site.brand.appName,
           items: [
-            { title: privacyTitle, url: localizeUrl('/privacy-policy', locale) },
-            { title: termsTitle, url: localizeUrl('/terms-of-service', locale) },
+            {
+              title: privacyTitle,
+              url: localizeUrl('/privacy-policy', locale),
+            },
+            {
+              title: termsTitle,
+              url: localizeUrl('/terms-of-service', locale),
+            },
           ],
         },
       ],
@@ -233,7 +270,9 @@ function getPageTitle(slug: string, locale: string) {
 }
 
 function getPricingTitle(locale: string) {
-  const localizedPricing = (siteLocalizedPricing as SiteLocalizedPricing)[locale];
+  const localizedPricing = (siteLocalizedPricing as SiteLocalizedPricing)[
+    locale
+  ];
   return localizedPricing?.pricing.title || sitePricing?.pricing.title || '';
 }
 
@@ -265,13 +304,37 @@ function localizeUrl(url: string, locale: string) {
   return url === '/' ? `/${locale}` : `/${locale}${url}`;
 }
 
-function buildPublicUiConfig() {
+function toSerializablePublicUiConfig(
+  config: PublicUiConfig
+): SerializablePublicUiConfig {
+  return {
+    ...config,
+    socialLinks: toSerializablePublicUiNavItems(config.socialLinks),
+  };
+}
+
+function toSerializablePublicUiNavItems(
+  items: readonly NavItem[]
+): SerializablePublicUiNavItem[] {
+  return items.map((item) => {
+    const { icon, children, ...rest } = item;
+    return {
+      ...rest,
+      ...(typeof icon === 'string' ? { icon } : {}),
+      ...(children?.length
+        ? { children: toSerializablePublicUiNavItems(children) }
+        : {}),
+    };
+  });
+}
+
+function buildPublicUiConfig(): PublicUiConfig {
   return {
     aiEnabled: Boolean(site.capabilities.ai),
     localeSwitcherEnabled: false,
     socialLinksEnabled: false,
     socialLinksJson: '',
-    socialLinks: [] as [],
+    socialLinks: [],
     affiliate: {
       affonsoEnabled: false,
       promotekitEnabled: false,
@@ -279,7 +342,7 @@ function buildPublicUiConfig() {
   };
 }
 
-function buildAuthSettings() {
+function buildAuthSettings(): AuthUiRuntimeSettings {
   return {
     emailAuthEnabled: Boolean(site.capabilities.auth),
     googleAuthEnabled: false,
@@ -289,42 +352,46 @@ function buildAuthSettings() {
   };
 }
 
-function buildBillingSettings() {
+function buildBillingSettings(): BillingRuntimeSettings {
   const shared = {
     locale: '',
     defaultLocale,
   } as const;
 
-  const paymentCapability = site.capabilities.payment as 'none' | 'stripe' | 'creem' | 'paypal';
+  const paymentCapability = site.capabilities.payment as
+    | 'none'
+    | 'stripe'
+    | 'creem'
+    | 'paypal';
 
   switch (paymentCapability) {
     case 'stripe':
       return {
         ...shared,
-        provider: 'stripe' as const,
-        paymentCapability: 'stripe' as const,
+        provider: 'stripe',
+        paymentCapability: 'stripe',
         stripePaymentMethods: '',
       };
     case 'creem':
       return {
         ...shared,
-        provider: 'creem' as const,
-        paymentCapability: 'creem' as const,
-        creemEnvironment: 'sandbox' as const,
+        provider: 'creem',
+        paymentCapability: 'creem',
+        creemEnvironment: 'sandbox',
         creemProductIds: '',
       };
     case 'paypal':
       return {
         ...shared,
-        provider: 'paypal' as const,
-        paymentCapability: 'paypal' as const,
-        paypalEnvironment: 'sandbox' as const,
+        provider: 'paypal',
+        paymentCapability: 'paypal',
+        paypalEnvironment: 'sandbox',
       };
     case 'none':
       return {
         ...shared,
-        provider: 'none' as const,
-        paymentCapability: 'none' as const,
+        provider: 'none',
+        paymentCapability: 'none',
       };
   }
 }

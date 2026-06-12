@@ -1,6 +1,20 @@
 {
   "locales": {
-    "zh": {},
-    "zh-TW": {}
+    "zh": {
+      "home": {
+        "path": "/",
+        "status": "approved",
+        "sourceHash": "44559d34fce65f59813c38093b1d0e32f4dee9cfff7a7dedf758f6b41b1e4fd0",
+        "targetHash": "f764c3ef1dfd5f3d2306c8a9a42441c5cac1f06b6817868ce842fe3bf91c085c"
+      }
+    },
+    "zh-TW": {
+      "home": {
+        "path": "/",
+        "status": "approved",
+        "sourceHash": "44559d34fce65f59813c38093b1d0e32f4dee9cfff7a7dedf758f6b41b1e4fd0",
+        "targetHash": "9e6db9a132c6398e8a99e3890db89eb1c1388be0327bc3ed5bd3207085e861fa"
+      }
+    }
   }
 }

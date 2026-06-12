@@ -3,7 +3,9 @@ import type {
   BillingRuntimeSettings,
   PublicUiConfig,
 } from '@/domains/settings/application/settings-runtime.contracts';
+
 import type { TanStackHead } from '@/shared/seo/canonical';
+import type { NavItem } from '@/shared/types/blocks/common';
 
 export type SlugPageTocItem = {
   title: string;
@@ -28,12 +30,17 @@ export type SlugShellNavItem = {
   children?: SlugShellNavItem[];
 };
 
-type SlugPublicUiConfig = Omit<PublicUiConfig, 'socialLinks'> & {
-  socialLinks: [];
+export type SerializablePublicUiNavItem = Omit<NavItem, 'icon' | 'children'> & {
+  icon?: string;
+  children?: SerializablePublicUiNavItem[];
+};
+
+export type SerializablePublicUiConfig = Omit<PublicUiConfig, 'socialLinks'> & {
+  socialLinks: SerializablePublicUiNavItem[];
 };
 
 export type SlugShellData = {
-  publicUiConfig: SlugPublicUiConfig;
+  publicUiConfig: SerializablePublicUiConfig;
   authSettings: AuthUiRuntimeSettings;
   billingSettings: BillingRuntimeSettings;
   brand: {
