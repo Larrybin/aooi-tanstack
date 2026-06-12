@@ -86,7 +86,10 @@ function resolveLocalImport(fromFile, rawSpecifier) {
   return null;
 }
 
-function extractRuntimeImportSpecifiers(source) {
+function extractRuntimeImportSpecifiers(
+  source,
+  { includeDynamicImports = true } = {}
+) {
   const specifiers = [];
   const fromImportRegex =
     /^\s*(?:import|export)\s+(type\s+)?[\s\S]*?\s+from\s+['"]([^'"]+)['"]/gm;
@@ -104,14 +107,16 @@ function extractRuntimeImportSpecifiers(source) {
     specifiers.push(match[1]);
   }
 
-  while ((match = dynamicImportRegex.exec(source))) {
-    specifiers.push(match[1]);
+  if (includeDynamicImports) {
+    while ((match = dynamicImportRegex.exec(source))) {
+      specifiers.push(match[1]);
+    }
   }
 
   return specifiers;
 }
 
-function localRuntimeClosure(entryFiles) {
+function localRuntimeClosure(entryFiles, options = {}) {
   const visited = new Set();
   const stack = [...entryFiles];
 
@@ -121,7 +126,7 @@ function localRuntimeClosure(entryFiles) {
     visited.add(current);
 
     const source = readFileSync(current, 'utf8');
-    for (const specifier of extractRuntimeImportSpecifiers(source)) {
+    for (const specifier of extractRuntimeImportSpecifiers(source, options)) {
       const resolved = resolveLocalImport(current, specifier);
       if (resolved && !visited.has(resolved)) {
         stack.push(resolved);
@@ -165,6 +170,8 @@ const requiredFiles = [
   'src/server/pricing/pricing-route-data.ts',
   'src/server/landing/slug-route-data.ts',
   'src/server/landing/slug-route-resolver.ts',
+  'src/server/landing/blog-post-route-data.ts',
+  'src/server/landing/blog-post-route-resolver.ts',
   'src/surfaces/landing/pricing/pricing.data.ts',
   'src/surfaces/landing/pricing/pricing.seo.ts',
   'src/surfaces/landing/pricing/pricing.view.tsx',
@@ -173,6 +180,10 @@ const requiredFiles = [
   'src/surfaces/landing/slug/slug.seo.ts',
   'src/surfaces/landing/slug/slug.view.tsx',
   'src/surfaces/landing/slug/slug.types.ts',
+  'src/surfaces/landing/blog-post/blog-post.data.ts',
+  'src/surfaces/landing/blog-post/blog-post.seo.ts',
+  'src/surfaces/landing/blog-post/blog-post.view.tsx',
+  'src/surfaces/landing/blog-post/blog-post.types.ts',
   'src/surfaces/system/not-found/not-found.view.tsx',
   'scripts/tanstack-gate-4-plan.mjs',
   'docs/migration/gate-4-page-migration-plan.generated.md',
@@ -452,7 +463,8 @@ for (const expectedImport of expectedRouteImports) {
 }
 
 const tanstackRouteClosureFiles = localRuntimeClosure(
-  sourceFilesIn('apps/web/src')
+  sourceFilesIn('apps/web/src'),
+  { includeDynamicImports: false }
 );
 const tanstackRouteRuntimeForbiddenPatterns = [
   [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
@@ -501,7 +513,8 @@ const surfaceHelperExemptPageRoutes = new Set([
   'apps/web/src/routes/index.tsx',
 ]);
 const tanstackPageRouteClosureFiles = localRuntimeClosure(
-  tanstackPageRouteFiles.map((file) => join(root, file))
+  tanstackPageRouteFiles.map((file) => join(root, file)),
+  { includeDynamicImports: false }
 );
 const tanstackPageRuntimeForbiddenPatterns = [
   [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
@@ -620,6 +633,51 @@ if (contains(slugRouteResolverAbs, /public-content\.query|getDocsPage/)) {
   fail(
     `${slugRouteResolverFile} must not depend on legacy public-content query`
   );
+}
+
+const blogPostRouteFile = 'apps/web/src/routes/$locale/blog/$slug.tsx';
+const blogPostRouteAbs = join(root, blogPostRouteFile);
+if (!contains(blogPostRouteAbs, /throw\s+notFound\s*\(/)) {
+  fail(
+    `${blogPostRouteFile} must throw TanStack notFound() for missing route data`
+  );
+}
+for (const surfaceFile of [
+  'blog-post.data',
+  'blog-post.seo',
+  'blog-post.view',
+  'blog-post.types',
+]) {
+  if (
+    !contains(
+      blogPostRouteAbs,
+      new RegExp(`@/surfaces/landing/blog-post/${surfaceFile}`)
+    )
+  ) {
+    fail(`${blogPostRouteFile} must use ${surfaceFile} surface helper`);
+  }
+}
+
+
+const blogPostSeoFile = 'src/surfaces/landing/blog-post/blog-post.seo.ts';
+const blogPostSeoAbs = join(root, blogPostSeoFile);
+if (!contains(blogPostSeoAbs, /noindex,nofollow/)) {
+  fail(`${blogPostSeoFile} must return noindex,nofollow for missing posts`);
+}
+
+const blogPostRouteResolverFile = 'src/server/landing/blog-post-route-resolver.ts';
+const blogPostRouteResolverAbs = join(root, blogPostRouteResolverFile);
+if (!contains(blogPostRouteResolverAbs, /getBlogPost/)) {
+  fail(`${blogPostRouteResolverFile} must reuse getBlogPost route data semantics`);
+}
+for (const [regex, label] of [
+  [/next-intl/, 'next-intl import'],
+  [/next\/navigation/, 'next/navigation import'],
+  [/@\/domains\/content\/infra|@\/infra\/adapters\/db/, 'direct content DB access'],
+]) {
+  if (contains(blogPostRouteResolverAbs, regex)) {
+    fail(`${blogPostRouteResolverFile} must not depend on ${label}`);
+  }
 }
 
 const sharedRouteActionContracts = [

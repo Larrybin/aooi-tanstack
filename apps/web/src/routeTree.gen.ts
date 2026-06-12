@@ -17,6 +17,7 @@ import { Route as LocaleSlugRouteImport } from './routes/$locale/$slug'
 import { Route as ApiUserGetUserCreditsRouteImport } from './routes/api/user/get-user-credits'
 import { Route as ApiPaymentNotifyRouteImport } from './routes/api/payment/notify'
 import { Route as ApiPaymentCheckoutRouteImport } from './routes/api/payment/checkout'
+import { Route as LocaleBlogSlugRouteImport } from './routes/$locale/blog/$slug'
 
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
@@ -58,6 +59,11 @@ const ApiPaymentCheckoutRoute = ApiPaymentCheckoutRouteImport.update({
   path: '/api/payment/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocaleBlogSlugRoute = LocaleBlogSlugRouteImport.update({
+  id: '/$locale/blog/$slug',
+  path: '/$locale/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/pricing': typeof LocalePricingRoute
+  '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/pricing': typeof LocalePricingRoute
+  '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/pricing': typeof LocalePricingRoute
+  '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/$locale/$slug'
     | '/$locale/pricing'
+    | '/$locale/blog/$slug'
     | '/api/payment/checkout'
     | '/api/payment/notify'
     | '/api/user/get-user-credits'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/$locale/$slug'
     | '/$locale/pricing'
+    | '/$locale/blog/$slug'
     | '/api/payment/checkout'
     | '/api/payment/notify'
     | '/api/user/get-user-credits'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/$locale/$slug'
     | '/$locale/pricing'
+    | '/$locale/blog/$slug'
     | '/api/payment/checkout'
     | '/api/payment/notify'
     | '/api/user/get-user-credits'
@@ -129,6 +141,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   LocaleSlugRoute: typeof LocaleSlugRoute
   LocalePricingRoute: typeof LocalePricingRoute
+  LocaleBlogSlugRoute: typeof LocaleBlogSlugRoute
   ApiPaymentCheckoutRoute: typeof ApiPaymentCheckoutRoute
   ApiPaymentNotifyRoute: typeof ApiPaymentNotifyRoute
   ApiUserGetUserCreditsRoute: typeof ApiUserGetUserCreditsRoute
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPaymentCheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$locale/blog/$slug': {
+      id: '/$locale/blog/$slug'
+      path: '/$locale/blog/$slug'
+      fullPath: '/$locale/blog/$slug'
+      preLoaderRoute: typeof LocaleBlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -201,6 +221,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   LocaleSlugRoute: LocaleSlugRoute,
   LocalePricingRoute: LocalePricingRoute,
+  LocaleBlogSlugRoute: LocaleBlogSlugRoute,
   ApiPaymentCheckoutRoute: ApiPaymentCheckoutRoute,
   ApiPaymentNotifyRoute: ApiPaymentNotifyRoute,
   ApiUserGetUserCreditsRoute: ApiUserGetUserCreditsRoute,
