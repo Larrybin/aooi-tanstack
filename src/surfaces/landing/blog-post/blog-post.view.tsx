@@ -5,7 +5,7 @@ import { isRtlLocale } from '@/config/locale';
 
 import { LandingShellView } from '../shell/landing-shell.view';
 
-import type { BlogPostRouteData } from './blog-post.types';
+import type { BlogPostAdZoneData, BlogPostRouteData } from './blog-post.types';
 
 export function BlogPostSurfaceView({ data }: { data: BlogPostRouteData }) {
   useEffect(() => {
@@ -16,6 +16,9 @@ export function BlogPostSurfaceView({ data }: { data: BlogPostRouteData }) {
   const hasToc = data.post.toc.length > 0;
   const hasAuthor =
     data.post.authorName || data.post.authorImage || data.post.authorRole;
+  const contentSplit = data.adZones.inline
+    ? splitBlogContentForInlineAd(data.post.content)
+    : null;
 
   return (
     <LandingShellView shell={data.shell}>
@@ -53,7 +56,19 @@ export function BlogPostSurfaceView({ data }: { data: BlogPostRouteData }) {
           ) : null}
 
           <div className="blog-post-content-card">
-            <MarkdownPreview content={data.post.content} />
+            {contentSplit ? (
+              <>
+                <MarkdownPreview content={contentSplit.before} />
+                <BlogPostAdZoneView adZone={data.adZones.inline} />
+                <MarkdownPreview content={contentSplit.after} />
+              </>
+            ) : (
+              <>
+                <MarkdownPreview content={data.post.content} />
+                <BlogPostAdZoneView adZone={data.adZones.inline} />
+              </>
+            )}
+            <BlogPostAdZoneView adZone={data.adZones.footer} />
           </div>
 
           {hasAuthor ? (
@@ -69,6 +84,80 @@ export function BlogPostSurfaceView({ data }: { data: BlogPostRouteData }) {
       </article>
     </LandingShellView>
   );
+}
+
+function BlogPostAdZoneView({
+  adZone,
+}: {
+  adZone: BlogPostAdZoneData | null;
+}) {
+  useEffect(() => {
+    if (adZone?.provider !== 'adsense') {
+      return;
+    }
+
+    try {
+      const adWindow = window as Window & {
+        adsbygoogle?: Array<Record<string, unknown>>;
+      };
+      adWindow.adsbygoogle = adWindow.adsbygoogle || [];
+      adWindow.adsbygoogle.push({});
+    } catch {
+      // Ignore third-party script initialization errors so the page stays usable.
+    }
+  }, [adZone]);
+
+  if (!adZone) {
+    return null;
+  }
+
+  return (
+    <section className="blog-post-ad-zone" data-ad-zone={adZone.zone}>
+      <div className="blog-post-ad-zone-label">Sponsored · {adZone.title}</div>
+      <div className="blog-post-ad-zone-content">
+        {adZone.provider === 'adsense' ? (
+          <>
+            <script
+              async
+              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adZone.clientId}`}
+              crossOrigin="anonymous"
+            />
+            <ins
+              className="adsbygoogle block min-h-[120px] w-full"
+              style={{ display: 'block' }}
+              data-ad-client={adZone.clientId}
+              data-ad-slot={adZone.slot}
+              data-ad-format="auto"
+              data-full-width-responsive="true"
+            />
+          </>
+        ) : (
+          <div dangerouslySetInnerHTML={{ __html: adZone.html }} />
+        )}
+      </div>
+    </section>
+  );
+}
+
+function splitBlogContentForInlineAd(content: string) {
+  const sections = content
+    .split(/\n{2,}/)
+    .map((section) => section.trim())
+    .filter(Boolean);
+
+  if (sections.length < 6) {
+    return null;
+  }
+
+  const splitIndex = Math.min(
+    sections.length - 2,
+    Math.max(3, Math.floor(sections.length * 0.6))
+  );
+
+  return {
+    before: sections.slice(0, splitIndex).join('\n\n'),
+    after: sections.slice(splitIndex).join('\n\n'),
+  };
 }
 
 function localizeBlogHref(locale: string) {

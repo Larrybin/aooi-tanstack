@@ -152,6 +152,7 @@ const requiredFiles = [
   'apps/web/src/routes/pricing.tsx',
   'apps/web/src/routes/$locale/pricing.tsx',
   'apps/web/src/routes/$locale/$slug.tsx',
+  'apps/web/src/routes/blog/$slug.tsx',
   'apps/web/src/routes/api/payment/checkout.ts',
   'apps/web/src/routes/api/payment/notify.ts',
   'apps/web/src/routes/api/user/get-user-credits.ts',
@@ -635,26 +636,31 @@ if (contains(slugRouteResolverAbs, /public-content\.query|getDocsPage/)) {
   );
 }
 
-const blogPostRouteFile = 'apps/web/src/routes/$locale/blog/$slug.tsx';
-const blogPostRouteAbs = join(root, blogPostRouteFile);
-if (!contains(blogPostRouteAbs, /throw\s+notFound\s*\(/)) {
-  fail(
-    `${blogPostRouteFile} must throw TanStack notFound() for missing route data`
-  );
-}
-for (const surfaceFile of [
-  'blog-post.data',
-  'blog-post.seo',
-  'blog-post.view',
-  'blog-post.types',
-]) {
-  if (
-    !contains(
-      blogPostRouteAbs,
-      new RegExp(`@/surfaces/landing/blog-post/${surfaceFile}`)
-    )
-  ) {
-    fail(`${blogPostRouteFile} must use ${surfaceFile} surface helper`);
+const blogPostRouteFiles = [
+  'apps/web/src/routes/blog/$slug.tsx',
+  'apps/web/src/routes/$locale/blog/$slug.tsx',
+];
+for (const blogPostRouteFile of blogPostRouteFiles) {
+  const blogPostRouteAbs = join(root, blogPostRouteFile);
+  if (!contains(blogPostRouteAbs, /throw\s+notFound\s*\(/)) {
+    fail(
+      `${blogPostRouteFile} must throw TanStack notFound() for missing route data`
+    );
+  }
+  for (const surfaceFile of [
+    'blog-post.data',
+    'blog-post.seo',
+    'blog-post.view',
+    'blog-post.types',
+  ]) {
+    if (
+      !contains(
+        blogPostRouteAbs,
+        new RegExp(`@/surfaces/landing/blog-post/${surfaceFile}`)
+      )
+    ) {
+      fail(`${blogPostRouteFile} must use ${surfaceFile} surface helper`);
+    }
   }
 }
 
@@ -665,10 +671,28 @@ if (!contains(blogPostSeoAbs, /noindex,nofollow/)) {
   fail(`${blogPostSeoFile} must return noindex,nofollow for missing posts`);
 }
 
+const defaultBlogPostRouteFile = 'apps/web/src/routes/blog/$slug.tsx';
+const defaultBlogPostRouteAbs = join(root, defaultBlogPostRouteFile);
+if (!contains(defaultBlogPostRouteAbs, /defaultLocale/)) {
+  fail(`${defaultBlogPostRouteFile} must load default-locale blog posts`);
+}
+
+const blogPostViewFile = 'src/surfaces/landing/blog-post/blog-post.view.tsx';
+const blogPostViewAbs = join(root, blogPostViewFile);
+if (!contains(blogPostViewAbs, /BlogPostAdZoneView/)) {
+  fail(`${blogPostViewFile} must render blog post ad zones`);
+}
+
 const blogPostRouteResolverFile = 'src/server/landing/blog-post-route-resolver.ts';
 const blogPostRouteResolverAbs = join(root, blogPostRouteResolverFile);
 if (!contains(blogPostRouteResolverAbs, /getBlogPost/)) {
   fail(`${blogPostRouteResolverFile} must reuse getBlogPost route data semantics`);
+}
+if (contains(blogPostRouteResolverAbs, /isPublishedLocaleForPath/)) {
+  fail(`${blogPostRouteResolverFile} must not gate blog posts on the page manifest`);
+}
+if (!contains(blogPostRouteResolverAbs, /resolveBlogPostAdZones/)) {
+  fail(`${blogPostRouteResolverFile} must resolve blog post ad zones`);
 }
 for (const [regex, label] of [
   [/next-intl/, 'next-intl import'],
