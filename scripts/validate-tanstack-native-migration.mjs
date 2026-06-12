@@ -146,14 +146,20 @@ function importPathToRoutePath(routeImport) {
   return routePath ? `/${routePath}` : '/';
 }
 
+function routePathToFullPath(routePath) {
+  return routePath.replace(/(^|\/)_/g, '$1').replace(/_($|\/)/g, '$1');
+}
+
 const requiredFiles = [
   'apps/web/src/routes/__root.tsx',
   'apps/web/src/routeTree.gen.ts',
   'apps/web/src/routes/pricing.tsx',
   'apps/web/src/routes/$locale/pricing.tsx',
   'apps/web/src/routes/$locale/$slug.tsx',
+  'apps/web/src/routes/blog_.tsx',
   'apps/web/src/routes/blog/$slug.tsx',
   'apps/web/src/routes/blog/category/$slug.tsx',
+  'apps/web/src/routes/$locale/blog_.tsx',
   'apps/web/src/routes/api/payment/checkout.ts',
   'apps/web/src/routes/api/payment/notify.ts',
   'apps/web/src/routes/api/user/get-user-credits.ts',
@@ -173,6 +179,8 @@ const requiredFiles = [
   'src/server/pricing/pricing-route-data.ts',
   'src/server/landing/slug-route-data.ts',
   'src/server/landing/slug-route-resolver.ts',
+  'src/server/landing/blog-index-route-data.ts',
+  'src/server/landing/blog-index-route-resolver.ts',
   'src/server/landing/blog-post-route-data.ts',
   'src/server/landing/blog-post-route-resolver.ts',
   'src/server/landing/blog-category-route-data.ts',
@@ -185,6 +193,10 @@ const requiredFiles = [
   'src/surfaces/landing/slug/slug.seo.ts',
   'src/surfaces/landing/slug/slug.view.tsx',
   'src/surfaces/landing/slug/slug.types.ts',
+  'src/surfaces/landing/blog-index/blog-index.data.ts',
+  'src/surfaces/landing/blog-index/blog-index.seo.ts',
+  'src/surfaces/landing/blog-index/blog-index.view.tsx',
+  'src/surfaces/landing/blog-index/blog-index.types.ts',
   'src/surfaces/landing/blog-post/blog-post.data.ts',
   'src/surfaces/landing/blog-post/blog-post.seo.ts',
   'src/surfaces/landing/blog-post/blog-post.view.tsx',
@@ -464,10 +476,14 @@ for (const expectedImport of expectedRouteImports) {
   if (
     !contains(
       routeTreeFile,
-      new RegExp(`fullPath:\\s*'${escapeRegex(routePath)}'`)
+      new RegExp(
+        `fullPath:\\s*'${escapeRegex(routePathToFullPath(routePath))}'`
+      )
     )
   ) {
-    fail(`routeTree.gen.ts missing fullPath type ${routePath}`);
+    fail(
+      `routeTree.gen.ts missing fullPath type ${routePathToFullPath(routePath)}`
+    );
   }
 }
 
@@ -644,6 +660,96 @@ if (contains(slugRouteResolverAbs, /public-content\.query|getDocsPage/)) {
   );
 }
 
+const blogIndexRouteFiles = [
+  'apps/web/src/routes/blog_.tsx',
+  'apps/web/src/routes/$locale/blog_.tsx',
+];
+for (const blogIndexRouteFile of blogIndexRouteFiles) {
+  const blogIndexRouteAbs = join(root, blogIndexRouteFile);
+  if (!contains(blogIndexRouteAbs, /throw\s+notFound\s*\(/)) {
+    fail(
+      `${blogIndexRouteFile} must throw TanStack notFound() for missing route data`
+    );
+  }
+  for (const surfaceFile of [
+    'blog-index.data',
+    'blog-index.seo',
+    'blog-index.view',
+    'blog-index.types',
+  ]) {
+    if (
+      !contains(
+        blogIndexRouteAbs,
+        new RegExp(`@/surfaces/landing/blog-index/${surfaceFile}`)
+      )
+    ) {
+      fail(`${blogIndexRouteFile} must use ${surfaceFile} surface helper`);
+    }
+  }
+}
+
+const defaultBlogIndexRouteFile = 'apps/web/src/routes/blog_.tsx';
+const defaultBlogIndexRouteAbs = join(root, defaultBlogIndexRouteFile);
+if (!contains(defaultBlogIndexRouteAbs, /defaultLocale/)) {
+  fail(`${defaultBlogIndexRouteFile} must load the default-locale blog index`);
+}
+
+const localizedBlogIndexRouteFile = 'apps/web/src/routes/$locale/blog_.tsx';
+const localizedBlogIndexRouteAbs = join(root, localizedBlogIndexRouteFile);
+if (!contains(localizedBlogIndexRouteAbs, /params\.locale/)) {
+  fail(`${localizedBlogIndexRouteFile} must load params.locale blog index`);
+}
+
+const blogIndexSeoFile = 'src/surfaces/landing/blog-index/blog-index.seo.ts';
+const blogIndexSeoAbs = join(root, blogIndexSeoFile);
+if (!contains(blogIndexSeoAbs, /noindex,nofollow/)) {
+  fail(
+    `${blogIndexSeoFile} must return noindex,nofollow for missing blog data`
+  );
+}
+
+const blogIndexViewFile = 'src/surfaces/landing/blog-index/blog-index.view.tsx';
+const blogIndexViewAbs = join(root, blogIndexViewFile);
+for (const [regex, label] of [
+  [/from\s+['"]next(?:\/|['"])/, 'next import'],
+  [/from\s+['"]next-intl(?:\/|['"])/, 'next-intl import'],
+  [/@\/themes\//, '@/themes import'],
+  [/@\/app\//, '@/app import'],
+]) {
+  if (contains(blogIndexViewAbs, regex)) {
+    fail(`${blogIndexViewFile} must not depend on ${label}`);
+  }
+}
+
+const blogIndexRouteResolverFile =
+  'src/server/landing/blog-index-route-resolver.ts';
+const blogIndexRouteResolverAbs = join(root, blogIndexRouteResolverFile);
+if (!contains(blogIndexRouteResolverAbs, /getBlogPostsAndCategories/)) {
+  fail(
+    `${blogIndexRouteResolverFile} must reuse getBlogPostsAndCategories route data semantics`
+  );
+}
+if (contains(blogIndexRouteResolverAbs, /isPublishedLocaleForPath/)) {
+  fail(
+    `${blogIndexRouteResolverFile} must not gate blog index on the page manifest`
+  );
+}
+if (!contains(blogIndexRouteResolverAbs, /capabilities\.blog/)) {
+  fail(`${blogIndexRouteResolverFile} must preserve the blog capability gate`);
+}
+for (const [regex, label] of [
+  [
+    /@\/domains\/content\/infra|@\/infra\/adapters\/db/,
+    'direct content DB access',
+  ],
+  [/next-intl/, 'next-intl import'],
+  [/next\/navigation/, 'next/navigation import'],
+]) {
+  if (contains(blogIndexRouteResolverAbs, regex)) {
+    fail(`${blogIndexRouteResolverFile} must not depend on ${label}`);
+  }
+}
+
 const blogPostRouteFiles = [
   'apps/web/src/routes/blog/$slug.tsx',
   'apps/web/src/routes/$locale/blog/$slug.tsx',
@@ -672,7 +778,6 @@ for (const blogPostRouteFile of blogPostRouteFiles) {
   }
 }
 
-
 const blogPostSeoFile = 'src/surfaces/landing/blog-post/blog-post.seo.ts';
 const blogPostSeoAbs = join(root, blogPostSeoFile);
 if (!contains(blogPostSeoAbs, /noindex,nofollow/)) {
@@ -691,13 +796,18 @@ if (!contains(blogPostViewAbs, /BlogPostAdZoneView/)) {
   fail(`${blogPostViewFile} must render blog post ad zones`);
 }
 
-const blogPostRouteResolverFile = 'src/server/landing/blog-post-route-resolver.ts';
+const blogPostRouteResolverFile =
+  'src/server/landing/blog-post-route-resolver.ts';
 const blogPostRouteResolverAbs = join(root, blogPostRouteResolverFile);
 if (!contains(blogPostRouteResolverAbs, /getBlogPost/)) {
-  fail(`${blogPostRouteResolverFile} must reuse getBlogPost route data semantics`);
+  fail(
+    `${blogPostRouteResolverFile} must reuse getBlogPost route data semantics`
+  );
 }
 if (contains(blogPostRouteResolverAbs, /isPublishedLocaleForPath/)) {
-  fail(`${blogPostRouteResolverFile} must not gate blog posts on the page manifest`);
+  fail(
+    `${blogPostRouteResolverFile} must not gate blog posts on the page manifest`
+  );
 }
 if (!contains(blogPostRouteResolverAbs, /resolveBlogPostAdZones/)) {
   fail(`${blogPostRouteResolverFile} must resolve blog post ad zones`);
@@ -705,7 +815,10 @@ if (!contains(blogPostRouteResolverAbs, /resolveBlogPostAdZones/)) {
 for (const [regex, label] of [
   [/next-intl/, 'next-intl import'],
   [/next\/navigation/, 'next/navigation import'],
-  [/@\/domains\/content\/infra|@\/infra\/adapters\/db/, 'direct content DB access'],
+  [
+    /@\/domains\/content\/infra|@\/infra\/adapters\/db/,
+    'direct content DB access',
+  ],
 ]) {
   if (contains(blogPostRouteResolverAbs, regex)) {
     fail(`${blogPostRouteResolverFile} must not depend on ${label}`);

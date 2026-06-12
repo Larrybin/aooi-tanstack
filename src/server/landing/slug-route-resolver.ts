@@ -1,22 +1,21 @@
 import { getLocalPublicContentDocument } from '@/domains/content/application/public-content-manifest';
 import { site } from '@/site';
-
-import { resolveLandingShellData } from './landing-shell-data';
 import type { SlugRouteData } from '@/surfaces/landing/slug/slug.types';
-
-import { formatPostDateForLocale } from '@/shared/lib/post-date-format';
 
 import {
   buildBrandPlaceholderValues,
   replaceBrandPlaceholders,
 } from '@/shared/brand/placeholders';
 import { normalizeLocale } from '@/shared/i18n/locale';
+import { formatPostDateForLocale } from '@/shared/lib/post-date';
 import {
   buildCanonicalUrl,
   buildLanguageAlternates,
   buildSeoHead,
   isPublishedLocaleForPath,
 } from '@/shared/seo/canonical';
+
+import { resolveLandingShellData } from './landing-shell-data';
 
 export async function resolveSlugRouteData({
   locale: localeInput,

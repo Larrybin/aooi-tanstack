@@ -10,10 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as BlogRouteImport } from './routes/blog_'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as LocalePricingRouteImport } from './routes/$locale/pricing'
+import { Route as LocaleBlogRouteImport } from './routes/$locale/blog_'
 import { Route as LocaleSlugRouteImport } from './routes/$locale/$slug'
 import { Route as BlogCategorySlugRouteImport } from './routes/blog/category/$slug'
 import { Route as ApiUserGetUserCreditsRouteImport } from './routes/api/user/get-user-credits'
@@ -25,6 +27,11 @@ import { Route as LocaleBlogCategorySlugRouteImport } from './routes/$locale/blo
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog_',
+  path: '/blog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SlugRoute = SlugRouteImport.update({
@@ -45,6 +52,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
 const LocalePricingRoute = LocalePricingRouteImport.update({
   id: '/$locale/pricing',
   path: '/$locale/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocaleBlogRoute = LocaleBlogRouteImport.update({
+  id: '/$locale/blog_',
+  path: '/$locale/blog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LocaleSlugRoute = LocaleSlugRouteImport.update({
@@ -86,8 +98,10 @@ const LocaleBlogCategorySlugRoute = LocaleBlogCategorySlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
+  '/blog': typeof BlogRoute
   '/pricing': typeof PricingRoute
   '/$locale/$slug': typeof LocaleSlugRoute
+  '/$locale/blog': typeof LocaleBlogRoute
   '/$locale/pricing': typeof LocalePricingRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
@@ -100,8 +114,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
+  '/blog': typeof BlogRoute
   '/pricing': typeof PricingRoute
   '/$locale/$slug': typeof LocaleSlugRoute
+  '/$locale/blog': typeof LocaleBlogRoute
   '/$locale/pricing': typeof LocalePricingRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
@@ -115,8 +131,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
+  '/blog_': typeof BlogRoute
   '/pricing': typeof PricingRoute
   '/$locale/$slug': typeof LocaleSlugRoute
+  '/$locale/blog_': typeof LocaleBlogRoute
   '/$locale/pricing': typeof LocalePricingRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
@@ -131,8 +149,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$slug'
+    | '/blog'
     | '/pricing'
     | '/$locale/$slug'
+    | '/$locale/blog'
     | '/$locale/pricing'
     | '/blog/$slug'
     | '/$locale/blog/$slug'
@@ -145,8 +165,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/$slug'
+    | '/blog'
     | '/pricing'
     | '/$locale/$slug'
+    | '/$locale/blog'
     | '/$locale/pricing'
     | '/blog/$slug'
     | '/$locale/blog/$slug'
@@ -159,8 +181,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/$slug'
+    | '/blog_'
     | '/pricing'
     | '/$locale/$slug'
+    | '/$locale/blog_'
     | '/$locale/pricing'
     | '/blog/$slug'
     | '/$locale/blog/$slug'
@@ -174,8 +198,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SlugRoute: typeof SlugRoute
+  BlogRoute: typeof BlogRoute
   PricingRoute: typeof PricingRoute
   LocaleSlugRoute: typeof LocaleSlugRoute
+  LocaleBlogRoute: typeof LocaleBlogRoute
   LocalePricingRoute: typeof LocalePricingRoute
   BlogSlugRoute: typeof BlogSlugRoute
   LocaleBlogSlugRoute: typeof LocaleBlogSlugRoute
@@ -193,6 +219,13 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog_': {
+      id: '/blog_'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$slug': {
@@ -221,6 +254,13 @@ declare module '@tanstack/react-router' {
       path: '/$locale/pricing'
       fullPath: '/$locale/pricing'
       preLoaderRoute: typeof LocalePricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/blog_': {
+      id: '/$locale/blog_'
+      path: '/$locale/blog'
+      fullPath: '/$locale/blog'
+      preLoaderRoute: typeof LocaleBlogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$locale/$slug': {
@@ -278,8 +318,10 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRoute,
+  BlogRoute: BlogRoute,
   PricingRoute: PricingRoute,
   LocaleSlugRoute: LocaleSlugRoute,
+  LocaleBlogRoute: LocaleBlogRoute,
   LocalePricingRoute: LocalePricingRoute,
   BlogSlugRoute: BlogSlugRoute,
   LocaleBlogSlugRoute: LocaleBlogSlugRoute,
