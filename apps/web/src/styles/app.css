@@ -399,6 +399,126 @@ a {
   box-shadow: 0 20px 60px rgba(22, 34, 64, 0.08);
 }
 
+
+.blog-post-article {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 48px 0 72px;
+}
+
+.blog-post-crumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+  color: #667085;
+  font-size: 14px;
+}
+
+.blog-post-crumb a {
+  color: #344054;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.blog-post-header {
+  max-width: 860px;
+  margin: 0 auto 40px;
+  text-align: center;
+}
+
+.blog-post-header h1 {
+  margin: 0;
+  font-size: clamp(34px, 6vw, 62px);
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+}
+
+.blog-post-header p {
+  max-width: 720px;
+  margin: 18px auto 0;
+  color: #5c667a;
+  font-size: 18px;
+  line-height: 1.65;
+}
+
+.blog-post-header time {
+  display: inline-flex;
+  margin-top: 16px;
+  color: #667085;
+  font-size: 14px;
+}
+
+.blog-post-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr) minmax(160px, 220px);
+  gap: 28px;
+  align-items: start;
+}
+
+.blog-post-content-card,
+.blog-post-toc,
+.blog-post-author {
+  border: 1px solid #dfe5f2;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 20px 60px rgba(22, 34, 64, 0.08);
+}
+
+.blog-post-content-card {
+  min-width: 0;
+  padding: 28px;
+}
+
+.blog-post-toc,
+.blog-post-author {
+  position: sticky;
+  top: 24px;
+  padding: 18px;
+}
+
+.blog-post-toc strong,
+.blog-post-author strong {
+  display: block;
+  margin-bottom: 12px;
+  color: #151923;
+}
+
+.blog-post-toc nav {
+  display: grid;
+  gap: 10px;
+}
+
+.blog-post-toc a {
+  color: #4c566a;
+  font-size: 14px;
+  line-height: 1.45;
+  text-decoration: none;
+}
+
+.blog-post-toc a[data-depth='3'] {
+  padding-left: 12px;
+}
+
+.blog-post-toc a[data-depth='4'],
+.blog-post-toc a[data-depth='5'],
+.blog-post-toc a[data-depth='6'] {
+  padding-left: 24px;
+}
+
+.blog-post-author {
+  text-align: center;
+}
+
+.blog-post-author img {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 12px;
+  border-radius: 20px;
+  object-fit: cover;
+}
+
 @media (max-width: 720px) {
   .landing-shell-header {
     align-items: flex-start;
@@ -420,4 +540,18 @@ a {
   .slug-article-card {
     padding: 20px;
   }
+
+  .blog-post-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .blog-post-toc,
+  .blog-post-author {
+    position: static;
+  }
+
+  .blog-post-content-card {
+    padding: 20px;
+  }
+
 }
