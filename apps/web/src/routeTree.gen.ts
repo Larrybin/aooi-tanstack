@@ -15,10 +15,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as LocalePricingRouteImport } from './routes/$locale/pricing'
 import { Route as LocaleSlugRouteImport } from './routes/$locale/$slug'
+import { Route as BlogCategorySlugRouteImport } from './routes/blog/category/$slug'
 import { Route as ApiUserGetUserCreditsRouteImport } from './routes/api/user/get-user-credits'
 import { Route as ApiPaymentNotifyRouteImport } from './routes/api/payment/notify'
 import { Route as ApiPaymentCheckoutRouteImport } from './routes/api/payment/checkout'
 import { Route as LocaleBlogSlugRouteImport } from './routes/$locale/blog/$slug'
+import { Route as LocaleBlogCategorySlugRouteImport } from './routes/$locale/blog/category/$slug'
 
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
@@ -50,6 +52,11 @@ const LocaleSlugRoute = LocaleSlugRouteImport.update({
   path: '/$locale/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogCategorySlugRoute = BlogCategorySlugRouteImport.update({
+  id: '/blog/category/$slug',
+  path: '/blog/category/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiUserGetUserCreditsRoute = ApiUserGetUserCreditsRouteImport.update({
   id: '/api/user/get-user-credits',
   path: '/api/user/get-user-credits',
@@ -70,6 +77,11 @@ const LocaleBlogSlugRoute = LocaleBlogSlugRouteImport.update({
   path: '/$locale/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocaleBlogCategorySlugRoute = LocaleBlogCategorySlugRouteImport.update({
+  id: '/$locale/blog/category/$slug',
+  path: '/$locale/blog/category/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -82,6 +94,8 @@ export interface FileRoutesByFullPath {
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
+  '/blog/category/$slug': typeof BlogCategorySlugRoute
+  '/$locale/blog/category/$slug': typeof LocaleBlogCategorySlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -94,6 +108,8 @@ export interface FileRoutesByTo {
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
+  '/blog/category/$slug': typeof BlogCategorySlugRoute
+  '/$locale/blog/category/$slug': typeof LocaleBlogCategorySlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -107,6 +123,8 @@ export interface FileRoutesById {
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
+  '/blog/category/$slug': typeof BlogCategorySlugRoute
+  '/$locale/blog/category/$slug': typeof LocaleBlogCategorySlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,6 +139,8 @@ export interface FileRouteTypes {
     | '/api/payment/checkout'
     | '/api/payment/notify'
     | '/api/user/get-user-credits'
+    | '/blog/category/$slug'
+    | '/$locale/blog/category/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,6 +153,8 @@ export interface FileRouteTypes {
     | '/api/payment/checkout'
     | '/api/payment/notify'
     | '/api/user/get-user-credits'
+    | '/blog/category/$slug'
+    | '/$locale/blog/category/$slug'
   id:
     | '__root__'
     | '/'
@@ -145,6 +167,8 @@ export interface FileRouteTypes {
     | '/api/payment/checkout'
     | '/api/payment/notify'
     | '/api/user/get-user-credits'
+    | '/blog/category/$slug'
+    | '/$locale/blog/category/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -158,6 +182,8 @@ export interface RootRouteChildren {
   ApiPaymentCheckoutRoute: typeof ApiPaymentCheckoutRoute
   ApiPaymentNotifyRoute: typeof ApiPaymentNotifyRoute
   ApiUserGetUserCreditsRoute: typeof ApiUserGetUserCreditsRoute
+  BlogCategorySlugRoute: typeof BlogCategorySlugRoute
+  LocaleBlogCategorySlugRoute: typeof LocaleBlogCategorySlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -204,6 +230,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/category/$slug': {
+      id: '/blog/category/$slug'
+      path: '/blog/category/$slug'
+      fullPath: '/blog/category/$slug'
+      preLoaderRoute: typeof BlogCategorySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/user/get-user-credits': {
       id: '/api/user/get-user-credits'
       path: '/api/user/get-user-credits'
@@ -232,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleBlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$locale/blog/category/$slug': {
+      id: '/$locale/blog/category/$slug'
+      path: '/$locale/blog/category/$slug'
+      fullPath: '/$locale/blog/category/$slug'
+      preLoaderRoute: typeof LocaleBlogCategorySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -246,6 +286,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPaymentCheckoutRoute: ApiPaymentCheckoutRoute,
   ApiPaymentNotifyRoute: ApiPaymentNotifyRoute,
   ApiUserGetUserCreditsRoute: ApiUserGetUserCreditsRoute,
+  BlogCategorySlugRoute: BlogCategorySlugRoute,
+  LocaleBlogCategorySlugRoute: LocaleBlogCategorySlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
