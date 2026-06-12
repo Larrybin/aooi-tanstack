@@ -153,9 +153,11 @@ const requiredFiles = [
   'apps/web/src/routes/$locale/pricing.tsx',
   'apps/web/src/routes/$locale/$slug.tsx',
   'apps/web/src/routes/blog/$slug.tsx',
+  'apps/web/src/routes/blog/category/$slug.tsx',
   'apps/web/src/routes/api/payment/checkout.ts',
   'apps/web/src/routes/api/payment/notify.ts',
   'apps/web/src/routes/api/user/get-user-credits.ts',
+  'apps/web/src/routes/$locale/blog/category/$slug.tsx',
   'apps/web/src/server/api-context.ts',
   'src/server/api/payment/checkout-action.ts',
   'src/server/api/payment/notify-action.ts',
@@ -173,6 +175,8 @@ const requiredFiles = [
   'src/server/landing/slug-route-resolver.ts',
   'src/server/landing/blog-post-route-data.ts',
   'src/server/landing/blog-post-route-resolver.ts',
+  'src/server/landing/blog-category-route-data.ts',
+  'src/server/landing/blog-category-route-resolver.ts',
   'src/surfaces/landing/pricing/pricing.data.ts',
   'src/surfaces/landing/pricing/pricing.seo.ts',
   'src/surfaces/landing/pricing/pricing.view.tsx',
@@ -185,6 +189,10 @@ const requiredFiles = [
   'src/surfaces/landing/blog-post/blog-post.seo.ts',
   'src/surfaces/landing/blog-post/blog-post.view.tsx',
   'src/surfaces/landing/blog-post/blog-post.types.ts',
+  'src/surfaces/landing/blog-category/blog-category.data.ts',
+  'src/surfaces/landing/blog-category/blog-category.seo.ts',
+  'src/surfaces/landing/blog-category/blog-category.view.tsx',
+  'src/surfaces/landing/blog-category/blog-category.types.ts',
   'src/surfaces/system/not-found/not-found.view.tsx',
   'scripts/tanstack-gate-4-plan.mjs',
   'docs/migration/gate-4-page-migration-plan.generated.md',
@@ -701,6 +709,92 @@ for (const [regex, label] of [
 ]) {
   if (contains(blogPostRouteResolverAbs, regex)) {
     fail(`${blogPostRouteResolverFile} must not depend on ${label}`);
+  }
+}
+
+const blogCategoryRouteFiles = [
+  'apps/web/src/routes/blog/category/$slug.tsx',
+  'apps/web/src/routes/$locale/blog/category/$slug.tsx',
+];
+for (const blogCategoryRouteFile of blogCategoryRouteFiles) {
+  const blogCategoryRouteAbs = join(root, blogCategoryRouteFile);
+  if (!contains(blogCategoryRouteAbs, /throw\s+notFound\s*\(/)) {
+    fail(
+      `${blogCategoryRouteFile} must throw TanStack notFound() for missing route data`
+    );
+  }
+  for (const surfaceFile of [
+    'blog-category.data',
+    'blog-category.seo',
+    'blog-category.view',
+    'blog-category.types',
+  ]) {
+    if (
+      !contains(
+        blogCategoryRouteAbs,
+        new RegExp(`@/surfaces/landing/blog-category/${surfaceFile}`)
+      )
+    ) {
+      fail(`${blogCategoryRouteFile} must use ${surfaceFile} surface helper`);
+    }
+  }
+}
+
+const blogCategorySeoFile =
+  'src/surfaces/landing/blog-category/blog-category.seo.ts';
+const blogCategorySeoAbs = join(root, blogCategorySeoFile);
+if (!contains(blogCategorySeoAbs, /noindex,nofollow/)) {
+  fail(
+    `${blogCategorySeoFile} must return noindex,nofollow for missing categories`
+  );
+}
+
+const defaultBlogCategoryRouteFile =
+  'apps/web/src/routes/blog/category/$slug.tsx';
+const defaultBlogCategoryRouteAbs = join(root, defaultBlogCategoryRouteFile);
+if (!contains(defaultBlogCategoryRouteAbs, /defaultLocale/)) {
+  fail(`${defaultBlogCategoryRouteFile} must load default-locale categories`);
+}
+
+const blogCategoryViewFile =
+  'src/surfaces/landing/blog-category/blog-category.view.tsx';
+const blogCategoryViewAbs = join(root, blogCategoryViewFile);
+for (const [regex, label] of [
+  [/from\s+['"]next(?:\/|['"])/, 'next import'],
+  [/from\s+['"]next-intl(?:\/|['"])/, 'next-intl import'],
+  [/@\/themes\//, '@/themes import'],
+  [/@\/app\//, '@/app import'],
+]) {
+  if (contains(blogCategoryViewAbs, regex)) {
+    fail(`${blogCategoryViewFile} must not depend on ${label}`);
+  }
+}
+
+const blogCategoryRouteResolverFile =
+  'src/server/landing/blog-category-route-resolver.ts';
+const blogCategoryRouteResolverAbs = join(root, blogCategoryRouteResolverFile);
+if (
+  !contains(blogCategoryRouteResolverAbs, /getBlogCategoryPostsAndCategories/)
+) {
+  fail(
+    `${blogCategoryRouteResolverFile} must reuse getBlogCategoryPostsAndCategories route data semantics`
+  );
+}
+if (contains(blogCategoryRouteResolverAbs, /isPublishedLocaleForPath/)) {
+  fail(
+    `${blogCategoryRouteResolverFile} must not gate blog categories on the page manifest`
+  );
+}
+for (const [regex, label] of [
+  [
+    /@\/domains\/content\/infra|@\/infra\/adapters\/db/,
+    'direct content DB access',
+  ],
+  [/next-intl/, 'next-intl import'],
+  [/next\/navigation/, 'next/navigation import'],
+]) {
+  if (contains(blogCategoryRouteResolverAbs, regex)) {
+    fail(`${blogCategoryRouteResolverFile} must not depend on ${label}`);
   }
 }
 
