@@ -161,6 +161,10 @@ const requiredFiles = [
   'apps/web/src/routes/blog/$slug.tsx',
   'apps/web/src/routes/blog/category/$slug.tsx',
   'apps/web/src/routes/$locale/blog_.tsx',
+  'apps/web/src/routes/settings_.tsx',
+  'apps/web/src/routes/activity_.tsx',
+  'apps/web/src/routes/$locale/settings_.tsx',
+  'apps/web/src/routes/$locale/activity_.tsx',
   'apps/web/src/routes/api/payment/checkout.ts',
   'apps/web/src/routes/api/payment/notify.ts',
   'apps/web/src/routes/api/user/get-user-credits.ts',
@@ -188,6 +192,8 @@ const requiredFiles = [
   'src/server/landing/blog-post-route-resolver.ts',
   'src/server/landing/blog-category-route-data.ts',
   'src/server/landing/blog-category-route-resolver.ts',
+  'src/server/member/member-entry-route-data.ts',
+  'src/server/member/member-entry-route-resolver.ts',
   'src/surfaces/landing/pricing/pricing.data.ts',
   'src/surfaces/landing/pricing/pricing.seo.ts',
   'src/surfaces/landing/pricing/pricing.view.tsx',
@@ -212,12 +218,15 @@ const requiredFiles = [
   'src/surfaces/landing/blog-category/blog-category.seo.ts',
   'src/surfaces/landing/blog-category/blog-category.view.tsx',
   'src/surfaces/landing/blog-category/blog-category.types.ts',
+  'src/surfaces/member/member-entry/member-entry.data.ts',
+  'src/surfaces/member/member-entry/member-entry.types.ts',
   'src/surfaces/system/not-found/not-found.view.tsx',
   'scripts/tanstack-gate-4-plan.mjs',
   'docs/migration/gate-4-page-migration-plan.generated.md',
   'docs/migration/gate-1-3-tanstack-nativity-review.md',
   'docs/migration/gate-4-surface-taint-audit.md',
   'docs/migration/gate-4-a-slug-verification.md',
+  'docs/migration/gate-4-b-member-entry-routes-spec.md',
   'project.inlang/settings.json',
   'messages/en.json',
   'messages/zh.json',
@@ -858,6 +867,166 @@ for (const legacyAuthFile of [
 ]) {
   if (!existsSync(join(root, legacyAuthFile))) {
     fail(`${legacyAuthFile} must remain until legacy app routes are retired`);
+  }
+}
+
+const memberEntryRouteFiles = [
+  {
+    file: 'apps/web/src/routes/settings_.tsx',
+    routeId: '/settings_',
+    kind: 'settings',
+    localePattern: /defaultLocale/,
+  },
+  {
+    file: 'apps/web/src/routes/activity_.tsx',
+    routeId: '/activity_',
+    kind: 'activity',
+    localePattern: /defaultLocale/,
+  },
+  {
+    file: 'apps/web/src/routes/$locale/settings_.tsx',
+    routeId: '/$locale/settings_',
+    kind: 'settings',
+    localePattern: /params\.locale/,
+  },
+  {
+    file: 'apps/web/src/routes/$locale/activity_.tsx',
+    routeId: '/$locale/activity_',
+    kind: 'activity',
+    localePattern: /params\.locale/,
+  },
+];
+
+for (const { file, routeId, kind, localePattern } of memberEntryRouteFiles) {
+  const abs = join(root, file);
+  if (!existsSync(abs)) {
+    fail(`${file} must exist for Gate 4-B.2 member entry routes`);
+  }
+  if (!contains(abs, /createFileRoute/)) {
+    fail(`${file} must use createFileRoute`);
+  }
+  if (
+    !contains(abs, new RegExp(`createFileRoute\\('${escapeRegex(routeId)}'\\)`))
+  ) {
+    fail(`${file} must declare TanStack route ${routeId}`);
+  }
+  if (!contains(abs, /loadMemberEntryRouteData/)) {
+    fail(`${file} must load member entry route data`);
+  }
+  if (!contains(abs, /redirect\(\{\s*href:\s*data\.redirectTo/)) {
+    fail(`${file} must redirect to member entry route data`);
+  }
+  if (!contains(abs, new RegExp(`kind:\\s*['"]${kind}['"]`))) {
+    fail(`${file} must pass member entry kind ${kind}`);
+  }
+  if (!contains(abs, localePattern)) {
+    fail(`${file} must use the expected locale source`);
+  }
+}
+
+for (const fullPath of [
+  '/settings',
+  '/activity',
+  '/$locale/settings',
+  '/$locale/activity',
+]) {
+  if (
+    !contains(
+      homeRouteTreeAbs,
+      new RegExp(`fullPath:\\s*'${escapeRegex(fullPath)}'`)
+    )
+  ) {
+    fail(`${homeRouteTreeFile} must include member entry fullPath ${fullPath}`);
+  }
+}
+
+for (const file of [
+  'apps/web/src/routes/settings.tsx',
+  'apps/web/src/routes/activity.tsx',
+  'apps/web/src/routes/$locale/settings.tsx',
+  'apps/web/src/routes/$locale/activity.tsx',
+]) {
+  if (existsSync(join(root, file))) {
+    fail(`${file} must not be introduced for member entry redirects`);
+  }
+}
+
+const memberEntryDataFile = 'src/server/member/member-entry-route-data.ts';
+const memberEntryDataAbs = join(root, memberEntryDataFile);
+if (
+  !contains(memberEntryDataAbs, /createServerFn\(\{\s*method:\s*['"]GET['"]/)
+) {
+  fail(`${memberEntryDataFile} must use createServerFn({ method: 'GET' })`);
+}
+if (
+  !contains(
+    memberEntryDataAbs,
+    /await\s+import\(\s*['"].\/member-entry-route-resolver['"]\s*\)/
+  )
+) {
+  fail(
+    `${memberEntryDataFile} must dynamically import the member entry resolver`
+  );
+}
+
+const memberEntryResolverFile =
+  'src/server/member/member-entry-route-resolver.ts';
+const memberEntryResolverAbs = join(root, memberEntryResolverFile);
+for (const [regex, label] of [
+  [/normalizeLocale/, 'locale normalization'],
+  [/readPublicUiConfigFresh/, 'fresh runtime public UI config'],
+  [/isAiEnabled/, 'activity AI enablement gate'],
+  [/localePath/, 'localized redirect target builder'],
+]) {
+  if (!contains(memberEntryResolverAbs, regex)) {
+    fail(`${memberEntryResolverFile} must use ${label}`);
+  }
+}
+for (const [regex, label] of [
+  [/getSignedInUserSnapshot|session\.server/, 'user session read'],
+  [/ConsoleLayout|PublicAppProvider|AuthSnapshotProvider/, 'member shell'],
+  [/next-intl/, 'next-intl import'],
+  [/next\/navigation/, 'next/navigation import'],
+  [/@\/app\/|src\/app\//, 'legacy app import'],
+  [/@\/themes\//, '@/themes import'],
+]) {
+  if (contains(memberEntryResolverAbs, regex)) {
+    fail(`${memberEntryResolverFile} must not depend on ${label}`);
+  }
+}
+
+const memberEntrySurfaceFiles = walk(
+  join(root, 'src/surfaces/member/member-entry')
+)
+  .filter((file) => /\.(ts|tsx)$/.test(file))
+  .map((file) => normalizePath(relative(root, file)))
+  .sort();
+for (const file of memberEntrySurfaceFiles) {
+  const abs = join(root, file);
+  for (const [regex, label] of [
+    [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
+    [/^\s*import\s+['"]next(?:\/|['"])/m, 'next side-effect import'],
+    [/from\s+['"]next-intl(?:\/|['"])/, 'next-intl import'],
+    [/@\/infra\/platform\/i18n\/navigation/, 'Next i18n navigation import'],
+    [/@\/app\/|src\/app\//, 'legacy app import'],
+    [/@\/themes\//, '@/themes import'],
+    [/^\s*import\s+['"]server-only['"]/m, 'server-only marker'],
+    [/getSignedInUserSnapshot|session\.server/, 'user session read'],
+  ]) {
+    if (contains(abs, regex)) {
+      fail(`${file} must not depend on ${label}`);
+    }
+  }
+}
+
+for (const legacyMemberFile of [
+  'src/app/[locale]/(landing)/settings/page.tsx',
+  'src/app/[locale]/(landing)/settings/layout.tsx',
+  'src/app/[locale]/(landing)/activity/page.tsx',
+  'src/app/[locale]/(landing)/activity/layout.tsx',
+]) {
+  if (!existsSync(join(root, legacyMemberFile))) {
+    fail(`${legacyMemberFile} must remain until member leaves are migrated`);
   }
 }
 
