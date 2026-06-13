@@ -162,9 +162,11 @@ const requiredFiles = [
   'apps/web/src/routes/blog/category/$slug.tsx',
   'apps/web/src/routes/$locale/blog_.tsx',
   'apps/web/src/routes/settings_.tsx',
+  'apps/web/src/routes/settings/profile.tsx',
   'apps/web/src/routes/settings/security.tsx',
   'apps/web/src/routes/activity_.tsx',
   'apps/web/src/routes/$locale/settings_.tsx',
+  'apps/web/src/routes/$locale/settings/profile.tsx',
   'apps/web/src/routes/$locale/settings/security.tsx',
   'apps/web/src/routes/$locale/activity_.tsx',
   'apps/web/src/routes/api/payment/checkout.ts',
@@ -196,6 +198,9 @@ const requiredFiles = [
   'src/server/landing/blog-category-route-resolver.ts',
   'src/server/member/member-entry-route-data.ts',
   'src/server/member/member-entry-route-resolver.ts',
+  'src/server/member/settings-profile-route-data.ts',
+  'src/server/member/settings-profile-route-resolver.ts',
+  'src/server/member/settings-profile-route-messages.ts',
   'src/server/member/settings-security-route-data.ts',
   'src/server/member/settings-security-route-resolver.ts',
   'src/server/member/settings-security-route-messages.ts',
@@ -227,6 +232,10 @@ const requiredFiles = [
   'src/surfaces/member/member-entry/member-entry.types.ts',
   'src/surfaces/member/settings-shell/settings-shell.types.ts',
   'src/surfaces/member/settings-shell/settings-shell.view.tsx',
+  'src/surfaces/member/settings-profile/settings-profile.data.ts',
+  'src/surfaces/member/settings-profile/settings-profile.seo.ts',
+  'src/surfaces/member/settings-profile/settings-profile.types.ts',
+  'src/surfaces/member/settings-profile/settings-profile.view.tsx',
   'src/surfaces/member/settings-security/settings-security.data.ts',
   'src/surfaces/member/settings-security/settings-security.seo.ts',
   'src/surfaces/member/settings-security/settings-security.types.ts',
@@ -1028,6 +1037,220 @@ for (const file of memberEntrySurfaceFiles) {
       fail(`${file} must not depend on ${label}`);
     }
   }
+}
+
+const settingsProfileRouteFiles = [
+  {
+    file: 'apps/web/src/routes/settings/profile.tsx',
+    routeId: '/settings/profile',
+    localePattern: /defaultLocale/,
+  },
+  {
+    file: 'apps/web/src/routes/$locale/settings/profile.tsx',
+    routeId: '/$locale/settings/profile',
+    localePattern: /params\.locale/,
+  },
+];
+
+for (const { file, routeId, localePattern } of settingsProfileRouteFiles) {
+  const abs = join(root, file);
+  if (!existsSync(abs)) {
+    fail(`${file} must exist for Gate 4-B.3b settings profile route`);
+  }
+  if (!contains(abs, /createFileRoute/)) {
+    fail(`${file} must use createFileRoute`);
+  }
+  if (
+    !contains(abs, new RegExp(`createFileRoute\\('${escapeRegex(routeId)}'\\)`))
+  ) {
+    fail(`${file} must declare TanStack route ${routeId}`);
+  }
+  if (!contains(abs, /loadSettingsProfileRouteSurfaceData/)) {
+    fail(`${file} must load settings profile route surface data`);
+  }
+  if (!contains(abs, /getSettingsProfileRouteSurfaceHead/)) {
+    fail(`${file} must use settings profile route surface head`);
+  }
+  if (!contains(abs, /SettingsProfileRouteView/)) {
+    fail(`${file} must render SettingsProfileRouteView`);
+  }
+  if (!contains(abs, localePattern)) {
+    fail(`${file} must use the expected locale source`);
+  }
+}
+
+for (const fullPath of ['/settings/profile', '/$locale/settings/profile']) {
+  if (
+    !contains(
+      homeRouteTreeAbs,
+      new RegExp(`fullPath:\\s*'${escapeRegex(fullPath)}'`)
+    )
+  ) {
+    fail(
+      `${homeRouteTreeFile} must include settings profile fullPath ${fullPath}`
+    );
+  }
+}
+
+const settingsProfileDataFile =
+  'src/server/member/settings-profile-route-data.ts';
+const settingsProfileDataAbs = join(root, settingsProfileDataFile);
+if (
+  !contains(
+    settingsProfileDataAbs,
+    /createServerFn\(\{\s*method:\s*['"]GET['"]/
+  )
+) {
+  fail(`${settingsProfileDataFile} must use createServerFn({ method: 'GET' })`);
+}
+if (
+  !contains(
+    settingsProfileDataAbs,
+    /createServerFn\(\{\s*method:\s*['"]POST['"]/
+  )
+) {
+  fail(
+    `${settingsProfileDataFile} must use createServerFn({ method: 'POST' })`
+  );
+}
+if (!contains(settingsProfileDataAbs, /submitSettingsProfileRouteData/)) {
+  fail(`${settingsProfileDataFile} must expose settings profile update data`);
+}
+if (
+  !contains(
+    settingsProfileDataAbs,
+    /await\s+import\(\s*['"].\/settings-profile-route-resolver['"]\s*\)/
+  )
+) {
+  fail(
+    `${settingsProfileDataFile} must dynamically import the settings profile resolver`
+  );
+}
+
+const settingsProfileResolverFile =
+  'src/server/member/settings-profile-route-resolver.ts';
+const settingsProfileResolverAbs = join(root, settingsProfileResolverFile);
+for (const [regex, label] of [
+  [/normalizeLocale/, 'locale normalization'],
+  [/loadSettingsProfileRouteMessages/, 'settings profile message loader'],
+  [/readSignedInUserIdentity|getSignedInUserIdentity/, 'signed-in user check'],
+  [/viewer:\s*\{\s*signedIn/s, 'signed-in boolean route data'],
+  [/profile:\s*signedInUser/s, 'profile read data'],
+  [/email:\s*signedInUser\.email/s, 'profile email projection'],
+  [/name:\s*signedInUser\.name/s, 'profile name projection'],
+  [/image:\s*signedInUser\.image/s, 'profile image projection'],
+  [/resolveSettingsProfileUpdate/, 'profile update resolver'],
+  [/updateProfileUseCase/, 'profile mutation use case'],
+  [/normalizeProfileImageValue/, 'profile image URL normalization'],
+  [/JSON\.stringify/, 'route data serializability guard'],
+  [/noindex,nofollow/, 'member noindex robots head'],
+]) {
+  if (!contains(settingsProfileResolverAbs, regex)) {
+    fail(`${settingsProfileResolverFile} must use ${label}`);
+  }
+}
+for (const [regex, label] of [
+  [/accountRuntimeDeps/, 'legacy account runtime deps'],
+  [/requireActionUser/, 'legacy action user guard'],
+  [/FormCard/, 'legacy form card'],
+  [/withAction/, 'legacy server action helper'],
+  [/parseFormData/, 'legacy form parser'],
+  [/upload_image/, 'upload image field'],
+  [/next\/headers/, 'next/headers import'],
+  [/session\.server/, 'legacy Next session server'],
+  [
+    /ConsoleLayout|LandingLayout|PublicAppProvider|AuthSnapshotProvider/,
+    'legacy member shell',
+  ],
+  [/next-intl/, 'next-intl import'],
+  [/next\/navigation/, 'next/navigation import'],
+  [/@\/app\/|src\/app\//, 'legacy app import'],
+  [/@\/themes\//, '@/themes import'],
+]) {
+  if (contains(settingsProfileResolverAbs, regex)) {
+    fail(`${settingsProfileResolverFile} must not depend on ${label}`);
+  }
+}
+
+const settingsProfileMessagesFile =
+  'src/server/member/settings-profile-route-messages.ts';
+const settingsProfileMessagesAbs = join(root, settingsProfileMessagesFile);
+for (const [regex, label] of [
+  [/settings\/profile/, 'settings/profile messages'],
+  [/settings\/sidebar/, 'settings/sidebar messages'],
+  [
+    /\?\s*\(mergeDeep\(baseProfile/,
+    'base fallback for missing profile messages',
+  ],
+  [
+    /\?\s*\(mergeDeep\(baseSidebar/,
+    'base fallback for missing sidebar messages',
+  ],
+  [/mergeDeep/, 'key-level fallback merge'],
+]) {
+  if (!contains(settingsProfileMessagesAbs, regex)) {
+    fail(`${settingsProfileMessagesFile} must implement ${label}`);
+  }
+}
+
+const settingsProfileSurfaceFiles = walk(
+  join(root, 'src/surfaces/member/settings-profile')
+)
+  .filter((file) => /\.(ts|tsx)$/.test(file))
+  .map((file) => normalizePath(relative(root, file)))
+  .sort();
+for (const file of settingsProfileSurfaceFiles) {
+  const abs = join(root, file);
+  for (const [regex, label] of [
+    [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
+    [/^\s*import\s+['"]next(?:\/|['"])/m, 'next side-effect import'],
+    [/from\s+['"]next-intl(?:\/|['"])/, 'next-intl import'],
+    [/@\/infra\/platform\/i18n\/navigation/, 'Next i18n navigation import'],
+    [/@\/app\/|src\/app\//, 'legacy app import'],
+    [/@\/themes\//, '@/themes import'],
+    [/^\s*import\s+['"]server-only['"]/m, 'server-only marker'],
+    [/session\.server/, 'legacy Next session server'],
+    [/FormCard|withAction|parseFormData/, 'legacy profile mutation helper'],
+    [/upload_image/, 'upload image field'],
+  ]) {
+    if (contains(abs, regex)) {
+      fail(`${file} must not depend on ${label}`);
+    }
+  }
+}
+
+const settingsProfileViewFile =
+  'src/surfaces/member/settings-profile/settings-profile.view.tsx';
+const settingsProfileViewAbs = join(root, settingsProfileViewFile);
+for (const [regex, label] of [
+  [/document\.documentElement\.lang\s*=\s*data\.locale/, 'localized html lang'],
+  [/document\.documentElement\.dir\s*=\s*isRtlLocale/, 'localized html dir'],
+  [/submitSettingsProfileRouteSurfaceData/, 'profile update submission'],
+  [/<form\b/, 'editable profile form'],
+  [/name=["']name["']/, 'profile name field'],
+  [/name=["']image["']/, 'profile image field'],
+]) {
+  if (!contains(settingsProfileViewAbs, regex)) {
+    fail(`${settingsProfileViewFile} must apply ${label}`);
+  }
+}
+if (
+  contains(
+    settingsProfileViewAbs,
+    /href=\{\s*(?:data\.page\.)?profile\.image\s*\}/
+  )
+) {
+  fail(`${settingsProfileViewFile} must not render raw profile image as href`);
+}
+
+if (
+  !existsSync(
+    join(root, 'src/app/[locale]/(landing)/settings/profile/page.tsx')
+  )
+) {
+  fail(
+    'src/app/[locale]/(landing)/settings/profile/page.tsx must remain until the legacy app route is retired'
+  );
 }
 
 const settingsSecurityRouteFiles = [
