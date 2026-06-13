@@ -81,6 +81,51 @@ test('resolveAuthRouteData normalizes callbackUrl', async () => {
   assert.equal(data.search.callbackUrl, '/pricing?plan=pro#checkout');
 });
 
+test('resolveAuthRouteData preserves callbackUrl in locale options', async () => {
+  const data = await resolveAuthRouteData({
+    locale: 'en',
+    mode: 'sign-in',
+    search: {
+      callbackUrl: '/pricing?plan=pro#checkout',
+    },
+  });
+
+  assert.ok(data);
+  const zhOption = data.shell.localeOptions.find(
+    (option) => option.locale === 'zh'
+  );
+  assert.ok(zhOption);
+  assert.equal(zhOption.href.startsWith('/zh/sign-in?'), true);
+  assert.equal(
+    new URL(zhOption.href, 'https://example.test').searchParams.get(
+      'callbackUrl'
+    ),
+    '/pricing?plan=pro#checkout'
+  );
+});
+
+test('resolveAuthRouteData preserves reset search params in locale options', async () => {
+  const data = await resolveAuthRouteData({
+    locale: 'en',
+    mode: 'reset-password',
+    search: {
+      token: 'reset-token',
+      error: 'INVALID_TOKEN',
+    },
+  });
+
+  assert.ok(data);
+  const zhOption = data.shell.localeOptions.find(
+    (option) => option.locale === 'zh'
+  );
+  assert.ok(zhOption);
+  assert.equal(zhOption.href.startsWith('/zh/reset-password?'), true);
+
+  const params = new URL(zhOption.href, 'https://example.test').searchParams;
+  assert.equal(params.get('token'), 'reset-token');
+  assert.equal(params.get('error'), 'INVALID_TOKEN');
+});
+
 test('resolveAuthRouteData rejects unsupported locales', async () => {
   const data = await resolveAuthRouteData({
     locale: 'fr',

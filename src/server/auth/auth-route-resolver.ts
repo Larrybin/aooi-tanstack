@@ -81,6 +81,7 @@ export async function resolveAuthRouteData({
       shell: buildAuthShellData({
         locale,
         mode,
+        search: parsedSearch,
         sign,
         localeSwitcherAriaLabel:
           messages.locale_switcher?.aria_label || 'Change language',
@@ -233,6 +234,7 @@ function buildSignCopy(messages: AuthRouteMessages): AuthSignCopy {
 function buildAuthShellData({
   locale,
   mode,
+  search,
   sign,
   localeSwitcherAriaLabel,
   localeSwitcherEnabled,
@@ -240,6 +242,7 @@ function buildAuthShellData({
 }: {
   locale: string;
   mode: AuthRouteMode;
+  search: AuthRouteSearch;
   sign: AuthSignCopy;
   localeSwitcherAriaLabel: string;
   localeSwitcherEnabled: boolean;
@@ -260,7 +263,7 @@ function buildAuthShellData({
     localeOptions: locales.map((localeOption) => ({
       locale: localeOption,
       label: localeNames[localeOption] || localeOption,
-      href: localizePath(routePathByMode[mode], localeOption),
+      href: buildLocalizedAuthHref(routePathByMode[mode], localeOption, search),
       active: localeOption === locale,
     })),
     copy: {
@@ -270,6 +273,35 @@ function buildAuthShellData({
       points: sign.auth_shell_points,
     },
   };
+}
+
+function buildLocalizedAuthHref(
+  path: string,
+  locale: string,
+  search: AuthRouteSearch
+) {
+  const query = buildAuthSearchQuery(search);
+  const localizedPath = localizePath(path, locale);
+
+  return query ? `${localizedPath}?${query}` : localizedPath;
+}
+
+function buildAuthSearchQuery(search: AuthRouteSearch) {
+  const params = new URLSearchParams();
+
+  if (search.callbackUrl) {
+    params.set('callbackUrl', search.callbackUrl);
+  }
+
+  if (search.token) {
+    params.set('token', search.token);
+  }
+
+  if (search.error) {
+    params.set('error', search.error);
+  }
+
+  return params.toString();
 }
 
 function parseAuthSearch(search: unknown): AuthRouteSearch {
