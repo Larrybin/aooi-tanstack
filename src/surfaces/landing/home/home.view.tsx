@@ -11,6 +11,7 @@ import type {
   HomeRouteData,
   HomeSectionData,
 } from './home.types';
+import { ProductHomeView } from './product-home.view';
 
 const SECTION_ORDER = [
   'logos',
@@ -174,7 +175,11 @@ export function HomeSurfaceView({ data }: { data: HomeRouteData }) {
 
   return (
     <LandingShellView shell={data.shell}>
-      <HomeContent page={data.page} />
+      {data.variant === 'product' ? (
+        <ProductHomeView productHome={data.productHome} locale={data.locale} />
+      ) : (
+        <HomeContent page={data.page} />
+      )}
     </LandingShellView>
   );
 }

@@ -3,7 +3,7 @@ import {
   readBuildBillingUiSettings,
   readBuildPublicUiConfig,
 } from '@/domains/settings/application/settings-build.query';
-import { site, siteHomeContent } from '@/site';
+import { site } from '@/site';
 import type {
   HomeButtonData,
   HomePageData,
@@ -29,10 +29,13 @@ import {
 import type { Button } from '@/shared/types/blocks/common';
 import type { Footer, Header } from '@/shared/types/blocks/landing';
 
+import { buildLandingShellData } from './landing-shell-data';
 import {
-  buildLandingShellData,
-  resolveProductHeaderFooter,
-} from './landing-shell-data';
+  buildProductHomeHeaderFooter,
+  getProductHomeMetadata,
+  isProductHomeSite,
+  resolveProductHomeRouteData,
+} from './product-home-route-data';
 
 type LandingMessages = {
   metadata?: {
@@ -60,13 +63,6 @@ const landingMessagesByLocale: Record<string, LandingMessages> = {
   'zh-TW': zhTwLanding,
 };
 
-const productHomeSiteKeys = new Set([
-  'ai-remover',
-  'background-remover',
-  'text-to-speech-generator',
-  'mp4-compressor',
-]);
-
 export async function resolveHomeRouteData({
   locale: localeInput,
 }: {
@@ -83,26 +79,55 @@ export async function resolveHomeRouteData({
   const authSettings = readBuildAuthUiSettings();
   const billingSettings = readBuildBillingUiSettings();
   const brand = buildBrandPlaceholderValues();
+
+  if (isProductHomeSite()) {
+    const productHome = resolveProductHomeRouteData(locale);
+    if (!productHome) {
+      return null;
+    }
+
+    const metadata = getProductHomeMetadata(productHome);
+    const canonical = buildCanonicalUrl('/', locale);
+
+    return JSON.parse(
+      JSON.stringify({
+        locale,
+        canonicalPath: '/',
+        shell: buildLandingShellData({
+          ...buildProductHomeHeaderFooter(productHome),
+          locale,
+          publicUiConfig,
+          authSettings,
+          billingSettings,
+        }),
+        head: buildSeoHead({
+          title: metadata.title,
+          description: metadata.description,
+          canonical,
+          alternates: buildLanguageAlternates('/'),
+          locale,
+          siteName: site.brand.appName,
+        }),
+        variant: 'product',
+        productHome,
+      })
+    ) as HomeRouteData;
+  }
+
   const messages = getLandingMessages(locale);
   if (!messages) {
     return null;
   }
 
-  const productShell = hasProductHomeContent()
-    ? resolveProductHeaderFooter(locale)
-    : null;
-
   const shell = buildLandingShellData({
-    ...(productShell ?? {
-      header: replaceBrandPlaceholdersDeep(
-        messages.header ?? {},
-        brand
-      ) as Header,
-      footer: replaceBrandPlaceholdersDeep(
-        messages.footer ?? {},
-        brand
-      ) as Footer,
-    }),
+    header: replaceBrandPlaceholdersDeep(
+      messages.header ?? {},
+      brand
+    ) as Header,
+    footer: replaceBrandPlaceholdersDeep(
+      messages.footer ?? {},
+      brand
+    ) as Footer,
     locale,
     publicUiConfig,
     authSettings,
@@ -130,6 +155,7 @@ export async function resolveHomeRouteData({
         locale,
         siteName: site.brand.appName,
       }),
+      variant: 'generic',
       page,
     })
   ) as HomeRouteData;
@@ -137,10 +163,6 @@ export async function resolveHomeRouteData({
 
 function getLandingMessages(locale: string): LandingMessages | null {
   return landingMessagesByLocale[locale] ?? null;
-}
-
-function hasProductHomeContent() {
-  return Boolean(siteHomeContent) && productHomeSiteKeys.has(site.key);
 }
 
 function buildHomePageData(

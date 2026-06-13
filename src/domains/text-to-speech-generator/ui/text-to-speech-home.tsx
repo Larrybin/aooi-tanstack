@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import {
   BadgeInfo,
   BookOpenText,
@@ -32,6 +31,7 @@ export function TextToSpeechGeneratorHome({
 
           <TextToSpeechGeneratorWorkbench
             copy={copy.generator}
+            signInHref="/sign-in"
             turnstileSiteKey={turnstileSiteKey}
           />
 
@@ -45,7 +45,7 @@ export function TextToSpeechGeneratorHome({
             </div>
             <div className="mt-5 flex flex-wrap justify-center gap-3">
               {copy.sections.explore.links.map((item) => (
-                <Link
+                <a
                   key={item.href}
                   href={item.href}
                   className="inline-flex min-h-10 items-center gap-2 rounded-md border border-[#D7DEE8] bg-white px-4 py-2 text-sm font-medium text-[#344054] transition hover:border-[#2563EB] hover:text-[#1D4ED8]"
@@ -58,7 +58,7 @@ export function TextToSpeechGeneratorHome({
                     <BookOpenText className="size-4" />
                   )}
                   {item.label}
-                </Link>
+                </a>
               ))}
             </div>
           </div>

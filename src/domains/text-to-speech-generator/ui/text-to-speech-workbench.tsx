@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
 import {
   CalendarDays,
   CheckCircle2,
@@ -60,9 +59,11 @@ type TextToSpeechQuotaSummary = {
 
 export function TextToSpeechGeneratorWorkbench({
   copy,
+  signInHref = '/sign-in',
   turnstileSiteKey,
 }: {
   copy: TextToSpeechGeneratorHomeCopy['generator'];
+  signInHref?: string;
   turnstileSiteKey: string;
 }) {
   const [text, setText] = useState(copy.sampleText);
@@ -504,8 +505,8 @@ export function TextToSpeechGeneratorWorkbench({
             </span>
           </button>
 
-          <Link
-            href="/sign-in"
+          <a
+            href={signInHref}
             className="inline-flex min-h-14 items-center gap-3 rounded-md bg-[#2563EB] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#1D4ED8]"
           >
             <LockKeyhole className="size-5" />
@@ -515,7 +516,7 @@ export function TextToSpeechGeneratorWorkbench({
                 {copy.saveInHistory}
               </span>
             </span>
-          </Link>
+          </a>
         </div>
 
         {quota ? (

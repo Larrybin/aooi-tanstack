@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import {
   ArrowRight,
   BadgeCheck,
@@ -148,13 +147,13 @@ export function BackgroundRemoverHome({
           <p className="mt-3 text-base leading-7 text-slate-300">
             {copy.cta.description}
           </p>
-          <Link
+          <a
             href={pricingHref}
             className="mt-5 inline-flex items-center gap-2 rounded-md bg-white px-4 py-2.5 text-sm font-medium text-[#0F172A] transition hover:bg-[#F4F7FB]"
           >
             {copy.cta.button}
             <ArrowRight className="size-4" />
-          </Link>
+          </a>
         </div>
       </section>
     </div>

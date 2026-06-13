@@ -1,3 +1,8 @@
+import type { BackgroundRemoverHomeCopy } from '@/domains/background-remover/ui/background-remover-home-copy';
+import type { Mp4CompressorHomeCopy } from '@/domains/mp4-compressor/ui/mp4-compressor-home-copy';
+import type { RemoverHomeCopy } from '@/domains/remover/ui/remover-home-copy';
+import type { TextToSpeechGeneratorHomeCopy } from '@/domains/text-to-speech-generator/ui/text-to-speech-home-copy';
+
 import type { TanStackHead } from '@/shared/seo/canonical';
 import type { Image } from '@/shared/types/blocks/common';
 
@@ -90,10 +95,40 @@ export type HomePageData = {
   sections?: HomeSectionData[];
 };
 
-export type HomeRouteData = {
+export type ProductHomeRouteData =
+  | {
+      kind: 'ai-remover';
+      copy: RemoverHomeCopy;
+    }
+  | {
+      kind: 'background-remover';
+      copy: BackgroundRemoverHomeCopy;
+    }
+  | {
+      kind: 'text-to-speech-generator';
+      copy: TextToSpeechGeneratorHomeCopy;
+      turnstileSiteKey: string;
+    }
+  | {
+      kind: 'mp4-compressor';
+      copy: Mp4CompressorHomeCopy;
+    };
+
+type HomeRouteBaseData = {
   locale: string;
   canonicalPath: '/';
   head: TanStackHead;
   shell: SlugShellData;
-  page: HomePageData;
 };
+
+export type HomeRouteData = HomeRouteBaseData &
+  (
+    | {
+        variant: 'generic';
+        page: HomePageData;
+      }
+    | {
+        variant: 'product';
+        productHome: ProductHomeRouteData;
+      }
+  );

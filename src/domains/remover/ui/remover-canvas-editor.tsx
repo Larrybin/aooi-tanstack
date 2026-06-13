@@ -1,7 +1,6 @@
 'use client';
 
 import { useRef, useState, type PointerEvent, type ReactNode } from 'react';
-import Link from 'next/link';
 import {
   Brush,
   Eraser,
@@ -443,12 +442,12 @@ export default function CanvasMaskEditor({
                 {copy.downloadLowRes}
               </a>
               {jobId && highResRequiresSignIn ? (
-                <Link
+                <a
                   href={signInHref}
                   className="mt-3 ml-2 inline-flex rounded-lg bg-teal-700 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-teal-800"
                 >
                   {copy.signInHighRes}
-                </Link>
+                </a>
               ) : null}
               {jobId && !highResRequiresSignIn ? (
                 <button
@@ -465,12 +464,12 @@ export default function CanvasMaskEditor({
           ) : (
             <div className="mt-3 rounded-lg border border-teal-200 bg-white p-3">
               <p>{copy.signInMessage}</p>
-              <Link
+              <a
                 href={signInHref}
                 className="mt-3 inline-flex rounded-lg bg-teal-700 px-3 py-2 text-sm font-medium text-white hover:bg-teal-800"
               >
                 {copy.signInDownload}
-              </Link>
+              </a>
             </div>
           )}
         </div>

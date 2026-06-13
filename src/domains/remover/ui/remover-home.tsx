@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import {
   ArrowRight,
   Brush,
@@ -244,13 +243,13 @@ export function RemoverHome({
               {copy.cta.description}
             </p>
           </div>
-          <Link
+          <a
             href={pricingHref}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-medium text-slate-950 transition hover:bg-slate-100"
           >
             {copy.cta.button}
             <ArrowRight className="size-4" />
-          </Link>
+          </a>
         </div>
       </section>
 
