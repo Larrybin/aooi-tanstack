@@ -1,4 +1,9 @@
 import { defaultLocale, locales, type Locale } from '@/config/locale';
+import { localeRegistry } from '@/config/locale/registry';
+
+const registeredLocaleSet: ReadonlySet<string> = new Set(
+  localeRegistry.map((entry) => entry.code)
+);
 
 export function normalizeLocale(
   value: string | undefined | null
@@ -12,7 +17,9 @@ export function getLocaleFromPathname(pathname: string): Locale | null {
   const [pathWithoutHash] = (pathWithoutSearch ?? '').split('#');
   const [firstSegment] = pathWithoutHash.split('/').filter(Boolean);
 
-  return normalizeLocale(firstSegment ?? null);
+  return firstSegment && registeredLocaleSet.has(firstSegment)
+    ? (firstSegment as Locale)
+    : null;
 }
 
 export function localePath(path: string, locale: string): string {
