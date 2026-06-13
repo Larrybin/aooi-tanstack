@@ -145,6 +145,13 @@ export async function readAuthUiRuntimeSettingsCached(): Promise<AuthUiRuntimeSe
   return structuredClone(await readAuthUiRuntimeSettingsCachedValue());
 }
 
+export async function readAuthUiRuntimeSettingsFresh(): Promise<AuthUiRuntimeSettings> {
+  return buildAuthUiRuntimeSettings(
+    await readSettingsFresh(),
+    readAuthServerBindingsFromRuntime()
+  );
+}
+
 export async function readBillingRuntimeSettingsCached(): Promise<BillingRuntimeSettings> {
   return structuredClone(await readBillingRuntimeSettingsCachedValue());
 }
