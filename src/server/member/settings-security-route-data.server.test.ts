@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import test from 'node:test';
 
 import { defaultLocale, locales } from '@/config/locale';
@@ -106,7 +108,7 @@ test('resolveSettingsSecurityRouteData builds canonical and noindex head', async
   );
 });
 
-test('resolveSettingsSecurityRouteData localizes shell nav URLs', async () => {
+test('resolveSettingsSecurityRouteData localizes migrated shell nav URLs', async () => {
   const locale = getLocaleWithSecurityMessages();
   if (!locale) {
     return;
@@ -118,16 +120,15 @@ test('resolveSettingsSecurityRouteData localizes shell nav URLs', async () => {
   );
 
   assert.ok(data);
-  assert.equal(
-    data.shell.nav.items[0]?.url,
-    localePath('/settings/security', locale)
+  assert.deepEqual(
+    data.shell.nav.items.map((item) => item.url),
+    [
+      localePath('/settings/profile', locale),
+      localePath('/settings/security', locale),
+    ]
   );
-  assert.equal(
-    data.shell.nav.items.every((item) =>
-      item.url.endsWith('/settings/security')
-    ),
-    true
-  );
+  assert.equal(data.shell.nav.items[0]?.active, false);
+  assert.equal(data.shell.nav.items[1]?.active, true);
   assert.equal(
     data.shell.topNav.items[0]?.url,
     localePath('/settings/security', locale)
@@ -148,5 +149,18 @@ function getLocaleWithSecurityMessages() {
 }
 
 function getSupportedLocaleMissingSecurityMessages() {
-  return locales.find((locale) => locale === 'ja') ?? null;
+  return (
+    locales.find(
+      (locale) =>
+        locale !== defaultLocale &&
+        !existsSync(
+          join(
+            process.cwd(),
+            'src/config/locale/messages',
+            locale,
+            'settings/security.json'
+          )
+        )
+    ) ?? null
+  );
 }

@@ -1,7 +1,10 @@
 import { getSignedInUserIdentityFromRequest } from '@/infra/platform/auth/session-by-request';
 import { site } from '@/site';
 import type { SettingsSecurityRouteData } from '@/surfaces/member/settings-security/settings-security.types';
-import type { SettingsShellData } from '@/surfaces/member/settings-shell/settings-shell.types';
+import type {
+  SettingsShellData,
+  SettingsShellNavItem,
+} from '@/surfaces/member/settings-shell/settings-shell.types';
 
 import { localePath, normalizeLocale } from '@/shared/i18n/locale';
 import { buildCanonicalUrl, buildSeoHead } from '@/shared/seo/canonical';
@@ -21,6 +24,10 @@ type SettingsSecurityRouteResolverDeps = {
 };
 
 const canonicalPath = '/settings/security' as const;
+const migratedSettingsPaths = [
+  '/settings/profile',
+  '/settings/security',
+] as const;
 
 export async function resolveSettingsSecurityRouteData(
   input: SettingsSecurityRouteInput,
@@ -103,7 +110,7 @@ function buildSettingsShellData(
   return {
     title: readString(sidebar.title, 'Settings'),
     nav: {
-      items: [buildSettingsSecurityNavItem(messages, locale)],
+      items: buildSettingsNavItems(messages, locale),
     },
     topNav: {
       items: [
@@ -117,19 +124,24 @@ function buildSettingsShellData(
   };
 }
 
-function buildSettingsSecurityNavItem(
+function buildSettingsNavItems(
   messages: SettingsSecurityRouteMessages,
   locale: string
-) {
-  const security = getObject(messages.security);
-  const resetPassword = getObject(security.reset_password);
-  const crumbs = getObject(resetPassword.crumbs);
+): SettingsShellNavItem[] {
+  const sidebarItems = Array.isArray(getObject(messages.sidebar.nav).items)
+    ? (getObject(messages.sidebar.nav).items as Array<Record<string, unknown>>)
+    : [];
 
-  return {
-    title: readString(crumbs.security, 'Security'),
-    url: localePath(canonicalPath, locale),
-    active: true,
-  };
+  return migratedSettingsPaths.map((path) => {
+    const item = sidebarItems.find((entry) => entry.url === path) ?? {};
+
+    return {
+      title: readString(item.title, fallbackTitleForPath(path)),
+      url: localePath(path, locale),
+      icon: readOptionalString(item.icon),
+      active: path === canonicalPath,
+    };
+  });
 }
 
 function buildSettingsSecurityPageData(
@@ -170,6 +182,14 @@ function buildSettingsSecurityPageData(
 
 function readString(value: unknown, fallback: string) {
   return typeof value === 'string' && value ? value : fallback;
+}
+
+function readOptionalString(value: unknown) {
+  return typeof value === 'string' && value ? value : undefined;
+}
+
+function fallbackTitleForPath(path: (typeof migratedSettingsPaths)[number]) {
+  return path === '/settings/profile' ? 'Profile' : 'Security';
 }
 
 function getObject(value: unknown): Record<string, unknown> {
