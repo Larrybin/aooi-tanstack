@@ -21,6 +21,7 @@ import { Route as ActivityRouteImport } from './routes/activity_'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsSecurityRouteImport } from './routes/settings/security'
+import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as LocaleSignUpRouteImport } from './routes/$locale/sign-up'
 import { Route as LocaleSignInRouteImport } from './routes/$locale/sign-in'
@@ -37,6 +38,7 @@ import { Route as ApiUserGetUserCreditsRouteImport } from './routes/api/user/get
 import { Route as ApiPaymentNotifyRouteImport } from './routes/api/payment/notify'
 import { Route as ApiPaymentCheckoutRouteImport } from './routes/api/payment/checkout'
 import { Route as LocaleSettingsSecurityRouteImport } from './routes/$locale/settings/security'
+import { Route as LocaleSettingsProfileRouteImport } from './routes/$locale/settings/profile'
 import { Route as LocaleBlogSlugRouteImport } from './routes/$locale/blog/$slug'
 import { Route as LocaleBlogCategorySlugRouteImport } from './routes/$locale/blog/category/$slug'
 
@@ -98,6 +100,11 @@ const IndexRoute = IndexRouteImport.update({
 const SettingsSecurityRoute = SettingsSecurityRouteImport.update({
   id: '/settings/security',
   path: '/settings/security',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsProfileRoute = SettingsProfileRouteImport.update({
+  id: '/settings/profile',
+  path: '/settings/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogSlugRoute = BlogSlugRouteImport.update({
@@ -180,6 +187,11 @@ const LocaleSettingsSecurityRoute = LocaleSettingsSecurityRouteImport.update({
   path: '/$locale/settings/security',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocaleSettingsProfileRoute = LocaleSettingsProfileRouteImport.update({
+  id: '/$locale/settings/profile',
+  path: '/$locale/settings/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LocaleBlogSlugRoute = LocaleBlogSlugRouteImport.update({
   id: '/$locale/blog/$slug',
   path: '/$locale/blog/$slug',
@@ -214,8 +226,10 @@ export interface FileRoutesByFullPath {
   '/$locale/sign-in': typeof LocaleSignInRoute
   '/$locale/sign-up': typeof LocaleSignUpRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/settings/profile': typeof SettingsProfileRoute
   '/settings/security': typeof SettingsSecurityRoute
   '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
+  '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
@@ -246,8 +260,10 @@ export interface FileRoutesByTo {
   '/$locale/sign-in': typeof LocaleSignInRoute
   '/$locale/sign-up': typeof LocaleSignUpRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/settings/profile': typeof SettingsProfileRoute
   '/settings/security': typeof SettingsSecurityRoute
   '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
+  '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
@@ -279,8 +295,10 @@ export interface FileRoutesById {
   '/$locale/sign-in': typeof LocaleSignInRoute
   '/$locale/sign-up': typeof LocaleSignUpRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/settings/profile': typeof SettingsProfileRoute
   '/settings/security': typeof SettingsSecurityRoute
   '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
+  '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
@@ -313,8 +331,10 @@ export interface FileRouteTypes {
     | '/$locale/sign-in'
     | '/$locale/sign-up'
     | '/blog/$slug'
+    | '/settings/profile'
     | '/settings/security'
     | '/$locale/blog/$slug'
+    | '/$locale/settings/profile'
     | '/$locale/settings/security'
     | '/api/payment/checkout'
     | '/api/payment/notify'
@@ -345,8 +365,10 @@ export interface FileRouteTypes {
     | '/$locale/sign-in'
     | '/$locale/sign-up'
     | '/blog/$slug'
+    | '/settings/profile'
     | '/settings/security'
     | '/$locale/blog/$slug'
+    | '/$locale/settings/profile'
     | '/$locale/settings/security'
     | '/api/payment/checkout'
     | '/api/payment/notify'
@@ -377,8 +399,10 @@ export interface FileRouteTypes {
     | '/$locale/sign-in'
     | '/$locale/sign-up'
     | '/blog/$slug'
+    | '/settings/profile'
     | '/settings/security'
     | '/$locale/blog/$slug'
+    | '/$locale/settings/profile'
     | '/$locale/settings/security'
     | '/api/payment/checkout'
     | '/api/payment/notify'
@@ -410,8 +434,10 @@ export interface RootRouteChildren {
   LocaleSignInRoute: typeof LocaleSignInRoute
   LocaleSignUpRoute: typeof LocaleSignUpRoute
   BlogSlugRoute: typeof BlogSlugRoute
+  SettingsProfileRoute: typeof SettingsProfileRoute
   SettingsSecurityRoute: typeof SettingsSecurityRoute
   LocaleBlogSlugRoute: typeof LocaleBlogSlugRoute
+  LocaleSettingsProfileRoute: typeof LocaleSettingsProfileRoute
   LocaleSettingsSecurityRoute: typeof LocaleSettingsSecurityRoute
   ApiPaymentCheckoutRoute: typeof ApiPaymentCheckoutRoute
   ApiPaymentNotifyRoute: typeof ApiPaymentNotifyRoute
@@ -504,6 +530,13 @@ declare module '@tanstack/react-router' {
       path: '/settings/security'
       fullPath: '/settings/security'
       preLoaderRoute: typeof SettingsSecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/profile': {
+      id: '/settings/profile'
+      path: '/settings/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof SettingsProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/$slug': {
@@ -618,6 +651,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSettingsSecurityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$locale/settings/profile': {
+      id: '/$locale/settings/profile'
+      path: '/$locale/settings/profile'
+      fullPath: '/$locale/settings/profile'
+      preLoaderRoute: typeof LocaleSettingsProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$locale/blog/$slug': {
       id: '/$locale/blog/$slug'
       path: '/$locale/blog/$slug'
@@ -658,8 +698,10 @@ const rootRouteChildren: RootRouteChildren = {
   LocaleSignInRoute: LocaleSignInRoute,
   LocaleSignUpRoute: LocaleSignUpRoute,
   BlogSlugRoute: BlogSlugRoute,
+  SettingsProfileRoute: SettingsProfileRoute,
   SettingsSecurityRoute: SettingsSecurityRoute,
   LocaleBlogSlugRoute: LocaleBlogSlugRoute,
+  LocaleSettingsProfileRoute: LocaleSettingsProfileRoute,
   LocaleSettingsSecurityRoute: LocaleSettingsSecurityRoute,
   ApiPaymentCheckoutRoute: ApiPaymentCheckoutRoute,
   ApiPaymentNotifyRoute: ApiPaymentNotifyRoute,
