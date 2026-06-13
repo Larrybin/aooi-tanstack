@@ -27,13 +27,13 @@ export async function loadSettingsSecurityRouteMessages(
     importMessagesOptional('settings/sidebar', locale),
   ]);
 
-  if (!localizedSecurity || !localizedSidebar) {
-    return null;
-  }
-
   return {
-    security: mergeDeep(baseSecurity, localizedSecurity) as Messages,
-    sidebar: mergeDeep(baseSidebar, localizedSidebar) as Messages,
+    security: localizedSecurity
+      ? (mergeDeep(baseSecurity, localizedSecurity) as Messages)
+      : baseSecurity,
+    sidebar: localizedSidebar
+      ? (mergeDeep(baseSidebar, localizedSidebar) as Messages)
+      : baseSidebar,
   };
 }
 

@@ -1153,7 +1153,14 @@ const settingsSecurityMessagesAbs = join(root, settingsSecurityMessagesFile);
 for (const [regex, label] of [
   [/settings\/security/, 'settings/security messages'],
   [/settings\/sidebar/, 'settings/sidebar messages'],
-  [/return\s+null/, 'missing locale message rejection'],
+  [
+    /\?\s*\(mergeDeep\(baseSecurity/,
+    'base fallback for missing security messages',
+  ],
+  [
+    /\?\s*\(mergeDeep\(baseSidebar/,
+    'base fallback for missing sidebar messages',
+  ],
   [/mergeDeep/, 'key-level fallback merge'],
 ]) {
   if (!contains(settingsSecurityMessagesAbs, regex)) {

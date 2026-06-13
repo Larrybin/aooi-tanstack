@@ -50,7 +50,7 @@ test('resolveSettingsSecurityRouteData returns null for unsupported locale', asy
   assert.equal(data, null);
 });
 
-test('resolveSettingsSecurityRouteData returns null when locale messages are missing', async () => {
+test('resolveSettingsSecurityRouteData falls back to base copy when locale security messages are missing', async () => {
   const locale = getSupportedLocaleMissingSecurityMessages();
   if (!locale) {
     return;
@@ -61,7 +61,13 @@ test('resolveSettingsSecurityRouteData returns null when locale messages are mis
     { readSignedInUserIdentity: async () => null }
   );
 
-  assert.equal(data, null);
+  assert.ok(data);
+  assert.equal(data.locale, locale);
+  assert.equal(data.page.resetPassword.title, 'Reset Password');
+  assert.equal(
+    data.page.resetPassword.button.href,
+    localePath('/forgot-password', locale)
+  );
 });
 
 test('resolveSettingsSecurityRouteData reflects signed-in state', async () => {
