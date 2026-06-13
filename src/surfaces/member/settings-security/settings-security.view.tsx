@@ -1,4 +1,7 @@
+import { useEffect } from 'react';
 import { SettingsShellView } from '@/surfaces/member/settings-shell/settings-shell.view';
+
+import { isRtlLocale } from '@/config/locale';
 
 import type { SettingsSecurityRouteData } from './settings-security.types';
 
@@ -7,6 +10,11 @@ export function SettingsSecurityRouteView({
 }: {
   data: SettingsSecurityRouteData;
 }) {
+  useEffect(() => {
+    document.documentElement.lang = data.locale;
+    document.documentElement.dir = isRtlLocale(data.locale) ? 'rtl' : 'ltr';
+  }, [data.locale]);
+
   return (
     <SettingsShellView shell={data.shell}>
       {!data.viewer.signedIn ? (

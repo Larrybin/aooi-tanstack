@@ -1186,6 +1186,18 @@ for (const file of settingsSecuritySurfaceFiles) {
   }
 }
 
+const settingsSecurityViewFile =
+  'src/surfaces/member/settings-security/settings-security.view.tsx';
+const settingsSecurityViewAbs = join(root, settingsSecurityViewFile);
+for (const [regex, label] of [
+  [/document\.documentElement\.lang\s*=\s*data\.locale/, 'localized html lang'],
+  [/document\.documentElement\.dir\s*=\s*isRtlLocale/, 'localized html dir'],
+]) {
+  if (!contains(settingsSecurityViewAbs, regex)) {
+    fail(`${settingsSecurityViewFile} must apply ${label}`);
+  }
+}
+
 if (
   !existsSync(
     join(root, 'src/app/[locale]/(landing)/settings/security/page.tsx')
