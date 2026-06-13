@@ -4,9 +4,11 @@ import {
   HeadContent,
   Outlet,
   Scripts,
+  useLocation,
 } from '@tanstack/react-router';
 
 import { defaultLocale, isRtlLocale } from '@/config/locale';
+import { getLocaleFromPathname } from '@/shared/i18n/locale';
 
 import appCss from '../styles/app.css?url';
 
@@ -23,10 +25,12 @@ export const Route = createRootRoute({
 });
 
 function RootDocument() {
-  const dir = isRtlLocale(defaultLocale) ? 'rtl' : 'ltr';
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const locale = getLocaleFromPathname(pathname) ?? defaultLocale;
+  const dir = isRtlLocale(locale) ? 'rtl' : 'ltr';
 
   return (
-    <html lang={defaultLocale} dir={dir}>
+    <html lang={locale} dir={dir}>
       <head>
         <HeadContent />
       </head>

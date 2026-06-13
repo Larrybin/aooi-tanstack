@@ -1,7 +1,9 @@
-const tanStackNotFoundPathLocales = new Set(['en', 'zh', 'zh-TW']);
+import { getLocaleFromPathname } from '@/shared/i18n/locale';
 
 export function resolveNotFoundLocale(data: unknown, pathname: string) {
-  return getNotFoundLocale(data) ?? getLocaleFromPathname(pathname);
+  return (
+    getNotFoundLocale(data) ?? getLocaleFromPathname(pathname) ?? undefined
+  );
 }
 
 function getNotFoundLocale(data: unknown) {
@@ -11,11 +13,4 @@ function getNotFoundLocale(data: unknown) {
 
   const locale = (data as { locale?: unknown }).locale;
   return typeof locale === 'string' ? locale : undefined;
-}
-
-function getLocaleFromPathname(pathname: string) {
-  const [firstSegment] = pathname.split('/').filter(Boolean);
-  return firstSegment && tanStackNotFoundPathLocales.has(firstSegment)
-    ? firstSegment
-    : undefined;
 }

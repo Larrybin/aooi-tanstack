@@ -631,6 +631,24 @@ if (!contains(rootRouteAbs, /notFoundComponent:\s*NotFoundSurfaceView/)) {
   fail(`${rootRouteFile} must use the shared not-found surface`);
 }
 if (
+  !contains(
+    rootRouteAbs,
+    /useLocation\(\{\s*select:\s*\(location\)\s*=>\s*location\.pathname\s*\}\)/
+  )
+) {
+  fail(
+    `${rootRouteFile} must derive document locale from the current location`
+  );
+}
+if (!contains(rootRouteAbs, /getLocaleFromPathname\(\s*pathname\s*\)/)) {
+  fail(
+    `${rootRouteFile} must resolve localized html attributes before hydration`
+  );
+}
+if (contains(rootRouteAbs, /<html\s+lang=\{defaultLocale\}/)) {
+  fail(`${rootRouteFile} must not render defaultLocale for every route`);
+}
+if (
   contains(rootRouteAbs, /NotFoundRoute|new\s+Response\(\s*['"]Not found['"]/)
 ) {
   fail(
