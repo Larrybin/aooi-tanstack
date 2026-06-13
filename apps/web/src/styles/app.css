@@ -515,6 +515,135 @@ a {
   }
 }
 
+.settings-shell {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 48px 0 72px;
+}
+
+.settings-shell-header,
+.settings-shell-body {
+  display: grid;
+  gap: 24px;
+}
+
+.settings-shell-header {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.settings-shell-header h1 {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.15;
+}
+
+.settings-top-nav,
+.settings-sidebar nav {
+  display: flex;
+  gap: 8px;
+}
+
+.settings-top-nav {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.settings-top-nav a,
+.settings-sidebar a {
+  border: 1px solid #d9e0ef;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #2f3748;
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.settings-top-nav a {
+  padding: 9px 12px;
+}
+
+.settings-shell-body {
+  grid-template-columns: 240px minmax(0, 1fr);
+  align-items: start;
+}
+
+.settings-sidebar nav {
+  flex-direction: column;
+}
+
+.settings-sidebar a {
+  padding: 12px 14px;
+}
+
+.settings-content {
+  min-width: 0;
+}
+
+.settings-panel-list {
+  display: grid;
+  gap: 16px;
+}
+
+.settings-panel {
+  max-width: 560px;
+  border: 1px solid #dfe5f2;
+  border-radius: 8px;
+  padding: 22px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 16px 48px rgba(22, 34, 64, 0.06);
+}
+
+.settings-panel h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.settings-panel p {
+  margin: 0;
+  color: #566174;
+  line-height: 1.65;
+}
+
+.settings-panel-tip {
+  margin-top: 12px !important;
+}
+
+.settings-action-link {
+  display: inline-flex;
+  margin-top: 18px;
+  border-radius: 8px;
+  padding: 11px 14px;
+  background: #151923;
+  color: #fff;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+@media (max-width: 760px) {
+  .settings-shell {
+    width: min(100% - 24px, 560px);
+    padding: 32px 0 48px;
+  }
+
+  .settings-shell-header,
+  .settings-shell-body {
+    display: block;
+  }
+
+  .settings-top-nav {
+    justify-content: flex-start;
+    margin-top: 16px;
+  }
+
+  .settings-sidebar {
+    margin-bottom: 18px;
+  }
+}
+
 .home-surface {
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
