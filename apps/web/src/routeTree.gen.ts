@@ -9,12 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignUpRouteImport } from './routes/sign-up'
+import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as NoPermissionRouteImport } from './routes/no-permission'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as BlogRouteImport } from './routes/blog_'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as LocaleSignUpRouteImport } from './routes/$locale/sign-up'
+import { Route as LocaleSignInRouteImport } from './routes/$locale/sign-in'
+import { Route as LocaleResetPasswordRouteImport } from './routes/$locale/reset-password'
 import { Route as LocalePricingRouteImport } from './routes/$locale/pricing'
+import { Route as LocaleNoPermissionRouteImport } from './routes/$locale/no-permission'
+import { Route as LocaleForgotPasswordRouteImport } from './routes/$locale/forgot-password'
 import { Route as LocaleBlogRouteImport } from './routes/$locale/blog_'
 import { Route as LocaleSlugRouteImport } from './routes/$locale/$slug'
 import { Route as BlogCategorySlugRouteImport } from './routes/blog/category/$slug'
@@ -24,9 +34,34 @@ import { Route as ApiPaymentCheckoutRouteImport } from './routes/api/payment/che
 import { Route as LocaleBlogSlugRouteImport } from './routes/$locale/blog/$slug'
 import { Route as LocaleBlogCategorySlugRouteImport } from './routes/$locale/blog/category/$slug'
 
+const SignUpRoute = SignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NoPermissionRoute = NoPermissionRouteImport.update({
+  id: '/no-permission',
+  path: '/no-permission',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogRoute = BlogRouteImport.update({
@@ -49,9 +84,34 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocaleSignUpRoute = LocaleSignUpRouteImport.update({
+  id: '/$locale/sign-up',
+  path: '/$locale/sign-up',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocaleSignInRoute = LocaleSignInRouteImport.update({
+  id: '/$locale/sign-in',
+  path: '/$locale/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocaleResetPasswordRoute = LocaleResetPasswordRouteImport.update({
+  id: '/$locale/reset-password',
+  path: '/$locale/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LocalePricingRoute = LocalePricingRouteImport.update({
   id: '/$locale/pricing',
   path: '/$locale/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocaleNoPermissionRoute = LocaleNoPermissionRouteImport.update({
+  id: '/$locale/no-permission',
+  path: '/$locale/no-permission',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocaleForgotPasswordRoute = LocaleForgotPasswordRouteImport.update({
+  id: '/$locale/forgot-password',
+  path: '/$locale/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LocaleBlogRoute = LocaleBlogRouteImport.update({
@@ -99,10 +159,20 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/blog': typeof BlogRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/no-permission': typeof NoPermissionRoute
   '/pricing': typeof PricingRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/sign-in': typeof SignInRoute
+  '/sign-up': typeof SignUpRoute
   '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/blog': typeof LocaleBlogRoute
+  '/$locale/forgot-password': typeof LocaleForgotPasswordRoute
+  '/$locale/no-permission': typeof LocaleNoPermissionRoute
   '/$locale/pricing': typeof LocalePricingRoute
+  '/$locale/reset-password': typeof LocaleResetPasswordRoute
+  '/$locale/sign-in': typeof LocaleSignInRoute
+  '/$locale/sign-up': typeof LocaleSignUpRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
@@ -115,10 +185,20 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/blog': typeof BlogRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/no-permission': typeof NoPermissionRoute
   '/pricing': typeof PricingRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/sign-in': typeof SignInRoute
+  '/sign-up': typeof SignUpRoute
   '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/blog': typeof LocaleBlogRoute
+  '/$locale/forgot-password': typeof LocaleForgotPasswordRoute
+  '/$locale/no-permission': typeof LocaleNoPermissionRoute
   '/$locale/pricing': typeof LocalePricingRoute
+  '/$locale/reset-password': typeof LocaleResetPasswordRoute
+  '/$locale/sign-in': typeof LocaleSignInRoute
+  '/$locale/sign-up': typeof LocaleSignUpRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
@@ -132,10 +212,20 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/blog_': typeof BlogRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/no-permission': typeof NoPermissionRoute
   '/pricing': typeof PricingRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/sign-in': typeof SignInRoute
+  '/sign-up': typeof SignUpRoute
   '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/blog_': typeof LocaleBlogRoute
+  '/$locale/forgot-password': typeof LocaleForgotPasswordRoute
+  '/$locale/no-permission': typeof LocaleNoPermissionRoute
   '/$locale/pricing': typeof LocalePricingRoute
+  '/$locale/reset-password': typeof LocaleResetPasswordRoute
+  '/$locale/sign-in': typeof LocaleSignInRoute
+  '/$locale/sign-up': typeof LocaleSignUpRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
@@ -150,10 +240,20 @@ export interface FileRouteTypes {
     | '/'
     | '/$slug'
     | '/blog'
+    | '/forgot-password'
+    | '/no-permission'
     | '/pricing'
+    | '/reset-password'
+    | '/sign-in'
+    | '/sign-up'
     | '/$locale/$slug'
     | '/$locale/blog'
+    | '/$locale/forgot-password'
+    | '/$locale/no-permission'
     | '/$locale/pricing'
+    | '/$locale/reset-password'
+    | '/$locale/sign-in'
+    | '/$locale/sign-up'
     | '/blog/$slug'
     | '/$locale/blog/$slug'
     | '/api/payment/checkout'
@@ -166,10 +266,20 @@ export interface FileRouteTypes {
     | '/'
     | '/$slug'
     | '/blog'
+    | '/forgot-password'
+    | '/no-permission'
     | '/pricing'
+    | '/reset-password'
+    | '/sign-in'
+    | '/sign-up'
     | '/$locale/$slug'
     | '/$locale/blog'
+    | '/$locale/forgot-password'
+    | '/$locale/no-permission'
     | '/$locale/pricing'
+    | '/$locale/reset-password'
+    | '/$locale/sign-in'
+    | '/$locale/sign-up'
     | '/blog/$slug'
     | '/$locale/blog/$slug'
     | '/api/payment/checkout'
@@ -182,10 +292,20 @@ export interface FileRouteTypes {
     | '/'
     | '/$slug'
     | '/blog_'
+    | '/forgot-password'
+    | '/no-permission'
     | '/pricing'
+    | '/reset-password'
+    | '/sign-in'
+    | '/sign-up'
     | '/$locale/$slug'
     | '/$locale/blog_'
+    | '/$locale/forgot-password'
+    | '/$locale/no-permission'
     | '/$locale/pricing'
+    | '/$locale/reset-password'
+    | '/$locale/sign-in'
+    | '/$locale/sign-up'
     | '/blog/$slug'
     | '/$locale/blog/$slug'
     | '/api/payment/checkout'
@@ -199,10 +319,20 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SlugRoute: typeof SlugRoute
   BlogRoute: typeof BlogRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  NoPermissionRoute: typeof NoPermissionRoute
   PricingRoute: typeof PricingRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  SignInRoute: typeof SignInRoute
+  SignUpRoute: typeof SignUpRoute
   LocaleSlugRoute: typeof LocaleSlugRoute
   LocaleBlogRoute: typeof LocaleBlogRoute
+  LocaleForgotPasswordRoute: typeof LocaleForgotPasswordRoute
+  LocaleNoPermissionRoute: typeof LocaleNoPermissionRoute
   LocalePricingRoute: typeof LocalePricingRoute
+  LocaleResetPasswordRoute: typeof LocaleResetPasswordRoute
+  LocaleSignInRoute: typeof LocaleSignInRoute
+  LocaleSignUpRoute: typeof LocaleSignUpRoute
   BlogSlugRoute: typeof BlogSlugRoute
   LocaleBlogSlugRoute: typeof LocaleBlogSlugRoute
   ApiPaymentCheckoutRoute: typeof ApiPaymentCheckoutRoute
@@ -214,11 +344,46 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sign-up': {
+      id: '/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof SignUpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pricing': {
       id: '/pricing'
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/no-permission': {
+      id: '/no-permission'
+      path: '/no-permission'
+      fullPath: '/no-permission'
+      preLoaderRoute: typeof NoPermissionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog_': {
@@ -249,11 +414,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$locale/sign-up': {
+      id: '/$locale/sign-up'
+      path: '/$locale/sign-up'
+      fullPath: '/$locale/sign-up'
+      preLoaderRoute: typeof LocaleSignUpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/sign-in': {
+      id: '/$locale/sign-in'
+      path: '/$locale/sign-in'
+      fullPath: '/$locale/sign-in'
+      preLoaderRoute: typeof LocaleSignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/reset-password': {
+      id: '/$locale/reset-password'
+      path: '/$locale/reset-password'
+      fullPath: '/$locale/reset-password'
+      preLoaderRoute: typeof LocaleResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$locale/pricing': {
       id: '/$locale/pricing'
       path: '/$locale/pricing'
       fullPath: '/$locale/pricing'
       preLoaderRoute: typeof LocalePricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/no-permission': {
+      id: '/$locale/no-permission'
+      path: '/$locale/no-permission'
+      fullPath: '/$locale/no-permission'
+      preLoaderRoute: typeof LocaleNoPermissionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/forgot-password': {
+      id: '/$locale/forgot-password'
+      path: '/$locale/forgot-password'
+      fullPath: '/$locale/forgot-password'
+      preLoaderRoute: typeof LocaleForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$locale/blog_': {
@@ -319,10 +519,20 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRoute,
   BlogRoute: BlogRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  NoPermissionRoute: NoPermissionRoute,
   PricingRoute: PricingRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  SignInRoute: SignInRoute,
+  SignUpRoute: SignUpRoute,
   LocaleSlugRoute: LocaleSlugRoute,
   LocaleBlogRoute: LocaleBlogRoute,
+  LocaleForgotPasswordRoute: LocaleForgotPasswordRoute,
+  LocaleNoPermissionRoute: LocaleNoPermissionRoute,
   LocalePricingRoute: LocalePricingRoute,
+  LocaleResetPasswordRoute: LocaleResetPasswordRoute,
+  LocaleSignInRoute: LocaleSignInRoute,
+  LocaleSignUpRoute: LocaleSignUpRoute,
   BlogSlugRoute: BlogSlugRoute,
   LocaleBlogSlugRoute: LocaleBlogSlugRoute,
   ApiPaymentCheckoutRoute: ApiPaymentCheckoutRoute,

@@ -718,6 +718,149 @@ if (!contains(homeRouteTreeAbs, /fullPath:\s*'\/\$slug'/)) {
   );
 }
 
+const authRouteModes = [
+  ['sign-in', '/sign-in'],
+  ['sign-up', '/sign-up'],
+  ['forgot-password', '/forgot-password'],
+  ['reset-password', '/reset-password'],
+  ['no-permission', '/no-permission'],
+];
+const authRouteFiles = authRouteModes.flatMap(([mode, path]) => [
+  {
+    file: `apps/web/src/routes/${path.slice(1)}.tsx`,
+    path,
+    mode,
+    localePattern: /defaultLocale/,
+  },
+  {
+    file: `apps/web/src/routes/$locale/${path.slice(1)}.tsx`,
+    path: `/$locale${path}`,
+    mode,
+    localePattern: /params\.locale/,
+  },
+]);
+
+for (const { file, path, mode, localePattern } of authRouteFiles) {
+  const abs = join(root, file);
+  if (!existsSync(abs)) {
+    fail(`${file} must exist for Gate 4-B.1 auth routes`);
+  }
+  if (!contains(abs, /createFileRoute/)) {
+    fail(`${file} must use createFileRoute`);
+  }
+  if (
+    !contains(abs, new RegExp(`createFileRoute\\('${escapeRegex(path)}'\\)`))
+  ) {
+    fail(`${file} must declare TanStack route ${path}`);
+  }
+  if (!contains(abs, /loadAuthRouteSurfaceData/)) {
+    fail(`${file} must load auth route surface data`);
+  }
+  if (!contains(abs, /getAuthRouteSurfaceHead/)) {
+    fail(`${file} must use auth route surface head`);
+  }
+  if (!contains(abs, /AuthRouteView/)) {
+    fail(`${file} must render AuthRouteView`);
+  }
+  if (!contains(abs, new RegExp(`mode:\\s*['"]${mode}['"]`))) {
+    fail(`${file} must pass auth route mode ${mode}`);
+  }
+  if (!contains(abs, localePattern)) {
+    fail(`${file} must use the expected locale source`);
+  }
+}
+
+for (const [, path] of authRouteModes) {
+  for (const fullPath of [path, `/$locale${path}`]) {
+    if (
+      !contains(
+        homeRouteTreeAbs,
+        new RegExp(`fullPath:\\s*'${escapeRegex(fullPath)}'`)
+      )
+    ) {
+      fail(`${homeRouteTreeFile} must include auth fullPath ${fullPath}`);
+    }
+  }
+}
+
+const authRouteDataFile = 'src/server/auth/auth-route-data.ts';
+const authRouteDataAbs = join(root, authRouteDataFile);
+if (!contains(authRouteDataAbs, /createServerFn\(\{\s*method:\s*['"]GET['"]/)) {
+  fail(`${authRouteDataFile} must use createServerFn({ method: 'GET' })`);
+}
+if (
+  !contains(
+    authRouteDataAbs,
+    /await\s+import\(['"].\/auth-route-resolver['"]\)/
+  )
+) {
+  fail(`${authRouteDataFile} must dynamically import the auth resolver`);
+}
+
+const authRouteResolverFile = 'src/server/auth/auth-route-resolver.ts';
+const authRouteResolverAbs = join(root, authRouteResolverFile);
+for (const [regex, label] of [
+  [/readAuthUiRuntimeSettingsFresh/, 'fresh runtime auth UI settings'],
+  [/readPublicUiConfigFresh/, 'fresh runtime public UI config'],
+  [/normalizeLocale/, 'locale normalization'],
+  [/loadAuthRouteMessages/, 'auth messages loader'],
+]) {
+  if (!contains(authRouteResolverAbs, regex)) {
+    fail(`${authRouteResolverFile} must use ${label}`);
+  }
+}
+if (contains(authRouteResolverAbs, /isPublishedLocaleForPath/)) {
+  fail(`${authRouteResolverFile} must not gate auth routes on page publishing`);
+}
+for (const [regex, label] of [
+  [/next-intl/, 'next-intl import'],
+  [/next\/navigation/, 'next/navigation import'],
+  [/@\/app\/|src\/app\//, 'legacy app import'],
+  [/@\/themes\//, '@/themes import'],
+]) {
+  if (contains(authRouteResolverAbs, regex)) {
+    fail(`${authRouteResolverFile} must not depend on ${label}`);
+  }
+}
+
+const authSurfaceFiles = walk(join(root, 'src/surfaces/auth/auth-route'))
+  .filter((file) => /\.(ts|tsx)$/.test(file))
+  .map((file) => normalizePath(relative(root, file)))
+  .sort();
+for (const file of authSurfaceFiles) {
+  const abs = join(root, file);
+  for (const [regex, label] of [
+    [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
+    [/^\s*import\s+['"]next(?:\/|['"])/m, 'next side-effect import'],
+    [/from\s+['"]next-intl(?:\/|['"])/, 'next-intl import'],
+    [/@\/infra\/platform\/i18n\/navigation/, 'Next i18n navigation import'],
+    [/@\/app\/|src\/app\//, 'legacy app import'],
+    [/@\/themes\//, '@/themes import'],
+    [/^\s*import\s+['"]server-only['"]/m, 'server-only marker'],
+    [
+      /@\/domains\/account\/ui\/auth\/(sign-in|sign-up|forgot-password|reset-password|sign-modal|sign-user|sign-in-form|social-providers)(?:['"]|$)/,
+      'legacy auth UI component import',
+    ],
+  ]) {
+    if (contains(abs, regex)) {
+      fail(`${file} must not depend on ${label}`);
+    }
+  }
+}
+
+for (const legacyAuthFile of [
+  'src/app/[locale]/(auth)/layout.tsx',
+  'src/app/[locale]/(auth)/sign-in/page.tsx',
+  'src/app/[locale]/(auth)/sign-up/page.tsx',
+  'src/app/[locale]/(auth)/forgot-password/page.tsx',
+  'src/app/[locale]/(auth)/reset-password/page.tsx',
+  'src/app/[locale]/(auth)/no-permission/page.tsx',
+]) {
+  if (!existsSync(join(root, legacyAuthFile))) {
+    fail(`${legacyAuthFile} must remain until legacy app routes are retired`);
+  }
+}
+
 const homeRouteDataFile = 'src/server/landing/home-route-data.ts';
 const homeRouteDataAbs = join(root, homeRouteDataFile);
 if (

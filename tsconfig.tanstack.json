@@ -19,12 +19,18 @@
     "src/paraglide/**/*.d.ts",
     "src/surfaces/landing/**/*.ts",
     "src/surfaces/landing/**/*.tsx",
+    "src/surfaces/auth/**/*.ts",
+    "src/surfaces/auth/**/*.tsx",
     "src/surfaces/system/**/*.ts",
     "src/surfaces/system/**/*.tsx",
     "src/domains/pricing/**/*.ts",
     "src/domains/pricing/**/*.tsx",
+    "src/server/auth/**/*.ts",
     "src/server/pricing/**/*.ts",
-    "src/infra/platform/auth/session-by-request.ts"
+    "src/infra/platform/auth/client.ts",
+    "src/infra/platform/auth/social-authorization-url.ts",
+    "src/shared/types/global.d.ts",
+    "src/shared/types/cloudflare-runtime.d.ts"
   ],
   "exclude": ["node_modules", ".next", ".open-next", "out", "dist"]
 }
