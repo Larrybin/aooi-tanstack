@@ -218,22 +218,17 @@ test('resolveSettingsProfileUpdate persists signed-in profile changes', async ()
   ]);
 });
 
-test('resolveSettingsProfileUpdate rejects unsafe avatar URLs', async () => {
+test('resolveSettingsProfileUpdate returns no-auth error without updating', async () => {
   let updateCalled = false;
 
   const result = await resolveSettingsProfileUpdate(
     {
       locale: defaultLocale,
       name: 'Ada',
-      image: 'javascript:alert(1)',
+      image: '',
     },
     {
-      readSignedInUserIdentity: async () => ({
-        id: 'user-1',
-        name: 'Ada',
-        email: 'ada@example.test',
-        image: null,
-      }),
+      readSignedInUserIdentity: async () => null,
       updateUser: async () => {
         updateCalled = true;
       },
@@ -241,8 +236,211 @@ test('resolveSettingsProfileUpdate rejects unsafe avatar URLs', async () => {
   );
 
   assert.equal(result.status, 'error');
+  assert.equal(result.message, 'Please sign in to continue');
   assert.equal(updateCalled, false);
 });
+
+test('resolveSettingsProfileUpdate rejects empty names', async () => {
+  for (const name of ['', '   ']) {
+    let updateCalled = false;
+
+    const result = await resolveSettingsProfileUpdate(
+      {
+        locale: defaultLocale,
+        name,
+        image: '',
+      },
+      {
+        readSignedInUserIdentity: async () => fakeSignedInUser(),
+        updateUser: async () => {
+          updateCalled = true;
+        },
+      }
+    );
+
+    assert.equal(result.status, 'error');
+    assert.equal(result.message, 'Name is required');
+    assert.equal(updateCalled, false);
+  }
+});
+
+test('resolveSettingsProfileUpdate accepts valid image values', async () => {
+  const cases = [
+    {
+      image: 'https://example.com/avatar.png',
+      storedImage: 'https://example.com/avatar.png',
+    },
+    {
+      image: 'http://example.com/avatar.png',
+      storedImage: 'http://example.com/avatar.png',
+    },
+    { image: '', storedImage: '' },
+    { image: '/avatar.png', storedImage: '/avatar.png' },
+  ];
+
+  for (const { image, storedImage } of cases) {
+    const updates: Array<{
+      userId: string;
+      updatedUser: { name?: string; image?: string };
+    }> = [];
+
+    const result = await resolveSettingsProfileUpdate(
+      {
+        locale: defaultLocale,
+        name: 'Ada Lovelace',
+        image,
+      },
+      {
+        readSignedInUserIdentity: async () => fakeSignedInUser(),
+        updateUser: async (userId, updatedUser) => {
+          updates.push({ userId, updatedUser });
+        },
+      }
+    );
+
+    assert.equal(result.status, 'success');
+    assert.deepEqual(updates, [
+      {
+        userId: 'user-1',
+        updatedUser: {
+          name: 'Ada Lovelace',
+          image: storedImage,
+        },
+      },
+    ]);
+    assert.equal(result.profile?.image, storedImage || null);
+  }
+});
+
+test('resolveSettingsProfileUpdate rejects unsafe avatar URLs', async () => {
+  for (const image of [
+    'javascript:alert(1)',
+    '//evil.com/avatar.png',
+    'ftp://example.com/avatar.png',
+  ]) {
+    let updateCalled = false;
+
+    const result = await resolveSettingsProfileUpdate(
+      {
+        locale: defaultLocale,
+        name: 'Ada',
+        image,
+      },
+      {
+        readSignedInUserIdentity: async () => fakeSignedInUser(),
+        updateUser: async () => {
+          updateCalled = true;
+        },
+      }
+    );
+
+    assert.equal(result.status, 'error');
+    assert.equal(updateCalled, false);
+  }
+});
+
+test('resolveSettingsProfileUpdate returns public profile and localized success message', async () => {
+  const locale = getLocaleWithProfileMessages() ?? defaultLocale;
+
+  const result = await resolveSettingsProfileUpdate(
+    {
+      locale,
+      name: 'Ada Lovelace',
+      image: '/avatar.png',
+    },
+    {
+      readSignedInUserIdentity: async () =>
+        ({
+          ...fakeSignedInUser(),
+          role: 'admin',
+          sessionToken: 'secret',
+        }) as never,
+      updateUser: async () => {},
+    }
+  );
+
+  assert.equal(result.status, 'success');
+  assert.equal(
+    result.message,
+    locale === 'zh' ? '个人资料已更新' : 'Profile updated'
+  );
+  assert.deepEqual(Object.keys(result.profile ?? {}).sort(), [
+    'email',
+    'image',
+    'name',
+  ]);
+  assert.deepEqual(result.profile, {
+    email: 'ada@example.test',
+    name: 'Ada Lovelace',
+    image: '/avatar.png',
+  });
+});
+
+test('resolveSettingsProfileUpdate returns error for invalid locale', async () => {
+  const result = await resolveSettingsProfileUpdate(
+    {
+      locale: 'not-a-locale',
+      name: 'Ada',
+      image: '',
+    },
+    {
+      readSignedInUserIdentity: async () => {
+        throw new Error('auth should not be read for invalid locale');
+      },
+      updateUser: async () => {
+        throw new Error('update should not run for invalid locale');
+      },
+    }
+  );
+
+  assert.deepEqual(result, { status: 'error', message: 'Invalid locale' });
+});
+
+test('resolveSettingsProfileUpdate result is JSON serializable', async () => {
+  const result = await resolveSettingsProfileUpdate(
+    {
+      locale: defaultLocale,
+      name: 'Ada',
+      image: '',
+    },
+    {
+      readSignedInUserIdentity: async () => fakeSignedInUser(),
+      updateUser: async () => {},
+    }
+  );
+
+  assert.doesNotThrow(() => JSON.stringify(result));
+});
+
+test('resolveSettingsProfileUpdate returns error when update fails', async () => {
+  const result = await resolveSettingsProfileUpdate(
+    {
+      locale: defaultLocale,
+      name: 'Ada',
+      image: '',
+    },
+    {
+      readSignedInUserIdentity: async () => fakeSignedInUser(),
+      updateUser: async () => {
+        throw new Error('database unavailable');
+      },
+    }
+  );
+
+  assert.deepEqual(result, {
+    status: 'error',
+    message: 'Profile update failed',
+  });
+});
+
+function fakeSignedInUser() {
+  return {
+    id: 'user-1',
+    name: 'Ada',
+    email: 'ada@example.test',
+    image: null,
+  };
+}
 
 function getLocaleWithProfileMessages() {
   return locales.includes('zh' as (typeof locales)[number]) ? 'zh' : null;

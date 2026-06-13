@@ -133,16 +133,24 @@ export async function resolveSettingsProfileUpdate(
     };
   }
 
-  const result = await updateProfileUseCase(
-    {
-      userId: signedInUser.id,
-      name,
-      image,
-    },
-    { updateUser: deps.updateUser ?? updateAccountUser },
-    readString(messageCopy.updated, 'Profile updated'),
-    localePath(canonicalPath, locale)
-  );
+  let result: SettingsProfileUpdateResult;
+  try {
+    result = await updateProfileUseCase(
+      {
+        userId: signedInUser.id,
+        name,
+        image,
+      },
+      { updateUser: deps.updateUser ?? updateAccountUser },
+      readString(messageCopy.updated, 'Profile updated'),
+      localePath(canonicalPath, locale)
+    );
+  } catch {
+    return {
+      status: 'error',
+      message: readString(messageCopy.update_failed, 'Profile update failed'),
+    };
+  }
 
   return {
     ...result,
