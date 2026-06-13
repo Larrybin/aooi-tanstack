@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, rename, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 import {
@@ -96,18 +96,18 @@ async function main() {
   });
 
   await mkdir(dirname(targetPath), { recursive: true });
-  await writeFile(
-    targetPath,
-    toModuleSource({
-      site,
-      sitePricing,
-      siteLocalizedPricing,
-      siteHomeContent,
-      siteI18nPages,
-      siteI18nManifest,
-    }),
-    'utf8'
-  );
+  const source = toModuleSource({
+    site,
+    sitePricing,
+    siteLocalizedPricing,
+    siteHomeContent,
+    siteI18nPages,
+    siteI18nManifest,
+  });
+  const tempPath = `${targetPath}.${process.pid}.tmp`;
+
+  await writeFile(tempPath, source, 'utf8');
+  await rename(tempPath, targetPath);
 
   process.stdout.write(`[site] generated ${siteKey}\n`);
 }
