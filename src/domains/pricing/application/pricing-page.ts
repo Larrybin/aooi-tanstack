@@ -26,13 +26,15 @@ function getSiteLocalePricing(locale: string): SitePricing | undefined {
   return (siteLocalizedPricing as SiteLocalizedPricing)[locale];
 }
 
-export type PricingRouteData = {
+export type PricingPageData = {
   locale: string;
   head: TanStackHead;
   pricing: SitePricing['pricing'];
   faq?: SitePricing['faq'];
   testimonials?: SitePricing['testimonials'];
 };
+
+export type PricingRouteData = PricingPageData;
 
 export async function resolvePricingRouteData({
   locale: localeInput,
@@ -42,7 +44,7 @@ export async function resolvePricingRouteData({
   locale: string;
   localizedPricingMessages?: LocalizedPricingMessages;
   localizedLandingMessages?: LocalizedLandingMessages;
-}): Promise<PricingRouteData | null> {
+}): Promise<PricingPageData | null> {
   const locale = normalizeLocale(localeInput);
   if (!locale) {
     return null;

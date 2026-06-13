@@ -1,4 +1,4 @@
-import type { PricingRouteData } from '@/domains/pricing/application/pricing-page';
+import type { PricingRouteData } from '@/surfaces/landing/pricing/pricing.types';
 import { createServerFn } from '@tanstack/react-start';
 
 import { normalizeLocale } from '@/shared/i18n/locale';
@@ -15,14 +15,18 @@ export const loadPricingRouteData = createServerFn({ method: 'GET' })
       return null;
     }
 
-    const [{ resolvePricingRouteData }, { loadPricingPageMessages }] =
-      await Promise.all([
-        import('@/domains/pricing/application/pricing-page'),
-        import('@/server/pricing/pricing-page-messages'),
-      ]);
+    const [
+      { resolvePricingRouteData },
+      { buildPricingRouteData },
+      { loadPricingPageMessages },
+    ] = await Promise.all([
+      import('@/domains/pricing/application/pricing-page'),
+      import('@/server/pricing/pricing-route-resolver'),
+      import('@/server/pricing/pricing-page-messages'),
+    ]);
     const messages = await loadPricingPageMessages(locale);
 
-    return toSerializablePricingRouteData(
-      await resolvePricingRouteData({ locale, ...messages })
-    );
+    const pricingData = await resolvePricingRouteData({ locale, ...messages });
+
+    return toSerializablePricingRouteData(buildPricingRouteData(pricingData));
   });

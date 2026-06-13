@@ -1,7 +1,21 @@
 import { useState } from 'react';
 import type { PricingRouteData } from '@/domains/pricing/application/pricing-page';
 
+import { defaultLocale } from '@/config/locale';
+import { withCallbackUrl } from '@/shared/lib/callback-url';
+import { localizeCallbackUrl } from '@/shared/lib/localize-callback-url';
+
 type PricingItem = NonNullable<PricingRouteData['pricing']['items']>[number];
+
+type CheckoutFailureAction =
+  | {
+      type: 'redirect';
+      url: string;
+    }
+  | {
+      type: 'error';
+      message: string;
+    };
 
 function resolveCheckoutUrl(data: unknown): string | null {
   if (!data || typeof data !== 'object') return null;
@@ -31,7 +45,61 @@ function resolveErrorMessage(data: unknown): string | null {
 }
 
 function isCheckoutEnabled(item: PricingItem) {
-  return Boolean(item.product_id && item.amount && item.amount > 0);
+  return Boolean(
+    item.checkout_enabled !== false &&
+    item.product_id &&
+    item.amount &&
+    item.amount > 0
+  );
+}
+
+function getPricingCallbackUrl(): string {
+  if (typeof window === 'undefined') {
+    return '/pricing';
+  }
+
+  return (
+    `${window.location.pathname}${window.location.search}${window.location.hash}` ||
+    '/pricing'
+  );
+}
+
+function buildPricingSignInUrl({
+  callbackUrl,
+  locale,
+}: {
+  callbackUrl: string;
+  locale: string;
+}) {
+  return localizeCallbackUrl({
+    callbackUrl: withCallbackUrl('/sign-in', callbackUrl),
+    locale,
+    defaultLocale,
+  });
+}
+
+export function resolveCheckoutFailureAction({
+  status,
+  payload,
+  locale,
+  callbackUrl,
+}: {
+  status: number;
+  payload: unknown;
+  locale: string;
+  callbackUrl: string;
+}): CheckoutFailureAction {
+  if (status === 401) {
+    return {
+      type: 'redirect',
+      url: buildPricingSignInUrl({ callbackUrl, locale }),
+    };
+  }
+
+  return {
+    type: 'error',
+    message: resolveErrorMessage(payload) || `Checkout failed with ${status}`,
+  };
 }
 
 function PricingCard({ item, locale }: { item: PricingItem; locale: string }) {
@@ -56,10 +124,19 @@ function PricingCard({ item, locale }: { item: PricingItem; locale: string }) {
       });
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error(
-          resolveErrorMessage(payload) ||
-            `Checkout failed with ${response.status}`
-        );
+        const action = resolveCheckoutFailureAction({
+          status: response.status,
+          payload,
+          locale,
+          callbackUrl: getPricingCallbackUrl(),
+        });
+
+        if (action.type === 'redirect') {
+          window.location.assign(action.url);
+          return;
+        }
+
+        throw new Error(action.message);
       }
 
       const checkoutUrl = resolveCheckoutUrl(payload);
