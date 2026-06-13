@@ -6,6 +6,8 @@ import { withCallbackUrl } from '@/shared/lib/callback-url';
 import { localizeCallbackUrl } from '@/shared/lib/localize-callback-url';
 
 type PricingItem = NonNullable<PricingRouteData['pricing']['items']>[number];
+type PricingGroup = NonNullable<PricingRouteData['pricing']['groups']>[number];
+type PricingCurrency = NonNullable<PricingItem['currencies']>[number];
 
 type CheckoutFailureAction =
   | {
@@ -51,6 +53,58 @@ function isCheckoutEnabled(item: PricingItem) {
     item.amount &&
     item.amount > 0
   );
+}
+
+function getDefaultPricingGroup(groups: readonly PricingGroup[] = []) {
+  return groups.find((group) => group.is_featured)?.name ?? groups[0]?.name;
+}
+
+function getPricingItemCurrencies(item: PricingItem): PricingCurrency[] {
+  const defaultCurrency = {
+    currency: item.currency,
+    amount: item.amount,
+    price: item.price || '',
+    original_price: item.original_price || '',
+    payment_product_id: item.payment_product_id,
+  } satisfies PricingCurrency;
+
+  return item.currencies?.length
+    ? [defaultCurrency, ...item.currencies]
+    : [defaultCurrency];
+}
+
+function getInitialPricingCurrency(item: PricingItem, locale: string) {
+  const currencies = getPricingItemCurrencies(item);
+  if (locale !== 'zh') {
+    return item.currency;
+  }
+
+  return (
+    currencies.find((currency) => currency.currency.toLowerCase() === 'cny')
+      ?.currency ?? item.currency
+  );
+}
+
+function applyPricingCurrency(
+  item: PricingItem,
+  selectedCurrency: string
+): PricingItem {
+  const currency = getPricingItemCurrencies(item).find(
+    (entry) => entry.currency.toLowerCase() === selectedCurrency.toLowerCase()
+  );
+
+  if (!currency) {
+    return item;
+  }
+
+  return {
+    ...item,
+    currency: currency.currency,
+    amount: currency.amount,
+    price: currency.price,
+    original_price: currency.original_price,
+    payment_product_id: currency.payment_product_id || item.payment_product_id,
+  };
 }
 
 function getPricingCallbackUrl(): string {
@@ -102,12 +156,24 @@ export function resolveCheckoutFailureAction({
   };
 }
 
-function PricingCard({ item, locale }: { item: PricingItem; locale: string }) {
+function PricingCard({
+  item,
+  locale,
+  selectedCurrency,
+  onCurrencyChange,
+}: {
+  item: PricingItem;
+  locale: string;
+  selectedCurrency: string;
+  onCurrencyChange: (currency: string) => void;
+}) {
   const [status, setStatus] = useState<'idle' | 'loading'>('idle');
   const [error, setError] = useState<string | null>(null);
+  const displayedItem = applyPricingCurrency(item, selectedCurrency);
+  const currencies = getPricingItemCurrencies(item);
 
   async function startCheckout() {
-    if (!item.product_id) return;
+    if (!displayedItem.product_id) return;
 
     setStatus('loading');
     setError(null);
@@ -117,8 +183,8 @@ function PricingCard({ item, locale }: { item: PricingItem; locale: string }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          product_id: item.product_id,
-          currency: item.currency,
+          product_id: displayedItem.product_id,
+          currency: displayedItem.currency,
           locale,
         }),
       });
@@ -144,7 +210,7 @@ function PricingCard({ item, locale }: { item: PricingItem; locale: string }) {
         throw new Error('Checkout response did not include a redirect URL.');
       }
 
-      window.location.href = checkoutUrl;
+      window.location.assign(checkoutUrl);
     } catch (checkoutError) {
       setError(
         checkoutError instanceof Error
@@ -155,37 +221,59 @@ function PricingCard({ item, locale }: { item: PricingItem; locale: string }) {
     }
   }
 
-  const enabled = isCheckoutEnabled(item);
+  const enabled = isCheckoutEnabled(displayedItem);
 
   return (
-    <article className={`pricing-card ${item.is_featured ? 'featured' : ''}`}>
+    <article
+      className={`pricing-card ${displayedItem.is_featured ? 'featured' : ''}`}
+    >
       <div>
-        <h2>{item.title}</h2>
-        {item.description && (
-          <p className="pricing-description">{item.description}</p>
+        <h2>{displayedItem.title}</h2>
+        {displayedItem.description && (
+          <p className="pricing-description">{displayedItem.description}</p>
         )}
       </div>
       <div className="pricing-price">
-        <span>{item.price || `${item.amount} ${item.currency || ''}`}</span>
-        {item.original_price && <del>{item.original_price}</del>}
+        <span>
+          {displayedItem.price ||
+            `${displayedItem.amount} ${displayedItem.currency || ''}`}
+        </span>
+        {displayedItem.original_price && (
+          <del>{displayedItem.original_price}</del>
+        )}
       </div>
-      {item.features?.length ? (
+      {currencies.length > 1 ? (
+        <label>
+          <span>Currency</span>
+          <select
+            value={selectedCurrency}
+            onChange={(event) => onCurrencyChange(event.currentTarget.value)}
+          >
+            {currencies.map((currency) => (
+              <option key={currency.currency} value={currency.currency}>
+                {currency.currency.toUpperCase()}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
+      {displayedItem.features?.length ? (
         <ul>
-          {item.features.map((feature) => (
+          {displayedItem.features.map((feature) => (
             <li key={feature}>{feature}</li>
           ))}
         </ul>
       ) : null}
-      {item.tip && <p className="pricing-tip">{item.tip}</p>}
+      {displayedItem.tip && <p className="pricing-tip">{displayedItem.tip}</p>}
       {enabled ? (
         <button onClick={startCheckout} disabled={status === 'loading'}>
           {status === 'loading'
             ? 'Opening checkout...'
-            : item.button?.title || 'Checkout'}
+            : displayedItem.button?.title || 'Checkout'}
         </button>
       ) : (
-        <a className="pricing-link" href={item.button?.url || '#'}>
-          {item.button?.title || 'Get started'}
+        <a className="pricing-link" href={displayedItem.button?.url || '#'}>
+          {displayedItem.button?.title || 'Get started'}
         </a>
       )}
       {error && <p className="pricing-error">{error}</p>}
@@ -195,6 +283,18 @@ function PricingCard({ item, locale }: { item: PricingItem; locale: string }) {
 
 export function PricingSliceView({ data }: { data: PricingRouteData }) {
   const items = data.pricing.items ?? [];
+  const groups = data.pricing.groups ?? [];
+  const [selectedGroup, setSelectedGroup] = useState(() =>
+    getDefaultPricingGroup(groups)
+  );
+  const [selectedCurrencies, setSelectedCurrencies] = useState<
+    Record<string, string>
+  >({});
+  const visibleItems =
+    selectedGroup && groups.length
+      ? items.filter((item) => !item.group || item.group === selectedGroup)
+      : items;
+
   return (
     <main className="pricing-shell">
       <section className="pricing-hero">
@@ -204,12 +304,37 @@ export function PricingSliceView({ data }: { data: PricingRouteData }) {
         <h1>{data.pricing.title}</h1>
         {data.pricing.description && <p>{data.pricing.description}</p>}
       </section>
+      {groups.length ? (
+        <section className="pricing-groups" aria-label="Pricing groups">
+          {groups.map((group) => (
+            <button
+              key={group.name || group.title}
+              type="button"
+              aria-pressed={selectedGroup === group.name}
+              onClick={() => setSelectedGroup(group.name)}
+            >
+              {group.title || group.name}
+              {group.label ? <span>{group.label}</span> : null}
+            </button>
+          ))}
+        </section>
+      ) : null}
       <section className="pricing-grid" aria-label="Pricing plans">
-        {items.map((item) => (
+        {visibleItems.map((item) => (
           <PricingCard
             key={item.product_id || item.title}
             item={item}
             locale={data.locale}
+            selectedCurrency={
+              selectedCurrencies[item.product_id] ??
+              getInitialPricingCurrency(item, data.locale)
+            }
+            onCurrencyChange={(currency) =>
+              setSelectedCurrencies((current) => ({
+                ...current,
+                [item.product_id]: currency,
+              }))
+            }
           />
         ))}
       </section>

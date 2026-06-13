@@ -87,6 +87,78 @@ test('PricingSliceView renders disabled paid checkout items as fallback links', 
   assert.doesNotMatch(html, /<button/);
 });
 
+test('PricingSliceView renders only the featured pricing group by default', () => {
+  const data = {
+    locale: 'en',
+    head: {},
+    pricing: {
+      title: 'Pricing',
+      groups: [
+        { name: 'one-time', title: 'One-time' },
+        { name: 'monthly', title: 'Monthly', is_featured: true },
+      ],
+      items: [
+        {
+          product_id: 'starter',
+          title: 'Starter one-time',
+          interval: 'one-time',
+          amount: 4900,
+          currency: 'USD',
+          group: 'one-time',
+        },
+        {
+          product_id: 'starter-monthly',
+          title: 'Starter monthly',
+          interval: 'month',
+          amount: 1900,
+          currency: 'USD',
+          group: 'monthly',
+        },
+      ],
+    },
+  } satisfies PricingRouteData;
+
+  const html = renderToStaticMarkup(<PricingSliceView data={data} />);
+
+  assert.match(html, /Starter monthly/);
+  assert.doesNotMatch(html, /Starter one-time/);
+  assert.match(html, /aria-pressed="true">Monthly/);
+});
+
+test('PricingSliceView defaults zh checkout display to CNY currency', () => {
+  const data = {
+    locale: 'zh',
+    head: {},
+    pricing: {
+      title: 'Pricing',
+      items: [
+        {
+          product_id: 'pro',
+          title: 'Pro',
+          interval: 'month',
+          amount: 1900,
+          currency: 'USD',
+          price: '$19',
+          currencies: [
+            {
+              currency: 'CNY',
+              amount: 12900,
+              price: '¥129',
+              original_price: '¥199',
+            },
+          ],
+        },
+      ],
+    },
+  } satisfies PricingRouteData;
+
+  const html = renderToStaticMarkup(<PricingSliceView data={data} />);
+
+  assert.match(html, /¥129/);
+  assert.match(html, /value="CNY" selected=""/);
+  assert.doesNotMatch(html, />\$19</);
+});
+
 test('resolveCheckoutFailureAction redirects signed-out checkout attempts to sign-in', () => {
   const action = resolveCheckoutFailureAction({
     status: 401,
