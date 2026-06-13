@@ -103,11 +103,32 @@ function buildSettingsShellData(
   return {
     title: readString(sidebar.title, 'Settings'),
     nav: {
-      items: readNavItems(getObject(sidebar.nav).items, locale),
+      items: [buildSettingsSecurityNavItem(messages, locale)],
     },
     topNav: {
-      items: readNavItems(getObject(sidebar.top_nav).items, locale),
+      items: [
+        {
+          title: readString(sidebar.title, 'Settings'),
+          url: localePath(canonicalPath, locale),
+          active: true,
+        },
+      ],
     },
+  };
+}
+
+function buildSettingsSecurityNavItem(
+  messages: SettingsSecurityRouteMessages,
+  locale: string
+) {
+  const security = getObject(messages.security);
+  const resetPassword = getObject(security.reset_password);
+  const crumbs = getObject(resetPassword.crumbs);
+
+  return {
+    title: readString(crumbs.security, 'Security'),
+    url: localePath(canonicalPath, locale),
+    active: true,
   };
 }
 
@@ -145,38 +166,6 @@ function buildSettingsSecurityPageData(
       ),
     },
   };
-}
-
-function readNavItems(value: unknown, locale: string) {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return value.flatMap((item) => {
-    const navItem = getObject(item);
-    const url = readString(navItem.url, '');
-    const title = readString(navItem.title, '');
-
-    if (!url || !title) {
-      return [];
-    }
-
-    return [
-      {
-        title,
-        url: localizeUrl(url, locale),
-        icon: readString(navItem.icon, ''),
-      },
-    ];
-  });
-}
-
-function localizeUrl(url: string, locale: string) {
-  if (!url.startsWith('/') || url.startsWith('//')) {
-    return url;
-  }
-
-  return localePath(url, locale);
 }
 
 function readString(value: unknown, fallback: string) {

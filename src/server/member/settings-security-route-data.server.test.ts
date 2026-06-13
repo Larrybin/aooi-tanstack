@@ -114,11 +114,17 @@ test('resolveSettingsSecurityRouteData localizes shell nav URLs', async () => {
   assert.ok(data);
   assert.equal(
     data.shell.nav.items[0]?.url,
-    localePath('/settings/profile', locale)
+    localePath('/settings/security', locale)
+  );
+  assert.equal(
+    data.shell.nav.items.every((item) =>
+      item.url.endsWith('/settings/security')
+    ),
+    true
   );
   assert.equal(
     data.shell.topNav.items[0]?.url,
-    localePath('/activity', locale)
+    localePath('/settings/security', locale)
   );
 });
 
