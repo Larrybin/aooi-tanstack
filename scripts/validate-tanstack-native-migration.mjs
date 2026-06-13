@@ -162,8 +162,10 @@ const requiredFiles = [
   'apps/web/src/routes/blog/category/$slug.tsx',
   'apps/web/src/routes/$locale/blog_.tsx',
   'apps/web/src/routes/settings_.tsx',
+  'apps/web/src/routes/settings/security.tsx',
   'apps/web/src/routes/activity_.tsx',
   'apps/web/src/routes/$locale/settings_.tsx',
+  'apps/web/src/routes/$locale/settings/security.tsx',
   'apps/web/src/routes/$locale/activity_.tsx',
   'apps/web/src/routes/api/payment/checkout.ts',
   'apps/web/src/routes/api/payment/notify.ts',
@@ -194,6 +196,9 @@ const requiredFiles = [
   'src/server/landing/blog-category-route-resolver.ts',
   'src/server/member/member-entry-route-data.ts',
   'src/server/member/member-entry-route-resolver.ts',
+  'src/server/member/settings-security-route-data.ts',
+  'src/server/member/settings-security-route-resolver.ts',
+  'src/server/member/settings-security-route-messages.ts',
   'src/surfaces/landing/pricing/pricing.data.ts',
   'src/surfaces/landing/pricing/pricing.seo.ts',
   'src/surfaces/landing/pricing/pricing.view.tsx',
@@ -220,6 +225,12 @@ const requiredFiles = [
   'src/surfaces/landing/blog-category/blog-category.types.ts',
   'src/surfaces/member/member-entry/member-entry.data.ts',
   'src/surfaces/member/member-entry/member-entry.types.ts',
+  'src/surfaces/member/settings-shell/settings-shell.types.ts',
+  'src/surfaces/member/settings-shell/settings-shell.view.tsx',
+  'src/surfaces/member/settings-security/settings-security.data.ts',
+  'src/surfaces/member/settings-security/settings-security.seo.ts',
+  'src/surfaces/member/settings-security/settings-security.types.ts',
+  'src/surfaces/member/settings-security/settings-security.view.tsx',
   'src/surfaces/system/not-found/not-found.view.tsx',
   'scripts/tanstack-gate-4-plan.mjs',
   'docs/migration/gate-4-page-migration-plan.generated.md',
@@ -1017,6 +1028,191 @@ for (const file of memberEntrySurfaceFiles) {
       fail(`${file} must not depend on ${label}`);
     }
   }
+}
+
+const settingsSecurityRouteFiles = [
+  {
+    file: 'apps/web/src/routes/settings/security.tsx',
+    routeId: '/settings/security',
+    localePattern: /defaultLocale/,
+  },
+  {
+    file: 'apps/web/src/routes/$locale/settings/security.tsx',
+    routeId: '/$locale/settings/security',
+    localePattern: /params\.locale/,
+  },
+];
+
+for (const { file, routeId, localePattern } of settingsSecurityRouteFiles) {
+  const abs = join(root, file);
+  if (!existsSync(abs)) {
+    fail(`${file} must exist for Gate 4-B.3 settings security route`);
+  }
+  if (!contains(abs, /createFileRoute/)) {
+    fail(`${file} must use createFileRoute`);
+  }
+  if (
+    !contains(abs, new RegExp(`createFileRoute\\('${escapeRegex(routeId)}'\\)`))
+  ) {
+    fail(`${file} must declare TanStack route ${routeId}`);
+  }
+  if (!contains(abs, /loadSettingsSecurityRouteSurfaceData/)) {
+    fail(`${file} must load settings security route surface data`);
+  }
+  if (!contains(abs, /getSettingsSecurityRouteSurfaceHead/)) {
+    fail(`${file} must use settings security route surface head`);
+  }
+  if (!contains(abs, /SettingsSecurityRouteView/)) {
+    fail(`${file} must render SettingsSecurityRouteView`);
+  }
+  if (!contains(abs, localePattern)) {
+    fail(`${file} must use the expected locale source`);
+  }
+}
+
+for (const fullPath of ['/settings/security', '/$locale/settings/security']) {
+  if (
+    !contains(
+      homeRouteTreeAbs,
+      new RegExp(`fullPath:\\s*'${escapeRegex(fullPath)}'`)
+    )
+  ) {
+    fail(
+      `${homeRouteTreeFile} must include settings security fullPath ${fullPath}`
+    );
+  }
+}
+
+for (const file of [
+  'apps/web/src/routes/settings.tsx',
+  'apps/web/src/routes/$locale/settings.tsx',
+]) {
+  if (existsSync(join(root, file))) {
+    fail(`${file} must not be introduced for the settings security leaf`);
+  }
+}
+
+const settingsSecurityDataFile =
+  'src/server/member/settings-security-route-data.ts';
+const settingsSecurityDataAbs = join(root, settingsSecurityDataFile);
+if (
+  !contains(
+    settingsSecurityDataAbs,
+    /createServerFn\(\{\s*method:\s*['"]GET['"]/
+  )
+) {
+  fail(
+    `${settingsSecurityDataFile} must use createServerFn({ method: 'GET' })`
+  );
+}
+if (
+  !contains(
+    settingsSecurityDataAbs,
+    /await\s+import\(\s*['"].\/settings-security-route-resolver['"]\s*\)/
+  )
+) {
+  fail(
+    `${settingsSecurityDataFile} must dynamically import the settings security resolver`
+  );
+}
+
+const settingsSecurityResolverFile =
+  'src/server/member/settings-security-route-resolver.ts';
+const settingsSecurityResolverAbs = join(root, settingsSecurityResolverFile);
+for (const [regex, label] of [
+  [/normalizeLocale/, 'locale normalization'],
+  [/loadSettingsSecurityRouteMessages/, 'settings security message loader'],
+  [/readSignedInUserIdentity|getSignedInUserIdentity/, 'signed-in user check'],
+  [/viewer:\s*\{\s*signedIn/s, 'signed-in boolean route data'],
+  [/noindex,nofollow/, 'member noindex robots head'],
+]) {
+  if (!contains(settingsSecurityResolverAbs, regex)) {
+    fail(`${settingsSecurityResolverFile} must use ${label}`);
+  }
+}
+for (const [regex, label] of [
+  [/next\/headers/, 'next/headers import'],
+  [/session\.server/, 'legacy Next session server'],
+  [
+    /ConsoleLayout|LandingLayout|PublicAppProvider|AuthSnapshotProvider/,
+    'legacy member shell',
+  ],
+  [/next-intl/, 'next-intl import'],
+  [/next\/navigation/, 'next/navigation import'],
+  [/@\/app\/|src\/app\//, 'legacy app import'],
+  [/@\/themes\//, '@/themes import'],
+]) {
+  if (contains(settingsSecurityResolverAbs, regex)) {
+    fail(`${settingsSecurityResolverFile} must not depend on ${label}`);
+  }
+}
+
+const settingsSecurityMessagesFile =
+  'src/server/member/settings-security-route-messages.ts';
+const settingsSecurityMessagesAbs = join(root, settingsSecurityMessagesFile);
+for (const [regex, label] of [
+  [/settings\/security/, 'settings/security messages'],
+  [/settings\/sidebar/, 'settings/sidebar messages'],
+  [
+    /\?\s*\(mergeDeep\(baseSecurity/,
+    'base fallback for missing security messages',
+  ],
+  [
+    /\?\s*\(mergeDeep\(baseSidebar/,
+    'base fallback for missing sidebar messages',
+  ],
+  [/mergeDeep/, 'key-level fallback merge'],
+]) {
+  if (!contains(settingsSecurityMessagesAbs, regex)) {
+    fail(`${settingsSecurityMessagesFile} must implement ${label}`);
+  }
+}
+
+const settingsSecuritySurfaceFiles = [
+  ...walk(join(root, 'src/surfaces/member/settings-shell')),
+  ...walk(join(root, 'src/surfaces/member/settings-security')),
+]
+  .filter((file) => /\.(ts|tsx)$/.test(file))
+  .map((file) => normalizePath(relative(root, file)))
+  .sort();
+for (const file of settingsSecuritySurfaceFiles) {
+  const abs = join(root, file);
+  for (const [regex, label] of [
+    [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
+    [/^\s*import\s+['"]next(?:\/|['"])/m, 'next side-effect import'],
+    [/from\s+['"]next-intl(?:\/|['"])/, 'next-intl import'],
+    [/@\/infra\/platform\/i18n\/navigation/, 'Next i18n navigation import'],
+    [/@\/app\/|src\/app\//, 'legacy app import'],
+    [/@\/themes\//, '@/themes import'],
+    [/^\s*import\s+['"]server-only['"]/m, 'server-only marker'],
+    [/session\.server/, 'legacy Next session server'],
+  ]) {
+    if (contains(abs, regex)) {
+      fail(`${file} must not depend on ${label}`);
+    }
+  }
+}
+
+const settingsSecurityViewFile =
+  'src/surfaces/member/settings-security/settings-security.view.tsx';
+const settingsSecurityViewAbs = join(root, settingsSecurityViewFile);
+for (const [regex, label] of [
+  [/document\.documentElement\.lang\s*=\s*data\.locale/, 'localized html lang'],
+  [/document\.documentElement\.dir\s*=\s*isRtlLocale/, 'localized html dir'],
+]) {
+  if (!contains(settingsSecurityViewAbs, regex)) {
+    fail(`${settingsSecurityViewFile} must apply ${label}`);
+  }
+}
+
+if (
+  !existsSync(
+    join(root, 'src/app/[locale]/(landing)/settings/security/page.tsx')
+  )
+) {
+  fail(
+    'src/app/[locale]/(landing)/settings/security/page.tsx must remain until the legacy app route is retired'
+  );
 }
 
 for (const legacyMemberFile of [
