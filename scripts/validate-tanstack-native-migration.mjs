@@ -760,6 +760,29 @@ if (!contains(homeSeoAbs, /noindex,nofollow/)) {
   fail(`${homeSeoFile} must return noindex,nofollow for missing home data`);
 }
 
+const productHomeResolverFile = 'src/server/landing/product-home-route-data.ts';
+const productHomeResolverAbs = join(root, productHomeResolverFile);
+for (const [regex, label] of [
+  [/resolveProductHomeRouteData/, 'product home route data resolver'],
+  [/content\?\.\[locale\]/, 'strict localized product home content gate'],
+  [/turnstileSiteKey/, 'serializable text-to-speech Turnstile site key'],
+]) {
+  if (!contains(productHomeResolverAbs, regex)) {
+    fail(`${productHomeResolverFile} must include ${label}`);
+  }
+}
+if (contains(productHomeResolverAbs, /\?\?\s*content\?\.en/)) {
+  fail(`${productHomeResolverFile} must not fall back to English home content`);
+}
+for (const [regex, label] of [
+  [/productLanding\.render/, 'productLanding.render()'],
+  [/resolveProductHeaderFooter/, 'fallback product shell resolver'],
+]) {
+  if (contains(homeRouteResolverAbs, regex)) {
+    fail(`${homeRouteResolverFile} must not use ${label}`);
+  }
+}
+
 const homeViewFile = 'src/surfaces/landing/home/home.view.tsx';
 const homeViewAbs = join(root, homeViewFile);
 for (const [regex, label] of [
@@ -770,6 +793,28 @@ for (const [regex, label] of [
 ]) {
   if (contains(homeViewAbs, regex)) {
     fail(`${homeViewFile} must not depend on ${label}`);
+  }
+}
+
+for (const file of [
+  'src/surfaces/landing/home/product-home.view.tsx',
+  'src/domains/remover/ui/remover-home.tsx',
+  'src/domains/remover/ui/remover-canvas-editor.tsx',
+  'src/domains/background-remover/ui/background-remover-home.tsx',
+  'src/domains/text-to-speech-generator/ui/text-to-speech-home.tsx',
+  'src/domains/text-to-speech-generator/ui/text-to-speech-workbench.tsx',
+  'src/domains/mp4-compressor/ui/mp4-compressor-home.tsx',
+]) {
+  const abs = join(root, file);
+  for (const [regex, label] of [
+    [/from\s+['"]next(?:\/|['"])/, 'next import'],
+    [/from\s+['"]next-intl(?:\/|['"])/, 'next-intl import'],
+    [/@\/themes\//, '@/themes import'],
+    [/@\/app\//, '@/app import'],
+  ]) {
+    if (contains(abs, regex)) {
+      fail(`${file} must not depend on ${label}`);
+    }
   }
 }
 
