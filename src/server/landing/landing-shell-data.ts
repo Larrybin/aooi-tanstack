@@ -24,6 +24,10 @@ import type {
   SlugShellData,
   SlugShellNavItem,
 } from '@/surfaces/landing/slug/slug.types';
+import {
+  filterLandingButtons,
+  filterLandingNavItems,
+} from '@/surfaces/public/navigation/landing-visibility';
 
 import { defaultLocale } from '@/config/locale';
 import enCommon from '@/config/locale/messages/en/common.json';
@@ -130,6 +134,15 @@ export function buildLandingShellData({
 }): SlugShellData {
   const brand = header.brand ?? footer.brand;
   const agreementItems = footer.agreement?.items ?? [];
+  const headerNavItems = filterTanStackShellNavItems(
+    filterLandingNavItems(header.nav?.items, publicUiConfig)
+  );
+  const headerButtonItems = filterTanStackShellNavItems(
+    filterLandingButtons(header.buttons, publicUiConfig)
+  );
+  const footerNavItems = filterTanStackShellNavItems(
+    filterLandingNavItems(footer.nav?.items, publicUiConfig)
+  );
 
   return {
     publicUiConfig: toSerializablePublicUiConfig(publicUiConfig),
@@ -147,21 +160,65 @@ export function buildLandingShellData({
         : undefined,
     },
     header: {
-      navItems: toShellNavItems(header.nav?.items ?? [], locale),
-      buttonItems: toShellNavItems(header.buttons ?? [], locale),
-      userNavItems: toShellNavItems(header.user_nav?.items ?? [], locale),
+      navItems: toShellNavItems(headerNavItems, locale),
+      buttonItems: toShellNavItems(headerButtonItems, locale),
+      userNavItems: [],
       showSign: Boolean(header.show_sign),
       signInHref: localizeUrl('/sign-in', locale),
       signInLabel: getSignInLabel(locale),
       ariaLabel: site.brand.appName,
     },
     footer: {
-      groups: toFooterGroups(footer.nav?.items ?? [], locale),
+      groups: toFooterGroups(footerNavItems, locale),
       agreementItems: toShellNavItems(agreementItems, locale),
       copyright: footer.copyright || `© ${site.brand.appName}`,
       ariaLabel: site.brand.appName,
     },
   };
+}
+
+function filterTanStackShellNavItems(items: readonly NavItem[]): NavItem[] {
+  const filteredItems: NavItem[] = [];
+
+  for (const item of items) {
+    const children = item.children?.length
+      ? filterTanStackShellNavItems(item.children)
+      : [];
+    const url = item.url?.trim() ?? '';
+    const hasVisibleUrl = Boolean(url) && !isUnavailableTanStackShellUrl(url);
+    const hasVisibleChildren = children.length > 0;
+
+    if (!hasVisibleUrl && !hasVisibleChildren) {
+      continue;
+    }
+
+    const nextItem: NavItem = {
+      ...item,
+      url: hasVisibleUrl ? url : '',
+    };
+
+    if (hasVisibleChildren) {
+      nextItem.children = children;
+    } else {
+      delete nextItem.children;
+    }
+
+    filteredItems.push(nextItem);
+  }
+
+  return filteredItems;
+}
+
+function isUnavailableTanStackShellUrl(url: string) {
+  const normalizedUrl =
+    url.length > 1 && url.endsWith('/') ? url.slice(0, -1) : url;
+
+  return (
+    normalizedUrl === '/docs' ||
+    normalizedUrl.startsWith('/docs/') ||
+    normalizedUrl === '/my-images' ||
+    normalizedUrl.startsWith('/my-images/')
+  );
 }
 
 function buildFallbackShellData(locale: string): SlugShellData {

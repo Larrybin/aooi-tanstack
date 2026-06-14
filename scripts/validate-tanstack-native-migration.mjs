@@ -216,6 +216,7 @@ const requiredFiles = [
   'src/server/pricing/pricing-route-data.ts',
   'src/server/landing/home-route-data.ts',
   'src/server/landing/home-route-resolver.ts',
+  'src/server/landing/landing-shell-data.ts',
   'src/server/landing/slug-route-data.ts',
   'src/server/landing/slug-route-resolver.ts',
   'src/server/landing/blog-index-route-data.ts',
@@ -268,6 +269,7 @@ const requiredFiles = [
   'src/surfaces/landing/slug/slug.seo.ts',
   'src/surfaces/landing/slug/slug.view.tsx',
   'src/surfaces/landing/slug/slug.types.ts',
+  'src/surfaces/landing/shell/landing-shell.view.tsx',
   'src/surfaces/landing/blog-index/blog-index.data.ts',
   'src/surfaces/landing/blog-index/blog-index.seo.ts',
   'src/surfaces/landing/blog-index/blog-index.view.tsx',
@@ -742,6 +744,43 @@ if (
   fail(
     `${rootRouteFile} must use TanStack notFoundComponent, not legacy 404 handling`
   );
+}
+
+const landingShellDataFile = 'src/server/landing/landing-shell-data.ts';
+const landingShellDataAbs = join(root, landingShellDataFile);
+for (const [regex, label] of [
+  [/filterLandingNavItems/, 'landing nav visibility filter'],
+  [/filterLandingButtons/, 'landing button visibility filter'],
+  [/filterTanStackShellNavItems/, 'TanStack shell route availability filter'],
+  [/userNavItems:\s*\[\]/, 'public shell user nav suppression'],
+  [
+    /normalizedUrl\s*===\s*['"]\/docs['"][\s\S]*normalizedUrl\.startsWith\(['"]\/docs\/['"]\)/,
+    'docs route suppression until migration',
+  ],
+  [
+    /normalizedUrl\s*===\s*['"]\/my-images['"][\s\S]*normalizedUrl\.startsWith\(['"]\/my-images\/['"]\)/,
+    'my-images route suppression until migration',
+  ],
+]) {
+  if (!contains(landingShellDataAbs, regex)) {
+    fail(`${landingShellDataFile} must apply ${label}`);
+  }
+}
+
+const landingShellViewFile =
+  'src/surfaces/landing/shell/landing-shell.view.tsx';
+const landingShellViewAbs = join(root, landingShellViewFile);
+for (const [regex, label] of [
+  [/item\.children/, 'nested nav item rendering'],
+  [/<details\s+className="landing-shell-nav-group"/, 'child nav disclosure'],
+  [/aria-label=\{ariaLabel\}/, 'provided nav aria labels'],
+]) {
+  if (!contains(landingShellViewAbs, regex)) {
+    fail(`${landingShellViewFile} must apply ${label}`);
+  }
+}
+if (contains(landingShellViewAbs, /item\.url\s*\|\|\s*['"]#['"]/)) {
+  fail(`${landingShellViewFile} must not render missing nav URLs as # links`);
 }
 
 const defaultHomeRouteFile = 'apps/web/src/routes/index.tsx';

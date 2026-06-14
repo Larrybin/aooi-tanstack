@@ -845,11 +845,54 @@ a {
 .landing-shell-nav a,
 .landing-shell-user-nav a,
 .landing-shell-button-nav a,
+.landing-shell-nav-summary,
+.landing-shell-nav-text,
 .landing-shell-sign-link,
 .landing-shell-footer a {
   color: #4c566a;
   font-size: 14px;
   text-decoration: none;
+}
+
+.landing-shell-nav-group {
+  position: relative;
+}
+
+.landing-shell-nav-summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.landing-shell-nav-summary::-webkit-details-marker {
+  display: none;
+}
+
+.landing-shell-subnav {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 10px);
+  left: 0;
+  display: grid;
+  min-width: 180px;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #dfe5f2;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+}
+
+.landing-shell-footer .landing-shell-nav-group {
+  position: static;
+}
+
+.landing-shell-footer .landing-shell-subnav {
+  position: static;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .landing-shell-sign-link {
