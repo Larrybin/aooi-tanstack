@@ -1,18 +1,18 @@
 import { getBlogPost } from '@/domains/content/application/public-content.query';
-import enBlog from '@/config/locale/messages/en/blog.json';
-import zhBlog from '@/config/locale/messages/zh/blog.json';
-import zhTwBlog from '@/config/locale/messages/zh-TW/blog.json';
 import { site } from '@/site';
-
-import { resolveLandingShellData } from './landing-shell-data';
 import type { BlogPostRouteData } from '@/surfaces/landing/blog-post/blog-post.types';
 
+import enBlog from '@/config/locale/messages/en/blog.json';
+import zhTwBlog from '@/config/locale/messages/zh-TW/blog.json';
+import zhBlog from '@/config/locale/messages/zh/blog.json';
 import { normalizeLocale } from '@/shared/i18n/locale';
 import {
   buildCanonicalUrl,
   buildLanguageAlternates,
   buildSeoHead,
 } from '@/shared/seo/canonical';
+
+import { resolveLandingShellData } from './landing-shell-data';
 
 type BlogMessages = {
   metadata: {
@@ -25,29 +25,37 @@ type BlogMessages = {
   };
 };
 
+type BlogPostRouteResolverDeps = {
+  getBlogPost?: typeof getBlogPost;
+};
+
 const blogMessagesByLocale: Record<string, BlogMessages> = {
   en: enBlog,
   zh: zhBlog,
   'zh-TW': zhTwBlog,
 };
 
-export async function resolveBlogPostRouteData({
-  locale: localeInput,
-  slug: slugInput,
-}: {
-  locale: unknown;
-  slug: unknown;
-}): Promise<BlogPostRouteData | null> {
+export async function resolveBlogPostRouteData(
+  {
+    locale: localeInput,
+    slug: slugInput,
+  }: {
+    locale: unknown;
+    slug: unknown;
+  },
+  deps: BlogPostRouteResolverDeps = {}
+): Promise<BlogPostRouteData | null> {
   const locale = normalizeLocale(
     typeof localeInput === 'string' ? localeInput : null
   );
   const slug = normalizeSlug(slugInput);
-  if (!locale || !slug) {
+  if (!locale || !slug || !site.capabilities.blog) {
     return null;
   }
 
   const canonicalPath = `/blog/${slug}`;
-  const post = await getBlogPost({ slug, locale });
+  const loadBlogPost = deps.getBlogPost ?? getBlogPost;
+  const post = await loadBlogPost({ slug, locale });
   if (!post) {
     return null;
   }
@@ -106,7 +114,6 @@ function normalizeSlug(value: unknown) {
   const slug = value.trim().replace(/^\/+|\/+$/g, '');
   return slug && !slug.includes('/') ? slug : null;
 }
-
 
 type BlogPostAdZoneName = 'blog_post_inline' | 'blog_post_footer';
 

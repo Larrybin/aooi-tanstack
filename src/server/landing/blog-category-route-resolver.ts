@@ -20,29 +20,38 @@ import { resolveLandingShellData } from './landing-shell-data';
 
 type BlogMessages = typeof enBlog;
 
+type BlogCategoryRouteResolverDeps = {
+  getBlogCategoryPostsAndCategories?: typeof getBlogCategoryPostsAndCategories;
+};
+
 const blogMessagesByLocale: Record<string, BlogMessages> = {
   en: enBlog,
   zh: zhBlog,
   'zh-TW': zhTwBlog,
 };
 
-export async function resolveBlogCategoryRouteData({
-  locale: localeInput,
-  slug: slugInput,
-}: {
-  locale: unknown;
-  slug: unknown;
-}): Promise<BlogCategoryRouteData | null> {
+export async function resolveBlogCategoryRouteData(
+  {
+    locale: localeInput,
+    slug: slugInput,
+  }: {
+    locale: unknown;
+    slug: unknown;
+  },
+  deps: BlogCategoryRouteResolverDeps = {}
+): Promise<BlogCategoryRouteData | null> {
   const locale = normalizeLocale(
     typeof localeInput === 'string' ? localeInput : null
   );
   const slug = normalizeSlug(slugInput);
-  if (!locale || !slug) {
+  if (!locale || !slug || !site.capabilities.blog) {
     return null;
   }
 
   const canonicalPath = `/blog/category/${slug}`;
-  const categoryBlog = await getBlogCategoryPostsAndCategories({
+  const loadBlogCategoryPostsAndCategories =
+    deps.getBlogCategoryPostsAndCategories ?? getBlogCategoryPostsAndCategories;
+  const categoryBlog = await loadBlogCategoryPostsAndCategories({
     slug,
     locale,
     postPrefix: localizedBlogPrefix(locale),

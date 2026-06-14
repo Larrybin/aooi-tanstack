@@ -3680,6 +3680,9 @@ if (contains(blogPostRouteResolverAbs, /isPublishedLocaleForPath/)) {
 if (!contains(blogPostRouteResolverAbs, /resolveBlogPostAdZones/)) {
   fail(`${blogPostRouteResolverFile} must resolve blog post ad zones`);
 }
+if (!contains(blogPostRouteResolverAbs, /site\.capabilities\.blog/)) {
+  fail(`${blogPostRouteResolverFile} must guard disabled blog capability`);
+}
 for (const [regex, label] of [
   [/next-intl/, 'next-intl import'],
   [/next\/navigation/, 'next/navigation import'],
@@ -3765,6 +3768,9 @@ if (contains(blogCategoryRouteResolverAbs, /isPublishedLocaleForPath/)) {
   fail(
     `${blogCategoryRouteResolverFile} must not gate blog categories on the page manifest`
   );
+}
+if (!contains(blogCategoryRouteResolverAbs, /site\.capabilities\.blog/)) {
+  fail(`${blogCategoryRouteResolverFile} must guard disabled blog capability`);
 }
 for (const [regex, label] of [
   [
