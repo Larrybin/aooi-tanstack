@@ -21,7 +21,7 @@ import { readTanStackCloudflareBindings } from './cloudflare-bindings';
 
 type Configs = Record<string, string>;
 type ConfigRow = typeof config.$inferSelect;
-type ReadTanStackSettingsFreshDeps = {
+export type ReadTanStackSettingsFreshDeps = {
   getTanStackCloudflareBindings?: () => Promise<CloudflareBindings | null>;
   getRuntimeEnv?: typeof getServerRuntimeEnv;
   isWorkersRuntime?: typeof isCloudflareWorkersRuntime;
@@ -55,7 +55,7 @@ async function readConfigRows(databaseUrl?: string) {
   return await db().select().from(config);
 }
 
-async function readTanStackSettingsFresh(
+export async function readTanStackSettingsFresh(
   deps: ReadTanStackSettingsFreshDeps = {}
 ): Promise<Configs> {
   const configs: Configs = {};

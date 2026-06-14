@@ -4,6 +4,7 @@ import {
   toRelativeSameOriginAuthSpikeRedirectLocationValue,
 } from '@/infra/platform/auth/auth-spike-redirect';
 import { isAuthSpikeOAuthUpstreamMockEnabled } from '@/infra/platform/auth/oauth-spike-config';
+import type { AuthConfigDeps } from '@/infra/platform/auth/config';
 import { getRuntimeEnvString } from '@/infra/runtime/env.server';
 
 import { setResponseHeader } from '@/shared/lib/api/response-headers';
@@ -17,7 +18,11 @@ type AuthOriginDebug = {
 };
 
 type AuthApiActionDeps = {
-  getAuth?: (request: Request) => Promise<AuthApiHandler>;
+  getAuth?: (
+    request: Request,
+    deps?: AuthConfigDeps
+  ) => Promise<AuthApiHandler>;
+  authConfigDeps?: AuthConfigDeps;
   isAuthSpikeOAuthUpstreamMockEnabled?: () => boolean;
   getAuthOriginDebug?: (
     request: Request
@@ -29,7 +34,10 @@ export async function handleAuthApiRequest(
   request: Request,
   deps: AuthApiActionDeps = {}
 ): Promise<Response> {
-  const auth = await (deps.getAuth ?? getDefaultAuth)(request);
+  const auth = await (deps.getAuth ?? getDefaultAuth)(
+    request,
+    deps.authConfigDeps
+  );
   const response = await normalizeAuthSpikeRedirectLocation(
     await auth.handler(toStandardAuthRequest(request)),
     request,
@@ -39,9 +47,12 @@ export async function handleAuthApiRequest(
   return withNoStore(response);
 }
 
-async function getDefaultAuth(request: Request): Promise<AuthApiHandler> {
+async function getDefaultAuth(
+  request: Request,
+  authConfigDeps?: AuthConfigDeps
+): Promise<AuthApiHandler> {
   const { getAuth } = await import('@/infra/platform/auth');
-  return getAuth(request);
+  return getAuth(request, authConfigDeps);
 }
 
 async function getDefaultAuthOriginDebug(

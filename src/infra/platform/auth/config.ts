@@ -4,7 +4,6 @@ import type {
   AuthServerBindings,
   AuthUiRuntimeSettings,
 } from '@/domains/settings/application/settings-runtime.contracts';
-import { readAuthUiRuntimeSettingsCached } from '@/domains/settings/application/settings-runtime.query';
 import { db } from '@/infra/adapters/db';
 import { getEmailService } from '@/infra/adapters/email/service';
 import { isAuthSpikeOAuthUpstreamMockEnabled } from '@/infra/platform/auth/oauth-spike-config';
@@ -40,6 +39,20 @@ const log = createUseCaseLogger({
   domain: 'auth',
   useCase: 'auth-config',
 });
+
+export type AuthConfigDeps = {
+  readAuthUiRuntimeSettings?: () => Promise<AuthUiRuntimeSettings>;
+  getAuthServerBindings?: () =>
+    | AuthServerBindings
+    | Promise<AuthServerBindings>;
+};
+
+async function readDefaultAuthUiRuntimeSettings(): Promise<AuthUiRuntimeSettings> {
+  const { readAuthUiRuntimeSettingsCached } = await import(
+    '@/domains/settings/application/settings-runtime.query'
+  );
+  return readAuthUiRuntimeSettingsCached();
+}
 
 function assertAuthEnv() {
   const isProduction = isProductionEnv();
@@ -151,13 +164,18 @@ type SendResetPasswordData = Parameters<
 // Dynamic auth options - WITH database connection
 // Only used in API routes that actually need database access
 export async function getAuthOptions(
-  request?: Request
+  request?: Request,
+  deps: AuthConfigDeps = {}
 ): Promise<BetterAuthOptions> {
   installAuthSpikeOAuthFetchMock();
   assertAuthEnv();
   const baseAuthOptions = buildAuthOptionsBase();
-  const authSettings = await readAuthUiRuntimeSettingsCached();
-  const authBindings = getAuthServerBindings();
+  const authSettings = await (
+    deps.readAuthUiRuntimeSettings ?? readDefaultAuthUiRuntimeSettings
+  )();
+  const authBindings = await (
+    deps.getAuthServerBindings ?? getAuthServerBindings
+  )();
   const { isProduction, isAuthSpikeOAuthUpstreamMock } =
     getAuthRuntimeContext(request);
   const isEmailAuthEnabled = authSettings.emailAuthEnabled;

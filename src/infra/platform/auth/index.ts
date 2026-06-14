@@ -2,17 +2,29 @@ import 'server-only';
 
 import { betterAuth } from 'better-auth';
 
-import { getAuthOptions } from './config';
+import { getAuthOptions, type AuthConfigDeps } from './config';
 
 type AuthInstance = Awaited<ReturnType<typeof betterAuth>>;
 
 const authByRequest = new WeakMap<Request, Promise<AuthInstance>>();
 
-async function getAuthPromiseForRequest(
-  request?: Request
+async function createAuthInstance(
+  request?: Request,
+  deps?: AuthConfigDeps
 ): Promise<AuthInstance> {
+  return betterAuth(await getAuthOptions(request, deps));
+}
+
+async function getAuthPromiseForRequest(
+  request?: Request,
+  deps?: AuthConfigDeps
+): Promise<AuthInstance> {
+  if (deps) {
+    return createAuthInstance(request, deps);
+  }
+
   if (!request) {
-    return betterAuth(await getAuthOptions());
+    return createAuthInstance();
   }
 
   const cached = authByRequest.get(request);
@@ -20,16 +32,17 @@ async function getAuthPromiseForRequest(
     return cached;
   }
 
-  const promise = getAuthOptions(request)
-    .then((options) => betterAuth(options))
-    .catch((error) => {
-      authByRequest.delete(request);
-      throw error;
-    });
+  const promise = createAuthInstance(request).catch((error) => {
+    authByRequest.delete(request);
+    throw error;
+  });
   authByRequest.set(request, promise);
   return promise;
 }
 
-export async function getAuth(request?: Request): Promise<AuthInstance> {
-  return getAuthPromiseForRequest(request);
+export async function getAuth(
+  request?: Request,
+  deps?: AuthConfigDeps
+): Promise<AuthInstance> {
+  return getAuthPromiseForRequest(request, deps);
 }
