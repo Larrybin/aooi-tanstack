@@ -1,10 +1,7 @@
 import { getSignedInUserIdentityFromRequest } from '@/infra/platform/auth/session-by-request';
 import { site } from '@/site';
 import type { SettingsSecurityRouteData } from '@/surfaces/member/settings-security/settings-security.types';
-import type {
-  SettingsShellData,
-  SettingsShellNavItem,
-} from '@/surfaces/member/settings-shell/settings-shell.types';
+import type { SettingsShellData } from '@/surfaces/member/settings-shell/settings-shell.types';
 
 import { localePath, normalizeLocale } from '@/shared/i18n/locale';
 import { buildCanonicalUrl, buildSeoHead } from '@/shared/seo/canonical';
@@ -14,6 +11,7 @@ import {
   loadSettingsSecurityRouteMessages,
   type SettingsSecurityRouteMessages,
 } from './settings-security-route-messages';
+import { buildSettingsShellNavItems } from './settings-shell-route-data';
 
 type SettingsSecurityRouteInput = {
   locale: unknown;
@@ -24,13 +22,6 @@ type SettingsSecurityRouteResolverDeps = {
 };
 
 const canonicalPath = '/settings/security' as const;
-const migratedSettingsPaths = [
-  '/settings/profile',
-  '/settings/security',
-  '/settings/credits',
-  '/settings/billing',
-  '/settings/payments',
-] as const;
 
 export async function resolveSettingsSecurityRouteData(
   input: SettingsSecurityRouteInput,
@@ -113,7 +104,11 @@ function buildSettingsShellData(
   return {
     title: readString(sidebar.title, 'Settings'),
     nav: {
-      items: buildSettingsNavItems(messages, locale),
+      items: buildSettingsShellNavItems({
+        activePath: canonicalPath,
+        locale,
+        sidebar,
+      }),
     },
     topNav: {
       items: [
@@ -125,26 +120,6 @@ function buildSettingsShellData(
       ],
     },
   };
-}
-
-function buildSettingsNavItems(
-  messages: SettingsSecurityRouteMessages,
-  locale: string
-): SettingsShellNavItem[] {
-  const sidebarItems = Array.isArray(getObject(messages.sidebar.nav).items)
-    ? (getObject(messages.sidebar.nav).items as Array<Record<string, unknown>>)
-    : [];
-
-  return migratedSettingsPaths.map((path) => {
-    const item = sidebarItems.find((entry) => entry.url === path) ?? {};
-
-    return {
-      title: readString(item.title, fallbackTitleForPath(path)),
-      url: localePath(path, locale),
-      icon: readOptionalString(item.icon),
-      active: path === canonicalPath,
-    };
-  });
 }
 
 function buildSettingsSecurityPageData(
@@ -185,30 +160,6 @@ function buildSettingsSecurityPageData(
 
 function readString(value: unknown, fallback: string) {
   return typeof value === 'string' && value ? value : fallback;
-}
-
-function readOptionalString(value: unknown) {
-  return typeof value === 'string' && value ? value : undefined;
-}
-
-function fallbackTitleForPath(path: (typeof migratedSettingsPaths)[number]) {
-  if (path === '/settings/profile') {
-    return 'Profile';
-  }
-
-  if (path === '/settings/security') {
-    return 'Security';
-  }
-
-  if (path === '/settings/credits') {
-    return 'Credits';
-  }
-
-  if (path === '/settings/billing') {
-    return 'Billing';
-  }
-
-  return 'Payments';
 }
 
 function getObject(value: unknown): Record<string, unknown> {

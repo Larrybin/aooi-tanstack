@@ -4,10 +4,7 @@ import { formatPaymentAmountCents } from '@/domains/billing/ui/format-money';
 import { getSignedInUserIdentityFromRequest } from '@/infra/platform/auth/session-by-request';
 import { site } from '@/site';
 import type { SettingsPaymentsRouteData } from '@/surfaces/member/settings-payments/settings-payments.types';
-import type {
-  SettingsShellData,
-  SettingsShellNavItem,
-} from '@/surfaces/member/settings-shell/settings-shell.types';
+import type { SettingsShellData } from '@/surfaces/member/settings-shell/settings-shell.types';
 
 import {
   resolveSitePaymentCapability,
@@ -22,6 +19,7 @@ import {
   loadSettingsPaymentsRouteMessages,
   type SettingsPaymentsRouteMessages,
 } from './settings-payments-route-messages';
+import { buildSettingsShellNavItems } from './settings-shell-route-data';
 
 type SettingsPaymentsRouteInput = {
   locale: unknown;
@@ -76,13 +74,6 @@ type SettingsPaymentsRouteResolverDeps = {
 };
 
 const canonicalPath = '/settings/payments' as const;
-const migratedSettingsPaths = [
-  '/settings/profile',
-  '/settings/security',
-  '/settings/credits',
-  '/settings/billing',
-  '/settings/payments',
-] as const;
 const defaultPage = 1;
 const defaultPageSize = 20;
 const maxPageSize = 100;
@@ -323,7 +314,11 @@ function buildSettingsShellData(
   return {
     title: readString(sidebar.title, 'Settings'),
     nav: {
-      items: buildSettingsNavItems(messages, locale),
+      items: buildSettingsShellNavItems({
+        activePath: canonicalPath,
+        locale,
+        sidebar,
+      }),
     },
     topNav: {
       items: [
@@ -335,26 +330,6 @@ function buildSettingsShellData(
       ],
     },
   };
-}
-
-function buildSettingsNavItems(
-  messages: SettingsPaymentsRouteMessages,
-  locale: string
-): SettingsShellNavItem[] {
-  const sidebarItems = Array.isArray(getObject(messages.sidebar.nav).items)
-    ? (getObject(messages.sidebar.nav).items as Array<Record<string, unknown>>)
-    : [];
-
-  return migratedSettingsPaths.map((path) => {
-    const item = sidebarItems.find((entry) => entry.url === path) ?? {};
-
-    return {
-      title: readString(item.title, fallbackTitleForPath(path)),
-      url: localePath(path, locale),
-      icon: readOptionalString(item.icon),
-      active: path === canonicalPath,
-    };
-  });
 }
 
 function buildNoAuthPaymentsPageData(
@@ -592,32 +567,8 @@ function serializeRouteData(data: unknown) {
   return JSON.parse(JSON.stringify(data)) as SettingsPaymentsRouteData;
 }
 
-function fallbackTitleForPath(path: (typeof migratedSettingsPaths)[number]) {
-  if (path === '/settings/profile') {
-    return 'Profile';
-  }
-
-  if (path === '/settings/security') {
-    return 'Security';
-  }
-
-  if (path === '/settings/credits') {
-    return 'Credits';
-  }
-
-  if (path === '/settings/billing') {
-    return 'Billing';
-  }
-
-  return 'Payments';
-}
-
 function readString(value: unknown, fallback: string) {
   return typeof value === 'string' && value ? value : fallback;
-}
-
-function readOptionalString(value: unknown) {
-  return typeof value === 'string' && value ? value : undefined;
 }
 
 function getObject(value: unknown): Record<string, unknown> {

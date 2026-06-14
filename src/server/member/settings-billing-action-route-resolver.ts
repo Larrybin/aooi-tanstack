@@ -11,10 +11,7 @@ import type {
   SettingsBillingActionRouteData,
   SettingsBillingCancelResult,
 } from '@/surfaces/member/settings-billing-action/settings-billing-action.types';
-import type {
-  SettingsShellData,
-  SettingsShellNavItem,
-} from '@/surfaces/member/settings-shell/settings-shell.types';
+import type { SettingsShellData } from '@/surfaces/member/settings-shell/settings-shell.types';
 
 import {
   resolveSitePaymentCapability,
@@ -29,6 +26,7 @@ import {
   loadSettingsBillingRouteMessages,
   type SettingsBillingRouteMessages,
 } from './settings-billing-route-messages';
+import { buildSettingsShellNavItems } from './settings-shell-route-data';
 
 type SettingsBillingActionRouteInput = {
   locale: unknown;
@@ -119,13 +117,6 @@ type BillingActionQuery = {
   orderNo: string;
 };
 
-const migratedSettingsPaths = [
-  '/settings/profile',
-  '/settings/security',
-  '/settings/credits',
-  '/settings/billing',
-  '/settings/payments',
-] as const;
 const billingPath = '/settings/billing' as const;
 const cancelPath = '/settings/billing/cancel' as const;
 const portalPath = '/settings/billing/retrieve' as const;
@@ -637,7 +628,11 @@ function buildSettingsShellData(
   return {
     title: readString(sidebar.title, 'Settings'),
     nav: {
-      items: buildSettingsNavItems(messages, locale),
+      items: buildSettingsShellNavItems({
+        activePath: billingPath,
+        locale,
+        sidebar,
+      }),
     },
     topNav: {
       items: [
@@ -649,26 +644,6 @@ function buildSettingsShellData(
       ],
     },
   };
-}
-
-function buildSettingsNavItems(
-  messages: SettingsBillingRouteMessages,
-  locale: string
-): SettingsShellNavItem[] {
-  const sidebarItems = Array.isArray(getObject(messages.sidebar.nav).items)
-    ? (getObject(messages.sidebar.nav).items as Array<Record<string, unknown>>)
-    : [];
-
-  return migratedSettingsPaths.map((path) => {
-    const item = sidebarItems.find((entry) => entry.url === path) ?? {};
-
-    return {
-      title: readString(item.title, fallbackTitleForPath(path)),
-      url: localePath(path, locale),
-      icon: readOptionalString(item.icon),
-      active: path === billingPath,
-    };
-  });
 }
 
 function buildCancelPageData(
@@ -872,32 +847,8 @@ function serializeRouteData(data: unknown) {
   return JSON.parse(JSON.stringify(data)) as SettingsBillingActionRouteData;
 }
 
-function fallbackTitleForPath(path: (typeof migratedSettingsPaths)[number]) {
-  if (path === '/settings/profile') {
-    return 'Profile';
-  }
-
-  if (path === '/settings/security') {
-    return 'Security';
-  }
-
-  if (path === '/settings/credits') {
-    return 'Credits';
-  }
-
-  if (path === '/settings/billing') {
-    return 'Billing';
-  }
-
-  return 'Payments';
-}
-
 function readString(value: unknown, fallback: string) {
   return typeof value === 'string' && value ? value : fallback;
-}
-
-function readOptionalString(value: unknown) {
-  return typeof value === 'string' && value ? value : undefined;
 }
 
 function getObject(value: unknown): Record<string, unknown> {
