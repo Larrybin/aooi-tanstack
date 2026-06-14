@@ -106,6 +106,10 @@ test('resolveSettingsBillingRouteData returns default signed-in billing data', a
   });
   assert.equal(data.page.currentSubscription?.planName, 'Pro');
   assert.equal(
+    data.page.currentSubscription?.manageHref,
+    '/settings/billing/retrieve?subscription_no=sub-1'
+  );
+  assert.equal(
     data.page.currentSubscription?.tip,
     'Your subscription will auto renew on 2026-02-01'
   );
@@ -118,6 +122,10 @@ test('resolveSettingsBillingRouteData returns default signed-in billing data', a
   });
   assert.equal(data.page.records[0]?.amount, '$99');
   assert.equal(data.page.records[0]?.currentPeriod, '2026-01-01 ~ 2026-02-01');
+  assert.equal(
+    data.page.records[0]?.actions.cancelHref,
+    '/settings/billing/cancel?subscription_no=sub-1'
+  );
   assert.doesNotThrow(() => JSON.stringify(data));
 });
 
@@ -317,6 +325,7 @@ function fakeSubscription(
   return {
     id: 'subscription-1',
     subscriptionNo: 'sub-1',
+    paymentUserId: 'customer-1',
     interval: 'month',
     intervalCount: 1,
     status: 'active',

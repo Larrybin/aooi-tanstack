@@ -1,3 +1,4 @@
+import { redirectUnsignedSettingsVisitor } from '@/server/member/settings-auth-redirect';
 import { loadSettingsApiKeysIdRouteSurfaceData } from '@/surfaces/member/settings-apikeys-id/settings-apikeys-id.data';
 import { getSettingsApiKeysIdRouteSurfaceHead } from '@/surfaces/member/settings-apikeys-id/settings-apikeys-id.seo';
 import type { SettingsApiKeysIdRouteData } from '@/surfaces/member/settings-apikeys-id/settings-apikeys-id.types';
@@ -5,7 +6,7 @@ import { SettingsApiKeysIdRouteView } from '@/surfaces/member/settings-apikeys-i
 import { createFileRoute, notFound } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/$locale/settings/apikeys_/$id/delete')({
-  loader: async ({ params }) => {
+  loader: async ({ params, location }) => {
     const data = await loadSettingsApiKeysIdRouteSurfaceData({
       locale: params.locale,
       id: params.id,
@@ -14,6 +15,13 @@ export const Route = createFileRoute('/$locale/settings/apikeys_/$id/delete')({
     if (!data) {
       throw notFound({ data: { locale: params.locale } });
     }
+
+    redirectUnsignedSettingsVisitor({
+      data,
+      locale: params.locale,
+      pathname: location.pathname,
+      search: location.search,
+    });
     return data as SettingsApiKeysIdRouteData;
   },
   head: ({ loaderData }) =>

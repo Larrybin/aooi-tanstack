@@ -48,6 +48,7 @@ import { Route as BlogCategorySlugRouteImport } from './routes/blog/category/$sl
 import { Route as ApiUserGetUserCreditsRouteImport } from './routes/api/user/get-user-credits'
 import { Route as ApiPaymentNotifyRouteImport } from './routes/api/payment/notify'
 import { Route as ApiPaymentCheckoutRouteImport } from './routes/api/payment/checkout'
+import { Route as ApiPaymentCallbackRouteImport } from './routes/api/payment/callback'
 import { Route as LocaleSettingsSecurityRouteImport } from './routes/$locale/settings/security'
 import { Route as LocaleSettingsProfileRouteImport } from './routes/$locale/settings/profile'
 import { Route as LocaleSettingsPaymentsRouteImport } from './routes/$locale/settings/payments'
@@ -266,6 +267,11 @@ const ApiPaymentCheckoutRoute = ApiPaymentCheckoutRouteImport.update({
   path: '/api/payment/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPaymentCallbackRoute = ApiPaymentCallbackRouteImport.update({
+  id: '/api/payment/callback',
+  path: '/api/payment/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LocaleSettingsSecurityRoute = LocaleSettingsSecurityRouteImport.update({
   id: '/$locale/settings/security',
   path: '/$locale/settings/security',
@@ -422,6 +428,7 @@ export interface FileRoutesByFullPath {
   '/$locale/settings/payments': typeof LocaleSettingsPaymentsRoute
   '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
+  '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
@@ -484,6 +491,7 @@ export interface FileRoutesByTo {
   '/$locale/settings/payments': typeof LocaleSettingsPaymentsRoute
   '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
+  '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
@@ -547,6 +555,7 @@ export interface FileRoutesById {
   '/$locale/settings/payments': typeof LocaleSettingsPaymentsRoute
   '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
+  '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
@@ -611,6 +620,7 @@ export interface FileRouteTypes {
     | '/$locale/settings/payments'
     | '/$locale/settings/profile'
     | '/$locale/settings/security'
+    | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
     | '/api/user/get-user-credits'
@@ -673,6 +683,7 @@ export interface FileRouteTypes {
     | '/$locale/settings/payments'
     | '/$locale/settings/profile'
     | '/$locale/settings/security'
+    | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
     | '/api/user/get-user-credits'
@@ -735,6 +746,7 @@ export interface FileRouteTypes {
     | '/$locale/settings/payments'
     | '/$locale/settings/profile'
     | '/$locale/settings/security'
+    | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
     | '/api/user/get-user-credits'
@@ -798,6 +810,7 @@ export interface RootRouteChildren {
   LocaleSettingsPaymentsRoute: typeof LocaleSettingsPaymentsRoute
   LocaleSettingsProfileRoute: typeof LocaleSettingsProfileRoute
   LocaleSettingsSecurityRoute: typeof LocaleSettingsSecurityRoute
+  ApiPaymentCallbackRoute: typeof ApiPaymentCallbackRoute
   ApiPaymentCheckoutRoute: typeof ApiPaymentCheckoutRoute
   ApiPaymentNotifyRoute: typeof ApiPaymentNotifyRoute
   ApiUserGetUserCreditsRoute: typeof ApiUserGetUserCreditsRoute
@@ -1094,6 +1107,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPaymentCheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/payment/callback': {
+      id: '/api/payment/callback'
+      path: '/api/payment/callback'
+      fullPath: '/api/payment/callback'
+      preLoaderRoute: typeof ApiPaymentCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$locale/settings/security': {
       id: '/$locale/settings/security'
       path: '/$locale/settings/security'
@@ -1286,6 +1306,7 @@ const rootRouteChildren: RootRouteChildren = {
   LocaleSettingsPaymentsRoute: LocaleSettingsPaymentsRoute,
   LocaleSettingsProfileRoute: LocaleSettingsProfileRoute,
   LocaleSettingsSecurityRoute: LocaleSettingsSecurityRoute,
+  ApiPaymentCallbackRoute: ApiPaymentCallbackRoute,
   ApiPaymentCheckoutRoute: ApiPaymentCheckoutRoute,
   ApiPaymentNotifyRoute: ApiPaymentNotifyRoute,
   ApiUserGetUserCreditsRoute: ApiUserGetUserCreditsRoute,

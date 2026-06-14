@@ -30,7 +30,8 @@
     "src/infra/platform/auth/client.ts",
     "src/infra/platform/auth/social-authorization-url.ts",
     "src/shared/types/global.d.ts",
-    "src/shared/types/cloudflare-runtime.d.ts"
+    "src/shared/types/cloudflare-runtime.d.ts",
+    "src/shared/types/cloudflare.d.ts"
   ],
   "exclude": ["node_modules", ".next", ".open-next", "out", "dist"]
 }

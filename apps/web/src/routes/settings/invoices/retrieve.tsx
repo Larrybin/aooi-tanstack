@@ -1,3 +1,4 @@
+import { redirectUnsignedSettingsVisitor } from '@/server/member/settings-auth-redirect';
 import { loadSettingsInvoiceRetrieveRouteSurfaceData } from '@/surfaces/member/settings-billing-action/settings-billing-action.data';
 import { getSettingsBillingActionRouteSurfaceHead } from '@/surfaces/member/settings-billing-action/settings-billing-action.seo';
 import type { SettingsBillingActionRouteData } from '@/surfaces/member/settings-billing-action/settings-billing-action.types';
@@ -15,6 +16,13 @@ export const Route = createFileRoute('/settings/invoices/retrieve')({
     if (!data) {
       throw notFound();
     }
+
+    redirectUnsignedSettingsVisitor({
+      data,
+      locale: defaultLocale,
+      pathname: location.pathname,
+      search: location.search,
+    });
     if (data.redirectHref) {
       throw redirect({ href: data.redirectHref });
     }

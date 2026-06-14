@@ -1,3 +1,4 @@
+import { redirectUnsignedSettingsVisitor } from '@/server/member/settings-auth-redirect';
 import { loadSettingsPaymentsRouteSurfaceData } from '@/surfaces/member/settings-payments/settings-payments.data';
 import { getSettingsPaymentsRouteSurfaceHead } from '@/surfaces/member/settings-payments/settings-payments.seo';
 import type { SettingsPaymentsRouteData } from '@/surfaces/member/settings-payments/settings-payments.types';
@@ -13,6 +14,13 @@ export const Route = createFileRoute('/$locale/settings/payments')({
     if (!data) {
       throw notFound({ data: { locale: params.locale } });
     }
+
+    redirectUnsignedSettingsVisitor({
+      data,
+      locale: params.locale,
+      pathname: location.pathname,
+      search: location.search,
+    });
     return data as SettingsPaymentsRouteData;
   },
   head: ({ loaderData }) =>

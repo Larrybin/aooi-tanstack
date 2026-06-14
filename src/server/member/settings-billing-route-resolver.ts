@@ -45,6 +45,7 @@ type BillingQuery = {
 type BillingSubscriptionRecord = {
   id?: string | null;
   subscriptionNo?: string | null;
+  paymentUserId?: string | null;
   interval?: string | null;
   intervalCount?: number | null;
   status?: string | null;
@@ -376,6 +377,7 @@ function buildSettingsBillingPageData(
     paymentCallback: buildPaymentCallback(locale, query),
     currentSubscription: serializeCurrentSubscription(
       messages,
+      locale,
       overview.currentSubscription ?? null
     ),
     pagination: {
@@ -392,7 +394,9 @@ function buildSettingsBillingPageData(
     },
     labels: buildBillingLabels(messages),
     tabs: buildBillingTabs(messages, locale, query.status, query.pageSize),
-    records: overview.subscriptions.map(serializeSubscriptionRecord),
+    records: overview.subscriptions.map((subscription) =>
+      serializeSubscriptionRecord(locale, subscription)
+    ),
   };
 }
 
@@ -452,6 +456,10 @@ function buildBillingLabels(messages: SettingsBillingRouteMessages) {
     callbackTitle: 'Payment callback',
     callbackOrderNo: 'Order No',
     callbackClear: 'Clear status',
+    callbackFailed: 'Failed to confirm payment',
+    manageButton: readString(buttons.manage, 'Manage Subscription'),
+    cancelButton: readString(buttons.cancel, 'Cancel Subscription'),
+    action: readString(fields.action, 'Action'),
   };
 }
 
@@ -564,6 +572,7 @@ function buildBillingTabHref(
 
 function serializeCurrentSubscription(
   messages: SettingsBillingRouteMessages,
+  locale: string,
   subscription: BillingSubscriptionRecord | null
 ): SettingsBillingRouteData['page']['currentSubscription'] {
   if (!subscription) {
@@ -580,6 +589,14 @@ function serializeCurrentSubscription(
       ),
     status: subscription.status ?? '',
     tip: buildCurrentSubscriptionTip(messages, subscription),
+    manageHref:
+      subscription.paymentUserId && subscription.subscriptionNo
+        ? buildSubscriptionActionHref(
+            locale,
+            '/settings/billing/retrieve',
+            subscription.subscriptionNo
+          )
+        : null,
   };
 }
 
@@ -604,6 +621,7 @@ function buildCurrentSubscriptionTip(
 }
 
 function serializeSubscriptionRecord(
+  locale: string,
   subscription: BillingSubscriptionRecord
 ): SettingsBillingRouteData['page']['records'][number] {
   return {
@@ -620,7 +638,36 @@ function serializeSubscriptionRecord(
       subscription.currentPeriodEnd
     )}`,
     endTime: formatYmd(subscription.canceledEndAt),
+    actions: {
+      cancelHref: isCancelableSubscription(subscription)
+        ? buildSubscriptionActionHref(
+            locale,
+            '/settings/billing/cancel',
+            subscription.subscriptionNo ?? ''
+          )
+        : null,
+    },
   };
+}
+
+function isCancelableSubscription(subscription: BillingSubscriptionRecord) {
+  return (
+    Boolean(subscription.subscriptionNo) &&
+    MEMBER_BILLING_ACTIVE_STATUSES.includes(
+      (subscription.status ?? '') as never
+    )
+  );
+}
+
+function buildSubscriptionActionHref(
+  locale: string,
+  path: '/settings/billing/cancel' | '/settings/billing/retrieve',
+  subscriptionNo: string
+) {
+  const params = new URLSearchParams({
+    subscription_no: subscriptionNo,
+  });
+  return `${localePath(path, locale)}?${params}`;
 }
 
 function formatInterval(subscription: BillingSubscriptionRecord) {

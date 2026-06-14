@@ -1,3 +1,4 @@
+import { redirectUnsignedSettingsVisitor } from '@/server/member/settings-auth-redirect';
 import { loadSettingsBillingRouteSurfaceData } from '@/surfaces/member/settings-billing/settings-billing.data';
 import { getSettingsBillingRouteSurfaceHead } from '@/surfaces/member/settings-billing/settings-billing.seo';
 import type { SettingsBillingRouteData } from '@/surfaces/member/settings-billing/settings-billing.types';
@@ -15,6 +16,13 @@ export const Route = createFileRoute('/settings/billing')({
     if (!data) {
       throw notFound();
     }
+
+    redirectUnsignedSettingsVisitor({
+      data,
+      locale: defaultLocale,
+      pathname: location.pathname,
+      search: location.search,
+    });
     return data as SettingsBillingRouteData;
   },
   head: ({ loaderData }) =>

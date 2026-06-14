@@ -19,7 +19,6 @@ import {
   serializePaymentWebhookHeaders,
 } from '@/domains/billing/infra/payment-webhook-inbox';
 import { findSubscriptionByProviderSubscriptionId } from '@/domains/billing/infra/subscription';
-import { getPaymentRuntimeBindings } from '@/infra/adapters/payment/runtime-bindings';
 import { getPaymentService } from '@/infra/adapters/payment/service';
 import {
   buildPaymentNotifyPostLogic,
@@ -33,7 +32,10 @@ import { withApi } from '@/shared/lib/api/route';
 import { resolveConfigConsistencyMode } from '@/shared/lib/config-consistency';
 
 import { createTanStackApiContext } from '../../../server/api-context';
-import { readTanStackBillingRuntimeSettings } from '../../../server/billing-runtime';
+import {
+  readTanStackBillingRuntimeSettings,
+  readTanStackPaymentRuntimeBindings,
+} from '../../../server/billing-runtime';
 
 const paymentNotifyDeps: PaymentNotifyRouteDeps = {
   createApiContext: createTanStackApiContext,
@@ -56,8 +58,8 @@ const paymentNotifyDeps: PaymentNotifyRouteDeps = {
   resolveConfigConsistencyMode,
   readBillingRuntimeSettingsCached: readTanStackBillingRuntimeSettings,
   readBillingRuntimeSettingsFresh: readTanStackBillingRuntimeSettings,
-  readPaymentRuntimeBindings: () => {
-    const bindings = getPaymentRuntimeBindings();
+  readPaymentRuntimeBindings: async () => {
+    const bindings = await readTanStackPaymentRuntimeBindings();
     if (bindings.provider === 'none') {
       throw new ServiceUnavailableError(
         'payment notify bindings cannot be resolved for payment=none'

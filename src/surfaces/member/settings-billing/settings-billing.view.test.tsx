@@ -6,7 +6,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import type { SettingsBillingRouteData } from './settings-billing.types';
 import { SettingsBillingRouteView } from './settings-billing.view';
 
-test('SettingsBillingRouteView renders read-only billing state without action links', () => {
+test('SettingsBillingRouteView renders billing callback and subscription actions', () => {
   const html = renderToStaticMarkup(
     <SettingsBillingRouteView data={createSettingsBillingData()} />
   );
@@ -14,8 +14,10 @@ test('SettingsBillingRouteView renders read-only billing state without action li
   assert.match(html, /Payment callback/);
   assert.match(html, /sub-1/);
   assert.match(html, /Pro/);
-  assert.doesNotMatch(html, /settings\/billing\/cancel/);
-  assert.doesNotMatch(html, /settings\/billing\/retrieve/);
+  assert.match(html, /settings\/billing\/cancel/);
+  assert.match(html, /settings\/billing\/retrieve/);
+  assert.match(html, /Manage Subscription/);
+  assert.match(html, /Cancel Subscription/);
   assert.doesNotMatch(html, /settings\/invoices\/retrieve/);
 });
 
@@ -60,6 +62,7 @@ function createSettingsBillingData(): SettingsBillingRouteData {
         planName: 'Pro',
         status: 'active',
         tip: 'Your subscription will auto renew on 2026-02-01',
+        manageHref: '/settings/billing/retrieve?subscription_no=sub-1',
       },
       pagination: {
         total: 1,
@@ -89,6 +92,10 @@ function createSettingsBillingData(): SettingsBillingRouteData {
         callbackTitle: 'Payment callback',
         callbackOrderNo: 'Order No',
         callbackClear: 'Clear status',
+        callbackFailed: 'Failed to confirm payment',
+        manageButton: 'Manage Subscription',
+        cancelButton: 'Cancel Subscription',
+        action: 'Action',
       },
       tabs: [
         {
@@ -120,6 +127,9 @@ function createSettingsBillingData(): SettingsBillingRouteData {
           createdAt: '2025-12-15',
           currentPeriod: '2026-01-01 ~ 2026-02-01',
           endTime: '-',
+          actions: {
+            cancelHref: '/settings/billing/cancel?subscription_no=sub-1',
+          },
         },
       ],
     },

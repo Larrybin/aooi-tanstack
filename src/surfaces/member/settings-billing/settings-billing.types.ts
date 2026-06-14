@@ -36,6 +36,7 @@ export type SettingsBillingRouteData = {
       planName: string;
       status: string;
       tip: string | null;
+      manageHref: string | null;
     } | null;
     pagination: {
       total: number;
@@ -65,6 +66,10 @@ export type SettingsBillingRouteData = {
       callbackTitle: string;
       callbackOrderNo: string;
       callbackClear: string;
+      callbackFailed: string;
+      manageButton: string;
+      cancelButton: string;
+      action: string;
     };
     tabs: Array<{
       title: string;
@@ -88,6 +93,9 @@ export type SettingsBillingRouteData = {
       createdAt: string;
       currentPeriod: string;
       endTime: string;
+      actions: {
+        cancelHref: string | null;
+      };
     }>;
   };
 };

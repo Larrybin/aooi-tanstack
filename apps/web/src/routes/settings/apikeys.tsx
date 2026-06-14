@@ -1,3 +1,4 @@
+import { redirectUnsignedSettingsVisitor } from '@/server/member/settings-auth-redirect';
 import { loadSettingsApiKeysRouteSurfaceData } from '@/surfaces/member/settings-apikeys/settings-apikeys.data';
 import { getSettingsApiKeysRouteSurfaceHead } from '@/surfaces/member/settings-apikeys/settings-apikeys.seo';
 import type { SettingsApiKeysRouteData } from '@/surfaces/member/settings-apikeys/settings-apikeys.types';
@@ -15,6 +16,13 @@ export const Route = createFileRoute('/settings/apikeys')({
     if (!data) {
       throw notFound();
     }
+
+    redirectUnsignedSettingsVisitor({
+      data,
+      locale: defaultLocale,
+      pathname: location.pathname,
+      search: location.search,
+    });
     return data as SettingsApiKeysRouteData;
   },
   head: ({ loaderData }) =>

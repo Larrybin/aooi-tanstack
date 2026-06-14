@@ -1,14 +1,23 @@
 import 'server-only';
 
 import type { PaymentRuntimeBindings } from '@/domains/settings/application/settings-runtime.contracts';
-import { getRuntimeEnvString } from '@/infra/runtime/env.server';
+import {
+  getRuntimeEnvString,
+  type CloudflareBindings,
+} from '@/infra/runtime/env.server';
 
 import {
   assertPaymentCapabilityContract,
   resolveSitePaymentCapability,
 } from '@/config/payment-capability';
 
-function readPaymentRuntimeBindings(): PaymentRuntimeBindings {
+type PaymentRuntimeBindingOptions = {
+  bindings?: CloudflareBindings | null;
+};
+
+function readPaymentRuntimeBindings(
+  options: PaymentRuntimeBindingOptions = {}
+): PaymentRuntimeBindings {
   const capability = resolveSitePaymentCapability();
 
   switch (capability) {
@@ -20,10 +29,11 @@ function readPaymentRuntimeBindings(): PaymentRuntimeBindings {
     case 'stripe': {
       const bindings = {
         stripePublishableKey:
-          getRuntimeEnvString('STRIPE_PUBLISHABLE_KEY')?.trim() || '',
-        stripeSecretKey: getRuntimeEnvString('STRIPE_SECRET_KEY')?.trim() || '',
+          getRuntimeEnvString('STRIPE_PUBLISHABLE_KEY', options)?.trim() || '',
+        stripeSecretKey:
+          getRuntimeEnvString('STRIPE_SECRET_KEY', options)?.trim() || '',
         stripeSigningSecret:
-          getRuntimeEnvString('STRIPE_SIGNING_SECRET')?.trim() || '',
+          getRuntimeEnvString('STRIPE_SIGNING_SECRET', options)?.trim() || '',
       };
       assertPaymentCapabilityContract({
         capability,
@@ -38,9 +48,10 @@ function readPaymentRuntimeBindings(): PaymentRuntimeBindings {
     }
     case 'creem': {
       const bindings = {
-        creemApiKey: getRuntimeEnvString('CREEM_API_KEY')?.trim() || '',
+        creemApiKey:
+          getRuntimeEnvString('CREEM_API_KEY', options)?.trim() || '',
         creemSigningSecret:
-          getRuntimeEnvString('CREEM_SIGNING_SECRET')?.trim() || '',
+          getRuntimeEnvString('CREEM_SIGNING_SECRET', options)?.trim() || '',
       };
       assertPaymentCapabilityContract({
         capability,
@@ -55,10 +66,12 @@ function readPaymentRuntimeBindings(): PaymentRuntimeBindings {
     }
     case 'paypal': {
       const bindings = {
-        paypalClientId: getRuntimeEnvString('PAYPAL_CLIENT_ID')?.trim() || '',
+        paypalClientId:
+          getRuntimeEnvString('PAYPAL_CLIENT_ID', options)?.trim() || '',
         paypalClientSecret:
-          getRuntimeEnvString('PAYPAL_CLIENT_SECRET')?.trim() || '',
-        paypalWebhookId: getRuntimeEnvString('PAYPAL_WEBHOOK_ID')?.trim() || '',
+          getRuntimeEnvString('PAYPAL_CLIENT_SECRET', options)?.trim() || '',
+        paypalWebhookId:
+          getRuntimeEnvString('PAYPAL_WEBHOOK_ID', options)?.trim() || '',
       };
       assertPaymentCapabilityContract({
         capability,
@@ -74,6 +87,8 @@ function readPaymentRuntimeBindings(): PaymentRuntimeBindings {
   }
 }
 
-export function getPaymentRuntimeBindings(): PaymentRuntimeBindings {
-  return { ...readPaymentRuntimeBindings() };
+export function getPaymentRuntimeBindings(
+  options: PaymentRuntimeBindingOptions = {}
+): PaymentRuntimeBindings {
+  return { ...readPaymentRuntimeBindings(options) };
 }

@@ -36,7 +36,9 @@ export type PaymentNotifyRouteDeps = PaymentNotifyDeps & {
   readBillingRuntimeSettingsFresh: () => Promise<
     ActiveBillingRuntimeSettings | BillingRuntimeSettingsForNone
   >;
-  readPaymentRuntimeBindings: () => ActivePaymentRuntimeBindings;
+  readPaymentRuntimeBindings: () =>
+    | ActivePaymentRuntimeBindings
+    | Promise<ActivePaymentRuntimeBindings>;
   createPaymentService: (input: {
     settings: ActiveBillingRuntimeSettings;
     bindings: ActivePaymentRuntimeBindings;
@@ -64,7 +66,7 @@ export function buildPaymentNotifyPostLogic(deps: PaymentNotifyRouteDeps) {
       );
     }
 
-    const bindings = deps.readPaymentRuntimeBindings();
+    const bindings = await deps.readPaymentRuntimeBindings();
     const paymentService = await deps.createPaymentService({
       settings: settings as ActiveBillingRuntimeSettings,
       bindings,

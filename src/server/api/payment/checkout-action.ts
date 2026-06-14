@@ -32,7 +32,7 @@ type CheckoutPostActionDeps<TSettings, TBindings> = {
   createApiContext: (req: Request) => CheckoutApiContext;
   sitePricing: SitePricing | null;
   readBillingRuntimeSettings: () => Promise<TSettings>;
-  getPaymentRuntimeBindings: () => TBindings;
+  getPaymentRuntimeBindings: () => TBindings | Promise<TBindings>;
   createPaymentCheckoutSession: (input: {
     pricingItem: NonNullable<SitePricing['pricing']['items']>[number];
     user: { id: string; email?: string | null; name?: string | null };

@@ -1,3 +1,4 @@
+import { redirectUnsignedSettingsVisitor } from '@/server/member/settings-auth-redirect';
 import { loadSettingsCreditsRouteSurfaceData } from '@/surfaces/member/settings-credits/settings-credits.data';
 import { getSettingsCreditsRouteSurfaceHead } from '@/surfaces/member/settings-credits/settings-credits.seo';
 import type { SettingsCreditsRouteData } from '@/surfaces/member/settings-credits/settings-credits.types';
@@ -15,6 +16,13 @@ export const Route = createFileRoute('/settings/credits')({
     if (!data) {
       throw notFound();
     }
+
+    redirectUnsignedSettingsVisitor({
+      data,
+      locale: defaultLocale,
+      pathname: location.pathname,
+      search: location.search,
+    });
     return data as SettingsCreditsRouteData;
   },
   head: ({ loaderData }) =>

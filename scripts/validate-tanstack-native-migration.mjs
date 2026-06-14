@@ -197,11 +197,14 @@ const requiredFiles = [
   'apps/web/src/routes/$locale/activity/ai-tasks_/$id/refresh.tsx',
   'apps/web/src/routes/$locale/activity/chats.tsx',
   'apps/web/src/routes/$locale/activity/feedbacks.tsx',
+  'apps/web/src/routes/api/payment/callback.ts',
   'apps/web/src/routes/api/payment/checkout.ts',
   'apps/web/src/routes/api/payment/notify.ts',
   'apps/web/src/routes/api/user/get-user-credits.ts',
   'apps/web/src/routes/$locale/blog/category/$slug.tsx',
   'apps/web/src/server/api-context.ts',
+  'apps/web/src/server/billing-runtime.ts',
+  'src/server/api/payment/callback-action.ts',
   'src/server/api/payment/checkout-action.ts',
   'src/server/api/payment/notify-action.ts',
   'src/server/api/user/get-user-credits-action.ts',
@@ -227,6 +230,7 @@ const requiredFiles = [
   'src/server/landing/blog-category-route-resolver.ts',
   'src/server/member/member-entry-route-data.ts',
   'src/server/member/member-entry-route-resolver.ts',
+  'src/server/member/settings-auth-redirect.ts',
   'src/server/member/activity-route-data.ts',
   'src/server/member/activity-route-resolver.ts',
   'src/server/member/activity-route-messages.ts',
@@ -781,6 +785,18 @@ for (const [regex, label] of [
 }
 if (contains(landingShellViewAbs, /item\.url\s*\|\|\s*['"]#['"]/)) {
   fail(`${landingShellViewFile} must not render missing nav URLs as # links`);
+}
+
+const protectedSettingsRouteFiles = sourceFilesIn('apps/web/src/routes')
+  .map((file) => normalizePath(relative(root, file)))
+  .filter((file) =>
+    /^apps\/web\/src\/routes\/(?:\$locale\/)?settings\//.test(file)
+  );
+for (const file of protectedSettingsRouteFiles) {
+  const abs = join(root, file);
+  if (!contains(abs, /redirectUnsignedSettingsVisitor/)) {
+    fail(`${file} must redirect unsigned settings visitors in the loader`);
+  }
 }
 
 const defaultHomeRouteFile = 'apps/web/src/routes/index.tsx';
@@ -2181,7 +2197,9 @@ for (const [regex, label] of [
   [/readSignedInUserIdentity|getSignedInUserIdentity/, 'signed-in user check'],
   [/readMemberBillingOverviewQuery/, 'member billing overview query'],
   [/currentSubscription/, 'current subscription route data'],
+  [/manageHref/, 'current subscription manage link route data'],
   [/subscriptions|records/, 'subscription history route data'],
+  [/cancelHref/, 'subscription cancel link route data'],
   [/status/, 'status query filter'],
   [/pageSize/, 'page size query filter'],
   [/orderNo/, 'payment callback display data'],
@@ -2273,15 +2291,21 @@ for (const [regex, label] of [
   [/data\.page\.currentSubscription/, 'current subscription display'],
   [/data\.page\.records/, 'plain serializable subscription table'],
   [/data\.page\.tabs/, 'status filter tabs'],
-  [/data\.page\.paymentCallback/, 'payment callback display only'],
+  [/data\.page\.paymentCallback/, 'payment callback route data'],
+  [/\/api\/payment\/callback/, 'payment callback confirmation API call'],
+  [
+    /window\.location\.replace/,
+    'clean URL replace after callback confirmation',
+  ],
+  [/currentSubscription\??\.manageHref/, 'current subscription manage action'],
+  [/record\.actions\.cancelHref/, 'subscription cancel row action'],
+  [/data\.page\.labels\.action/, 'subscription action column'],
 ]) {
   if (!contains(settingsBillingViewAbs, regex)) {
     fail(`${settingsBillingViewFile} must apply ${label}`);
   }
 }
 for (const [regex, label] of [
-  [/settings\/billing\/cancel/, 'cancel action link'],
-  [/settings\/billing\/retrieve/, 'provider portal link'],
   [/settings\/invoices\/retrieve/, 'invoice retrieval link'],
 ]) {
   if (contains(settingsBillingViewAbs, regex)) {
@@ -3757,10 +3781,24 @@ for (const [regex, label] of [
 
 const sharedRouteActionContracts = [
   {
+    file: 'apps/web/src/routes/api/payment/callback.ts',
+    required: [
+      [/createPaymentCallbackPostAction/, 'createPaymentCallbackPostAction'],
+      [/@\/server\/api\/payment\/callback-action/, 'server callback action'],
+      [/readTanStackPaymentRuntimeBindings/, 'TanStack payment bindings'],
+    ],
+    forbidden: [
+      [/@\/app\/api\//, '@/app/api import'],
+      [/confirmPaymentCallbackUseCase/, 'payment callback use case'],
+      [/PaymentCallbackBodySchema/, 'callback body schema parsing'],
+    ],
+  },
+  {
     file: 'apps/web/src/routes/api/payment/checkout.ts',
     required: [
       [/createPaymentCheckoutPostAction/, 'createPaymentCheckoutPostAction'],
       [/@\/server\/api\/payment\/checkout-action/, 'server checkout action'],
+      [/readTanStackPaymentRuntimeBindings/, 'TanStack payment bindings'],
     ],
     forbidden: [
       [/@\/app\/api\//, '@/app/api import'],
@@ -3774,6 +3812,7 @@ const sharedRouteActionContracts = [
     required: [
       [/buildPaymentNotifyPostLogic/, 'buildPaymentNotifyPostLogic'],
       [/@\/server\/api\/payment\/notify-action/, 'server notify action'],
+      [/readTanStackPaymentRuntimeBindings/, 'TanStack payment bindings'],
     ],
     forbidden: [
       [/@\/app\/api\//, '@/app/api import'],
@@ -3810,6 +3849,22 @@ for (const contract of sharedRouteActionContracts) {
     if (contains(abs, regex)) {
       fail(`${contract.file} must not inline ${label}`);
     }
+  }
+}
+
+const tanstackBillingRuntimeFile = 'apps/web/src/server/billing-runtime.ts';
+const tanstackBillingRuntimeAbs = join(root, tanstackBillingRuntimeFile);
+for (const [regex, label] of [
+  [/cloudflare:workers/, 'TanStack Cloudflare workers bindings import'],
+  [/readTanStackCloudflareBindings/, 'TanStack binding reader'],
+  [/HYPERDRIVE/, 'Hyperdrive binding fallback'],
+  [/readConfigRowsWithDatabaseUrl/, 'direct config row reader'],
+  [/readTanStackPaymentRuntimeBindings/, 'TanStack payment binding reader'],
+  [/getPaymentRuntimeBindings\(\{\s*bindings:/, 'payment binding propagation'],
+  [/getServerRuntimeEnv\(\{\s*bindings:/, 'runtime env binding propagation'],
+]) {
+  if (!contains(tanstackBillingRuntimeAbs, regex)) {
+    fail(`${tanstackBillingRuntimeFile} must implement ${label}`);
   }
 }
 
