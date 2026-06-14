@@ -8,6 +8,7 @@ export const migratedSettingsPaths = [
   '/settings/credits',
   '/settings/billing',
   '/settings/payments',
+  '/settings/apikeys',
 ] as const;
 
 type MigratedSettingsPath = (typeof migratedSettingsPaths)[number];
@@ -54,7 +55,11 @@ function fallbackTitleForPath(path: MigratedSettingsPath) {
     return 'Billing';
   }
 
-  return 'Payments';
+  if (path === '/settings/payments') {
+    return 'Payments';
+  }
+
+  return 'API Keys';
 }
 
 function readString(value: unknown, fallback: string) {

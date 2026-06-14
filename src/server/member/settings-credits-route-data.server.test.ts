@@ -249,11 +249,13 @@ test('resolveSettingsCreditsRouteData returns localized credits data', async () 
       localePath('/settings/credits', locale),
       localePath('/settings/billing', locale),
       localePath('/settings/payments', locale),
+      localePath('/settings/apikeys', locale),
     ]
   );
   assert.equal(data.shell.nav.items[2]?.active, true);
   assert.equal(data.shell.nav.items[3]?.active, false);
   assert.equal(data.shell.nav.items[4]?.active, false);
+  assert.equal(data.shell.nav.items[5]?.active, false);
 });
 
 test('resolveSettingsCreditsRouteData returns null for unsupported locale', async () => {

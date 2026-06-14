@@ -170,6 +170,7 @@ const requiredFiles = [
   'apps/web/src/routes/settings/billing_/retrieve.tsx',
   'apps/web/src/routes/settings/invoices/retrieve.tsx',
   'apps/web/src/routes/settings/payments.tsx',
+  'apps/web/src/routes/settings/apikeys.tsx',
   'apps/web/src/routes/activity_.tsx',
   'apps/web/src/routes/$locale/settings_.tsx',
   'apps/web/src/routes/$locale/settings/profile.tsx',
@@ -180,6 +181,7 @@ const requiredFiles = [
   'apps/web/src/routes/$locale/settings/billing_/retrieve.tsx',
   'apps/web/src/routes/$locale/settings/invoices/retrieve.tsx',
   'apps/web/src/routes/$locale/settings/payments.tsx',
+  'apps/web/src/routes/$locale/settings/apikeys.tsx',
   'apps/web/src/routes/$locale/activity_.tsx',
   'apps/web/src/routes/api/payment/checkout.ts',
   'apps/web/src/routes/api/payment/notify.ts',
@@ -227,6 +229,10 @@ const requiredFiles = [
   'src/server/member/settings-payments-route-data.ts',
   'src/server/member/settings-payments-route-resolver.ts',
   'src/server/member/settings-payments-route-messages.ts',
+  'src/server/member/settings-apikeys-route-data.ts',
+  'src/server/member/settings-apikeys-route-resolver.ts',
+  'src/server/member/settings-apikeys-route-messages.ts',
+  'src/server/member/settings-shell-route-data.ts',
   'src/surfaces/landing/pricing/pricing.data.ts',
   'src/surfaces/landing/pricing/pricing.seo.ts',
   'src/surfaces/landing/pricing/pricing.view.tsx',
@@ -279,6 +285,10 @@ const requiredFiles = [
   'src/surfaces/member/settings-payments/settings-payments.seo.ts',
   'src/surfaces/member/settings-payments/settings-payments.types.ts',
   'src/surfaces/member/settings-payments/settings-payments.view.tsx',
+  'src/surfaces/member/settings-apikeys/settings-apikeys.data.ts',
+  'src/surfaces/member/settings-apikeys/settings-apikeys.seo.ts',
+  'src/surfaces/member/settings-apikeys/settings-apikeys.types.ts',
+  'src/surfaces/member/settings-apikeys/settings-apikeys.view.tsx',
   'src/surfaces/system/not-found/not-found.view.tsx',
   'scripts/tanstack-gate-4-plan.mjs',
   'docs/migration/gate-4-page-migration-plan.generated.md',
@@ -2090,6 +2100,200 @@ if (
 ) {
   fail(
     'src/app/[locale]/(landing)/settings/payments/page.tsx must remain until the legacy app route is retired'
+  );
+}
+
+const settingsApiKeysRouteFiles = [
+  {
+    file: 'apps/web/src/routes/settings/apikeys.tsx',
+    routeId: '/settings/apikeys',
+    localePattern: /defaultLocale/,
+  },
+  {
+    file: 'apps/web/src/routes/$locale/settings/apikeys.tsx',
+    routeId: '/$locale/settings/apikeys',
+    localePattern: /params\.locale/,
+  },
+];
+
+for (const { file, routeId, localePattern } of settingsApiKeysRouteFiles) {
+  const abs = join(root, file);
+  if (!existsSync(abs)) {
+    fail(`${file} must exist for Gate 4-B.3h-1 settings API keys route`);
+  }
+  if (!contains(abs, /createFileRoute/)) {
+    fail(`${file} must use createFileRoute`);
+  }
+  if (
+    !contains(abs, new RegExp(`createFileRoute\\('${escapeRegex(routeId)}'\\)`))
+  ) {
+    fail(`${file} must declare TanStack route ${routeId}`);
+  }
+  if (!contains(abs, /loadSettingsApiKeysRouteSurfaceData/)) {
+    fail(`${file} must load settings API keys route surface data`);
+  }
+  if (!contains(abs, /getSettingsApiKeysRouteSurfaceHead/)) {
+    fail(`${file} must use settings API keys route surface head`);
+  }
+  if (!contains(abs, /SettingsApiKeysRouteView/)) {
+    fail(`${file} must render SettingsApiKeysRouteView`);
+  }
+  if (!contains(abs, localePattern)) {
+    fail(`${file} must use the expected locale source`);
+  }
+}
+
+for (const fullPath of ['/settings/apikeys', '/$locale/settings/apikeys']) {
+  if (
+    !contains(
+      homeRouteTreeAbs,
+      new RegExp(`fullPath:\\s*'${escapeRegex(fullPath)}'`)
+    )
+  ) {
+    fail(
+      `${homeRouteTreeFile} must include settings API keys fullPath ${fullPath}`
+    );
+  }
+}
+
+const settingsApiKeysDataFile =
+  'src/server/member/settings-apikeys-route-data.ts';
+const settingsApiKeysDataAbs = join(root, settingsApiKeysDataFile);
+if (
+  !contains(
+    settingsApiKeysDataAbs,
+    /createServerFn\(\{\s*method:\s*['"]GET['"]/
+  )
+) {
+  fail(`${settingsApiKeysDataFile} must use createServerFn({ method: 'GET' })`);
+}
+if (
+  !contains(
+    settingsApiKeysDataAbs,
+    /await\s+import\(\s*['"].\/settings-apikeys-route-resolver['"]\s*\)/
+  )
+) {
+  fail(
+    `${settingsApiKeysDataFile} must dynamically import the settings API keys resolver`
+  );
+}
+
+const settingsApiKeysResolverFile =
+  'src/server/member/settings-apikeys-route-resolver.ts';
+const settingsApiKeysResolverAbs = join(root, settingsApiKeysResolverFile);
+for (const [regex, label] of [
+  [/normalizeLocale/, 'locale normalization'],
+  [/loadSettingsApiKeysRouteMessages/, 'settings API keys message loader'],
+  [/readSignedInUserIdentity|getSignedInUserIdentity/, 'signed-in user check'],
+  [/listOwnApikeysUseCase/, 'API keys list use case'],
+  [/getApikeys/, 'API keys list infra dependency'],
+  [/getApikeysCount/, 'API keys count infra dependency'],
+  [/pageSize/, 'page size query filter'],
+  [/editHref/, 'API key edit link route data'],
+  [/deleteHref/, 'API key delete link route data'],
+  [/settings\/apikeys\/create/, 'API key create link'],
+  [/JSON\.stringify/, 'route data serializability guard'],
+  [/noindex,nofollow/, 'member noindex robots head'],
+]) {
+  if (!contains(settingsApiKeysResolverAbs, regex)) {
+    fail(`${settingsApiKeysResolverFile} must use ${label}`);
+  }
+}
+for (const [regex, label] of [
+  [/createOwnApikeyUseCase/, 'API key create mutation'],
+  [/renameOwnApikeyUseCase/, 'API key rename mutation'],
+  [/deleteOwnApikeyUseCase/, 'API key delete mutation'],
+  [/requireOwnedApikeyUseCase/, 'API key ownership mutation gate'],
+  [/FormCard/, 'legacy form card'],
+  [/TableCard/, 'legacy table card'],
+  [/withAction/, 'legacy server action helper'],
+  [/parseFormData/, 'legacy form parser'],
+  [/next\/headers/, 'next/headers import'],
+  [/session\.server/, 'legacy Next session server'],
+  [
+    /ConsoleLayout|LandingLayout|PublicAppProvider|AuthSnapshotProvider/,
+    'legacy member shell',
+  ],
+  [/next-intl/, 'next-intl import'],
+  [/next\/navigation/, 'next/navigation import'],
+  [/@\/app\/|src\/app\//, 'legacy app import'],
+  [/@\/themes\//, '@/themes import'],
+]) {
+  if (contains(settingsApiKeysResolverAbs, regex)) {
+    fail(`${settingsApiKeysResolverFile} must not depend on ${label}`);
+  }
+}
+
+const settingsApiKeysMessagesFile =
+  'src/server/member/settings-apikeys-route-messages.ts';
+const settingsApiKeysMessagesAbs = join(root, settingsApiKeysMessagesFile);
+for (const [regex, label] of [
+  [/settings\/apikeys/, 'settings/apikeys messages'],
+  [/settings\/sidebar/, 'settings/sidebar messages'],
+  [
+    /\?\s*\(mergeDeep\(baseApiKeys/,
+    'base fallback for missing API keys messages',
+  ],
+  [
+    /\?\s*\(mergeDeep\(baseSidebar/,
+    'base fallback for missing sidebar messages',
+  ],
+  [/mergeDeep/, 'key-level fallback merge'],
+]) {
+  if (!contains(settingsApiKeysMessagesAbs, regex)) {
+    fail(`${settingsApiKeysMessagesFile} must implement ${label}`);
+  }
+}
+
+const settingsApiKeysSurfaceFiles = walk(
+  join(root, 'src/surfaces/member/settings-apikeys')
+)
+  .filter((file) => /\.(ts|tsx)$/.test(file))
+  .map((file) => normalizePath(relative(root, file)))
+  .sort();
+for (const file of settingsApiKeysSurfaceFiles) {
+  const abs = join(root, file);
+  for (const [regex, label] of [
+    [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
+    [/^\s*import\s+['"]next(?:\/|['"])/m, 'next side-effect import'],
+    [/from\s+['"]next-intl(?:\/|['"])/, 'next-intl import'],
+    [/@\/infra\/platform\/i18n\/navigation/, 'Next i18n navigation import'],
+    [/@\/app\/|src\/app\//, 'legacy app import'],
+    [/@\/themes\//, '@/themes import'],
+    [/^\s*import\s+['"]server-only['"]/m, 'server-only marker'],
+    [/session\.server/, 'legacy Next session server'],
+    [/TableCard/, 'legacy table card'],
+    [/FormCard/, 'legacy form card'],
+  ]) {
+    if (contains(abs, regex)) {
+      fail(`${file} must not depend on ${label}`);
+    }
+  }
+}
+
+const settingsApiKeysViewFile =
+  'src/surfaces/member/settings-apikeys/settings-apikeys.view.tsx';
+const settingsApiKeysViewAbs = join(root, settingsApiKeysViewFile);
+for (const [regex, label] of [
+  [/document\.documentElement\.lang\s*=\s*data\.locale/, 'localized html lang'],
+  [/document\.documentElement\.dir\s*=\s*isRtlLocale/, 'localized html dir'],
+  [/data\.page\.records/, 'plain serializable API keys table'],
+  [/data\.page\.createHref/, 'API key create link rendering'],
+  [/editHref/, 'API key edit link rendering'],
+  [/deleteHref/, 'API key delete link rendering'],
+]) {
+  if (!contains(settingsApiKeysViewAbs, regex)) {
+    fail(`${settingsApiKeysViewFile} must apply ${label}`);
+  }
+}
+
+if (
+  !existsSync(
+    join(root, 'src/app/[locale]/(landing)/settings/apikeys/page.tsx')
+  )
+) {
+  fail(
+    'src/app/[locale]/(landing)/settings/apikeys/page.tsx must remain until the legacy app route is retired'
   );
 }
 
