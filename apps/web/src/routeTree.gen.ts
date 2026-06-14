@@ -56,6 +56,7 @@ import { Route as ApiRemoverJobsRouteImport } from './routes/api/remover/jobs'
 import { Route as ApiPaymentNotifyRouteImport } from './routes/api/payment/notify'
 import { Route as ApiPaymentCheckoutRouteImport } from './routes/api/payment/checkout'
 import { Route as ApiPaymentCallbackRouteImport } from './routes/api/payment/callback'
+import { Route as ApiConfigGetConfigsRouteImport } from './routes/api/config/get-configs'
 import { Route as ApiBackgroundRemoverRemoveRouteImport } from './routes/api/background-remover/remove'
 import { Route as ApiBackgroundRemoverCleanupRouteImport } from './routes/api/background-remover/cleanup'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -323,6 +324,11 @@ const ApiPaymentCallbackRoute = ApiPaymentCallbackRouteImport.update({
   path: '/api/payment/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiConfigGetConfigsRoute = ApiConfigGetConfigsRouteImport.update({
+  id: '/api/config/get-configs',
+  path: '/api/config/get-configs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBackgroundRemoverRemoveRoute =
   ApiBackgroundRemoverRemoveRouteImport.update({
     id: '/api/background-remover/remove',
@@ -534,6 +540,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/background-remover/cleanup': typeof ApiBackgroundRemoverCleanupRoute
   '/api/background-remover/remove': typeof ApiBackgroundRemoverRemoveRoute
+  '/api/config/get-configs': typeof ApiConfigGetConfigsRoute
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
@@ -613,6 +620,7 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/background-remover/cleanup': typeof ApiBackgroundRemoverCleanupRoute
   '/api/background-remover/remove': typeof ApiBackgroundRemoverRemoveRoute
+  '/api/config/get-configs': typeof ApiConfigGetConfigsRoute
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
@@ -693,6 +701,7 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/background-remover/cleanup': typeof ApiBackgroundRemoverCleanupRoute
   '/api/background-remover/remove': typeof ApiBackgroundRemoverRemoveRoute
+  '/api/config/get-configs': typeof ApiConfigGetConfigsRoute
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
@@ -774,6 +783,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/background-remover/cleanup'
     | '/api/background-remover/remove'
+    | '/api/config/get-configs'
     | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
@@ -853,6 +863,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/background-remover/cleanup'
     | '/api/background-remover/remove'
+    | '/api/config/get-configs'
     | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
@@ -932,6 +943,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/background-remover/cleanup'
     | '/api/background-remover/remove'
+    | '/api/config/get-configs'
     | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
@@ -1011,6 +1023,7 @@ export interface RootRouteChildren {
   LocaleSettingsSecurityRoute: typeof LocaleSettingsSecurityRoute
   ApiBackgroundRemoverCleanupRoute: typeof ApiBackgroundRemoverCleanupRoute
   ApiBackgroundRemoverRemoveRoute: typeof ApiBackgroundRemoverRemoveRoute
+  ApiConfigGetConfigsRoute: typeof ApiConfigGetConfigsRoute
   ApiPaymentCallbackRoute: typeof ApiPaymentCallbackRoute
   ApiPaymentCheckoutRoute: typeof ApiPaymentCheckoutRoute
   ApiPaymentNotifyRoute: typeof ApiPaymentNotifyRoute
@@ -1375,6 +1388,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPaymentCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/config/get-configs': {
+      id: '/api/config/get-configs'
+      path: '/api/config/get-configs'
+      fullPath: '/api/config/get-configs'
+      preLoaderRoute: typeof ApiConfigGetConfigsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/background-remover/remove': {
       id: '/api/background-remover/remove'
       path: '/api/background-remover/remove'
@@ -1656,6 +1676,7 @@ const rootRouteChildren: RootRouteChildren = {
   LocaleSettingsSecurityRoute: LocaleSettingsSecurityRoute,
   ApiBackgroundRemoverCleanupRoute: ApiBackgroundRemoverCleanupRoute,
   ApiBackgroundRemoverRemoveRoute: ApiBackgroundRemoverRemoveRoute,
+  ApiConfigGetConfigsRoute: ApiConfigGetConfigsRoute,
   ApiPaymentCallbackRoute: ApiPaymentCallbackRoute,
   ApiPaymentCheckoutRoute: ApiPaymentCheckoutRoute,
   ApiPaymentNotifyRoute: ApiPaymentNotifyRoute,

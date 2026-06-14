@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { PublicUiConfig } from '@/domains/settings/application/settings-runtime.contracts';
 
-import { buildGetConfigsLogic } from './route-logic';
+import { buildGetConfigsLogic } from './get-configs-logic';
 
 const CACHED_CONFIG: PublicUiConfig = {
   aiEnabled: true,
