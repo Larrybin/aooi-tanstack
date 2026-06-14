@@ -1,16 +1,15 @@
-import 'server-only';
-
-import { cookies } from 'next/headers';
 import type { BackgroundRemoverActor } from '@/domains/background-remover/domain/types';
 import { getCurrentSubscription } from '@/domains/billing/infra/subscription';
 import { resolveAppEnvironment } from '@/domains/entitlements/domain/types';
 import { listActiveEntitlementGrantsForScope } from '@/domains/entitlements/infra/grant';
 import { resolveProductAccess } from '@/domains/product-entitlements/application/resolve-product-access';
 import {
+  REMOVER_ANONYMOUS_SESSION_COOKIE,
+  REMOVER_ANONYMOUS_SESSION_MAX_AGE_SECONDS,
   resolveAnonymousSessionForRequest,
   writeAnonymousSessionCookie,
 } from '@/domains/remover/application/actor-session';
-import { getSignedInUserIdentity } from '@/infra/platform/auth/session.server';
+import { getSignedInUserIdentityFromRequest } from '@/infra/platform/auth/session-by-request';
 import {
   getRuntimeEnvString,
   isRuntimeEnvEnabled,
@@ -19,6 +18,10 @@ import { site, sitePricing } from '@/site';
 
 import { assertCsrf } from '@/shared/lib/api/csrf.server';
 import { ServiceUnavailableError } from '@/shared/lib/api/errors';
+
+type SetCookieSink = {
+  appendSetCookie(value: string): void;
+};
 
 function getAnonymousSessionSecret(): string {
   return (
@@ -35,8 +38,62 @@ function resolveEntitlementEnvironment() {
   });
 }
 
+function serializeCookie(input: {
+  name: string;
+  value: string;
+  httpOnly: true;
+  sameSite: 'lax';
+  secure: boolean;
+  path: '/';
+  maxAge: number;
+}) {
+  return [
+    `${input.name}=${encodeURIComponent(input.value)}`,
+    `Max-Age=${input.maxAge}`,
+    `Path=${input.path}`,
+    'HttpOnly',
+    `SameSite=${input.sameSite[0]!.toUpperCase()}${input.sameSite.slice(1)}`,
+    input.secure ? 'Secure' : '',
+  ]
+    .filter(Boolean)
+    .join('; ');
+}
+
+function writeAnonymousSessionSetCookie({
+  req,
+  session,
+  sink,
+}: {
+  req: Request;
+  session: Parameters<typeof writeAnonymousSessionCookie>[0]['session'];
+  sink?: SetCookieSink;
+}) {
+  if (!sink) {
+    return;
+  }
+
+  writeAnonymousSessionCookie({
+    req,
+    session,
+    cookieStore: {
+      set: (cookie) => {
+        if (cookie.name !== REMOVER_ANONYMOUS_SESSION_COOKIE) {
+          return;
+        }
+        sink.appendSetCookie(
+          serializeCookie({
+            ...cookie,
+            maxAge: REMOVER_ANONYMOUS_SESSION_MAX_AGE_SECONDS,
+          })
+        );
+      },
+    },
+  });
+}
+
 export async function resolveBackgroundRemoverActor(
-  req: Request
+  req: Request,
+  sink?: SetCookieSink
 ): Promise<BackgroundRemoverActor> {
   assertCsrf(req);
 
@@ -48,17 +105,10 @@ export async function resolveBackgroundRemoverActor(
   }
 
   const [user, anonymousSession] = await Promise.all([
-    getSignedInUserIdentity(),
+    getSignedInUserIdentityFromRequest(req),
     resolveAnonymousSessionForRequest(req, { secret }),
   ]);
-  if (anonymousSession.shouldSetCookie) {
-    const cookieStore = await cookies();
-    writeAnonymousSessionCookie({
-      cookieStore,
-      req,
-      session: anonymousSession,
-    });
-  }
+  writeAnonymousSessionSetCookie({ req, session: anonymousSession, sink });
 
   if (!user) {
     const actor = {

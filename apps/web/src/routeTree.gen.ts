@@ -52,6 +52,8 @@ import { Route as ApiRemoverJobsRouteImport } from './routes/api/remover/jobs'
 import { Route as ApiPaymentNotifyRouteImport } from './routes/api/payment/notify'
 import { Route as ApiPaymentCheckoutRouteImport } from './routes/api/payment/checkout'
 import { Route as ApiPaymentCallbackRouteImport } from './routes/api/payment/callback'
+import { Route as ApiBackgroundRemoverRemoveRouteImport } from './routes/api/background-remover/remove'
+import { Route as ApiBackgroundRemoverCleanupRouteImport } from './routes/api/background-remover/cleanup'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as LocaleSettingsSecurityRouteImport } from './routes/$locale/settings/security'
 import { Route as LocaleSettingsProfileRouteImport } from './routes/$locale/settings/profile'
@@ -68,6 +70,8 @@ import { Route as SettingsApikeysIdDeleteRouteImport } from './routes/settings/a
 import { Route as ApiRemoverJobsIdRouteImport } from './routes/api/remover/jobs/$id'
 import { Route as ApiRemoverDownloadLowResRouteImport } from './routes/api/remover/download/low-res'
 import { Route as ApiRemoverDownloadHighResRouteImport } from './routes/api/remover/download/high-res'
+import { Route as ApiBackgroundRemoverResultIdRouteImport } from './routes/api/background-remover/result/$id'
+import { Route as ApiBackgroundRemoverDownloadIdRouteImport } from './routes/api/background-remover/download/$id'
 import { Route as ActivityAiTasksIdRefreshRouteImport } from './routes/activity/ai-tasks_/$id/refresh'
 import { Route as LocaleSettingsInvoicesRetrieveRouteImport } from './routes/$locale/settings/invoices/retrieve'
 import { Route as LocaleSettingsBillingRetrieveRouteImport } from './routes/$locale/settings/billing_/retrieve'
@@ -294,6 +298,18 @@ const ApiPaymentCallbackRoute = ApiPaymentCallbackRouteImport.update({
   path: '/api/payment/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBackgroundRemoverRemoveRoute =
+  ApiBackgroundRemoverRemoveRouteImport.update({
+    id: '/api/background-remover/remove',
+    path: '/api/background-remover/remove',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiBackgroundRemoverCleanupRoute =
+  ApiBackgroundRemoverCleanupRouteImport.update({
+    id: '/api/background-remover/cleanup',
+    path: '/api/background-remover/cleanup',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/$',
   path: '/$',
@@ -374,6 +390,18 @@ const ApiRemoverDownloadHighResRoute =
   ApiRemoverDownloadHighResRouteImport.update({
     id: '/api/remover/download/high-res',
     path: '/api/remover/download/high-res',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiBackgroundRemoverResultIdRoute =
+  ApiBackgroundRemoverResultIdRouteImport.update({
+    id: '/api/background-remover/result/$id',
+    path: '/api/background-remover/result/$id',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiBackgroundRemoverDownloadIdRoute =
+  ApiBackgroundRemoverDownloadIdRouteImport.update({
+    id: '/api/background-remover/download/$id',
+    path: '/api/background-remover/download/$id',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ActivityAiTasksIdRefreshRoute =
@@ -474,6 +502,8 @@ export interface FileRoutesByFullPath {
   '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/background-remover/cleanup': typeof ApiBackgroundRemoverCleanupRoute
+  '/api/background-remover/remove': typeof ApiBackgroundRemoverRemoveRoute
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
@@ -491,6 +521,8 @@ export interface FileRoutesByFullPath {
   '/$locale/settings/billing/retrieve': typeof LocaleSettingsBillingRetrieveRoute
   '/$locale/settings/invoices/retrieve': typeof LocaleSettingsInvoicesRetrieveRoute
   '/activity/ai-tasks/$id/refresh': typeof ActivityAiTasksIdRefreshRoute
+  '/api/background-remover/download/$id': typeof ApiBackgroundRemoverDownloadIdRoute
+  '/api/background-remover/result/$id': typeof ApiBackgroundRemoverResultIdRoute
   '/api/remover/download/high-res': typeof ApiRemoverDownloadHighResRoute
   '/api/remover/download/low-res': typeof ApiRemoverDownloadLowResRoute
   '/api/remover/jobs/$id': typeof ApiRemoverJobsIdRoute
@@ -544,6 +576,8 @@ export interface FileRoutesByTo {
   '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/background-remover/cleanup': typeof ApiBackgroundRemoverCleanupRoute
+  '/api/background-remover/remove': typeof ApiBackgroundRemoverRemoveRoute
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
@@ -561,6 +595,8 @@ export interface FileRoutesByTo {
   '/$locale/settings/billing/retrieve': typeof LocaleSettingsBillingRetrieveRoute
   '/$locale/settings/invoices/retrieve': typeof LocaleSettingsInvoicesRetrieveRoute
   '/activity/ai-tasks/$id/refresh': typeof ActivityAiTasksIdRefreshRoute
+  '/api/background-remover/download/$id': typeof ApiBackgroundRemoverDownloadIdRoute
+  '/api/background-remover/result/$id': typeof ApiBackgroundRemoverResultIdRoute
   '/api/remover/download/high-res': typeof ApiRemoverDownloadHighResRoute
   '/api/remover/download/low-res': typeof ApiRemoverDownloadLowResRoute
   '/api/remover/jobs/$id': typeof ApiRemoverJobsIdRoute
@@ -615,6 +651,8 @@ export interface FileRoutesById {
   '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/background-remover/cleanup': typeof ApiBackgroundRemoverCleanupRoute
+  '/api/background-remover/remove': typeof ApiBackgroundRemoverRemoveRoute
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
@@ -632,6 +670,8 @@ export interface FileRoutesById {
   '/$locale/settings/billing_/retrieve': typeof LocaleSettingsBillingRetrieveRoute
   '/$locale/settings/invoices/retrieve': typeof LocaleSettingsInvoicesRetrieveRoute
   '/activity/ai-tasks_/$id/refresh': typeof ActivityAiTasksIdRefreshRoute
+  '/api/background-remover/download/$id': typeof ApiBackgroundRemoverDownloadIdRoute
+  '/api/background-remover/result/$id': typeof ApiBackgroundRemoverResultIdRoute
   '/api/remover/download/high-res': typeof ApiRemoverDownloadHighResRoute
   '/api/remover/download/low-res': typeof ApiRemoverDownloadLowResRoute
   '/api/remover/jobs/$id': typeof ApiRemoverJobsIdRoute
@@ -687,6 +727,8 @@ export interface FileRouteTypes {
     | '/$locale/settings/profile'
     | '/$locale/settings/security'
     | '/api/auth/$'
+    | '/api/background-remover/cleanup'
+    | '/api/background-remover/remove'
     | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
@@ -704,6 +746,8 @@ export interface FileRouteTypes {
     | '/$locale/settings/billing/retrieve'
     | '/$locale/settings/invoices/retrieve'
     | '/activity/ai-tasks/$id/refresh'
+    | '/api/background-remover/download/$id'
+    | '/api/background-remover/result/$id'
     | '/api/remover/download/high-res'
     | '/api/remover/download/low-res'
     | '/api/remover/jobs/$id'
@@ -757,6 +801,8 @@ export interface FileRouteTypes {
     | '/$locale/settings/profile'
     | '/$locale/settings/security'
     | '/api/auth/$'
+    | '/api/background-remover/cleanup'
+    | '/api/background-remover/remove'
     | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
@@ -774,6 +820,8 @@ export interface FileRouteTypes {
     | '/$locale/settings/billing/retrieve'
     | '/$locale/settings/invoices/retrieve'
     | '/activity/ai-tasks/$id/refresh'
+    | '/api/background-remover/download/$id'
+    | '/api/background-remover/result/$id'
     | '/api/remover/download/high-res'
     | '/api/remover/download/low-res'
     | '/api/remover/jobs/$id'
@@ -827,6 +875,8 @@ export interface FileRouteTypes {
     | '/$locale/settings/profile'
     | '/$locale/settings/security'
     | '/api/auth/$'
+    | '/api/background-remover/cleanup'
+    | '/api/background-remover/remove'
     | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
@@ -844,6 +894,8 @@ export interface FileRouteTypes {
     | '/$locale/settings/billing_/retrieve'
     | '/$locale/settings/invoices/retrieve'
     | '/activity/ai-tasks_/$id/refresh'
+    | '/api/background-remover/download/$id'
+    | '/api/background-remover/result/$id'
     | '/api/remover/download/high-res'
     | '/api/remover/download/low-res'
     | '/api/remover/jobs/$id'
@@ -897,6 +949,8 @@ export interface RootRouteChildren {
   LocaleSettingsPaymentsRoute: typeof LocaleSettingsPaymentsRoute
   LocaleSettingsProfileRoute: typeof LocaleSettingsProfileRoute
   LocaleSettingsSecurityRoute: typeof LocaleSettingsSecurityRoute
+  ApiBackgroundRemoverCleanupRoute: typeof ApiBackgroundRemoverCleanupRoute
+  ApiBackgroundRemoverRemoveRoute: typeof ApiBackgroundRemoverRemoveRoute
   ApiPaymentCallbackRoute: typeof ApiPaymentCallbackRoute
   ApiPaymentCheckoutRoute: typeof ApiPaymentCheckoutRoute
   ApiPaymentNotifyRoute: typeof ApiPaymentNotifyRoute
@@ -914,6 +968,8 @@ export interface RootRouteChildren {
   LocaleSettingsBillingRetrieveRoute: typeof LocaleSettingsBillingRetrieveRoute
   LocaleSettingsInvoicesRetrieveRoute: typeof LocaleSettingsInvoicesRetrieveRoute
   ActivityAiTasksIdRefreshRoute: typeof ActivityAiTasksIdRefreshRoute
+  ApiBackgroundRemoverDownloadIdRoute: typeof ApiBackgroundRemoverDownloadIdRoute
+  ApiBackgroundRemoverResultIdRoute: typeof ApiBackgroundRemoverResultIdRoute
   ApiRemoverDownloadHighResRoute: typeof ApiRemoverDownloadHighResRoute
   ApiRemoverDownloadLowResRoute: typeof ApiRemoverDownloadLowResRoute
   SettingsApikeysIdDeleteRoute: typeof SettingsApikeysIdDeleteRoute
@@ -1226,6 +1282,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPaymentCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/background-remover/remove': {
+      id: '/api/background-remover/remove'
+      path: '/api/background-remover/remove'
+      fullPath: '/api/background-remover/remove'
+      preLoaderRoute: typeof ApiBackgroundRemoverRemoveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/background-remover/cleanup': {
+      id: '/api/background-remover/cleanup'
+      path: '/api/background-remover/cleanup'
+      fullPath: '/api/background-remover/cleanup'
+      preLoaderRoute: typeof ApiBackgroundRemoverCleanupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/$'
@@ -1336,6 +1406,20 @@ declare module '@tanstack/react-router' {
       path: '/api/remover/download/high-res'
       fullPath: '/api/remover/download/high-res'
       preLoaderRoute: typeof ApiRemoverDownloadHighResRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/background-remover/result/$id': {
+      id: '/api/background-remover/result/$id'
+      path: '/api/background-remover/result/$id'
+      fullPath: '/api/background-remover/result/$id'
+      preLoaderRoute: typeof ApiBackgroundRemoverResultIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/background-remover/download/$id': {
+      id: '/api/background-remover/download/$id'
+      path: '/api/background-remover/download/$id'
+      fullPath: '/api/background-remover/download/$id'
+      preLoaderRoute: typeof ApiBackgroundRemoverDownloadIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/activity/ai-tasks_/$id/refresh': {
@@ -1470,6 +1554,8 @@ const rootRouteChildren: RootRouteChildren = {
   LocaleSettingsPaymentsRoute: LocaleSettingsPaymentsRoute,
   LocaleSettingsProfileRoute: LocaleSettingsProfileRoute,
   LocaleSettingsSecurityRoute: LocaleSettingsSecurityRoute,
+  ApiBackgroundRemoverCleanupRoute: ApiBackgroundRemoverCleanupRoute,
+  ApiBackgroundRemoverRemoveRoute: ApiBackgroundRemoverRemoveRoute,
   ApiPaymentCallbackRoute: ApiPaymentCallbackRoute,
   ApiPaymentCheckoutRoute: ApiPaymentCheckoutRoute,
   ApiPaymentNotifyRoute: ApiPaymentNotifyRoute,
@@ -1487,6 +1573,8 @@ const rootRouteChildren: RootRouteChildren = {
   LocaleSettingsBillingRetrieveRoute: LocaleSettingsBillingRetrieveRoute,
   LocaleSettingsInvoicesRetrieveRoute: LocaleSettingsInvoicesRetrieveRoute,
   ActivityAiTasksIdRefreshRoute: ActivityAiTasksIdRefreshRoute,
+  ApiBackgroundRemoverDownloadIdRoute: ApiBackgroundRemoverDownloadIdRoute,
+  ApiBackgroundRemoverResultIdRoute: ApiBackgroundRemoverResultIdRoute,
   ApiRemoverDownloadHighResRoute: ApiRemoverDownloadHighResRoute,
   ApiRemoverDownloadLowResRoute: ApiRemoverDownloadLowResRoute,
   SettingsApikeysIdDeleteRoute: SettingsApikeysIdDeleteRoute,

@@ -199,6 +199,10 @@ const requiredFiles = [
   'apps/web/src/routes/$locale/activity/feedbacks.tsx',
   'apps/web/src/routes/api/auth.ts',
   'apps/web/src/routes/api/auth/$.ts',
+  'apps/web/src/routes/api/background-remover/cleanup.ts',
+  'apps/web/src/routes/api/background-remover/download/$id.ts',
+  'apps/web/src/routes/api/background-remover/remove.ts',
+  'apps/web/src/routes/api/background-remover/result/$id.ts',
   'apps/web/src/routes/api/payment/callback.ts',
   'apps/web/src/routes/api/payment/checkout.ts',
   'apps/web/src/routes/api/payment/notify.ts',
@@ -213,6 +217,10 @@ const requiredFiles = [
   'apps/web/src/server/billing-runtime.ts',
   'apps/web/src/server/cloudflare-bindings.ts',
   'src/server/api/auth/auth-action.ts',
+  'src/server/api/background-remover/actor.ts',
+  'src/server/api/background-remover/guard.ts',
+  'src/server/api/background-remover/routes.ts',
+  'src/server/api/background-remover/routes-core.ts',
   'src/server/api/payment/callback-action.ts',
   'src/server/api/payment/checkout-action.ts',
   'src/server/api/payment/notify-action.ts',
@@ -3833,6 +3841,73 @@ const sharedRouteActionContracts = [
     ],
   },
   {
+    file: 'apps/web/src/routes/api/background-remover/remove.ts',
+    required: [
+      [/postBackgroundRemoverRemove/, 'postBackgroundRemoverRemove'],
+      [
+        /@\/server\/api\/background-remover\/routes/,
+        'server background remover routes',
+      ],
+      [/withTanStackCloudflareBindings/, 'TanStack binding scope'],
+    ],
+    forbidden: [
+      [/@\/app\/api\//, '@/app/api import'],
+      [/next\/headers/, 'Next headers import'],
+      [/removeImageBackground/, 'background remover flow assembly'],
+    ],
+  },
+  {
+    file: 'apps/web/src/routes/api/background-remover/result/$id.ts',
+    required: [
+      [/getBackgroundRemoverResult/, 'getBackgroundRemoverResult'],
+      [
+        /@\/server\/api\/background-remover\/routes/,
+        'server background remover routes',
+      ],
+      [/withTanStackCloudflareBindings/, 'TanStack binding scope'],
+    ],
+    forbidden: [
+      [/@\/app\/api\//, '@/app/api import'],
+      [/next\/headers/, 'Next headers import'],
+      [/readBackgroundRemoverResultFile/, 'background remover read assembly'],
+    ],
+  },
+  {
+    file: 'apps/web/src/routes/api/background-remover/download/$id.ts',
+    required: [
+      [/getBackgroundRemoverDownload/, 'getBackgroundRemoverDownload'],
+      [
+        /@\/server\/api\/background-remover\/routes/,
+        'server background remover routes',
+      ],
+      [/withTanStackCloudflareBindings/, 'TanStack binding scope'],
+    ],
+    forbidden: [
+      [/@\/app\/api\//, '@/app/api import'],
+      [/next\/headers/, 'Next headers import'],
+      [/readBackgroundRemoverResultFile/, 'background remover read assembly'],
+    ],
+  },
+  {
+    file: 'apps/web/src/routes/api/background-remover/cleanup.ts',
+    required: [
+      [/postBackgroundRemoverCleanup/, 'postBackgroundRemoverCleanup'],
+      [
+        /@\/server\/api\/background-remover\/routes/,
+        'server background remover routes',
+      ],
+      [/withTanStackCloudflareBindings/, 'TanStack binding scope'],
+    ],
+    forbidden: [
+      [/@\/app\/api\//, '@/app/api import'],
+      [/next\/headers/, 'Next headers import'],
+      [
+        /cleanupExpiredBackgroundRemoverImages/,
+        'background remover cleanup assembly',
+      ],
+    ],
+  },
+  {
     file: 'apps/web/src/routes/api/payment/callback.ts',
     required: [
       [/createPaymentCallbackPostAction/, 'createPaymentCallbackPostAction'],
@@ -3971,6 +4046,56 @@ for (const contract of sharedRouteActionContracts) {
     if (contains(abs, regex)) {
       fail(`${contract.file} must not inline ${label}`);
     }
+  }
+}
+
+const backgroundRemoverRoutesFile =
+  'src/server/api/background-remover/routes.ts';
+const backgroundRemoverRoutesAbs = join(root, backgroundRemoverRoutesFile);
+for (const [regex, label] of [
+  [/resolveBackgroundRemoverActor/, 'request actor resolver'],
+  [/getCloudflareImagesBinding/, 'Cloudflare Images binding reader'],
+  [/getStorageService/, 'storage service'],
+  [/requireBackgroundRemoverSite/, 'site capability guard'],
+  [/createBackgroundRemoverRoutes/, 'background remover route factory'],
+]) {
+  if (!contains(backgroundRemoverRoutesAbs, regex)) {
+    fail(`${backgroundRemoverRoutesFile} must use ${label}`);
+  }
+}
+for (const [regex, label] of [
+  [/@\/app\/api\//, '@/app/api import'],
+  [/next\/headers/, 'Next headers import'],
+  [/from\s+['"]next\//, 'next import'],
+]) {
+  if (contains(backgroundRemoverRoutesAbs, regex)) {
+    fail(`${backgroundRemoverRoutesFile} must not depend on ${label}`);
+  }
+}
+
+const backgroundRemoverRoutesCoreFile =
+  'src/server/api/background-remover/routes-core.ts';
+const backgroundRemoverRoutesCoreAbs = join(
+  root,
+  backgroundRemoverRoutesCoreFile
+);
+for (const [regex, label] of [
+  [/detectAllowedImageMime/, 'shared image MIME detector'],
+  [/createBackgroundRemoverRoutes/, 'background remover route factory'],
+  [/readUploadRequestInput/, 'upload request parsing'],
+]) {
+  if (!contains(backgroundRemoverRoutesCoreAbs, regex)) {
+    fail(`${backgroundRemoverRoutesCoreFile} must use ${label}`);
+  }
+}
+for (const [regex, label] of [
+  [/@\/app\/api\//, '@/app/api import'],
+  [/next\/headers/, 'Next headers import'],
+  [/from\s+['"]next\//, 'next import'],
+  [/^\s*import\s+['"]server-only['"]/m, 'server-only marker'],
+]) {
+  if (contains(backgroundRemoverRoutesCoreAbs, regex)) {
+    fail(`${backgroundRemoverRoutesCoreFile} must not depend on ${label}`);
   }
 }
 
