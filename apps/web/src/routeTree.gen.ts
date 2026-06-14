@@ -52,11 +52,15 @@ import { Route as LocaleSettingsCreditsRouteImport } from './routes/$locale/sett
 import { Route as LocaleSettingsBillingRouteImport } from './routes/$locale/settings/billing'
 import { Route as LocaleSettingsApikeysRouteImport } from './routes/$locale/settings/apikeys'
 import { Route as LocaleBlogSlugRouteImport } from './routes/$locale/blog/$slug'
+import { Route as SettingsApikeysIdEditRouteImport } from './routes/settings/apikeys_/$id/edit'
+import { Route as SettingsApikeysIdDeleteRouteImport } from './routes/settings/apikeys_/$id/delete'
 import { Route as LocaleSettingsInvoicesRetrieveRouteImport } from './routes/$locale/settings/invoices/retrieve'
 import { Route as LocaleSettingsBillingRetrieveRouteImport } from './routes/$locale/settings/billing_/retrieve'
 import { Route as LocaleSettingsBillingCancelRouteImport } from './routes/$locale/settings/billing_/cancel'
 import { Route as LocaleSettingsApikeysCreateRouteImport } from './routes/$locale/settings/apikeys_/create'
 import { Route as LocaleBlogCategorySlugRouteImport } from './routes/$locale/blog/category/$slug'
+import { Route as LocaleSettingsApikeysIdEditRouteImport } from './routes/$locale/settings/apikeys_/$id/edit'
+import { Route as LocaleSettingsApikeysIdDeleteRouteImport } from './routes/$locale/settings/apikeys_/$id/delete'
 
 const SignUpRoute = SignUpRouteImport.update({
   id: '/sign-up',
@@ -274,6 +278,16 @@ const LocaleBlogSlugRoute = LocaleBlogSlugRouteImport.update({
   path: '/$locale/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsApikeysIdEditRoute = SettingsApikeysIdEditRouteImport.update({
+  id: '/settings/apikeys_/$id/edit',
+  path: '/settings/apikeys/$id/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsApikeysIdDeleteRoute = SettingsApikeysIdDeleteRouteImport.update({
+  id: '/settings/apikeys_/$id/delete',
+  path: '/settings/apikeys/$id/delete',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LocaleSettingsInvoicesRetrieveRoute =
   LocaleSettingsInvoicesRetrieveRouteImport.update({
     id: '/$locale/settings/invoices/retrieve',
@@ -303,6 +317,18 @@ const LocaleBlogCategorySlugRoute = LocaleBlogCategorySlugRouteImport.update({
   path: '/$locale/blog/category/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocaleSettingsApikeysIdEditRoute =
+  LocaleSettingsApikeysIdEditRouteImport.update({
+    id: '/$locale/settings/apikeys_/$id/edit',
+    path: '/$locale/settings/apikeys/$id/edit',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LocaleSettingsApikeysIdDeleteRoute =
+  LocaleSettingsApikeysIdDeleteRouteImport.update({
+    id: '/$locale/settings/apikeys_/$id/delete',
+    path: '/$locale/settings/apikeys/$id/delete',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -353,6 +379,10 @@ export interface FileRoutesByFullPath {
   '/$locale/settings/billing/cancel': typeof LocaleSettingsBillingCancelRoute
   '/$locale/settings/billing/retrieve': typeof LocaleSettingsBillingRetrieveRoute
   '/$locale/settings/invoices/retrieve': typeof LocaleSettingsInvoicesRetrieveRoute
+  '/settings/apikeys/$id/delete': typeof SettingsApikeysIdDeleteRoute
+  '/settings/apikeys/$id/edit': typeof SettingsApikeysIdEditRoute
+  '/$locale/settings/apikeys/$id/delete': typeof LocaleSettingsApikeysIdDeleteRoute
+  '/$locale/settings/apikeys/$id/edit': typeof LocaleSettingsApikeysIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -403,6 +433,10 @@ export interface FileRoutesByTo {
   '/$locale/settings/billing/cancel': typeof LocaleSettingsBillingCancelRoute
   '/$locale/settings/billing/retrieve': typeof LocaleSettingsBillingRetrieveRoute
   '/$locale/settings/invoices/retrieve': typeof LocaleSettingsInvoicesRetrieveRoute
+  '/settings/apikeys/$id/delete': typeof SettingsApikeysIdDeleteRoute
+  '/settings/apikeys/$id/edit': typeof SettingsApikeysIdEditRoute
+  '/$locale/settings/apikeys/$id/delete': typeof LocaleSettingsApikeysIdDeleteRoute
+  '/$locale/settings/apikeys/$id/edit': typeof LocaleSettingsApikeysIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -454,6 +488,10 @@ export interface FileRoutesById {
   '/$locale/settings/billing_/cancel': typeof LocaleSettingsBillingCancelRoute
   '/$locale/settings/billing_/retrieve': typeof LocaleSettingsBillingRetrieveRoute
   '/$locale/settings/invoices/retrieve': typeof LocaleSettingsInvoicesRetrieveRoute
+  '/settings/apikeys_/$id/delete': typeof SettingsApikeysIdDeleteRoute
+  '/settings/apikeys_/$id/edit': typeof SettingsApikeysIdEditRoute
+  '/$locale/settings/apikeys_/$id/delete': typeof LocaleSettingsApikeysIdDeleteRoute
+  '/$locale/settings/apikeys_/$id/edit': typeof LocaleSettingsApikeysIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -506,6 +544,10 @@ export interface FileRouteTypes {
     | '/$locale/settings/billing/cancel'
     | '/$locale/settings/billing/retrieve'
     | '/$locale/settings/invoices/retrieve'
+    | '/settings/apikeys/$id/delete'
+    | '/settings/apikeys/$id/edit'
+    | '/$locale/settings/apikeys/$id/delete'
+    | '/$locale/settings/apikeys/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -556,6 +598,10 @@ export interface FileRouteTypes {
     | '/$locale/settings/billing/cancel'
     | '/$locale/settings/billing/retrieve'
     | '/$locale/settings/invoices/retrieve'
+    | '/settings/apikeys/$id/delete'
+    | '/settings/apikeys/$id/edit'
+    | '/$locale/settings/apikeys/$id/delete'
+    | '/$locale/settings/apikeys/$id/edit'
   id:
     | '__root__'
     | '/'
@@ -606,6 +652,10 @@ export interface FileRouteTypes {
     | '/$locale/settings/billing_/cancel'
     | '/$locale/settings/billing_/retrieve'
     | '/$locale/settings/invoices/retrieve'
+    | '/settings/apikeys_/$id/delete'
+    | '/settings/apikeys_/$id/edit'
+    | '/$locale/settings/apikeys_/$id/delete'
+    | '/$locale/settings/apikeys_/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -657,6 +707,10 @@ export interface RootRouteChildren {
   LocaleSettingsBillingCancelRoute: typeof LocaleSettingsBillingCancelRoute
   LocaleSettingsBillingRetrieveRoute: typeof LocaleSettingsBillingRetrieveRoute
   LocaleSettingsInvoicesRetrieveRoute: typeof LocaleSettingsInvoicesRetrieveRoute
+  SettingsApikeysIdDeleteRoute: typeof SettingsApikeysIdDeleteRoute
+  SettingsApikeysIdEditRoute: typeof SettingsApikeysIdEditRoute
+  LocaleSettingsApikeysIdDeleteRoute: typeof LocaleSettingsApikeysIdDeleteRoute
+  LocaleSettingsApikeysIdEditRoute: typeof LocaleSettingsApikeysIdEditRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -962,6 +1016,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleBlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/apikeys_/$id/edit': {
+      id: '/settings/apikeys_/$id/edit'
+      path: '/settings/apikeys/$id/edit'
+      fullPath: '/settings/apikeys/$id/edit'
+      preLoaderRoute: typeof SettingsApikeysIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/apikeys_/$id/delete': {
+      id: '/settings/apikeys_/$id/delete'
+      path: '/settings/apikeys/$id/delete'
+      fullPath: '/settings/apikeys/$id/delete'
+      preLoaderRoute: typeof SettingsApikeysIdDeleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$locale/settings/invoices/retrieve': {
       id: '/$locale/settings/invoices/retrieve'
       path: '/$locale/settings/invoices/retrieve'
@@ -995,6 +1063,20 @@ declare module '@tanstack/react-router' {
       path: '/$locale/blog/category/$slug'
       fullPath: '/$locale/blog/category/$slug'
       preLoaderRoute: typeof LocaleBlogCategorySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/settings/apikeys_/$id/edit': {
+      id: '/$locale/settings/apikeys_/$id/edit'
+      path: '/$locale/settings/apikeys/$id/edit'
+      fullPath: '/$locale/settings/apikeys/$id/edit'
+      preLoaderRoute: typeof LocaleSettingsApikeysIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/settings/apikeys_/$id/delete': {
+      id: '/$locale/settings/apikeys_/$id/delete'
+      path: '/$locale/settings/apikeys/$id/delete'
+      fullPath: '/$locale/settings/apikeys/$id/delete'
+      preLoaderRoute: typeof LocaleSettingsApikeysIdDeleteRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -1049,6 +1131,10 @@ const rootRouteChildren: RootRouteChildren = {
   LocaleSettingsBillingCancelRoute: LocaleSettingsBillingCancelRoute,
   LocaleSettingsBillingRetrieveRoute: LocaleSettingsBillingRetrieveRoute,
   LocaleSettingsInvoicesRetrieveRoute: LocaleSettingsInvoicesRetrieveRoute,
+  SettingsApikeysIdDeleteRoute: SettingsApikeysIdDeleteRoute,
+  SettingsApikeysIdEditRoute: SettingsApikeysIdEditRoute,
+  LocaleSettingsApikeysIdDeleteRoute: LocaleSettingsApikeysIdDeleteRoute,
+  LocaleSettingsApikeysIdEditRoute: LocaleSettingsApikeysIdEditRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -11,6 +11,11 @@ import {
   resolveSettingsApiKeyCreate,
   resolveSettingsApiKeysCreateRouteData,
 } from './settings-apikeys-create-route-resolver';
+import {
+  resolveSettingsApiKeyDelete,
+  resolveSettingsApiKeysIdRouteData,
+  resolveSettingsApiKeyUpdate,
+} from './settings-apikeys-id-route-resolver';
 import { resolveSettingsApiKeysRouteData } from './settings-apikeys-route-resolver';
 
 test('resolveSettingsApiKeysRouteData returns no-auth page without reading API keys', async () => {
@@ -399,6 +404,265 @@ test('resolveSettingsApiKeyCreate maps create dependency failures', async () => 
     status: 'error',
     message: 'API key creation failed',
   });
+});
+
+test('resolveSettingsApiKeysIdRouteData returns edit form data', async () => {
+  const data = await resolveSettingsApiKeysIdRouteData(
+    { locale: defaultLocale, id: 'key-1', mode: 'edit' },
+    {
+      readSignedInUserIdentity: async () => fakeSignedInUser(),
+      apikeyOwnershipDeps: {
+        findApikeyById: async () => fakeApiKey(),
+      },
+    }
+  );
+
+  assert.ok(data);
+  assert.equal(data.canonicalPath, '/settings/apikeys/key-1/edit');
+  assert.equal(data.page.mode, 'edit');
+  assert.equal(data.page.title, 'Edit API Key');
+  assert.ok(data.page.apikey);
+  assert.deepEqual(data.page.apikey, {
+    id: 'key-1',
+    title: 'Default',
+  });
+  assert.equal('key' in data.page.apikey, false);
+  assert.equal(data.page.backHref, '/settings/apikeys');
+  assert.deepEqual(
+    data.head.links?.find((link) => link.rel === 'canonical'),
+    {
+      rel: 'canonical',
+      href: buildCanonicalUrl('/settings/apikeys/key-1/edit', defaultLocale),
+    }
+  );
+  assert.doesNotThrow(() => JSON.stringify(data));
+});
+
+test('resolveSettingsApiKeysIdRouteData returns delete form data', async () => {
+  const data = await resolveSettingsApiKeysIdRouteData(
+    { locale: defaultLocale, id: 'key-1', mode: 'delete' },
+    {
+      readSignedInUserIdentity: async () => fakeSignedInUser(),
+      apikeyOwnershipDeps: {
+        findApikeyById: async () => fakeApiKey(),
+      },
+    }
+  );
+
+  assert.ok(data);
+  assert.equal(data.canonicalPath, '/settings/apikeys/key-1/delete');
+  assert.equal(data.page.mode, 'delete');
+  assert.equal(data.page.title, 'Delete API Key');
+  assert.equal(data.page.labels.submit, 'Confirm Delete');
+  assert.equal(data.page.apikey?.key, 'sk-test-1');
+});
+
+test('resolveSettingsApiKeysIdRouteData handles no-auth and no-permission states', async () => {
+  const noAuth = await resolveSettingsApiKeysIdRouteData(
+    { locale: defaultLocale, id: 'key-1', mode: 'edit' },
+    { readSignedInUserIdentity: async () => null }
+  );
+
+  assert.ok(noAuth);
+  assert.equal(noAuth.viewer.signedIn, false);
+  assert.equal(noAuth.page.message, 'no auth');
+  assert.equal(noAuth.page.apikey, null);
+
+  const forbidden = await resolveSettingsApiKeysIdRouteData(
+    { locale: defaultLocale, id: 'key-1', mode: 'edit' },
+    {
+      readSignedInUserIdentity: async () => fakeSignedInUser(),
+      apikeyOwnershipDeps: {
+        findApikeyById: async () => fakeApiKey({ userId: 'other-user' }),
+      },
+    }
+  );
+
+  assert.ok(forbidden);
+  assert.equal(forbidden.page.message, 'no permission');
+  assert.equal(forbidden.page.apikey, null);
+});
+
+test('resolveSettingsApiKeysIdRouteData returns localized edit data', async () => {
+  const locale = getLocaleWithApiKeysMessages();
+  if (!locale) {
+    return;
+  }
+
+  const data = await resolveSettingsApiKeysIdRouteData(
+    { locale, id: 'key-1', mode: 'edit' },
+    {
+      readSignedInUserIdentity: async () => fakeSignedInUser(),
+      apikeyOwnershipDeps: {
+        findApikeyById: async () => fakeApiKey(),
+      },
+    }
+  );
+
+  assert.ok(data);
+  assert.equal(data.page.title, '编辑 API 密钥');
+  assert.equal(data.page.backHref, localePath('/settings/apikeys', locale));
+  assert.equal(
+    data.shell.topNav.items[0]?.url,
+    localePath('/settings/apikeys/key-1/edit', locale)
+  );
+});
+
+test('resolveSettingsApiKeysIdRouteData returns null for invalid input', async () => {
+  assert.equal(
+    await resolveSettingsApiKeysIdRouteData({
+      locale: 'invalid',
+      id: 'key-1',
+      mode: 'edit',
+    }),
+    null
+  );
+  assert.equal(
+    await resolveSettingsApiKeysIdRouteData({
+      locale: defaultLocale,
+      id: '',
+      mode: 'edit',
+    }),
+    null
+  );
+});
+
+test('resolveSettingsApiKeyUpdate renames owned API key', async () => {
+  const updates: Array<{ id: string; update: Record<string, unknown> }> = [];
+  const result = await resolveSettingsApiKeyUpdate(
+    { locale: 'zh', id: 'key-1', title: '  Renamed  ' },
+    {
+      readSignedInUserIdentity: async () => fakeSignedInUser(),
+      apikeyMutationDeps: {
+        findApikeyById: async () => fakeApiKey(),
+        updateApikey: async (id, update) => {
+          updates.push({ id, update });
+          return fakeApiKey({ id, ...update });
+        },
+      },
+    }
+  );
+
+  assert.deepEqual(updates, [
+    {
+      id: 'key-1',
+      update: { title: 'Renamed' },
+    },
+  ]);
+  assert.deepEqual(result, {
+    status: 'success',
+    message: 'API Key updated',
+    redirect_url: localePath('/settings/apikeys', 'zh'),
+  });
+});
+
+test('resolveSettingsApiKeyDelete soft deletes owned API key', async () => {
+  const updates: Array<{ id: string; update: Record<string, unknown> }> = [];
+  const result = await resolveSettingsApiKeyDelete(
+    { locale: defaultLocale, id: 'key-1', title: 'Default' },
+    {
+      readSignedInUserIdentity: async () => fakeSignedInUser(),
+      apikeyMutationDeps: {
+        findApikeyById: async () => fakeApiKey(),
+        updateApikey: async (id, update) => {
+          updates.push({ id, update });
+          return fakeApiKey({ id, ...update });
+        },
+      },
+    }
+  );
+
+  assert.equal(updates.length, 1);
+  assert.equal(updates[0]?.id, 'key-1');
+  assert.equal(updates[0]?.update.status, 'deleted');
+  assert.ok(updates[0]?.update.deletedAt instanceof Date);
+  assert.deepEqual(result, {
+    status: 'success',
+    message: 'API Key deleted',
+    redirect_url: '/settings/apikeys',
+  });
+});
+
+test('resolveSettingsApiKeyUpdate and delete reject invalid mutation input', async () => {
+  assert.deepEqual(
+    await resolveSettingsApiKeyUpdate({
+      locale: 'invalid',
+      id: 'key-1',
+      title: 'Default',
+    }),
+    { status: 'error', message: 'Invalid locale' }
+  );
+  assert.deepEqual(
+    await resolveSettingsApiKeyUpdate({
+      locale: defaultLocale,
+      id: 'key-1',
+      title: '',
+    }),
+    { status: 'error', message: 'title is required' }
+  );
+  assert.deepEqual(
+    await resolveSettingsApiKeyDelete({
+      locale: defaultLocale,
+      id: 'key-1',
+      title: '',
+    }),
+    { status: 'error', message: 'title is required' }
+  );
+});
+
+test('resolveSettingsApiKeyUpdate and delete enforce ownership', async () => {
+  assert.deepEqual(
+    await resolveSettingsApiKeyUpdate(
+      { locale: defaultLocale, id: 'key-1', title: 'Default' },
+      { readSignedInUserIdentity: async () => null }
+    ),
+    { status: 'error', message: 'no auth' }
+  );
+  assert.deepEqual(
+    await resolveSettingsApiKeyDelete(
+      { locale: defaultLocale, id: 'key-1', title: 'Default' },
+      {
+        readSignedInUserIdentity: async () => fakeSignedInUser(),
+        apikeyMutationDeps: {
+          findApikeyById: async () => fakeApiKey({ userId: 'other-user' }),
+          updateApikey: async () => {
+            throw new Error('should not update');
+          },
+        },
+      }
+    ),
+    { status: 'error', message: 'no permission' }
+  );
+});
+
+test('resolveSettingsApiKeyUpdate and delete map dependency failures', async () => {
+  const failingDeps = {
+    findApikeyById: async () => fakeApiKey(),
+    updateApikey: async () => {
+      throw new Error('db unavailable');
+    },
+  };
+
+  assert.deepEqual(
+    await resolveSettingsApiKeyUpdate(
+      { locale: defaultLocale, id: 'key-1', title: 'Default' },
+      {
+        readSignedInUserIdentity: async () => fakeSignedInUser(),
+        apikeyMutationDeps: failingDeps,
+      }
+    ),
+    { status: 'error', message: 'API key update failed' }
+  );
+  assert.deepEqual(
+    await resolveSettingsApiKeyDelete(
+      { locale: defaultLocale, id: 'key-1', title: 'Default' },
+      {
+        readSignedInUserIdentity: async () => fakeSignedInUser(),
+        apikeyMutationDeps: failingDeps,
+      }
+    ),
+    { status: 'error', message: 'API key deletion failed' }
+  );
 });
 
 function fakeSignedInUser() {
