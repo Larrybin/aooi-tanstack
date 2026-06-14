@@ -1,6 +1,3 @@
-import { createDocsSearchSource } from '@/domains/content/application/docs-content.query';
-import { createFromSource } from 'fumadocs-core/search/server';
+import { getDocsSearch } from '@/server/api/docs/search-route';
 
-export const { GET } = createFromSource(createDocsSearchSource(), {
-  language: 'english',
-});
+export const GET = getDocsSearch;
