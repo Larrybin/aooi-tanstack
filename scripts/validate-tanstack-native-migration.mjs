@@ -166,6 +166,9 @@ const requiredFiles = [
   'apps/web/src/routes/settings/security.tsx',
   'apps/web/src/routes/settings/credits.tsx',
   'apps/web/src/routes/settings/billing.tsx',
+  'apps/web/src/routes/settings/billing_/cancel.tsx',
+  'apps/web/src/routes/settings/billing_/retrieve.tsx',
+  'apps/web/src/routes/settings/invoices/retrieve.tsx',
   'apps/web/src/routes/settings/payments.tsx',
   'apps/web/src/routes/activity_.tsx',
   'apps/web/src/routes/$locale/settings_.tsx',
@@ -173,6 +176,9 @@ const requiredFiles = [
   'apps/web/src/routes/$locale/settings/security.tsx',
   'apps/web/src/routes/$locale/settings/credits.tsx',
   'apps/web/src/routes/$locale/settings/billing.tsx',
+  'apps/web/src/routes/$locale/settings/billing_/cancel.tsx',
+  'apps/web/src/routes/$locale/settings/billing_/retrieve.tsx',
+  'apps/web/src/routes/$locale/settings/invoices/retrieve.tsx',
   'apps/web/src/routes/$locale/settings/payments.tsx',
   'apps/web/src/routes/$locale/activity_.tsx',
   'apps/web/src/routes/api/payment/checkout.ts',
@@ -216,6 +222,8 @@ const requiredFiles = [
   'src/server/member/settings-billing-route-data.ts',
   'src/server/member/settings-billing-route-resolver.ts',
   'src/server/member/settings-billing-route-messages.ts',
+  'src/server/member/settings-billing-action-route-data.ts',
+  'src/server/member/settings-billing-action-route-resolver.ts',
   'src/server/member/settings-payments-route-data.ts',
   'src/server/member/settings-payments-route-resolver.ts',
   'src/server/member/settings-payments-route-messages.ts',
@@ -263,6 +271,10 @@ const requiredFiles = [
   'src/surfaces/member/settings-billing/settings-billing.seo.ts',
   'src/surfaces/member/settings-billing/settings-billing.types.ts',
   'src/surfaces/member/settings-billing/settings-billing.view.tsx',
+  'src/surfaces/member/settings-billing-action/settings-billing-action.data.ts',
+  'src/surfaces/member/settings-billing-action/settings-billing-action.seo.ts',
+  'src/surfaces/member/settings-billing-action/settings-billing-action.types.ts',
+  'src/surfaces/member/settings-billing-action/settings-billing-action.view.tsx',
   'src/surfaces/member/settings-payments/settings-payments.data.ts',
   'src/surfaces/member/settings-payments/settings-payments.seo.ts',
   'src/surfaces/member/settings-payments/settings-payments.types.ts',
@@ -2079,6 +2091,235 @@ if (
   fail(
     'src/app/[locale]/(landing)/settings/payments/page.tsx must remain until the legacy app route is retired'
   );
+}
+
+const settingsBillingActionRouteFiles = [
+  {
+    file: 'apps/web/src/routes/settings/billing_/cancel.tsx',
+    routeId: '/settings/billing_/cancel',
+    loaderPattern: /loadSettingsBillingCancelRouteSurfaceData/,
+    localePattern: /defaultLocale/,
+  },
+  {
+    file: 'apps/web/src/routes/$locale/settings/billing_/cancel.tsx',
+    routeId: '/$locale/settings/billing_/cancel',
+    loaderPattern: /loadSettingsBillingCancelRouteSurfaceData/,
+    localePattern: /params\.locale/,
+  },
+  {
+    file: 'apps/web/src/routes/settings/billing_/retrieve.tsx',
+    routeId: '/settings/billing_/retrieve',
+    loaderPattern: /loadSettingsBillingPortalRouteSurfaceData/,
+    localePattern: /defaultLocale/,
+  },
+  {
+    file: 'apps/web/src/routes/$locale/settings/billing_/retrieve.tsx',
+    routeId: '/$locale/settings/billing_/retrieve',
+    loaderPattern: /loadSettingsBillingPortalRouteSurfaceData/,
+    localePattern: /params\.locale/,
+  },
+  {
+    file: 'apps/web/src/routes/settings/invoices/retrieve.tsx',
+    routeId: '/settings/invoices/retrieve',
+    loaderPattern: /loadSettingsInvoiceRetrieveRouteSurfaceData/,
+    localePattern: /defaultLocale/,
+  },
+  {
+    file: 'apps/web/src/routes/$locale/settings/invoices/retrieve.tsx',
+    routeId: '/$locale/settings/invoices/retrieve',
+    loaderPattern: /loadSettingsInvoiceRetrieveRouteSurfaceData/,
+    localePattern: /params\.locale/,
+  },
+];
+
+for (const {
+  file,
+  routeId,
+  loaderPattern,
+  localePattern,
+} of settingsBillingActionRouteFiles) {
+  const abs = join(root, file);
+  if (!existsSync(abs)) {
+    fail(`${file} must exist for Gate 4-B.3g billing action route`);
+  }
+  if (!contains(abs, /createFileRoute/)) {
+    fail(`${file} must use createFileRoute`);
+  }
+  if (
+    !contains(abs, new RegExp(`createFileRoute\\('${escapeRegex(routeId)}'\\)`))
+  ) {
+    fail(`${file} must declare TanStack route ${routeId}`);
+  }
+  if (!contains(abs, loaderPattern)) {
+    fail(`${file} must load the expected billing action route data`);
+  }
+  if (!contains(abs, /getSettingsBillingActionRouteSurfaceHead/)) {
+    fail(`${file} must use billing action route surface head`);
+  }
+  if (!contains(abs, /SettingsBillingActionRouteView/)) {
+    fail(`${file} must render SettingsBillingActionRouteView`);
+  }
+  if (!contains(abs, /redirect\(\{\s*href:\s*data\.redirectHref\s*\}\)/)) {
+    fail(`${file} must redirect from explicit redirectHref only`);
+  }
+  if (!contains(abs, localePattern)) {
+    fail(`${file} must use the expected locale source`);
+  }
+}
+
+for (const fullPath of [
+  '/settings/billing/cancel',
+  '/settings/billing/retrieve',
+  '/settings/invoices/retrieve',
+  '/$locale/settings/billing/cancel',
+  '/$locale/settings/billing/retrieve',
+  '/$locale/settings/invoices/retrieve',
+]) {
+  if (
+    !contains(
+      homeRouteTreeAbs,
+      new RegExp(`fullPath:\\s*'${escapeRegex(fullPath)}'`)
+    )
+  ) {
+    fail(
+      `${homeRouteTreeFile} must include billing action fullPath ${fullPath}`
+    );
+  }
+}
+
+const settingsBillingActionDataFile =
+  'src/server/member/settings-billing-action-route-data.ts';
+const settingsBillingActionDataAbs = join(root, settingsBillingActionDataFile);
+for (const [regex, label] of [
+  [/createServerFn\(\{\s*method:\s*['"]GET['"]/, 'GET createServerFn loaders'],
+  [
+    /createServerFn\(\{\s*method:\s*['"]POST['"]/,
+    'POST createServerFn submit action',
+  ],
+  [/loadSettingsBillingCancelRouteData/, 'settings billing cancel GET loader'],
+  [/loadSettingsBillingPortalRouteData/, 'settings billing portal GET loader'],
+  [/loadSettingsInvoiceRetrieveRouteData/, 'settings invoice GET loader'],
+  [/submitSettingsBillingCancelRouteData/, 'settings billing cancel POST'],
+  [
+    /await\s+import\(\s*['"].\/settings-billing-action-route-resolver['"]\s*\)/,
+    'dynamic billing action resolver import',
+  ],
+]) {
+  if (!contains(settingsBillingActionDataAbs, regex)) {
+    fail(`${settingsBillingActionDataFile} must implement ${label}`);
+  }
+}
+
+const settingsBillingActionResolverFile =
+  'src/server/member/settings-billing-action-route-resolver.ts';
+const settingsBillingActionResolverAbs = join(
+  root,
+  settingsBillingActionResolverFile
+);
+for (const [regex, label] of [
+  [/normalizeLocale/, 'locale normalization'],
+  [/loadSettingsBillingRouteMessages/, 'settings billing message loader'],
+  [/resolveSitePaymentCapability/, 'payment capability guard'],
+  [/getSignedInUserIdentityFromRequest/, 'TanStack request auth reader'],
+  [/readMemberCancelableSubscription/, 'cancel page precheck'],
+  [/cancelMemberSubscription/, 'subscription cancel action'],
+  [/retrieveMemberBillingPortalUrl/, 'provider portal retrieval'],
+  [/retrieveMemberInvoiceUrl/, 'provider invoice retrieval'],
+  [/buildCanonicalUrl\(billingPath,\s*locale\)/, 'same-origin return URL'],
+  [/localePath\(billingPath,\s*locale\)/, 'same-origin cancel redirect'],
+  [/subscriptionNo/, 'subscription number query validation'],
+  [/orderNo/, 'order number query validation'],
+  [/normalizeExternalRedirect/, 'external redirect URL validation'],
+  [/JSON\.stringify/, 'route data serializability guard'],
+  [/noindex,nofollow/, 'member noindex robots head'],
+]) {
+  if (!contains(settingsBillingActionResolverAbs, regex)) {
+    fail(`${settingsBillingActionResolverFile} must use ${label}`);
+  }
+}
+for (const [regex, label] of [
+  [/next\/headers/, 'next/headers import'],
+  [/session\.server/, 'legacy Next session server'],
+  [/requireActionUser/, 'legacy action user guard'],
+  [/parseFormData/, 'legacy form parser'],
+  [/withAction/, 'legacy action wrapper'],
+  [/ActionError/, 'legacy action error'],
+  [/FormCard/, 'legacy form card'],
+  [/TableCard/, 'legacy table card'],
+  [/PaymentCallbackHandler/, 'legacy payment callback handler'],
+  [/next-intl/, 'next-intl import'],
+  [/next\/navigation/, 'next/navigation import'],
+  [/@\/app\/|src\/app\//, 'legacy app import'],
+  [/@\/themes\//, '@/themes import'],
+]) {
+  if (contains(settingsBillingActionResolverAbs, regex)) {
+    fail(`${settingsBillingActionResolverFile} must not depend on ${label}`);
+  }
+}
+
+const settingsBillingActionSurfaceFiles = walk(
+  join(root, 'src/surfaces/member/settings-billing-action')
+)
+  .filter((file) => /\.(ts|tsx)$/.test(file))
+  .map((file) => normalizePath(relative(root, file)))
+  .sort();
+for (const file of settingsBillingActionSurfaceFiles) {
+  const abs = join(root, file);
+  for (const [regex, label] of [
+    [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
+    [/^\s*import\s+['"]next(?:\/|['"])/m, 'next side-effect import'],
+    [/from\s+['"]next-intl(?:\/|['"])/, 'next-intl import'],
+    [/@\/infra\/platform\/i18n\/navigation/, 'Next i18n navigation import'],
+    [/@\/app\/|src\/app\//, 'legacy app import'],
+    [/@\/themes\//, '@/themes import'],
+    [/^\s*import\s+['"]server-only['"]/m, 'server-only marker'],
+    [/session\.server/, 'legacy Next session server'],
+    [/FormCard/, 'legacy form card'],
+    [/withAction/, 'legacy action wrapper'],
+    [/parseFormData/, 'legacy form parser'],
+    [/requireActionUser/, 'legacy action user guard'],
+    [/ActionError/, 'legacy action error'],
+    [/TableCard/, 'legacy table card'],
+    [/PaymentCallbackHandler/, 'legacy payment callback handler'],
+  ]) {
+    if (contains(abs, regex)) {
+      fail(`${file} must not depend on ${label}`);
+    }
+  }
+}
+
+const settingsBillingActionViewFile =
+  'src/surfaces/member/settings-billing-action/settings-billing-action.view.tsx';
+const settingsBillingActionViewAbs = join(root, settingsBillingActionViewFile);
+for (const [regex, label] of [
+  [/document\.documentElement\.lang\s*=\s*data\.locale/, 'localized html lang'],
+  [/document\.documentElement\.dir\s*=\s*isRtlLocale/, 'localized html dir'],
+  [
+    /await\s+import\(\s*['"].\/settings-billing-action\.data['"]\s*\)/,
+    'lazy submit action import',
+  ],
+  [/data\.page\.subscription/, 'cancel subscription display'],
+  [/data\.page\.message/, 'error message display'],
+  [
+    /window\.location\.assign\(result\.redirectTo\)/,
+    'explicit success redirect',
+  ],
+]) {
+  if (!contains(settingsBillingActionViewAbs, regex)) {
+    fail(`${settingsBillingActionViewFile} must apply ${label}`);
+  }
+}
+
+for (const legacyBillingActionFile of [
+  'src/app/[locale]/(landing)/settings/billing/cancel/page.tsx',
+  'src/app/[locale]/(landing)/settings/billing/retrieve/page.tsx',
+  'src/app/[locale]/(landing)/settings/invoices/retrieve/page.tsx',
+]) {
+  if (!existsSync(join(root, legacyBillingActionFile))) {
+    fail(
+      `${legacyBillingActionFile} must remain until the legacy app route is retired`
+    );
+  }
 }
 
 for (const legacyMemberFile of [

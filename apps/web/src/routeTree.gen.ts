@@ -36,6 +36,9 @@ import { Route as LocaleForgotPasswordRouteImport } from './routes/$locale/forgo
 import { Route as LocaleBlogRouteImport } from './routes/$locale/blog_'
 import { Route as LocaleActivityRouteImport } from './routes/$locale/activity_'
 import { Route as LocaleSlugRouteImport } from './routes/$locale/$slug'
+import { Route as SettingsInvoicesRetrieveRouteImport } from './routes/settings/invoices/retrieve'
+import { Route as SettingsBillingRetrieveRouteImport } from './routes/settings/billing_/retrieve'
+import { Route as SettingsBillingCancelRouteImport } from './routes/settings/billing_/cancel'
 import { Route as BlogCategorySlugRouteImport } from './routes/blog/category/$slug'
 import { Route as ApiUserGetUserCreditsRouteImport } from './routes/api/user/get-user-credits'
 import { Route as ApiPaymentNotifyRouteImport } from './routes/api/payment/notify'
@@ -46,6 +49,9 @@ import { Route as LocaleSettingsPaymentsRouteImport } from './routes/$locale/set
 import { Route as LocaleSettingsCreditsRouteImport } from './routes/$locale/settings/credits'
 import { Route as LocaleSettingsBillingRouteImport } from './routes/$locale/settings/billing'
 import { Route as LocaleBlogSlugRouteImport } from './routes/$locale/blog/$slug'
+import { Route as LocaleSettingsInvoicesRetrieveRouteImport } from './routes/$locale/settings/invoices/retrieve'
+import { Route as LocaleSettingsBillingRetrieveRouteImport } from './routes/$locale/settings/billing_/retrieve'
+import { Route as LocaleSettingsBillingCancelRouteImport } from './routes/$locale/settings/billing_/cancel'
 import { Route as LocaleBlogCategorySlugRouteImport } from './routes/$locale/blog/category/$slug'
 
 const SignUpRoute = SignUpRouteImport.update({
@@ -183,6 +189,22 @@ const LocaleSlugRoute = LocaleSlugRouteImport.update({
   path: '/$locale/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsInvoicesRetrieveRoute =
+  SettingsInvoicesRetrieveRouteImport.update({
+    id: '/settings/invoices/retrieve',
+    path: '/settings/invoices/retrieve',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const SettingsBillingRetrieveRoute = SettingsBillingRetrieveRouteImport.update({
+  id: '/settings/billing_/retrieve',
+  path: '/settings/billing/retrieve',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsBillingCancelRoute = SettingsBillingCancelRouteImport.update({
+  id: '/settings/billing_/cancel',
+  path: '/settings/billing/cancel',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogCategorySlugRoute = BlogCategorySlugRouteImport.update({
   id: '/blog/category/$slug',
   path: '/blog/category/$slug',
@@ -233,6 +255,24 @@ const LocaleBlogSlugRoute = LocaleBlogSlugRouteImport.update({
   path: '/$locale/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocaleSettingsInvoicesRetrieveRoute =
+  LocaleSettingsInvoicesRetrieveRouteImport.update({
+    id: '/$locale/settings/invoices/retrieve',
+    path: '/$locale/settings/invoices/retrieve',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LocaleSettingsBillingRetrieveRoute =
+  LocaleSettingsBillingRetrieveRouteImport.update({
+    id: '/$locale/settings/billing_/retrieve',
+    path: '/$locale/settings/billing/retrieve',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LocaleSettingsBillingCancelRoute =
+  LocaleSettingsBillingCancelRouteImport.update({
+    id: '/$locale/settings/billing_/cancel',
+    path: '/$locale/settings/billing/cancel',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LocaleBlogCategorySlugRoute = LocaleBlogCategorySlugRouteImport.update({
   id: '/$locale/blog/category/$slug',
   path: '/$locale/blog/category/$slug',
@@ -277,7 +317,13 @@ export interface FileRoutesByFullPath {
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
+  '/settings/billing/cancel': typeof SettingsBillingCancelRoute
+  '/settings/billing/retrieve': typeof SettingsBillingRetrieveRoute
+  '/settings/invoices/retrieve': typeof SettingsInvoicesRetrieveRoute
   '/$locale/blog/category/$slug': typeof LocaleBlogCategorySlugRoute
+  '/$locale/settings/billing/cancel': typeof LocaleSettingsBillingCancelRoute
+  '/$locale/settings/billing/retrieve': typeof LocaleSettingsBillingRetrieveRoute
+  '/$locale/settings/invoices/retrieve': typeof LocaleSettingsInvoicesRetrieveRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -317,7 +363,13 @@ export interface FileRoutesByTo {
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
+  '/settings/billing/cancel': typeof SettingsBillingCancelRoute
+  '/settings/billing/retrieve': typeof SettingsBillingRetrieveRoute
+  '/settings/invoices/retrieve': typeof SettingsInvoicesRetrieveRoute
   '/$locale/blog/category/$slug': typeof LocaleBlogCategorySlugRoute
+  '/$locale/settings/billing/cancel': typeof LocaleSettingsBillingCancelRoute
+  '/$locale/settings/billing/retrieve': typeof LocaleSettingsBillingRetrieveRoute
+  '/$locale/settings/invoices/retrieve': typeof LocaleSettingsInvoicesRetrieveRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -358,7 +410,13 @@ export interface FileRoutesById {
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
+  '/settings/billing_/cancel': typeof SettingsBillingCancelRoute
+  '/settings/billing_/retrieve': typeof SettingsBillingRetrieveRoute
+  '/settings/invoices/retrieve': typeof SettingsInvoicesRetrieveRoute
   '/$locale/blog/category/$slug': typeof LocaleBlogCategorySlugRoute
+  '/$locale/settings/billing_/cancel': typeof LocaleSettingsBillingCancelRoute
+  '/$locale/settings/billing_/retrieve': typeof LocaleSettingsBillingRetrieveRoute
+  '/$locale/settings/invoices/retrieve': typeof LocaleSettingsInvoicesRetrieveRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -400,7 +458,13 @@ export interface FileRouteTypes {
     | '/api/payment/notify'
     | '/api/user/get-user-credits'
     | '/blog/category/$slug'
+    | '/settings/billing/cancel'
+    | '/settings/billing/retrieve'
+    | '/settings/invoices/retrieve'
     | '/$locale/blog/category/$slug'
+    | '/$locale/settings/billing/cancel'
+    | '/$locale/settings/billing/retrieve'
+    | '/$locale/settings/invoices/retrieve'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -440,7 +504,13 @@ export interface FileRouteTypes {
     | '/api/payment/notify'
     | '/api/user/get-user-credits'
     | '/blog/category/$slug'
+    | '/settings/billing/cancel'
+    | '/settings/billing/retrieve'
+    | '/settings/invoices/retrieve'
     | '/$locale/blog/category/$slug'
+    | '/$locale/settings/billing/cancel'
+    | '/$locale/settings/billing/retrieve'
+    | '/$locale/settings/invoices/retrieve'
   id:
     | '__root__'
     | '/'
@@ -480,7 +550,13 @@ export interface FileRouteTypes {
     | '/api/payment/notify'
     | '/api/user/get-user-credits'
     | '/blog/category/$slug'
+    | '/settings/billing_/cancel'
+    | '/settings/billing_/retrieve'
+    | '/settings/invoices/retrieve'
     | '/$locale/blog/category/$slug'
+    | '/$locale/settings/billing_/cancel'
+    | '/$locale/settings/billing_/retrieve'
+    | '/$locale/settings/invoices/retrieve'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -521,7 +597,13 @@ export interface RootRouteChildren {
   ApiPaymentNotifyRoute: typeof ApiPaymentNotifyRoute
   ApiUserGetUserCreditsRoute: typeof ApiUserGetUserCreditsRoute
   BlogCategorySlugRoute: typeof BlogCategorySlugRoute
+  SettingsBillingCancelRoute: typeof SettingsBillingCancelRoute
+  SettingsBillingRetrieveRoute: typeof SettingsBillingRetrieveRoute
+  SettingsInvoicesRetrieveRoute: typeof SettingsInvoicesRetrieveRoute
   LocaleBlogCategorySlugRoute: typeof LocaleBlogCategorySlugRoute
+  LocaleSettingsBillingCancelRoute: typeof LocaleSettingsBillingCancelRoute
+  LocaleSettingsBillingRetrieveRoute: typeof LocaleSettingsBillingRetrieveRoute
+  LocaleSettingsInvoicesRetrieveRoute: typeof LocaleSettingsInvoicesRetrieveRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -715,6 +797,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/invoices/retrieve': {
+      id: '/settings/invoices/retrieve'
+      path: '/settings/invoices/retrieve'
+      fullPath: '/settings/invoices/retrieve'
+      preLoaderRoute: typeof SettingsInvoicesRetrieveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/billing_/retrieve': {
+      id: '/settings/billing_/retrieve'
+      path: '/settings/billing/retrieve'
+      fullPath: '/settings/billing/retrieve'
+      preLoaderRoute: typeof SettingsBillingRetrieveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/billing_/cancel': {
+      id: '/settings/billing_/cancel'
+      path: '/settings/billing/cancel'
+      fullPath: '/settings/billing/cancel'
+      preLoaderRoute: typeof SettingsBillingCancelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog/category/$slug': {
       id: '/blog/category/$slug'
       path: '/blog/category/$slug'
@@ -785,6 +888,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleBlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$locale/settings/invoices/retrieve': {
+      id: '/$locale/settings/invoices/retrieve'
+      path: '/$locale/settings/invoices/retrieve'
+      fullPath: '/$locale/settings/invoices/retrieve'
+      preLoaderRoute: typeof LocaleSettingsInvoicesRetrieveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/settings/billing_/retrieve': {
+      id: '/$locale/settings/billing_/retrieve'
+      path: '/$locale/settings/billing/retrieve'
+      fullPath: '/$locale/settings/billing/retrieve'
+      preLoaderRoute: typeof LocaleSettingsBillingRetrieveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/settings/billing_/cancel': {
+      id: '/$locale/settings/billing_/cancel'
+      path: '/$locale/settings/billing/cancel'
+      fullPath: '/$locale/settings/billing/cancel'
+      preLoaderRoute: typeof LocaleSettingsBillingCancelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$locale/blog/category/$slug': {
       id: '/$locale/blog/category/$slug'
       path: '/$locale/blog/category/$slug'
@@ -833,7 +957,13 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPaymentNotifyRoute: ApiPaymentNotifyRoute,
   ApiUserGetUserCreditsRoute: ApiUserGetUserCreditsRoute,
   BlogCategorySlugRoute: BlogCategorySlugRoute,
+  SettingsBillingCancelRoute: SettingsBillingCancelRoute,
+  SettingsBillingRetrieveRoute: SettingsBillingRetrieveRoute,
+  SettingsInvoicesRetrieveRoute: SettingsInvoicesRetrieveRoute,
   LocaleBlogCategorySlugRoute: LocaleBlogCategorySlugRoute,
+  LocaleSettingsBillingCancelRoute: LocaleSettingsBillingCancelRoute,
+  LocaleSettingsBillingRetrieveRoute: LocaleSettingsBillingRetrieveRoute,
+  LocaleSettingsInvoicesRetrieveRoute: LocaleSettingsInvoicesRetrieveRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
