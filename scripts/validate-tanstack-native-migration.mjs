@@ -197,6 +197,8 @@ const requiredFiles = [
   'apps/web/src/routes/$locale/activity/ai-tasks_/$id/refresh.tsx',
   'apps/web/src/routes/$locale/activity/chats.tsx',
   'apps/web/src/routes/$locale/activity/feedbacks.tsx',
+  'apps/web/src/routes/api/auth.ts',
+  'apps/web/src/routes/api/auth/$.ts',
   'apps/web/src/routes/api/payment/callback.ts',
   'apps/web/src/routes/api/payment/checkout.ts',
   'apps/web/src/routes/api/payment/notify.ts',
@@ -204,6 +206,7 @@ const requiredFiles = [
   'apps/web/src/routes/$locale/blog/category/$slug.tsx',
   'apps/web/src/server/api-context.ts',
   'apps/web/src/server/billing-runtime.ts',
+  'src/server/api/auth/auth-action.ts',
   'src/server/api/payment/callback-action.ts',
   'src/server/api/payment/checkout-action.ts',
   'src/server/api/payment/notify-action.ts',
@@ -3786,6 +3789,30 @@ for (const [regex, label] of [
 }
 
 const sharedRouteActionContracts = [
+  {
+    file: 'apps/web/src/routes/api/auth.ts',
+    required: [
+      [/handleAuthApiRequest/, 'handleAuthApiRequest'],
+      [/@\/server\/api\/auth\/auth-action/, 'server auth action'],
+    ],
+    forbidden: [
+      [/@\/app\/api\//, '@/app/api import'],
+      [/better-auth\/next-js/, 'Next Better Auth adapter'],
+      [/getAuth\(/, 'auth instance creation'],
+    ],
+  },
+  {
+    file: 'apps/web/src/routes/api/auth/$.ts',
+    required: [
+      [/handleAuthApiRequest/, 'handleAuthApiRequest'],
+      [/@\/server\/api\/auth\/auth-action/, 'server auth action'],
+    ],
+    forbidden: [
+      [/@\/app\/api\//, '@/app/api import'],
+      [/better-auth\/next-js/, 'Next Better Auth adapter'],
+      [/getAuth\(/, 'auth instance creation'],
+    ],
+  },
   {
     file: 'apps/web/src/routes/api/payment/callback.ts',
     required: [

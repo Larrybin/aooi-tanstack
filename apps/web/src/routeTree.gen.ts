@@ -27,6 +27,7 @@ import { Route as SettingsCreditsRouteImport } from './routes/settings/credits'
 import { Route as SettingsBillingRouteImport } from './routes/settings/billing'
 import { Route as SettingsApikeysRouteImport } from './routes/settings/apikeys'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as ApiAuthRouteImport } from './routes/api/auth'
 import { Route as ActivityFeedbacksRouteImport } from './routes/activity/feedbacks'
 import { Route as ActivityChatsRouteImport } from './routes/activity/chats'
 import { Route as ActivityAiTasksRouteImport } from './routes/activity/ai-tasks'
@@ -49,6 +50,7 @@ import { Route as ApiUserGetUserCreditsRouteImport } from './routes/api/user/get
 import { Route as ApiPaymentNotifyRouteImport } from './routes/api/payment/notify'
 import { Route as ApiPaymentCheckoutRouteImport } from './routes/api/payment/checkout'
 import { Route as ApiPaymentCallbackRouteImport } from './routes/api/payment/callback'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as LocaleSettingsSecurityRouteImport } from './routes/$locale/settings/security'
 import { Route as LocaleSettingsProfileRouteImport } from './routes/$locale/settings/profile'
 import { Route as LocaleSettingsPaymentsRouteImport } from './routes/$locale/settings/payments'
@@ -161,6 +163,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthRoute = ApiAuthRouteImport.update({
+  id: '/api/auth',
+  path: '/api/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ActivityFeedbacksRoute = ActivityFeedbacksRouteImport.update({
   id: '/activity/feedbacks',
   path: '/activity/feedbacks',
@@ -271,6 +278,11 @@ const ApiPaymentCallbackRoute = ApiPaymentCallbackRouteImport.update({
   id: '/api/payment/callback',
   path: '/api/payment/callback',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/$',
+  path: '/$',
+  getParentRoute: () => ApiAuthRoute,
 } as any)
 const LocaleSettingsSecurityRoute = LocaleSettingsSecurityRouteImport.update({
   id: '/$locale/settings/security',
@@ -411,6 +423,7 @@ export interface FileRoutesByFullPath {
   '/activity/ai-tasks': typeof ActivityAiTasksRoute
   '/activity/chats': typeof ActivityChatsRoute
   '/activity/feedbacks': typeof ActivityFeedbacksRoute
+  '/api/auth': typeof ApiAuthRouteWithChildren
   '/blog/$slug': typeof BlogSlugRoute
   '/settings/apikeys': typeof SettingsApikeysRoute
   '/settings/billing': typeof SettingsBillingRoute
@@ -428,6 +441,7 @@ export interface FileRoutesByFullPath {
   '/$locale/settings/payments': typeof LocaleSettingsPaymentsRoute
   '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
@@ -474,6 +488,7 @@ export interface FileRoutesByTo {
   '/activity/ai-tasks': typeof ActivityAiTasksRoute
   '/activity/chats': typeof ActivityChatsRoute
   '/activity/feedbacks': typeof ActivityFeedbacksRoute
+  '/api/auth': typeof ApiAuthRouteWithChildren
   '/blog/$slug': typeof BlogSlugRoute
   '/settings/apikeys': typeof SettingsApikeysRoute
   '/settings/billing': typeof SettingsBillingRoute
@@ -491,6 +506,7 @@ export interface FileRoutesByTo {
   '/$locale/settings/payments': typeof LocaleSettingsPaymentsRoute
   '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
@@ -538,6 +554,7 @@ export interface FileRoutesById {
   '/activity/ai-tasks': typeof ActivityAiTasksRoute
   '/activity/chats': typeof ActivityChatsRoute
   '/activity/feedbacks': typeof ActivityFeedbacksRoute
+  '/api/auth': typeof ApiAuthRouteWithChildren
   '/blog/$slug': typeof BlogSlugRoute
   '/settings/apikeys': typeof SettingsApikeysRoute
   '/settings/billing': typeof SettingsBillingRoute
@@ -555,6 +572,7 @@ export interface FileRoutesById {
   '/$locale/settings/payments': typeof LocaleSettingsPaymentsRoute
   '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
@@ -603,6 +621,7 @@ export interface FileRouteTypes {
     | '/activity/ai-tasks'
     | '/activity/chats'
     | '/activity/feedbacks'
+    | '/api/auth'
     | '/blog/$slug'
     | '/settings/apikeys'
     | '/settings/billing'
@@ -620,6 +639,7 @@ export interface FileRouteTypes {
     | '/$locale/settings/payments'
     | '/$locale/settings/profile'
     | '/$locale/settings/security'
+    | '/api/auth/$'
     | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
@@ -666,6 +686,7 @@ export interface FileRouteTypes {
     | '/activity/ai-tasks'
     | '/activity/chats'
     | '/activity/feedbacks'
+    | '/api/auth'
     | '/blog/$slug'
     | '/settings/apikeys'
     | '/settings/billing'
@@ -683,6 +704,7 @@ export interface FileRouteTypes {
     | '/$locale/settings/payments'
     | '/$locale/settings/profile'
     | '/$locale/settings/security'
+    | '/api/auth/$'
     | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
@@ -729,6 +751,7 @@ export interface FileRouteTypes {
     | '/activity/ai-tasks'
     | '/activity/chats'
     | '/activity/feedbacks'
+    | '/api/auth'
     | '/blog/$slug'
     | '/settings/apikeys'
     | '/settings/billing'
@@ -746,6 +769,7 @@ export interface FileRouteTypes {
     | '/$locale/settings/payments'
     | '/$locale/settings/profile'
     | '/$locale/settings/security'
+    | '/api/auth/$'
     | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
@@ -793,6 +817,7 @@ export interface RootRouteChildren {
   ActivityAiTasksRoute: typeof ActivityAiTasksRoute
   ActivityChatsRoute: typeof ActivityChatsRoute
   ActivityFeedbacksRoute: typeof ActivityFeedbacksRoute
+  ApiAuthRoute: typeof ApiAuthRouteWithChildren
   BlogSlugRoute: typeof BlogSlugRoute
   SettingsApikeysRoute: typeof SettingsApikeysRoute
   SettingsBillingRoute: typeof SettingsBillingRoute
@@ -960,6 +985,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth': {
+      id: '/api/auth'
+      path: '/api/auth'
+      fullPath: '/api/auth'
+      preLoaderRoute: typeof ApiAuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/activity/feedbacks': {
       id: '/activity/feedbacks'
       path: '/activity/feedbacks'
@@ -1114,6 +1146,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPaymentCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof ApiAuthRoute
+    }
     '/$locale/settings/security': {
       id: '/$locale/settings/security'
       path: '/$locale/settings/security'
@@ -1264,6 +1303,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ApiAuthRouteChildren {
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+}
+
+const ApiAuthRouteChildren: ApiAuthRouteChildren = {
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
+}
+
+const ApiAuthRouteWithChildren =
+  ApiAuthRoute._addFileChildren(ApiAuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRoute,
@@ -1289,6 +1339,7 @@ const rootRouteChildren: RootRouteChildren = {
   ActivityAiTasksRoute: ActivityAiTasksRoute,
   ActivityChatsRoute: ActivityChatsRoute,
   ActivityFeedbacksRoute: ActivityFeedbacksRoute,
+  ApiAuthRoute: ApiAuthRouteWithChildren,
   BlogSlugRoute: BlogSlugRoute,
   SettingsApikeysRoute: SettingsApikeysRoute,
   SettingsBillingRoute: SettingsBillingRoute,
