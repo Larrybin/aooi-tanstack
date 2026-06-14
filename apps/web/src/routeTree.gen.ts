@@ -62,6 +62,7 @@ import { Route as ApiConfigGetConfigsRouteImport } from './routes/api/config/get
 import { Route as ApiBackgroundRemoverRemoveRouteImport } from './routes/api/background-remover/remove'
 import { Route as ApiBackgroundRemoverCleanupRouteImport } from './routes/api/background-remover/cleanup'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiAiCapabilitiesRouteImport } from './routes/api/ai/capabilities'
 import { Route as LocaleSettingsSecurityRouteImport } from './routes/$locale/settings/security'
 import { Route as LocaleSettingsProfileRouteImport } from './routes/$locale/settings/profile'
 import { Route as LocaleSettingsPaymentsRouteImport } from './routes/$locale/settings/payments'
@@ -358,6 +359,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/$',
   getParentRoute: () => ApiAuthRoute,
 } as any)
+const ApiAiCapabilitiesRoute = ApiAiCapabilitiesRouteImport.update({
+  id: '/api/ai/capabilities',
+  path: '/api/ai/capabilities',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LocaleSettingsSecurityRoute = LocaleSettingsSecurityRouteImport.update({
   id: '/$locale/settings/security',
   path: '/$locale/settings/security',
@@ -549,6 +555,7 @@ export interface FileRoutesByFullPath {
   '/$locale/settings/payments': typeof LocaleSettingsPaymentsRoute
   '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
+  '/api/ai/capabilities': typeof ApiAiCapabilitiesRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/background-remover/cleanup': typeof ApiBackgroundRemoverCleanupRoute
   '/api/background-remover/remove': typeof ApiBackgroundRemoverRemoveRoute
@@ -631,6 +638,7 @@ export interface FileRoutesByTo {
   '/$locale/settings/payments': typeof LocaleSettingsPaymentsRoute
   '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
+  '/api/ai/capabilities': typeof ApiAiCapabilitiesRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/background-remover/cleanup': typeof ApiBackgroundRemoverCleanupRoute
   '/api/background-remover/remove': typeof ApiBackgroundRemoverRemoveRoute
@@ -714,6 +722,7 @@ export interface FileRoutesById {
   '/$locale/settings/payments': typeof LocaleSettingsPaymentsRoute
   '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
+  '/api/ai/capabilities': typeof ApiAiCapabilitiesRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/background-remover/cleanup': typeof ApiBackgroundRemoverCleanupRoute
   '/api/background-remover/remove': typeof ApiBackgroundRemoverRemoveRoute
@@ -798,6 +807,7 @@ export interface FileRouteTypes {
     | '/$locale/settings/payments'
     | '/$locale/settings/profile'
     | '/$locale/settings/security'
+    | '/api/ai/capabilities'
     | '/api/auth/$'
     | '/api/background-remover/cleanup'
     | '/api/background-remover/remove'
@@ -880,6 +890,7 @@ export interface FileRouteTypes {
     | '/$locale/settings/payments'
     | '/$locale/settings/profile'
     | '/$locale/settings/security'
+    | '/api/ai/capabilities'
     | '/api/auth/$'
     | '/api/background-remover/cleanup'
     | '/api/background-remover/remove'
@@ -962,6 +973,7 @@ export interface FileRouteTypes {
     | '/$locale/settings/payments'
     | '/$locale/settings/profile'
     | '/$locale/settings/security'
+    | '/api/ai/capabilities'
     | '/api/auth/$'
     | '/api/background-remover/cleanup'
     | '/api/background-remover/remove'
@@ -1045,6 +1057,7 @@ export interface RootRouteChildren {
   LocaleSettingsPaymentsRoute: typeof LocaleSettingsPaymentsRoute
   LocaleSettingsProfileRoute: typeof LocaleSettingsProfileRoute
   LocaleSettingsSecurityRoute: typeof LocaleSettingsSecurityRoute
+  ApiAiCapabilitiesRoute: typeof ApiAiCapabilitiesRoute
   ApiBackgroundRemoverCleanupRoute: typeof ApiBackgroundRemoverCleanupRoute
   ApiBackgroundRemoverRemoveRoute: typeof ApiBackgroundRemoverRemoveRoute
   ApiConfigGetConfigsRoute: typeof ApiConfigGetConfigsRoute
@@ -1456,6 +1469,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof ApiAuthRoute
     }
+    '/api/ai/capabilities': {
+      id: '/api/ai/capabilities'
+      path: '/api/ai/capabilities'
+      fullPath: '/api/ai/capabilities'
+      preLoaderRoute: typeof ApiAiCapabilitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$locale/settings/security': {
       id: '/$locale/settings/security'
       path: '/$locale/settings/security'
@@ -1714,6 +1734,7 @@ const rootRouteChildren: RootRouteChildren = {
   LocaleSettingsPaymentsRoute: LocaleSettingsPaymentsRoute,
   LocaleSettingsProfileRoute: LocaleSettingsProfileRoute,
   LocaleSettingsSecurityRoute: LocaleSettingsSecurityRoute,
+  ApiAiCapabilitiesRoute: ApiAiCapabilitiesRoute,
   ApiBackgroundRemoverCleanupRoute: ApiBackgroundRemoverCleanupRoute,
   ApiBackgroundRemoverRemoveRoute: ApiBackgroundRemoverRemoveRoute,
   ApiConfigGetConfigsRoute: ApiConfigGetConfigsRoute,

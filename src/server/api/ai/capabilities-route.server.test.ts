@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { AIMediaType } from '@/extensions/ai';
 
-import { createAiCapabilitiesGetHandler } from './route';
+import { createAiCapabilitiesGetHandler } from './capabilities-route';
 
 test('ai/capabilities 路由返回 no-store 能力列表', async () => {
   const handler = createAiCapabilitiesGetHandler({

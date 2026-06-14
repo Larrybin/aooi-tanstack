@@ -1,62 +1,16 @@
-import {
-  listAvailableAICapabilities,
-  resolveAICapability,
-  type AIProviderAvailability,
-} from '@/domains/ai/domain/capabilities';
-import type {
-  AiProviderBindings,
-  AiRuntimeSettings,
-} from '@/domains/settings/application/settings-runtime.contracts';
+import type { AICapabilitySelection } from '@/shared/types/ai-capability';
 
 import {
-  BadRequestError,
-  ServiceUnavailableError,
-} from '@/shared/lib/api/errors';
-import type {
-  AICapability,
-  AICapabilitySelection,
-} from '@/shared/types/ai-capability';
+  listConfiguredAICapabilities,
+  requireCapability,
+  resolveConfiguredAICapability,
+} from './capabilities-core';
 
-function toAIProviderAvailability(
-  bindings: AiProviderBindings
-): AIProviderAvailability {
-  return {
-    kie: Boolean(bindings.kieApiKey),
-    replicate: Boolean(bindings.replicateApiToken),
-  };
-}
-
-export function listConfiguredAICapabilities(
-  settings: AiRuntimeSettings,
-  bindings: AiProviderBindings
-) {
-  if (!settings.aiEnabled) {
-    return [];
-  }
-
-  return listAvailableAICapabilities(toAIProviderAvailability(bindings));
-}
-
-export function resolveConfiguredAICapability(
-  settings: AiRuntimeSettings,
-  bindings: AiProviderBindings,
-  selection: AICapabilitySelection
-) {
-  if (!settings.aiEnabled) {
-    throw new ServiceUnavailableError('ai capability not available');
-  }
-
-  const capability = resolveAICapability(
-    toAIProviderAvailability(bindings),
-    selection
-  );
-
-  if (!capability) {
-    throw new BadRequestError('invalid ai capability');
-  }
-
-  return capability;
-}
+export {
+  listConfiguredAICapabilities,
+  requireCapability,
+  resolveConfiguredAICapability,
+};
 
 export async function listPublicAICapabilities() {
   const [{ readAiRuntimeSettingsCached }, { getAiProviderBindings }] =
@@ -82,14 +36,4 @@ export async function resolvePublicAICapability(
   const bindings = getAiProviderBindings();
 
   return resolveConfiguredAICapability(settings, bindings, selection);
-}
-
-export function requireCapability(
-  capability: AICapability | undefined
-): AICapability {
-  if (!capability) {
-    throw new ServiceUnavailableError('ai capability not available');
-  }
-
-  return capability;
 }
