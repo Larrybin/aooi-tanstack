@@ -27,6 +27,7 @@ const canonicalPath = '/settings/security' as const;
 const migratedSettingsPaths = [
   '/settings/profile',
   '/settings/security',
+  '/settings/credits',
 ] as const;
 
 export async function resolveSettingsSecurityRouteData(
@@ -189,7 +190,15 @@ function readOptionalString(value: unknown) {
 }
 
 function fallbackTitleForPath(path: (typeof migratedSettingsPaths)[number]) {
-  return path === '/settings/profile' ? 'Profile' : 'Security';
+  if (path === '/settings/profile') {
+    return 'Profile';
+  }
+
+  if (path === '/settings/security') {
+    return 'Security';
+  }
+
+  return 'Credits';
 }
 
 function getObject(value: unknown): Record<string, unknown> {

@@ -164,10 +164,12 @@ const requiredFiles = [
   'apps/web/src/routes/settings_.tsx',
   'apps/web/src/routes/settings/profile.tsx',
   'apps/web/src/routes/settings/security.tsx',
+  'apps/web/src/routes/settings/credits.tsx',
   'apps/web/src/routes/activity_.tsx',
   'apps/web/src/routes/$locale/settings_.tsx',
   'apps/web/src/routes/$locale/settings/profile.tsx',
   'apps/web/src/routes/$locale/settings/security.tsx',
+  'apps/web/src/routes/$locale/settings/credits.tsx',
   'apps/web/src/routes/$locale/activity_.tsx',
   'apps/web/src/routes/api/payment/checkout.ts',
   'apps/web/src/routes/api/payment/notify.ts',
@@ -204,6 +206,9 @@ const requiredFiles = [
   'src/server/member/settings-security-route-data.ts',
   'src/server/member/settings-security-route-resolver.ts',
   'src/server/member/settings-security-route-messages.ts',
+  'src/server/member/settings-credits-route-data.ts',
+  'src/server/member/settings-credits-route-resolver.ts',
+  'src/server/member/settings-credits-route-messages.ts',
   'src/surfaces/landing/pricing/pricing.data.ts',
   'src/surfaces/landing/pricing/pricing.seo.ts',
   'src/surfaces/landing/pricing/pricing.view.tsx',
@@ -240,6 +245,10 @@ const requiredFiles = [
   'src/surfaces/member/settings-security/settings-security.seo.ts',
   'src/surfaces/member/settings-security/settings-security.types.ts',
   'src/surfaces/member/settings-security/settings-security.view.tsx',
+  'src/surfaces/member/settings-credits/settings-credits.data.ts',
+  'src/surfaces/member/settings-credits/settings-credits.seo.ts',
+  'src/surfaces/member/settings-credits/settings-credits.types.ts',
+  'src/surfaces/member/settings-credits/settings-credits.view.tsx',
   'src/surfaces/system/not-found/not-found.view.tsx',
   'scripts/tanstack-gate-4-plan.mjs',
   'docs/migration/gate-4-page-migration-plan.generated.md',
@@ -1453,6 +1462,193 @@ if (
 ) {
   fail(
     'src/app/[locale]/(landing)/settings/security/page.tsx must remain until the legacy app route is retired'
+  );
+}
+
+const settingsCreditsRouteFiles = [
+  {
+    file: 'apps/web/src/routes/settings/credits.tsx',
+    routeId: '/settings/credits',
+    localePattern: /defaultLocale/,
+  },
+  {
+    file: 'apps/web/src/routes/$locale/settings/credits.tsx',
+    routeId: '/$locale/settings/credits',
+    localePattern: /params\.locale/,
+  },
+];
+
+for (const { file, routeId, localePattern } of settingsCreditsRouteFiles) {
+  const abs = join(root, file);
+  if (!existsSync(abs)) {
+    fail(`${file} must exist for Gate 4-B.3d settings credits route`);
+  }
+  if (!contains(abs, /createFileRoute/)) {
+    fail(`${file} must use createFileRoute`);
+  }
+  if (
+    !contains(abs, new RegExp(`createFileRoute\\('${escapeRegex(routeId)}'\\)`))
+  ) {
+    fail(`${file} must declare TanStack route ${routeId}`);
+  }
+  if (!contains(abs, /loadSettingsCreditsRouteSurfaceData/)) {
+    fail(`${file} must load settings credits route surface data`);
+  }
+  if (!contains(abs, /getSettingsCreditsRouteSurfaceHead/)) {
+    fail(`${file} must use settings credits route surface head`);
+  }
+  if (!contains(abs, /SettingsCreditsRouteView/)) {
+    fail(`${file} must render SettingsCreditsRouteView`);
+  }
+  if (!contains(abs, localePattern)) {
+    fail(`${file} must use the expected locale source`);
+  }
+}
+
+for (const fullPath of ['/settings/credits', '/$locale/settings/credits']) {
+  if (
+    !contains(
+      homeRouteTreeAbs,
+      new RegExp(`fullPath:\\s*'${escapeRegex(fullPath)}'`)
+    )
+  ) {
+    fail(
+      `${homeRouteTreeFile} must include settings credits fullPath ${fullPath}`
+    );
+  }
+}
+
+const settingsCreditsDataFile =
+  'src/server/member/settings-credits-route-data.ts';
+const settingsCreditsDataAbs = join(root, settingsCreditsDataFile);
+if (
+  !contains(
+    settingsCreditsDataAbs,
+    /createServerFn\(\{\s*method:\s*['"]GET['"]/
+  )
+) {
+  fail(`${settingsCreditsDataFile} must use createServerFn({ method: 'GET' })`);
+}
+if (
+  !contains(
+    settingsCreditsDataAbs,
+    /await\s+import\(\s*['"].\/settings-credits-route-resolver['"]\s*\)/
+  )
+) {
+  fail(
+    `${settingsCreditsDataFile} must dynamically import the settings credits resolver`
+  );
+}
+
+const settingsCreditsResolverFile =
+  'src/server/member/settings-credits-route-resolver.ts';
+const settingsCreditsResolverAbs = join(root, settingsCreditsResolverFile);
+for (const [regex, label] of [
+  [/normalizeLocale/, 'locale normalization'],
+  [/loadSettingsCreditsRouteMessages/, 'settings credits message loader'],
+  [/readSignedInUserIdentity|getSignedInUserIdentity/, 'signed-in user check'],
+  [/listOwnCreditsUseCase/, 'credits ledger use case'],
+  [/readAccountRemainingCreditsUseCase/, 'remaining credits use case'],
+  [/ACCOUNT_CREDIT_TRANSACTION_TYPE/, 'credit transaction type contract'],
+  [/viewer:\s*\{\s*signedIn/s, 'signed-in boolean route data'],
+  [/remainingCredits/, 'remaining credits route data'],
+  [/records/, 'serializable credit records'],
+  [/toISOString/, 'Date to string conversion'],
+  [/JSON\.stringify/, 'route data serializability guard'],
+  [/noindex,nofollow/, 'member noindex robots head'],
+]) {
+  if (!contains(settingsCreditsResolverAbs, regex)) {
+    fail(`${settingsCreditsResolverFile} must use ${label}`);
+  }
+}
+for (const [regex, label] of [
+  [/accountRuntimeDeps/, 'legacy account runtime deps'],
+  [/TableCard/, 'legacy table card'],
+  [/React callback columns|callback columns/, 'callback table columns'],
+  [/next\/headers/, 'next/headers import'],
+  [/session\.server/, 'legacy Next session server'],
+  [
+    /ConsoleLayout|LandingLayout|PublicAppProvider|AuthSnapshotProvider/,
+    'legacy member shell',
+  ],
+  [/next-intl/, 'next-intl import'],
+  [/next\/navigation/, 'next/navigation import'],
+  [/@\/app\/|src\/app\//, 'legacy app import'],
+  [/@\/themes\//, '@/themes import'],
+]) {
+  if (contains(settingsCreditsResolverAbs, regex)) {
+    fail(`${settingsCreditsResolverFile} must not depend on ${label}`);
+  }
+}
+
+const settingsCreditsMessagesFile =
+  'src/server/member/settings-credits-route-messages.ts';
+const settingsCreditsMessagesAbs = join(root, settingsCreditsMessagesFile);
+for (const [regex, label] of [
+  [/settings\/credits/, 'settings/credits messages'],
+  [/settings\/sidebar/, 'settings/sidebar messages'],
+  [
+    /\?\s*\(mergeDeep\(baseCredits/,
+    'base fallback for missing credits messages',
+  ],
+  [
+    /\?\s*\(mergeDeep\(baseSidebar/,
+    'base fallback for missing sidebar messages',
+  ],
+  [/mergeDeep/, 'key-level fallback merge'],
+]) {
+  if (!contains(settingsCreditsMessagesAbs, regex)) {
+    fail(`${settingsCreditsMessagesFile} must implement ${label}`);
+  }
+}
+
+const settingsCreditsSurfaceFiles = walk(
+  join(root, 'src/surfaces/member/settings-credits')
+)
+  .filter((file) => /\.(ts|tsx)$/.test(file))
+  .map((file) => normalizePath(relative(root, file)))
+  .sort();
+for (const file of settingsCreditsSurfaceFiles) {
+  const abs = join(root, file);
+  for (const [regex, label] of [
+    [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
+    [/^\s*import\s+['"]next(?:\/|['"])/m, 'next side-effect import'],
+    [/from\s+['"]next-intl(?:\/|['"])/, 'next-intl import'],
+    [/@\/infra\/platform\/i18n\/navigation/, 'Next i18n navigation import'],
+    [/@\/app\/|src\/app\//, 'legacy app import'],
+    [/@\/themes\//, '@/themes import'],
+    [/^\s*import\s+['"]server-only['"]/m, 'server-only marker'],
+    [/session\.server/, 'legacy Next session server'],
+    [/TableCard/, 'legacy table card'],
+  ]) {
+    if (contains(abs, regex)) {
+      fail(`${file} must not depend on ${label}`);
+    }
+  }
+}
+
+const settingsCreditsViewFile =
+  'src/surfaces/member/settings-credits/settings-credits.view.tsx';
+const settingsCreditsViewAbs = join(root, settingsCreditsViewFile);
+for (const [regex, label] of [
+  [/document\.documentElement\.lang\s*=\s*data\.locale/, 'localized html lang'],
+  [/document\.documentElement\.dir\s*=\s*isRtlLocale/, 'localized html dir'],
+  [/data\.page\.remainingCredits/, 'remaining credits display'],
+  [/data\.page\.records/, 'plain serializable records table'],
+  [/data\.page\.tabs/, 'type filter tabs'],
+]) {
+  if (!contains(settingsCreditsViewAbs, regex)) {
+    fail(`${settingsCreditsViewFile} must apply ${label}`);
+  }
+}
+
+if (
+  !existsSync(
+    join(root, 'src/app/[locale]/(landing)/settings/credits/page.tsx')
+  )
+) {
+  fail(
+    'src/app/[locale]/(landing)/settings/credits/page.tsx must remain until the legacy app route is retired'
   );
 }
 

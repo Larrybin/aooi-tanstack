@@ -149,10 +149,12 @@ test('resolveSettingsProfileRouteData localizes migrated shell nav URLs', async 
     [
       localePath('/settings/profile', locale),
       localePath('/settings/security', locale),
+      localePath('/settings/credits', locale),
     ]
   );
   assert.equal(data.shell.nav.items[0]?.active, true);
   assert.equal(data.shell.nav.items[1]?.active, false);
+  assert.equal(data.shell.nav.items[2]?.active, false);
 });
 
 test('resolveSettingsProfileRouteData is JSON serializable', async () => {
