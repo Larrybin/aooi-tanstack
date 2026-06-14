@@ -130,7 +130,7 @@ Count: 5
 
 ## Files with params: Promise
 
-Count: 57
+Count: 52
 
 - `src/app/[locale]/(admin)/admin/categories/[id]/edit/page.tsx`
 - `src/app/[locale]/(admin)/admin/categories/add/page.tsx`
@@ -183,16 +183,11 @@ Count: 57
 - `src/app/_metadata/public-page-metadata.ts`
 - `src/app/api/ai/notify-route.server.test.ts`
 - `src/app/api/ai/notify/[provider]/route.ts`
-- `src/app/api/background-remover/download/[id]/route.ts`
-- `src/app/api/background-remover/result/[id]/route.ts`
-- `src/app/api/remover/jobs/[id]/action.test.ts`
-- `src/app/api/remover/jobs/[id]/action.ts`
 - `src/app/api/remover/jobs/[id]/route.ts`
-- `src/app/api/tts/download/[id]/route.ts`
 
 ## Files with next/\* imports
 
-Count: 35
+Count: 33
 
 - `src/app/[locale]/(admin)/admin/ai-tasks/page.tsx`
 - `src/app/[locale]/(admin)/admin/chats/page.tsx`
@@ -222,10 +217,8 @@ Count: 35
 - `src/app/[locale]/(landing)/settings/payments/page.tsx`
 - `src/app/[locale]/layout.tsx`
 - `src/app/ads.txt/response.ts`
-- `src/app/api/background-remover/actor.server.ts`
 - `src/app/api/payment/callback/route-logic.ts`
 - `src/app/api/remover/actor.server.ts`
-- `src/app/api/tts/actor.server.ts`
 - `src/app/error.tsx`
 - `src/app/global-error.tsx`
 - `src/app/not-found.tsx`

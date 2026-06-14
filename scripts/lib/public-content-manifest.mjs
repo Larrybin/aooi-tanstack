@@ -163,6 +163,14 @@ function buildToc(content) {
   return toc;
 }
 
+export function readPublicContentDocumentTitle(frontmatter, toc) {
+  const frontmatterTitle =
+    typeof frontmatter.title === 'string' ? frontmatter.title.trim() : '';
+  if (frontmatterTitle) return frontmatterTitle;
+
+  return toc.find((item) => item.depth === 1)?.title ?? '';
+}
+
 function readCollectionDocuments({ rootDir, siteKey, site, collection }) {
   const dirPath = resolveSiteCollectionDir({ rootDir, siteKey, collection });
   const defaultLocale = site.i18n.defaultLocale;
@@ -184,20 +192,22 @@ function readCollectionDocuments({ rootDir, siteKey, site, collection }) {
     if (!localizedSlug) continue;
 
     const { locale, slug } = localizedSlug;
+    const toc = buildToc(content);
+
     documents.push({
       collection,
       locale,
       slug,
       path: slugToPath(collection, slug),
       sourcePath: path.relative(rootDir, filePath).split(path.sep).join('/'),
-      title: frontmatter.title ?? '',
+      title: readPublicContentDocumentTitle(frontmatter, toc),
       description: frontmatter.description ?? '',
       created_at: frontmatter.created_at ?? '',
       author_name: frontmatter.author_name ?? '',
       author_image: frontmatter.author_image ?? '',
       image: frontmatter.image ?? '',
       content,
-      toc: buildToc(content),
+      toc,
     });
   }
 
