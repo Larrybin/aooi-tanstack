@@ -339,6 +339,7 @@ function buildNoAuthPaymentsPageData(
   return {
     noAuthMessage: 'no auth',
     errorMessage: null,
+    paymentCallback: null,
     query: {
       page: defaultPage,
       pageSize: defaultPageSize,
@@ -367,6 +368,7 @@ function buildSettingsPaymentsPageData(
   return {
     noAuthMessage: 'no auth',
     errorMessage: null,
+    paymentCallback: buildPaymentCallback(locale, query),
     query,
     pagination: {
       total: overview.total,
@@ -396,6 +398,7 @@ function buildSettingsPaymentsErrorPageData(
   return {
     noAuthMessage: 'no auth',
     errorMessage: 'Payments could not be loaded',
+    paymentCallback: buildPaymentCallback(locale, query),
     query,
     pagination: {
       total: 0,
@@ -407,6 +410,23 @@ function buildSettingsPaymentsErrorPageData(
     labels: buildPaymentsLabels(messages),
     tabs: buildPaymentsTabs(messages, locale, query.type, query.pageSize),
     records: [],
+  };
+}
+
+function buildPaymentCallback(locale: string, query: PaymentsQuery) {
+  const normalizedOrderNo = query.orderNo.trim();
+  if (!normalizedOrderNo) {
+    return null;
+  }
+
+  return {
+    orderNo: normalizedOrderNo,
+    cleanUrl: buildPaymentsPageHref(
+      locale,
+      query.type,
+      query.page,
+      query.pageSize
+    ),
   };
 }
 
@@ -433,6 +453,10 @@ function buildPaymentsLabels(messages: SettingsPaymentsRouteMessages) {
     previousPage: 'Previous',
     nextPage: 'Next',
     empty: 'No payment records',
+    callbackTitle: 'Payment callback',
+    callbackOrderNo: 'Order No',
+    callbackClear: 'Clear status',
+    callbackFailed: 'Failed to confirm payment',
   };
 }
 

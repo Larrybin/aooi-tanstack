@@ -2546,15 +2546,19 @@ for (const [regex, label] of [
   [/data\.page\.records/, 'plain serializable payments table'],
   [/data\.page\.tabs/, 'payment type filter tabs'],
   [/invoiceHref/, 'invoice link rendering'],
+  [/data\.page\.paymentCallback/, 'payment callback route data'],
+  [/\/api\/payment\/callback/, 'payment callback confirmation API call'],
+  [
+    /window\.location\.replace/,
+    'clean URL replace after callback confirmation',
+  ],
+  [/callbackTitle/, 'payment callback display copy'],
 ]) {
   if (!contains(settingsPaymentsViewAbs, regex)) {
     fail(`${settingsPaymentsViewFile} must apply ${label}`);
   }
 }
 for (const [regex, label] of [
-  [/data\.page\.paymentCallback/, 'payment callback display'],
-  [/Payment callback/, 'payment callback copy'],
-  [/api\/payment\/callback/, 'payment callback API link'],
   [/settings\/billing\/cancel/, 'cancel action link'],
   [/settings\/billing\/retrieve/, 'provider portal link'],
 ]) {

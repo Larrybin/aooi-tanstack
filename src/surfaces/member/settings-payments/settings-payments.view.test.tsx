@@ -21,7 +21,26 @@ test('SettingsPaymentsRouteView renders read-only payments with invoice links on
   assert.doesNotMatch(html, /settings\/billing\/retrieve/);
 });
 
-function createSettingsPaymentsData(): SettingsPaymentsRouteData {
+test('SettingsPaymentsRouteView renders payment callback confirmation controls', () => {
+  const html = renderToStaticMarkup(
+    <SettingsPaymentsRouteView
+      data={createSettingsPaymentsData({
+        paymentCallback: {
+          orderNo: 'order-callback',
+          cleanUrl: '/settings/payments',
+        },
+      })}
+    />
+  );
+
+  assert.match(html, /Payment callback/);
+  assert.match(html, /order-callback/);
+  assert.match(html, /href="\/settings\/payments"/);
+});
+
+function createSettingsPaymentsData(
+  pageOverrides: Partial<SettingsPaymentsRouteData['page']> = {}
+): SettingsPaymentsRouteData {
   return {
     locale: 'en',
     canonicalPath: '/settings/payments',
@@ -47,6 +66,7 @@ function createSettingsPaymentsData(): SettingsPaymentsRouteData {
     page: {
       noAuthMessage: 'no auth',
       errorMessage: null,
+      paymentCallback: null,
       query: {
         page: 1,
         pageSize: 20,
@@ -77,6 +97,10 @@ function createSettingsPaymentsData(): SettingsPaymentsRouteData {
         previousPage: 'Previous',
         nextPage: 'Next',
         empty: 'No payment records',
+        callbackTitle: 'Payment callback',
+        callbackOrderNo: 'Order No',
+        callbackClear: 'Clear status',
+        callbackFailed: 'Failed to confirm payment',
       },
       tabs: [
         {
@@ -114,6 +138,7 @@ function createSettingsPaymentsData(): SettingsPaymentsRouteData {
           invoiceExternal: false,
         },
       ],
+      ...pageOverrides,
     },
   };
 }

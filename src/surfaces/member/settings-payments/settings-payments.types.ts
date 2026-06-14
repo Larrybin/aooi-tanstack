@@ -13,6 +13,10 @@ export type SettingsPaymentsRouteData = {
   page: {
     noAuthMessage: string;
     errorMessage: string | null;
+    paymentCallback: {
+      orderNo: string;
+      cleanUrl: string;
+    } | null;
     query: {
       page: number;
       pageSize: number;
@@ -43,6 +47,10 @@ export type SettingsPaymentsRouteData = {
       previousPage: string;
       nextPage: string;
       empty: string;
+      callbackTitle: string;
+      callbackOrderNo: string;
+      callbackClear: string;
+      callbackFailed: string;
     };
     tabs: Array<{
       title: string;

@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { SettingsShellView } from '@/surfaces/member/settings-shell/settings-shell.view';
 
 import { isRtlLocale } from '@/config/locale';
+import { fetchJson, toastFetchError } from '@/shared/lib/api/fetch-json';
 
 import type { SettingsPaymentsRouteData } from './settings-payments.types';
 
@@ -11,6 +12,9 @@ export function SettingsPaymentsRouteView({
   data: SettingsPaymentsRouteData;
 }) {
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
+  const [callbackError, setCallbackError] = useState<string | null>(null);
+  const didConfirmPaymentCallback = useRef(false);
+  const paymentCallback = data.page.paymentCallback;
   const totalPages = Math.max(
     1,
     Math.ceil(data.page.pagination.total / data.page.pagination.pageSize)
@@ -23,6 +27,29 @@ export function SettingsPaymentsRouteView({
     document.documentElement.lang = data.locale;
     document.documentElement.dir = isRtlLocale(data.locale) ? 'rtl' : 'ltr';
   }, [data.locale]);
+
+  useEffect(() => {
+    if (
+      !data.viewer.signedIn ||
+      !paymentCallback ||
+      didConfirmPaymentCallback.current
+    ) {
+      return;
+    }
+
+    didConfirmPaymentCallback.current = true;
+    void fetchJson('/api/payment/callback', {
+      method: 'POST',
+      body: { order_no: paymentCallback.orderNo },
+    })
+      .then(() => {
+        window.location.replace(paymentCallback.cleanUrl);
+      })
+      .catch((error: unknown) => {
+        setCallbackError(data.page.labels.callbackFailed);
+        toastFetchError(error, data.page.labels.callbackFailed);
+      });
+  }, [data.page.labels.callbackFailed, data.viewer.signedIn, paymentCallback]);
 
   async function copyOrderNo(orderNo: string) {
     if (!orderNo || !navigator.clipboard) {
@@ -41,6 +68,21 @@ export function SettingsPaymentsRouteView({
         </section>
       ) : (
         <div className="settings-panel-list">
+          {data.page.paymentCallback ? (
+            <section className="settings-panel">
+              <h2>{data.page.labels.callbackTitle}</h2>
+              <p>
+                {data.page.labels.callbackOrderNo}:{' '}
+                {data.page.paymentCallback.orderNo}
+              </p>
+              <a href={data.page.paymentCallback.cleanUrl}>
+                {data.page.labels.callbackClear}
+              </a>
+              {callbackError ? (
+                <p data-status="error">{callbackError}</p>
+              ) : null}
+            </section>
+          ) : null}
           <section className="settings-panel">
             <h2>{data.page.labels.listTitle}</h2>
             <p>{data.page.labels.listDescription}</p>

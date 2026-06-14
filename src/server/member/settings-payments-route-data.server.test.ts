@@ -96,6 +96,10 @@ test('resolveSettingsPaymentsRouteData returns default signed-in payment data', 
     type: 'subscription',
     orderNo: 'order-callback',
   });
+  assert.deepEqual(data.page.paymentCallback, {
+    orderNo: 'order-callback',
+    cleanUrl: '/settings/payments?type=subscription&page=2&pageSize=10',
+  });
   assert.deepEqual(data.page.pagination, {
     total: 30,
     page: 2,
@@ -145,6 +149,7 @@ test('resolveSettingsPaymentsRouteData reads TanStack search object and resets t
     type: 'renew',
     orderNo: '',
   });
+  assert.equal(data.page.paymentCallback, null);
   assert.equal(data.page.tabs[0]?.href, '/settings/payments?pageSize=10');
   assert.equal(
     data.page.tabs[1]?.href,
