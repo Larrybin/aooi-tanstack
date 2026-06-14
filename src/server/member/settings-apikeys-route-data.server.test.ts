@@ -7,6 +7,10 @@ import { defaultLocale, locales } from '@/config/locale';
 import { localePath } from '@/shared/i18n/locale';
 import { buildCanonicalUrl } from '@/shared/seo/canonical';
 
+import {
+  resolveSettingsApiKeyCreate,
+  resolveSettingsApiKeysCreateRouteData,
+} from './settings-apikeys-create-route-resolver';
 import { resolveSettingsApiKeysRouteData } from './settings-apikeys-route-resolver';
 
 test('resolveSettingsApiKeysRouteData returns no-auth page without reading API keys', async () => {
@@ -257,6 +261,144 @@ test('resolveSettingsApiKeysRouteData returns serializable error result when API
   assert.equal(data.page.errorMessage, 'API keys could not be loaded');
   assert.equal(data.page.records.length, 0);
   assert.doesNotThrow(() => JSON.stringify(data));
+});
+
+test('resolveSettingsApiKeysCreateRouteData returns create form data', async () => {
+  const data = await resolveSettingsApiKeysCreateRouteData(
+    { locale: defaultLocale },
+    { readSignedInUserIdentity: async () => fakeSignedInUser() }
+  );
+
+  assert.ok(data);
+  assert.equal(data.canonicalPath, '/settings/apikeys/create');
+  assert.equal(data.viewer.signedIn, true);
+  assert.equal(data.page.title, 'Create API Key');
+  assert.equal(data.page.fields.title, 'Title');
+  assert.equal(data.page.submitButtonTitle, 'Create');
+  assert.equal(data.page.backHref, '/settings/apikeys');
+  assert.deepEqual(
+    data.head.links?.find((link) => link.rel === 'canonical'),
+    {
+      rel: 'canonical',
+      href: buildCanonicalUrl('/settings/apikeys/create', defaultLocale),
+    }
+  );
+  assert.equal(data.shell.nav.items[5]?.active, true);
+  assert.doesNotThrow(() => JSON.stringify(data));
+});
+
+test('resolveSettingsApiKeysCreateRouteData returns no-auth create form data without mutation deps', async () => {
+  const data = await resolveSettingsApiKeysCreateRouteData(
+    { locale: defaultLocale },
+    { readSignedInUserIdentity: async () => null }
+  );
+
+  assert.ok(data);
+  assert.equal(data.viewer.signedIn, false);
+  assert.equal(data.page.noAuthMessage, 'no auth');
+});
+
+test('resolveSettingsApiKeysCreateRouteData returns localized create form data', async () => {
+  const locale = getLocaleWithApiKeysMessages();
+  if (!locale) {
+    return;
+  }
+
+  const data = await resolveSettingsApiKeysCreateRouteData(
+    { locale },
+    { readSignedInUserIdentity: async () => fakeSignedInUser() }
+  );
+
+  assert.ok(data);
+  assert.equal(data.page.title, '创建 API 密钥');
+  assert.equal(data.page.backHref, localePath('/settings/apikeys', locale));
+  assert.equal(
+    data.shell.topNav.items[0]?.url,
+    localePath('/settings/apikeys/create', locale)
+  );
+});
+
+test('resolveSettingsApiKeysCreateRouteData returns null for unsupported locale', async () => {
+  const data = await resolveSettingsApiKeysCreateRouteData({
+    locale: 'invalid',
+  });
+
+  assert.equal(data, null);
+});
+
+test('resolveSettingsApiKeyCreate creates API key and returns localized redirect', async () => {
+  const created: Array<Record<string, unknown>> = [];
+  const result = await resolveSettingsApiKeyCreate(
+    { locale: 'zh', title: '  Default  ' },
+    {
+      readSignedInUserIdentity: async () => fakeSignedInUser(),
+      apikeyCreateDeps: {
+        createId: () => 'key-created',
+        createSecretKey: () => 'sk-created',
+        createApikey: async (record) => {
+          created.push(record);
+          return fakeApiKey(record);
+        },
+      },
+    }
+  );
+
+  assert.deepEqual(created, [
+    {
+      id: 'key-created',
+      userId: 'user-1',
+      title: 'Default',
+      key: 'sk-created',
+      status: 'active',
+    },
+  ]);
+  assert.deepEqual(result, {
+    status: 'success',
+    message: 'API Key created',
+    redirect_url: localePath('/settings/apikeys', 'zh'),
+  });
+});
+
+test('resolveSettingsApiKeyCreate rejects invalid create input', async () => {
+  assert.deepEqual(
+    await resolveSettingsApiKeyCreate({ locale: 'invalid', title: 'Default' }),
+    { status: 'error', message: 'Invalid locale' }
+  );
+  assert.deepEqual(
+    await resolveSettingsApiKeyCreate({
+      locale: defaultLocale,
+      title: ' ',
+    }),
+    { status: 'error', message: 'title is required' }
+  );
+  assert.deepEqual(
+    await resolveSettingsApiKeyCreate(
+      { locale: defaultLocale, title: 'Default' },
+      { readSignedInUserIdentity: async () => null }
+    ),
+    { status: 'error', message: 'no auth' }
+  );
+});
+
+test('resolveSettingsApiKeyCreate maps create dependency failures', async () => {
+  const result = await resolveSettingsApiKeyCreate(
+    { locale: defaultLocale, title: 'Default' },
+    {
+      readSignedInUserIdentity: async () => fakeSignedInUser(),
+      apikeyCreateDeps: {
+        createId: () => 'key-created',
+        createSecretKey: () => 'sk-created',
+        createApikey: async () => {
+          throw new Error('db unavailable');
+        },
+      },
+    }
+  );
+
+  assert.deepEqual(result, {
+    status: 'error',
+    message: 'API key creation failed',
+  });
 });
 
 function fakeSignedInUser() {

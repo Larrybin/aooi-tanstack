@@ -171,6 +171,7 @@ const requiredFiles = [
   'apps/web/src/routes/settings/invoices/retrieve.tsx',
   'apps/web/src/routes/settings/payments.tsx',
   'apps/web/src/routes/settings/apikeys.tsx',
+  'apps/web/src/routes/settings/apikeys_/create.tsx',
   'apps/web/src/routes/activity_.tsx',
   'apps/web/src/routes/$locale/settings_.tsx',
   'apps/web/src/routes/$locale/settings/profile.tsx',
@@ -182,6 +183,7 @@ const requiredFiles = [
   'apps/web/src/routes/$locale/settings/invoices/retrieve.tsx',
   'apps/web/src/routes/$locale/settings/payments.tsx',
   'apps/web/src/routes/$locale/settings/apikeys.tsx',
+  'apps/web/src/routes/$locale/settings/apikeys_/create.tsx',
   'apps/web/src/routes/$locale/activity_.tsx',
   'apps/web/src/routes/api/payment/checkout.ts',
   'apps/web/src/routes/api/payment/notify.ts',
@@ -232,6 +234,8 @@ const requiredFiles = [
   'src/server/member/settings-apikeys-route-data.ts',
   'src/server/member/settings-apikeys-route-resolver.ts',
   'src/server/member/settings-apikeys-route-messages.ts',
+  'src/server/member/settings-apikeys-create-route-data.ts',
+  'src/server/member/settings-apikeys-create-route-resolver.ts',
   'src/server/member/settings-shell-route-data.ts',
   'src/surfaces/landing/pricing/pricing.data.ts',
   'src/surfaces/landing/pricing/pricing.seo.ts',
@@ -289,6 +293,10 @@ const requiredFiles = [
   'src/surfaces/member/settings-apikeys/settings-apikeys.seo.ts',
   'src/surfaces/member/settings-apikeys/settings-apikeys.types.ts',
   'src/surfaces/member/settings-apikeys/settings-apikeys.view.tsx',
+  'src/surfaces/member/settings-apikeys-create/settings-apikeys-create.data.ts',
+  'src/surfaces/member/settings-apikeys-create/settings-apikeys-create.seo.ts',
+  'src/surfaces/member/settings-apikeys-create/settings-apikeys-create.types.ts',
+  'src/surfaces/member/settings-apikeys-create/settings-apikeys-create.view.tsx',
   'src/surfaces/system/not-found/not-found.view.tsx',
   'scripts/tanstack-gate-4-plan.mjs',
   'docs/migration/gate-4-page-migration-plan.generated.md',
@@ -2200,7 +2208,6 @@ for (const [regex, label] of [
   }
 }
 for (const [regex, label] of [
-  [/createOwnApikeyUseCase/, 'API key create mutation'],
   [/renameOwnApikeyUseCase/, 'API key rename mutation'],
   [/deleteOwnApikeyUseCase/, 'API key delete mutation'],
   [/requireOwnedApikeyUseCase/, 'API key ownership mutation gate'],
@@ -2294,6 +2301,212 @@ if (
 ) {
   fail(
     'src/app/[locale]/(landing)/settings/apikeys/page.tsx must remain until the legacy app route is retired'
+  );
+}
+
+const settingsApiKeysCreateRouteFiles = [
+  {
+    file: 'apps/web/src/routes/settings/apikeys_/create.tsx',
+    routeId: '/settings/apikeys_/create',
+    localePattern: /defaultLocale/,
+  },
+  {
+    file: 'apps/web/src/routes/$locale/settings/apikeys_/create.tsx',
+    routeId: '/$locale/settings/apikeys_/create',
+    localePattern: /params\.locale/,
+  },
+];
+
+for (const {
+  file,
+  routeId,
+  localePattern,
+} of settingsApiKeysCreateRouteFiles) {
+  const abs = join(root, file);
+  if (!existsSync(abs)) {
+    fail(`${file} must exist for Gate 4-B.3h-2 settings API key create route`);
+  }
+  if (!contains(abs, /createFileRoute/)) {
+    fail(`${file} must use createFileRoute`);
+  }
+  if (
+    !contains(abs, new RegExp(`createFileRoute\\('${escapeRegex(routeId)}'\\)`))
+  ) {
+    fail(`${file} must declare TanStack route ${routeId}`);
+  }
+  if (!contains(abs, /loadSettingsApiKeysCreateRouteSurfaceData/)) {
+    fail(`${file} must load settings API key create route surface data`);
+  }
+  if (!contains(abs, /getSettingsApiKeysCreateRouteSurfaceHead/)) {
+    fail(`${file} must use settings API key create route surface head`);
+  }
+  if (!contains(abs, /SettingsApiKeysCreateRouteView/)) {
+    fail(`${file} must render SettingsApiKeysCreateRouteView`);
+  }
+  if (!contains(abs, localePattern)) {
+    fail(`${file} must use the expected locale source`);
+  }
+}
+
+for (const fullPath of [
+  '/settings/apikeys/create',
+  '/$locale/settings/apikeys/create',
+]) {
+  if (
+    !contains(
+      homeRouteTreeAbs,
+      new RegExp(`fullPath:\\s*'${escapeRegex(fullPath)}'`)
+    )
+  ) {
+    fail(
+      `${homeRouteTreeFile} must include settings API key create fullPath ${fullPath}`
+    );
+  }
+}
+
+const settingsApiKeysCreateDataFile =
+  'src/server/member/settings-apikeys-create-route-data.ts';
+const settingsApiKeysCreateDataAbs = join(root, settingsApiKeysCreateDataFile);
+if (
+  !contains(
+    settingsApiKeysCreateDataAbs,
+    /createServerFn\(\{\s*method:\s*['"]GET['"]/
+  )
+) {
+  fail(
+    `${settingsApiKeysCreateDataFile} must use createServerFn({ method: 'GET' })`
+  );
+}
+if (
+  !contains(
+    settingsApiKeysCreateDataAbs,
+    /await\s+import\(\s*['"].\/settings-apikeys-create-route-resolver['"]\s*\)/
+  )
+) {
+  fail(
+    `${settingsApiKeysCreateDataFile} must dynamically import the settings API key create resolver`
+  );
+}
+
+const settingsApiKeysCreateResolverFile =
+  'src/server/member/settings-apikeys-create-route-resolver.ts';
+const settingsApiKeysCreateResolverAbs = join(
+  root,
+  settingsApiKeysCreateResolverFile
+);
+for (const [regex, label] of [
+  [/normalizeLocale/, 'locale normalization'],
+  [/loadSettingsApiKeysRouteMessages/, 'settings API keys message loader'],
+  [/readSignedInUserIdentity|getSignedInUserIdentity/, 'signed-in user check'],
+  [/settings\/apikeys\/create/, 'API key create canonical path'],
+  [/settings\/apikeys/, 'API keys back link'],
+  [/JSON\.stringify/, 'route data serializability guard'],
+  [/noindex,nofollow/, 'member noindex robots head'],
+]) {
+  if (!contains(settingsApiKeysCreateResolverAbs, regex)) {
+    fail(`${settingsApiKeysCreateResolverFile} must use ${label}`);
+  }
+}
+for (const [regex, label] of [
+  [/renameOwnApikeyUseCase/, 'API key rename mutation'],
+  [/deleteOwnApikeyUseCase/, 'API key delete mutation'],
+  [/FormCard/, 'legacy form card'],
+  [/withAction/, 'legacy server action helper'],
+  [/parseFormData/, 'legacy form parser'],
+  [/next\/headers/, 'next/headers import'],
+  [/session\.server/, 'legacy Next session server'],
+  [
+    /ConsoleLayout|LandingLayout|PublicAppProvider|AuthSnapshotProvider/,
+    'legacy member shell',
+  ],
+  [/next-intl/, 'next-intl import'],
+  [/next\/navigation/, 'next/navigation import'],
+  [/@\/app\/|src\/app\//, 'legacy app import'],
+  [/@\/themes\//, '@/themes import'],
+]) {
+  if (contains(settingsApiKeysCreateResolverAbs, regex)) {
+    fail(`${settingsApiKeysCreateResolverFile} must not depend on ${label}`);
+  }
+}
+
+if (
+  !contains(
+    settingsApiKeysCreateDataAbs,
+    /createServerFn\(\{\s*method:\s*['"]POST['"]/
+  )
+) {
+  fail(
+    `${settingsApiKeysCreateDataFile} must expose createServerFn({ method: 'POST' }) for API key create`
+  );
+}
+if (
+  !contains(settingsApiKeysCreateDataAbs, /submitSettingsApiKeyCreateRouteData/)
+) {
+  fail(
+    `${settingsApiKeysCreateDataFile} must expose API key create submit data`
+  );
+}
+for (const [regex, label] of [
+  [/resolveSettingsApiKeyCreate/, 'API key create resolver'],
+  [/createOwnApikeyUseCase/, 'API key create use case'],
+  [/createApikey/, 'API key create infra dependency'],
+  [/createSecretKey/, 'API key secret creation dependency'],
+  [/getNonceStr/, 'API key secret generation'],
+  [/getUuid/, 'API key id generation'],
+  [/title is required/, 'API key title validation'],
+]) {
+  if (!contains(settingsApiKeysCreateResolverAbs, regex)) {
+    fail(`${settingsApiKeysCreateResolverFile} must use ${label}`);
+  }
+}
+
+const settingsApiKeysCreateSurfaceFiles = walk(
+  join(root, 'src/surfaces/member/settings-apikeys-create')
+)
+  .filter((file) => /\.(ts|tsx)$/.test(file))
+  .map((file) => normalizePath(relative(root, file)))
+  .sort();
+for (const file of settingsApiKeysCreateSurfaceFiles) {
+  const abs = join(root, file);
+  for (const [regex, label] of [
+    [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
+    [/^\s*import\s+['"]next(?:\/|['"])/m, 'next side-effect import'],
+    [/from\s+['"]next-intl(?:\/|['"])/, 'next-intl import'],
+    [/@\/infra\/platform\/i18n\/navigation/, 'Next i18n navigation import'],
+    [/@\/app\/|src\/app\//, 'legacy app import'],
+    [/@\/themes\//, '@/themes import'],
+    [/^\s*import\s+['"]server-only['"]/m, 'server-only marker'],
+    [/session\.server/, 'legacy Next session server'],
+    [/FormCard/, 'legacy form card'],
+  ]) {
+    if (contains(abs, regex)) {
+      fail(`${file} must not depend on ${label}`);
+    }
+  }
+}
+
+const settingsApiKeysCreateViewFile =
+  'src/surfaces/member/settings-apikeys-create/settings-apikeys-create.view.tsx';
+const settingsApiKeysCreateViewAbs = join(root, settingsApiKeysCreateViewFile);
+for (const [regex, label] of [
+  [/document\.documentElement\.lang\s*=\s*data\.locale/, 'localized html lang'],
+  [/document\.documentElement\.dir\s*=\s*isRtlLocale/, 'localized html dir'],
+  [/submitSettingsApiKeyCreateRouteSurfaceData/, 'API key create submit call'],
+  [/window\.location\.assign/, 'success redirect handling'],
+  [/name="title"/, 'API key title input'],
+]) {
+  if (!contains(settingsApiKeysCreateViewAbs, regex)) {
+    fail(`${settingsApiKeysCreateViewFile} must apply ${label}`);
+  }
+}
+
+if (
+  !existsSync(
+    join(root, 'src/app/[locale]/(landing)/settings/apikeys/create/page.tsx')
+  )
+) {
+  fail(
+    'src/app/[locale]/(landing)/settings/apikeys/create/page.tsx must remain until the legacy app route is retired'
   );
 }
 
