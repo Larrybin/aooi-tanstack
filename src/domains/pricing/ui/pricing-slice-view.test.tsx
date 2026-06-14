@@ -6,7 +6,9 @@ import { renderToStaticMarkup } from 'react-dom/server';
 
 import {
   PricingSliceView,
+  isCurrentSubscriptionPricingItem,
   resolveCheckoutFailureAction,
+  resolvePricingCheckoutReadiness,
 } from './pricing-slice-view';
 
 test('PricingSliceView renders FAQ and testimonials content', () => {
@@ -159,6 +161,21 @@ test('PricingSliceView defaults zh checkout display to CNY currency', () => {
   assert.doesNotMatch(html, />\$19</);
 });
 
+test('isCurrentSubscriptionPricingItem matches the active subscription product id', () => {
+  assert.equal(
+    isCurrentSubscriptionPricingItem({ product_id: 'pro-monthly' }, 'pro-monthly'),
+    true
+  );
+  assert.equal(
+    isCurrentSubscriptionPricingItem({ product_id: 'pro-monthly' }, 'starter'),
+    false
+  );
+  assert.equal(
+    isCurrentSubscriptionPricingItem({ product_id: 'pro-monthly' }, null),
+    false
+  );
+});
+
 test('resolveCheckoutFailureAction redirects signed-out checkout attempts to sign-in', () => {
   const action = resolveCheckoutFailureAction({
     status: 401,
@@ -171,4 +188,30 @@ test('resolveCheckoutFailureAction redirects signed-out checkout attempts to sig
     type: 'redirect',
     url: '/zh/sign-in?callbackUrl=%2Fpricing%3Fplan%3Dpro%23checkout',
   });
+});
+
+test('resolvePricingCheckoutReadiness refreshes account details before allowing checkout', async () => {
+  let detailsRead = false;
+
+  const action = await resolvePricingCheckoutReadiness({
+    item: { product_id: 'pro-monthly' },
+    currentDetails: {
+      isAdmin: false,
+      credits: { remainingCredits: 0, expiresAt: null },
+      currentSubscriptionProductId: 'starter',
+    },
+    loadDetails: async () => {
+      detailsRead = true;
+      return {
+        isAdmin: false,
+        credits: { remainingCredits: 0, expiresAt: null },
+        currentSubscriptionProductId: 'pro-monthly',
+      };
+    },
+    locale: 'en',
+    callbackUrl: '/pricing',
+  });
+
+  assert.equal(detailsRead, true);
+  assert.deepEqual(action, { type: 'current_plan' });
 });

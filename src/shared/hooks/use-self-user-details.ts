@@ -124,7 +124,7 @@ export function useSelfUserDetails({
     }
 
     didLoadRef.current = true;
-    void refresh();
+    void refresh().catch(() => undefined);
   }, [enabled, refresh]);
 
   return {

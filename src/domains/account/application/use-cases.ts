@@ -153,7 +153,7 @@ type AccountApikeyDeps = {
 };
 
 type ReadSelfUserDetailsDeps = AccountPermissionDeps &
-  AccountCreditsDeps & {
+  Pick<AccountCreditsDeps, 'getRemainingCreditsSummary'> & {
     getCurrentSubscription: (
       userId: string
     ) => Promise<AccountSubscriptionSummary>;

@@ -46,6 +46,7 @@ import { Route as SettingsBillingRetrieveRouteImport } from './routes/settings/b
 import { Route as SettingsBillingCancelRouteImport } from './routes/settings/billing_/cancel'
 import { Route as SettingsApikeysCreateRouteImport } from './routes/settings/apikeys_/create'
 import { Route as BlogCategorySlugRouteImport } from './routes/blog/category/$slug'
+import { Route as ApiUserSelfDetailsRouteImport } from './routes/api/user/self-details'
 import { Route as ApiUserGetUserCreditsRouteImport } from './routes/api/user/get-user-credits'
 import { Route as ApiTtsQuotaRouteImport } from './routes/api/tts/quota'
 import { Route as ApiTtsHistoryRouteImport } from './routes/api/tts/history'
@@ -270,6 +271,11 @@ const SettingsApikeysCreateRoute = SettingsApikeysCreateRouteImport.update({
 const BlogCategorySlugRoute = BlogCategorySlugRouteImport.update({
   id: '/blog/category/$slug',
   path: '/blog/category/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiUserSelfDetailsRoute = ApiUserSelfDetailsRouteImport.update({
+  id: '/api/user/self-details',
+  path: '/api/user/self-details',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiUserGetUserCreditsRoute = ApiUserGetUserCreditsRouteImport.update({
@@ -537,6 +543,7 @@ export interface FileRoutesByFullPath {
   '/api/tts/history': typeof ApiTtsHistoryRoute
   '/api/tts/quota': typeof ApiTtsQuotaRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
+  '/api/user/self-details': typeof ApiUserSelfDetailsRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/settings/apikeys/create': typeof SettingsApikeysCreateRoute
   '/settings/billing/cancel': typeof SettingsBillingCancelRoute
@@ -615,6 +622,7 @@ export interface FileRoutesByTo {
   '/api/tts/history': typeof ApiTtsHistoryRoute
   '/api/tts/quota': typeof ApiTtsQuotaRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
+  '/api/user/self-details': typeof ApiUserSelfDetailsRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/settings/apikeys/create': typeof SettingsApikeysCreateRoute
   '/settings/billing/cancel': typeof SettingsBillingCancelRoute
@@ -694,6 +702,7 @@ export interface FileRoutesById {
   '/api/tts/history': typeof ApiTtsHistoryRoute
   '/api/tts/quota': typeof ApiTtsQuotaRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
+  '/api/user/self-details': typeof ApiUserSelfDetailsRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/settings/apikeys_/create': typeof SettingsApikeysCreateRoute
   '/settings/billing_/cancel': typeof SettingsBillingCancelRoute
@@ -774,6 +783,7 @@ export interface FileRouteTypes {
     | '/api/tts/history'
     | '/api/tts/quota'
     | '/api/user/get-user-credits'
+    | '/api/user/self-details'
     | '/blog/category/$slug'
     | '/settings/apikeys/create'
     | '/settings/billing/cancel'
@@ -852,6 +862,7 @@ export interface FileRouteTypes {
     | '/api/tts/history'
     | '/api/tts/quota'
     | '/api/user/get-user-credits'
+    | '/api/user/self-details'
     | '/blog/category/$slug'
     | '/settings/apikeys/create'
     | '/settings/billing/cancel'
@@ -930,6 +941,7 @@ export interface FileRouteTypes {
     | '/api/tts/history'
     | '/api/tts/quota'
     | '/api/user/get-user-credits'
+    | '/api/user/self-details'
     | '/blog/category/$slug'
     | '/settings/apikeys_/create'
     | '/settings/billing_/cancel'
@@ -1008,6 +1020,7 @@ export interface RootRouteChildren {
   ApiTtsHistoryRoute: typeof ApiTtsHistoryRoute
   ApiTtsQuotaRoute: typeof ApiTtsQuotaRoute
   ApiUserGetUserCreditsRoute: typeof ApiUserGetUserCreditsRoute
+  ApiUserSelfDetailsRoute: typeof ApiUserSelfDetailsRoute
   BlogCategorySlugRoute: typeof BlogCategorySlugRoute
   SettingsApikeysCreateRoute: typeof SettingsApikeysCreateRoute
   SettingsBillingCancelRoute: typeof SettingsBillingCancelRoute
@@ -1290,6 +1303,13 @@ declare module '@tanstack/react-router' {
       path: '/blog/category/$slug'
       fullPath: '/blog/category/$slug'
       preLoaderRoute: typeof BlogCategorySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/user/self-details': {
+      id: '/api/user/self-details'
+      path: '/api/user/self-details'
+      fullPath: '/api/user/self-details'
+      preLoaderRoute: typeof ApiUserSelfDetailsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/user/get-user-credits': {
@@ -1645,6 +1665,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiTtsHistoryRoute: ApiTtsHistoryRoute,
   ApiTtsQuotaRoute: ApiTtsQuotaRoute,
   ApiUserGetUserCreditsRoute: ApiUserGetUserCreditsRoute,
+  ApiUserSelfDetailsRoute: ApiUserSelfDetailsRoute,
   BlogCategorySlugRoute: BlogCategorySlugRoute,
   SettingsApikeysCreateRoute: SettingsApikeysCreateRoute,
   SettingsBillingCancelRoute: SettingsBillingCancelRoute,

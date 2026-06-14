@@ -2,8 +2,13 @@ import { useState } from 'react';
 import type { PricingRouteData } from '@/domains/pricing/application/pricing-page';
 
 import { defaultLocale } from '@/config/locale';
+import {
+  resolveSelfUserDetailsForAction,
+  useSelfUserDetails,
+} from '@/shared/hooks/use-self-user-details';
 import { withCallbackUrl } from '@/shared/lib/callback-url';
 import { localizeCallbackUrl } from '@/shared/lib/localize-callback-url';
+import type { SelfUserDetails } from '@/shared/types/auth-session';
 
 type PricingItem = NonNullable<PricingRouteData['pricing']['items']>[number];
 type PricingGroup = NonNullable<PricingRouteData['pricing']['groups']>[number];
@@ -17,6 +22,15 @@ type CheckoutFailureAction =
   | {
       type: 'error';
       message: string;
+    };
+
+type CheckoutReadinessAction =
+  | {
+      type: 'ready';
+    }
+  | CheckoutFailureAction
+  | {
+      type: 'current_plan';
     };
 
 function resolveCheckoutUrl(data: unknown): string | null {
@@ -44,6 +58,16 @@ function resolveErrorMessage(data: unknown): string | null {
 
   const message = (data as { message?: unknown }).message;
   return typeof message === 'string' && message.trim() ? message : null;
+}
+
+export function isCurrentSubscriptionPricingItem(
+  item: Pick<PricingItem, 'product_id'>,
+  currentSubscriptionProductId: string | null | undefined
+) {
+  return Boolean(
+    currentSubscriptionProductId &&
+      item.product_id === currentSubscriptionProductId
+  );
 }
 
 function isCheckoutEnabled(item: PricingItem) {
@@ -156,16 +180,76 @@ export function resolveCheckoutFailureAction({
   };
 }
 
+export async function resolvePricingCheckoutReadiness({
+  item,
+  currentDetails,
+  loadDetails,
+  locale,
+  callbackUrl,
+}: {
+  item: Pick<PricingItem, 'product_id'>;
+  currentDetails: SelfUserDetails | null;
+  loadDetails: () => Promise<SelfUserDetails>;
+  locale: string;
+  callbackUrl: string;
+}): Promise<CheckoutReadinessAction> {
+  if (
+    isCurrentSubscriptionPricingItem(
+      item,
+      currentDetails?.currentSubscriptionProductId
+    )
+  ) {
+    return { type: 'current_plan' };
+  }
+
+  const detailsResult = await resolveSelfUserDetailsForAction({
+    currentDetails: null,
+    loadDetails,
+  });
+
+  if (detailsResult.status === 'auth_required') {
+    return {
+      type: 'redirect',
+      url: buildPricingSignInUrl({ callbackUrl, locale }),
+    };
+  }
+
+  if (detailsResult.status === 'error') {
+    return {
+      type: 'error',
+      message:
+        detailsResult.error instanceof Error
+          ? detailsResult.error.message
+          : 'Unable to confirm account status before checkout.',
+    };
+  }
+
+  if (
+    isCurrentSubscriptionPricingItem(
+      item,
+      detailsResult.details.currentSubscriptionProductId
+    )
+  ) {
+    return { type: 'current_plan' };
+  }
+
+  return { type: 'ready' };
+}
+
 function PricingCard({
   item,
   locale,
   selectedCurrency,
   onCurrencyChange,
+  currentDetails,
+  refreshCurrentDetails,
 }: {
   item: PricingItem;
   locale: string;
   selectedCurrency: string;
   onCurrencyChange: (currency: string) => void;
+  currentDetails: SelfUserDetails | null;
+  refreshCurrentDetails: () => Promise<SelfUserDetails>;
 }) {
   const [status, setStatus] = useState<'idle' | 'loading'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -173,12 +257,35 @@ function PricingCard({
   const currencies = getPricingItemCurrencies(item);
 
   async function startCheckout() {
-    if (!displayedItem.product_id) return;
+    if (!displayedItem.product_id || isCurrentPlan) return;
 
     setStatus('loading');
     setError(null);
 
     try {
+      const callbackUrl = getPricingCallbackUrl();
+      const readiness = await resolvePricingCheckoutReadiness({
+        item: displayedItem,
+        currentDetails,
+        loadDetails: refreshCurrentDetails,
+        locale,
+        callbackUrl,
+      });
+
+      if (readiness.type === 'redirect') {
+        window.location.assign(readiness.url);
+        return;
+      }
+
+      if (readiness.type === 'current_plan') {
+        setStatus('idle');
+        return;
+      }
+
+      if (readiness.type === 'error') {
+        throw new Error(readiness.message);
+      }
+
       const response = await fetch('/api/payment/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -194,7 +301,7 @@ function PricingCard({
           status: response.status,
           payload,
           locale,
-          callbackUrl: getPricingCallbackUrl(),
+          callbackUrl,
         });
 
         if (action.type === 'redirect') {
@@ -222,6 +329,10 @@ function PricingCard({
   }
 
   const enabled = isCheckoutEnabled(displayedItem);
+  const isCurrentPlan = isCurrentSubscriptionPricingItem(
+    displayedItem,
+    currentDetails?.currentSubscriptionProductId
+  );
 
   return (
     <article
@@ -266,10 +377,15 @@ function PricingCard({
       ) : null}
       {displayedItem.tip && <p className="pricing-tip">{displayedItem.tip}</p>}
       {enabled ? (
-        <button onClick={startCheckout} disabled={status === 'loading'}>
-          {status === 'loading'
-            ? 'Opening checkout...'
-            : displayedItem.button?.title || 'Checkout'}
+        <button
+          onClick={startCheckout}
+          disabled={status === 'loading' || isCurrentPlan}
+        >
+          {isCurrentPlan
+            ? 'Current plan'
+            : status === 'loading'
+              ? 'Opening checkout...'
+              : displayedItem.button?.title || 'Checkout'}
         </button>
       ) : (
         <a className="pricing-link" href={displayedItem.button?.url || '#'}>
@@ -282,14 +398,26 @@ function PricingCard({
 }
 
 export function PricingSliceView({ data }: { data: PricingRouteData }) {
+  const { data: accountDetails, refresh: refreshAccountDetails } =
+    useSelfUserDetails({ enabled: true });
+  const currentSubscriptionProductId =
+    accountDetails?.currentSubscriptionProductId ?? null;
   const items = data.pricing.items ?? [];
   const groups = data.pricing.groups ?? [];
-  const [selectedGroup, setSelectedGroup] = useState(() =>
-    getDefaultPricingGroup(groups)
-  );
+  const defaultGroup = getDefaultPricingGroup(groups);
+  const currentSubscriptionGroup = currentSubscriptionProductId
+    ? items.find((item) => item.product_id === currentSubscriptionProductId)
+        ?.group
+    : undefined;
+  const [selectedGroupOverride, setSelectedGroupOverride] = useState<
+    string | undefined
+  >();
+  const selectedGroup =
+    selectedGroupOverride ?? currentSubscriptionGroup ?? defaultGroup;
   const [selectedCurrencies, setSelectedCurrencies] = useState<
     Record<string, string>
   >({});
+
   const visibleItems =
     selectedGroup && groups.length
       ? items.filter((item) => !item.group || item.group === selectedGroup)
@@ -311,7 +439,7 @@ export function PricingSliceView({ data }: { data: PricingRouteData }) {
               key={group.name || group.title}
               type="button"
               aria-pressed={selectedGroup === group.name}
-              onClick={() => setSelectedGroup(group.name)}
+              onClick={() => setSelectedGroupOverride(group.name)}
             >
               {group.title || group.name}
               {group.label ? <span>{group.label}</span> : null}
@@ -335,6 +463,8 @@ export function PricingSliceView({ data }: { data: PricingRouteData }) {
                 [item.product_id]: currency,
               }))
             }
+            currentDetails={accountDetails}
+            refreshCurrentDetails={refreshAccountDetails}
           />
         ))}
       </section>
