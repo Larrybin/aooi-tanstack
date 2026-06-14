@@ -175,6 +175,10 @@ const requiredFiles = [
   'apps/web/src/routes/settings/apikeys_/$id/edit.tsx',
   'apps/web/src/routes/settings/apikeys_/$id/delete.tsx',
   'apps/web/src/routes/activity_.tsx',
+  'apps/web/src/routes/activity/ai-tasks.tsx',
+  'apps/web/src/routes/activity/ai-tasks_/$id/refresh.tsx',
+  'apps/web/src/routes/activity/chats.tsx',
+  'apps/web/src/routes/activity/feedbacks.tsx',
   'apps/web/src/routes/$locale/settings_.tsx',
   'apps/web/src/routes/$locale/settings/profile.tsx',
   'apps/web/src/routes/$locale/settings/security.tsx',
@@ -189,6 +193,10 @@ const requiredFiles = [
   'apps/web/src/routes/$locale/settings/apikeys_/$id/edit.tsx',
   'apps/web/src/routes/$locale/settings/apikeys_/$id/delete.tsx',
   'apps/web/src/routes/$locale/activity_.tsx',
+  'apps/web/src/routes/$locale/activity/ai-tasks.tsx',
+  'apps/web/src/routes/$locale/activity/ai-tasks_/$id/refresh.tsx',
+  'apps/web/src/routes/$locale/activity/chats.tsx',
+  'apps/web/src/routes/$locale/activity/feedbacks.tsx',
   'apps/web/src/routes/api/payment/checkout.ts',
   'apps/web/src/routes/api/payment/notify.ts',
   'apps/web/src/routes/api/user/get-user-credits.ts',
@@ -218,6 +226,11 @@ const requiredFiles = [
   'src/server/landing/blog-category-route-resolver.ts',
   'src/server/member/member-entry-route-data.ts',
   'src/server/member/member-entry-route-resolver.ts',
+  'src/server/member/activity-route-data.ts',
+  'src/server/member/activity-route-resolver.ts',
+  'src/server/member/activity-route-messages.ts',
+  'src/server/member/activity-refresh-route-data.ts',
+  'src/server/member/activity-refresh-route-resolver.ts',
   'src/server/member/settings-profile-route-data.ts',
   'src/server/member/settings-profile-route-resolver.ts',
   'src/server/member/settings-profile-route-messages.ts',
@@ -269,6 +282,14 @@ const requiredFiles = [
   'src/surfaces/landing/blog-category/blog-category.types.ts',
   'src/surfaces/member/member-entry/member-entry.data.ts',
   'src/surfaces/member/member-entry/member-entry.types.ts',
+  'src/surfaces/member/activity/activity.data.ts',
+  'src/surfaces/member/activity/activity.seo.ts',
+  'src/surfaces/member/activity/activity.types.ts',
+  'src/surfaces/member/activity/activity.view.tsx',
+  'src/surfaces/member/activity-refresh/activity-refresh.data.ts',
+  'src/surfaces/member/activity-refresh/activity-refresh.seo.ts',
+  'src/surfaces/member/activity-refresh/activity-refresh.types.ts',
+  'src/surfaces/member/activity-refresh/activity-refresh.view.tsx',
   'src/surfaces/member/settings-shell/settings-shell.types.ts',
   'src/surfaces/member/settings-shell/settings-shell.view.tsx',
   'src/surfaces/member/settings-profile/settings-profile.data.ts',
@@ -1121,6 +1142,332 @@ for (const file of memberEntrySurfaceFiles) {
     if (contains(abs, regex)) {
       fail(`${file} must not depend on ${label}`);
     }
+  }
+}
+
+const activityRouteFiles = [
+  {
+    file: 'apps/web/src/routes/activity/ai-tasks.tsx',
+    routeId: '/activity/ai-tasks',
+    kind: 'ai-tasks',
+    localePattern: /defaultLocale/,
+  },
+  {
+    file: 'apps/web/src/routes/activity/chats.tsx',
+    routeId: '/activity/chats',
+    kind: 'chats',
+    localePattern: /defaultLocale/,
+  },
+  {
+    file: 'apps/web/src/routes/activity/feedbacks.tsx',
+    routeId: '/activity/feedbacks',
+    kind: 'feedbacks',
+    localePattern: /defaultLocale/,
+  },
+  {
+    file: 'apps/web/src/routes/$locale/activity/ai-tasks.tsx',
+    routeId: '/$locale/activity/ai-tasks',
+    kind: 'ai-tasks',
+    localePattern: /params\.locale/,
+  },
+  {
+    file: 'apps/web/src/routes/$locale/activity/chats.tsx',
+    routeId: '/$locale/activity/chats',
+    kind: 'chats',
+    localePattern: /params\.locale/,
+  },
+  {
+    file: 'apps/web/src/routes/$locale/activity/feedbacks.tsx',
+    routeId: '/$locale/activity/feedbacks',
+    kind: 'feedbacks',
+    localePattern: /params\.locale/,
+  },
+];
+
+for (const { file, routeId, kind, localePattern } of activityRouteFiles) {
+  const abs = join(root, file);
+  if (!existsSync(abs)) {
+    fail(`${file} must exist for Gate 4-B.4 activity list routes`);
+  }
+  if (!contains(abs, /createFileRoute/)) {
+    fail(`${file} must use createFileRoute`);
+  }
+  if (
+    !contains(abs, new RegExp(`createFileRoute\\('${escapeRegex(routeId)}'\\)`))
+  ) {
+    fail(`${file} must declare TanStack route ${routeId}`);
+  }
+  if (!contains(abs, /loadActivityRouteSurfaceData/)) {
+    fail(`${file} must load activity route surface data`);
+  }
+  if (!contains(abs, /getActivityRouteSurfaceHead/)) {
+    fail(`${file} must use activity route surface head`);
+  }
+  if (!contains(abs, /ActivityRouteView/)) {
+    fail(`${file} must render ActivityRouteView`);
+  }
+  if (!contains(abs, new RegExp(`kind:\\s*['"]${kind}['"]`))) {
+    fail(`${file} must pass activity kind ${kind}`);
+  }
+  if (!contains(abs, localePattern)) {
+    fail(`${file} must use the expected locale source`);
+  }
+}
+
+const activityRefreshRouteFiles = [
+  {
+    file: 'apps/web/src/routes/activity/ai-tasks_/$id/refresh.tsx',
+    routeId: '/activity/ai-tasks_/$id/refresh',
+    localePattern: /defaultLocale/,
+  },
+  {
+    file: 'apps/web/src/routes/$locale/activity/ai-tasks_/$id/refresh.tsx',
+    routeId: '/$locale/activity/ai-tasks_/$id/refresh',
+    localePattern: /params\.locale/,
+  },
+];
+
+for (const { file, routeId, localePattern } of activityRefreshRouteFiles) {
+  const abs = join(root, file);
+  if (!existsSync(abs)) {
+    fail(`${file} must exist for Gate 4-B.4 AI task refresh routes`);
+  }
+  if (!contains(abs, /createFileRoute/)) {
+    fail(`${file} must use createFileRoute`);
+  }
+  if (
+    !contains(abs, new RegExp(`createFileRoute\\('${escapeRegex(routeId)}'\\)`))
+  ) {
+    fail(`${file} must declare TanStack route ${routeId}`);
+  }
+  if (!contains(abs, /loadActivityRefreshRouteSurfaceData/)) {
+    fail(`${file} must load activity refresh route surface data`);
+  }
+  if (!contains(abs, /getActivityRefreshRouteSurfaceHead/)) {
+    fail(`${file} must use activity refresh route surface head`);
+  }
+  if (!contains(abs, /ActivityRefreshRouteView/)) {
+    fail(`${file} must render ActivityRefreshRouteView`);
+  }
+  if (!contains(abs, /id:\s*params\.id/)) {
+    fail(`${file} must pass params.id`);
+  }
+  if (!contains(abs, /redirect\(\{\s*href:\s*data\.redirectTo/)) {
+    fail(`${file} must redirect on successful refresh route data`);
+  }
+  if (!contains(abs, localePattern)) {
+    fail(`${file} must use the expected locale source`);
+  }
+}
+
+for (const fullPath of [
+  '/activity/ai-tasks',
+  '/activity/chats',
+  '/activity/feedbacks',
+  '/activity/ai-tasks/$id/refresh',
+  '/$locale/activity/ai-tasks',
+  '/$locale/activity/chats',
+  '/$locale/activity/feedbacks',
+  '/$locale/activity/ai-tasks/$id/refresh',
+]) {
+  if (
+    !contains(
+      homeRouteTreeAbs,
+      new RegExp(`fullPath:\\s*'${escapeRegex(fullPath)}'`)
+    )
+  ) {
+    fail(`${homeRouteTreeFile} must include activity fullPath ${fullPath}`);
+  }
+}
+
+const activityDataFile = 'src/server/member/activity-route-data.ts';
+const activityDataAbs = join(root, activityDataFile);
+if (!contains(activityDataAbs, /createServerFn\(\{\s*method:\s*['"]GET['"]/)) {
+  fail(`${activityDataFile} must use createServerFn({ method: 'GET' })`);
+}
+if (
+  !contains(
+    activityDataAbs,
+    /await\s+import\(\s*['"].\/activity-route-resolver['"]\s*\)/
+  )
+) {
+  fail(`${activityDataFile} must dynamically import the activity resolver`);
+}
+
+const activityResolverFile = 'src/server/member/activity-route-resolver.ts';
+const activityResolverAbs = join(root, activityResolverFile);
+for (const [regex, label] of [
+  [/normalizeLocale/, 'locale normalization'],
+  [/readPublicUiConfigFresh/, 'fresh runtime public UI config'],
+  [/isAiEnabled/, 'activity AI enablement gate'],
+  [/getSignedInUserIdentityFromRequest/, 'TanStack request auth reader'],
+  [/listMemberAiTasksQuery/, 'member AI tasks query'],
+  [/listMemberChatsQuery/, 'member chats query'],
+  [/loadActivityRouteMessages/, 'activity message loader'],
+  [/safeJsonParse/, 'AI task result parsing'],
+  [/localePath/, 'localized links'],
+  [/JSON\.stringify/, 'route data serializability guard'],
+  [/noindex,nofollow/, 'member noindex robots head'],
+]) {
+  if (!contains(activityResolverAbs, regex)) {
+    fail(`${activityResolverFile} must use ${label}`);
+  }
+}
+for (const [regex, label] of [
+  [/localePath\(['"]\/chat['"]/, 'unmigrated chat create action'],
+  [/\/chat\/\$\{row\.id\}/, 'unmigrated chat view action'],
+]) {
+  if (contains(activityResolverAbs, regex)) {
+    fail(`${activityResolverFile} must not expose ${label}`);
+  }
+}
+for (const [regex, label] of [
+  [/getSignedInUserSnapshot|session\.server/, 'legacy Next session server'],
+  [
+    /ConsoleLayout|PublicAppProvider|AuthSnapshotProvider/,
+    'legacy member shell',
+  ],
+  [/TableCard/, 'legacy table card'],
+  [/next-intl/, 'next-intl import'],
+  [/next\/navigation/, 'next/navigation import'],
+  [/@\/app\/|src\/app\//, 'legacy app import'],
+  [/@\/themes\//, '@/themes import'],
+]) {
+  if (contains(activityResolverAbs, regex)) {
+    fail(`${activityResolverFile} must not depend on ${label}`);
+  }
+}
+
+const activityMessagesFile = 'src/server/member/activity-route-messages.ts';
+const activityMessagesAbs = join(root, activityMessagesFile);
+for (const [regex, label] of [
+  [/activity\/sidebar/, 'activity/sidebar messages'],
+  [/activity\/ai-tasks/, 'activity/ai-tasks messages'],
+  [/activity\/chats/, 'activity/chats messages'],
+  [/mergeDeep/, 'key-level fallback merge'],
+]) {
+  if (!contains(activityMessagesAbs, regex)) {
+    fail(`${activityMessagesFile} must implement ${label}`);
+  }
+}
+
+const activityRefreshDataFile =
+  'src/server/member/activity-refresh-route-data.ts';
+const activityRefreshDataAbs = join(root, activityRefreshDataFile);
+if (
+  !contains(
+    activityRefreshDataAbs,
+    /createServerFn\(\{\s*method:\s*['"]GET['"]/
+  )
+) {
+  fail(`${activityRefreshDataFile} must use createServerFn({ method: 'GET' })`);
+}
+if (
+  !contains(
+    activityRefreshDataAbs,
+    /await\s+import\(\s*['"].\/activity-refresh-route-resolver['"]\s*\)/
+  )
+) {
+  fail(
+    `${activityRefreshDataFile} must dynamically import the activity refresh resolver`
+  );
+}
+
+const activityRefreshResolverFile =
+  'src/server/member/activity-refresh-route-resolver.ts';
+const activityRefreshResolverAbs = join(root, activityRefreshResolverFile);
+for (const [regex, label] of [
+  [/normalizeLocale/, 'locale normalization'],
+  [/readPublicUiConfigFresh/, 'fresh runtime public UI config'],
+  [/isAiEnabled/, 'activity AI enablement gate'],
+  [/getSignedInUserIdentityFromRequest/, 'TanStack request auth reader'],
+  [/refreshMemberAiTaskUseCase/, 'member AI task refresh use case'],
+  [/loadActivityRouteMessages/, 'activity message loader'],
+  [/localePath/, 'localized redirect and back link'],
+  [/JSON\.stringify/, 'route data serializability guard'],
+  [/noindex,nofollow/, 'member noindex robots head'],
+]) {
+  if (!contains(activityRefreshResolverAbs, regex)) {
+    fail(`${activityRefreshResolverFile} must use ${label}`);
+  }
+}
+for (const [regex, label] of [
+  [/getSignedInUserSnapshot|session\.server/, 'legacy Next session server'],
+  [/next-intl/, 'next-intl import'],
+  [/next\/navigation/, 'next/navigation import'],
+  [/@\/app\/|src\/app\//, 'legacy app import'],
+  [/@\/themes\//, '@/themes import'],
+]) {
+  if (contains(activityRefreshResolverAbs, regex)) {
+    fail(`${activityRefreshResolverFile} must not depend on ${label}`);
+  }
+}
+
+for (const dir of [
+  'src/surfaces/member/activity',
+  'src/surfaces/member/activity-refresh',
+]) {
+  const surfaceFiles = walk(join(root, dir))
+    .filter((file) => /\.(ts|tsx)$/.test(file))
+    .map((file) => normalizePath(relative(root, file)))
+    .sort();
+  for (const file of surfaceFiles) {
+    const abs = join(root, file);
+    for (const [regex, label] of [
+      [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
+      [/^\s*import\s+['"]next(?:\/|['"])/m, 'next side-effect import'],
+      [/from\s+['"]next-intl(?:\/|['"])/, 'next-intl import'],
+      [/@\/infra\/platform\/i18n\/navigation/, 'Next i18n navigation import'],
+      [/@\/app\/|src\/app\//, 'legacy app import'],
+      [/@\/themes\//, '@/themes import'],
+      [/^\s*import\s+['"]server-only['"]/m, 'server-only marker'],
+      [/session\.server/, 'legacy Next session server'],
+      [/TableCard/, 'legacy table card'],
+    ]) {
+      if (contains(abs, regex)) {
+        fail(`${file} must not depend on ${label}`);
+      }
+    }
+  }
+}
+
+const activityViewFile = 'src/surfaces/member/activity/activity.view.tsx';
+const activityViewAbs = join(root, activityViewFile);
+for (const [regex, label] of [
+  [/document\.documentElement\.lang\s*=\s*data\.locale/, 'localized html lang'],
+  [/document\.documentElement\.dir\s*=\s*isRtlLocale/, 'localized html dir'],
+  [/data\.page\.rows/, 'plain serializable activity table'],
+  [/row\.actions/, 'activity row actions'],
+]) {
+  if (!contains(activityViewAbs, regex)) {
+    fail(`${activityViewFile} must apply ${label}`);
+  }
+}
+
+const activityRefreshViewFile =
+  'src/surfaces/member/activity-refresh/activity-refresh.view.tsx';
+const activityRefreshViewAbs = join(root, activityRefreshViewFile);
+for (const [regex, label] of [
+  [/document\.documentElement\.lang\s*=\s*data\.locale/, 'localized html lang'],
+  [/document\.documentElement\.dir\s*=\s*isRtlLocale/, 'localized html dir'],
+  [/data\.page\.message/, 'refresh message rendering'],
+  [/data\.page\.backHref/, 'refresh back link rendering'],
+]) {
+  if (!contains(activityRefreshViewAbs, regex)) {
+    fail(`${activityRefreshViewFile} must apply ${label}`);
+  }
+}
+
+for (const legacyActivityFile of [
+  'src/app/[locale]/(landing)/activity/ai-tasks/page.tsx',
+  'src/app/[locale]/(landing)/activity/ai-tasks/[id]/refresh/page.tsx',
+  'src/app/[locale]/(landing)/activity/chats/page.tsx',
+  'src/app/[locale]/(landing)/activity/feedbacks/page.tsx',
+]) {
+  if (!existsSync(join(root, legacyActivityFile))) {
+    fail(
+      `${legacyActivityFile} must remain until the legacy app route is retired`
+    );
   }
 }
 

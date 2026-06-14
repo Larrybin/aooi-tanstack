@@ -27,6 +27,9 @@ import { Route as SettingsCreditsRouteImport } from './routes/settings/credits'
 import { Route as SettingsBillingRouteImport } from './routes/settings/billing'
 import { Route as SettingsApikeysRouteImport } from './routes/settings/apikeys'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as ActivityFeedbacksRouteImport } from './routes/activity/feedbacks'
+import { Route as ActivityChatsRouteImport } from './routes/activity/chats'
+import { Route as ActivityAiTasksRouteImport } from './routes/activity/ai-tasks'
 import { Route as LocaleSignUpRouteImport } from './routes/$locale/sign-up'
 import { Route as LocaleSignInRouteImport } from './routes/$locale/sign-in'
 import { Route as LocaleSettingsRouteImport } from './routes/$locale/settings_'
@@ -52,8 +55,12 @@ import { Route as LocaleSettingsCreditsRouteImport } from './routes/$locale/sett
 import { Route as LocaleSettingsBillingRouteImport } from './routes/$locale/settings/billing'
 import { Route as LocaleSettingsApikeysRouteImport } from './routes/$locale/settings/apikeys'
 import { Route as LocaleBlogSlugRouteImport } from './routes/$locale/blog/$slug'
+import { Route as LocaleActivityFeedbacksRouteImport } from './routes/$locale/activity/feedbacks'
+import { Route as LocaleActivityChatsRouteImport } from './routes/$locale/activity/chats'
+import { Route as LocaleActivityAiTasksRouteImport } from './routes/$locale/activity/ai-tasks'
 import { Route as SettingsApikeysIdEditRouteImport } from './routes/settings/apikeys_/$id/edit'
 import { Route as SettingsApikeysIdDeleteRouteImport } from './routes/settings/apikeys_/$id/delete'
+import { Route as ActivityAiTasksIdRefreshRouteImport } from './routes/activity/ai-tasks_/$id/refresh'
 import { Route as LocaleSettingsInvoicesRetrieveRouteImport } from './routes/$locale/settings/invoices/retrieve'
 import { Route as LocaleSettingsBillingRetrieveRouteImport } from './routes/$locale/settings/billing_/retrieve'
 import { Route as LocaleSettingsBillingCancelRouteImport } from './routes/$locale/settings/billing_/cancel'
@@ -61,6 +68,7 @@ import { Route as LocaleSettingsApikeysCreateRouteImport } from './routes/$local
 import { Route as LocaleBlogCategorySlugRouteImport } from './routes/$locale/blog/category/$slug'
 import { Route as LocaleSettingsApikeysIdEditRouteImport } from './routes/$locale/settings/apikeys_/$id/edit'
 import { Route as LocaleSettingsApikeysIdDeleteRouteImport } from './routes/$locale/settings/apikeys_/$id/delete'
+import { Route as LocaleActivityAiTasksIdRefreshRouteImport } from './routes/$locale/activity/ai-tasks_/$id/refresh'
 
 const SignUpRoute = SignUpRouteImport.update({
   id: '/sign-up',
@@ -150,6 +158,21 @@ const SettingsApikeysRoute = SettingsApikeysRouteImport.update({
 const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/blog/$slug',
   path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivityFeedbacksRoute = ActivityFeedbacksRouteImport.update({
+  id: '/activity/feedbacks',
+  path: '/activity/feedbacks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivityChatsRoute = ActivityChatsRouteImport.update({
+  id: '/activity/chats',
+  path: '/activity/chats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivityAiTasksRoute = ActivityAiTasksRouteImport.update({
+  id: '/activity/ai-tasks',
+  path: '/activity/ai-tasks',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LocaleSignUpRoute = LocaleSignUpRouteImport.update({
@@ -278,6 +301,21 @@ const LocaleBlogSlugRoute = LocaleBlogSlugRouteImport.update({
   path: '/$locale/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocaleActivityFeedbacksRoute = LocaleActivityFeedbacksRouteImport.update({
+  id: '/$locale/activity/feedbacks',
+  path: '/$locale/activity/feedbacks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocaleActivityChatsRoute = LocaleActivityChatsRouteImport.update({
+  id: '/$locale/activity/chats',
+  path: '/$locale/activity/chats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocaleActivityAiTasksRoute = LocaleActivityAiTasksRouteImport.update({
+  id: '/$locale/activity/ai-tasks',
+  path: '/$locale/activity/ai-tasks',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsApikeysIdEditRoute = SettingsApikeysIdEditRouteImport.update({
   id: '/settings/apikeys_/$id/edit',
   path: '/settings/apikeys/$id/edit',
@@ -288,6 +326,12 @@ const SettingsApikeysIdDeleteRoute = SettingsApikeysIdDeleteRouteImport.update({
   path: '/settings/apikeys/$id/delete',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ActivityAiTasksIdRefreshRoute =
+  ActivityAiTasksIdRefreshRouteImport.update({
+    id: '/activity/ai-tasks_/$id/refresh',
+    path: '/activity/ai-tasks/$id/refresh',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LocaleSettingsInvoicesRetrieveRoute =
   LocaleSettingsInvoicesRetrieveRouteImport.update({
     id: '/$locale/settings/invoices/retrieve',
@@ -329,6 +373,12 @@ const LocaleSettingsApikeysIdDeleteRoute =
     path: '/$locale/settings/apikeys/$id/delete',
     getParentRoute: () => rootRouteImport,
   } as any)
+const LocaleActivityAiTasksIdRefreshRoute =
+  LocaleActivityAiTasksIdRefreshRouteImport.update({
+    id: '/$locale/activity/ai-tasks_/$id/refresh',
+    path: '/$locale/activity/ai-tasks/$id/refresh',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -352,6 +402,9 @@ export interface FileRoutesByFullPath {
   '/$locale/settings': typeof LocaleSettingsRoute
   '/$locale/sign-in': typeof LocaleSignInRoute
   '/$locale/sign-up': typeof LocaleSignUpRoute
+  '/activity/ai-tasks': typeof ActivityAiTasksRoute
+  '/activity/chats': typeof ActivityChatsRoute
+  '/activity/feedbacks': typeof ActivityFeedbacksRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/settings/apikeys': typeof SettingsApikeysRoute
   '/settings/billing': typeof SettingsBillingRoute
@@ -359,6 +412,9 @@ export interface FileRoutesByFullPath {
   '/settings/payments': typeof SettingsPaymentsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/security': typeof SettingsSecurityRoute
+  '/$locale/activity/ai-tasks': typeof LocaleActivityAiTasksRoute
+  '/$locale/activity/chats': typeof LocaleActivityChatsRoute
+  '/$locale/activity/feedbacks': typeof LocaleActivityFeedbacksRoute
   '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
   '/$locale/settings/apikeys': typeof LocaleSettingsApikeysRoute
   '/$locale/settings/billing': typeof LocaleSettingsBillingRoute
@@ -379,8 +435,10 @@ export interface FileRoutesByFullPath {
   '/$locale/settings/billing/cancel': typeof LocaleSettingsBillingCancelRoute
   '/$locale/settings/billing/retrieve': typeof LocaleSettingsBillingRetrieveRoute
   '/$locale/settings/invoices/retrieve': typeof LocaleSettingsInvoicesRetrieveRoute
+  '/activity/ai-tasks/$id/refresh': typeof ActivityAiTasksIdRefreshRoute
   '/settings/apikeys/$id/delete': typeof SettingsApikeysIdDeleteRoute
   '/settings/apikeys/$id/edit': typeof SettingsApikeysIdEditRoute
+  '/$locale/activity/ai-tasks/$id/refresh': typeof LocaleActivityAiTasksIdRefreshRoute
   '/$locale/settings/apikeys/$id/delete': typeof LocaleSettingsApikeysIdDeleteRoute
   '/$locale/settings/apikeys/$id/edit': typeof LocaleSettingsApikeysIdEditRoute
 }
@@ -406,6 +464,9 @@ export interface FileRoutesByTo {
   '/$locale/settings': typeof LocaleSettingsRoute
   '/$locale/sign-in': typeof LocaleSignInRoute
   '/$locale/sign-up': typeof LocaleSignUpRoute
+  '/activity/ai-tasks': typeof ActivityAiTasksRoute
+  '/activity/chats': typeof ActivityChatsRoute
+  '/activity/feedbacks': typeof ActivityFeedbacksRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/settings/apikeys': typeof SettingsApikeysRoute
   '/settings/billing': typeof SettingsBillingRoute
@@ -413,6 +474,9 @@ export interface FileRoutesByTo {
   '/settings/payments': typeof SettingsPaymentsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/security': typeof SettingsSecurityRoute
+  '/$locale/activity/ai-tasks': typeof LocaleActivityAiTasksRoute
+  '/$locale/activity/chats': typeof LocaleActivityChatsRoute
+  '/$locale/activity/feedbacks': typeof LocaleActivityFeedbacksRoute
   '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
   '/$locale/settings/apikeys': typeof LocaleSettingsApikeysRoute
   '/$locale/settings/billing': typeof LocaleSettingsBillingRoute
@@ -433,8 +497,10 @@ export interface FileRoutesByTo {
   '/$locale/settings/billing/cancel': typeof LocaleSettingsBillingCancelRoute
   '/$locale/settings/billing/retrieve': typeof LocaleSettingsBillingRetrieveRoute
   '/$locale/settings/invoices/retrieve': typeof LocaleSettingsInvoicesRetrieveRoute
+  '/activity/ai-tasks/$id/refresh': typeof ActivityAiTasksIdRefreshRoute
   '/settings/apikeys/$id/delete': typeof SettingsApikeysIdDeleteRoute
   '/settings/apikeys/$id/edit': typeof SettingsApikeysIdEditRoute
+  '/$locale/activity/ai-tasks/$id/refresh': typeof LocaleActivityAiTasksIdRefreshRoute
   '/$locale/settings/apikeys/$id/delete': typeof LocaleSettingsApikeysIdDeleteRoute
   '/$locale/settings/apikeys/$id/edit': typeof LocaleSettingsApikeysIdEditRoute
 }
@@ -461,6 +527,9 @@ export interface FileRoutesById {
   '/$locale/settings_': typeof LocaleSettingsRoute
   '/$locale/sign-in': typeof LocaleSignInRoute
   '/$locale/sign-up': typeof LocaleSignUpRoute
+  '/activity/ai-tasks': typeof ActivityAiTasksRoute
+  '/activity/chats': typeof ActivityChatsRoute
+  '/activity/feedbacks': typeof ActivityFeedbacksRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/settings/apikeys': typeof SettingsApikeysRoute
   '/settings/billing': typeof SettingsBillingRoute
@@ -468,6 +537,9 @@ export interface FileRoutesById {
   '/settings/payments': typeof SettingsPaymentsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/security': typeof SettingsSecurityRoute
+  '/$locale/activity/ai-tasks': typeof LocaleActivityAiTasksRoute
+  '/$locale/activity/chats': typeof LocaleActivityChatsRoute
+  '/$locale/activity/feedbacks': typeof LocaleActivityFeedbacksRoute
   '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
   '/$locale/settings/apikeys': typeof LocaleSettingsApikeysRoute
   '/$locale/settings/billing': typeof LocaleSettingsBillingRoute
@@ -488,8 +560,10 @@ export interface FileRoutesById {
   '/$locale/settings/billing_/cancel': typeof LocaleSettingsBillingCancelRoute
   '/$locale/settings/billing_/retrieve': typeof LocaleSettingsBillingRetrieveRoute
   '/$locale/settings/invoices/retrieve': typeof LocaleSettingsInvoicesRetrieveRoute
+  '/activity/ai-tasks_/$id/refresh': typeof ActivityAiTasksIdRefreshRoute
   '/settings/apikeys_/$id/delete': typeof SettingsApikeysIdDeleteRoute
   '/settings/apikeys_/$id/edit': typeof SettingsApikeysIdEditRoute
+  '/$locale/activity/ai-tasks_/$id/refresh': typeof LocaleActivityAiTasksIdRefreshRoute
   '/$locale/settings/apikeys_/$id/delete': typeof LocaleSettingsApikeysIdDeleteRoute
   '/$locale/settings/apikeys_/$id/edit': typeof LocaleSettingsApikeysIdEditRoute
 }
@@ -517,6 +591,9 @@ export interface FileRouteTypes {
     | '/$locale/settings'
     | '/$locale/sign-in'
     | '/$locale/sign-up'
+    | '/activity/ai-tasks'
+    | '/activity/chats'
+    | '/activity/feedbacks'
     | '/blog/$slug'
     | '/settings/apikeys'
     | '/settings/billing'
@@ -524,6 +601,9 @@ export interface FileRouteTypes {
     | '/settings/payments'
     | '/settings/profile'
     | '/settings/security'
+    | '/$locale/activity/ai-tasks'
+    | '/$locale/activity/chats'
+    | '/$locale/activity/feedbacks'
     | '/$locale/blog/$slug'
     | '/$locale/settings/apikeys'
     | '/$locale/settings/billing'
@@ -544,8 +624,10 @@ export interface FileRouteTypes {
     | '/$locale/settings/billing/cancel'
     | '/$locale/settings/billing/retrieve'
     | '/$locale/settings/invoices/retrieve'
+    | '/activity/ai-tasks/$id/refresh'
     | '/settings/apikeys/$id/delete'
     | '/settings/apikeys/$id/edit'
+    | '/$locale/activity/ai-tasks/$id/refresh'
     | '/$locale/settings/apikeys/$id/delete'
     | '/$locale/settings/apikeys/$id/edit'
   fileRoutesByTo: FileRoutesByTo
@@ -571,6 +653,9 @@ export interface FileRouteTypes {
     | '/$locale/settings'
     | '/$locale/sign-in'
     | '/$locale/sign-up'
+    | '/activity/ai-tasks'
+    | '/activity/chats'
+    | '/activity/feedbacks'
     | '/blog/$slug'
     | '/settings/apikeys'
     | '/settings/billing'
@@ -578,6 +663,9 @@ export interface FileRouteTypes {
     | '/settings/payments'
     | '/settings/profile'
     | '/settings/security'
+    | '/$locale/activity/ai-tasks'
+    | '/$locale/activity/chats'
+    | '/$locale/activity/feedbacks'
     | '/$locale/blog/$slug'
     | '/$locale/settings/apikeys'
     | '/$locale/settings/billing'
@@ -598,8 +686,10 @@ export interface FileRouteTypes {
     | '/$locale/settings/billing/cancel'
     | '/$locale/settings/billing/retrieve'
     | '/$locale/settings/invoices/retrieve'
+    | '/activity/ai-tasks/$id/refresh'
     | '/settings/apikeys/$id/delete'
     | '/settings/apikeys/$id/edit'
+    | '/$locale/activity/ai-tasks/$id/refresh'
     | '/$locale/settings/apikeys/$id/delete'
     | '/$locale/settings/apikeys/$id/edit'
   id:
@@ -625,6 +715,9 @@ export interface FileRouteTypes {
     | '/$locale/settings_'
     | '/$locale/sign-in'
     | '/$locale/sign-up'
+    | '/activity/ai-tasks'
+    | '/activity/chats'
+    | '/activity/feedbacks'
     | '/blog/$slug'
     | '/settings/apikeys'
     | '/settings/billing'
@@ -632,6 +725,9 @@ export interface FileRouteTypes {
     | '/settings/payments'
     | '/settings/profile'
     | '/settings/security'
+    | '/$locale/activity/ai-tasks'
+    | '/$locale/activity/chats'
+    | '/$locale/activity/feedbacks'
     | '/$locale/blog/$slug'
     | '/$locale/settings/apikeys'
     | '/$locale/settings/billing'
@@ -652,8 +748,10 @@ export interface FileRouteTypes {
     | '/$locale/settings/billing_/cancel'
     | '/$locale/settings/billing_/retrieve'
     | '/$locale/settings/invoices/retrieve'
+    | '/activity/ai-tasks_/$id/refresh'
     | '/settings/apikeys_/$id/delete'
     | '/settings/apikeys_/$id/edit'
+    | '/$locale/activity/ai-tasks_/$id/refresh'
     | '/$locale/settings/apikeys_/$id/delete'
     | '/$locale/settings/apikeys_/$id/edit'
   fileRoutesById: FileRoutesById
@@ -680,6 +778,9 @@ export interface RootRouteChildren {
   LocaleSettingsRoute: typeof LocaleSettingsRoute
   LocaleSignInRoute: typeof LocaleSignInRoute
   LocaleSignUpRoute: typeof LocaleSignUpRoute
+  ActivityAiTasksRoute: typeof ActivityAiTasksRoute
+  ActivityChatsRoute: typeof ActivityChatsRoute
+  ActivityFeedbacksRoute: typeof ActivityFeedbacksRoute
   BlogSlugRoute: typeof BlogSlugRoute
   SettingsApikeysRoute: typeof SettingsApikeysRoute
   SettingsBillingRoute: typeof SettingsBillingRoute
@@ -687,6 +788,9 @@ export interface RootRouteChildren {
   SettingsPaymentsRoute: typeof SettingsPaymentsRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
   SettingsSecurityRoute: typeof SettingsSecurityRoute
+  LocaleActivityAiTasksRoute: typeof LocaleActivityAiTasksRoute
+  LocaleActivityChatsRoute: typeof LocaleActivityChatsRoute
+  LocaleActivityFeedbacksRoute: typeof LocaleActivityFeedbacksRoute
   LocaleBlogSlugRoute: typeof LocaleBlogSlugRoute
   LocaleSettingsApikeysRoute: typeof LocaleSettingsApikeysRoute
   LocaleSettingsBillingRoute: typeof LocaleSettingsBillingRoute
@@ -707,8 +811,10 @@ export interface RootRouteChildren {
   LocaleSettingsBillingCancelRoute: typeof LocaleSettingsBillingCancelRoute
   LocaleSettingsBillingRetrieveRoute: typeof LocaleSettingsBillingRetrieveRoute
   LocaleSettingsInvoicesRetrieveRoute: typeof LocaleSettingsInvoicesRetrieveRoute
+  ActivityAiTasksIdRefreshRoute: typeof ActivityAiTasksIdRefreshRoute
   SettingsApikeysIdDeleteRoute: typeof SettingsApikeysIdDeleteRoute
   SettingsApikeysIdEditRoute: typeof SettingsApikeysIdEditRoute
+  LocaleActivityAiTasksIdRefreshRoute: typeof LocaleActivityAiTasksIdRefreshRoute
   LocaleSettingsApikeysIdDeleteRoute: typeof LocaleSettingsApikeysIdDeleteRoute
   LocaleSettingsApikeysIdEditRoute: typeof LocaleSettingsApikeysIdEditRoute
 }
@@ -839,6 +945,27 @@ declare module '@tanstack/react-router' {
       path: '/blog/$slug'
       fullPath: '/blog/$slug'
       preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activity/feedbacks': {
+      id: '/activity/feedbacks'
+      path: '/activity/feedbacks'
+      fullPath: '/activity/feedbacks'
+      preLoaderRoute: typeof ActivityFeedbacksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activity/chats': {
+      id: '/activity/chats'
+      path: '/activity/chats'
+      fullPath: '/activity/chats'
+      preLoaderRoute: typeof ActivityChatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activity/ai-tasks': {
+      id: '/activity/ai-tasks'
+      path: '/activity/ai-tasks'
+      fullPath: '/activity/ai-tasks'
+      preLoaderRoute: typeof ActivityAiTasksRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$locale/sign-up': {
@@ -1016,6 +1143,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleBlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$locale/activity/feedbacks': {
+      id: '/$locale/activity/feedbacks'
+      path: '/$locale/activity/feedbacks'
+      fullPath: '/$locale/activity/feedbacks'
+      preLoaderRoute: typeof LocaleActivityFeedbacksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/activity/chats': {
+      id: '/$locale/activity/chats'
+      path: '/$locale/activity/chats'
+      fullPath: '/$locale/activity/chats'
+      preLoaderRoute: typeof LocaleActivityChatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/activity/ai-tasks': {
+      id: '/$locale/activity/ai-tasks'
+      path: '/$locale/activity/ai-tasks'
+      fullPath: '/$locale/activity/ai-tasks'
+      preLoaderRoute: typeof LocaleActivityAiTasksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings/apikeys_/$id/edit': {
       id: '/settings/apikeys_/$id/edit'
       path: '/settings/apikeys/$id/edit'
@@ -1028,6 +1176,13 @@ declare module '@tanstack/react-router' {
       path: '/settings/apikeys/$id/delete'
       fullPath: '/settings/apikeys/$id/delete'
       preLoaderRoute: typeof SettingsApikeysIdDeleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activity/ai-tasks_/$id/refresh': {
+      id: '/activity/ai-tasks_/$id/refresh'
+      path: '/activity/ai-tasks/$id/refresh'
+      fullPath: '/activity/ai-tasks/$id/refresh'
+      preLoaderRoute: typeof ActivityAiTasksIdRefreshRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$locale/settings/invoices/retrieve': {
@@ -1079,6 +1234,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSettingsApikeysIdDeleteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$locale/activity/ai-tasks_/$id/refresh': {
+      id: '/$locale/activity/ai-tasks_/$id/refresh'
+      path: '/$locale/activity/ai-tasks/$id/refresh'
+      fullPath: '/$locale/activity/ai-tasks/$id/refresh'
+      preLoaderRoute: typeof LocaleActivityAiTasksIdRefreshRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1104,6 +1266,9 @@ const rootRouteChildren: RootRouteChildren = {
   LocaleSettingsRoute: LocaleSettingsRoute,
   LocaleSignInRoute: LocaleSignInRoute,
   LocaleSignUpRoute: LocaleSignUpRoute,
+  ActivityAiTasksRoute: ActivityAiTasksRoute,
+  ActivityChatsRoute: ActivityChatsRoute,
+  ActivityFeedbacksRoute: ActivityFeedbacksRoute,
   BlogSlugRoute: BlogSlugRoute,
   SettingsApikeysRoute: SettingsApikeysRoute,
   SettingsBillingRoute: SettingsBillingRoute,
@@ -1111,6 +1276,9 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsPaymentsRoute: SettingsPaymentsRoute,
   SettingsProfileRoute: SettingsProfileRoute,
   SettingsSecurityRoute: SettingsSecurityRoute,
+  LocaleActivityAiTasksRoute: LocaleActivityAiTasksRoute,
+  LocaleActivityChatsRoute: LocaleActivityChatsRoute,
+  LocaleActivityFeedbacksRoute: LocaleActivityFeedbacksRoute,
   LocaleBlogSlugRoute: LocaleBlogSlugRoute,
   LocaleSettingsApikeysRoute: LocaleSettingsApikeysRoute,
   LocaleSettingsBillingRoute: LocaleSettingsBillingRoute,
@@ -1131,8 +1299,10 @@ const rootRouteChildren: RootRouteChildren = {
   LocaleSettingsBillingCancelRoute: LocaleSettingsBillingCancelRoute,
   LocaleSettingsBillingRetrieveRoute: LocaleSettingsBillingRetrieveRoute,
   LocaleSettingsInvoicesRetrieveRoute: LocaleSettingsInvoicesRetrieveRoute,
+  ActivityAiTasksIdRefreshRoute: ActivityAiTasksIdRefreshRoute,
   SettingsApikeysIdDeleteRoute: SettingsApikeysIdDeleteRoute,
   SettingsApikeysIdEditRoute: SettingsApikeysIdEditRoute,
+  LocaleActivityAiTasksIdRefreshRoute: LocaleActivityAiTasksIdRefreshRoute,
   LocaleSettingsApikeysIdDeleteRoute: LocaleSettingsApikeysIdDeleteRoute,
   LocaleSettingsApikeysIdEditRoute: LocaleSettingsApikeysIdEditRoute,
 }
