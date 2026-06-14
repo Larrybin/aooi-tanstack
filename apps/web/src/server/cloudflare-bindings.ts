@@ -3,13 +3,31 @@ import {
   type CloudflareBindings,
 } from '@/infra/runtime/env.server';
 
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function readBindingsFromWorkersModule(
+  workers: unknown
+): CloudflareBindings | null {
+  if (!isObject(workers)) {
+    return null;
+  }
+
+  if (isObject(workers.env)) {
+    return workers.env;
+  }
+
+  if (isObject(workers.default) && isObject(workers.default.env)) {
+    return workers.default.env;
+  }
+
+  return null;
+}
+
 export async function readTanStackCloudflareBindings(): Promise<CloudflareBindings | null> {
   try {
-    const workers = (await import('cloudflare:workers')) as unknown as {
-      env?: CloudflareBindings;
-      default?: { env?: CloudflareBindings };
-    };
-    return workers.env ?? workers.default?.env ?? null;
+    return readBindingsFromWorkersModule(await import('cloudflare:workers'));
   } catch {
     return null;
   }

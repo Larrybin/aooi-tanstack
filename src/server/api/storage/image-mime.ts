@@ -1,13 +1,21 @@
-const IMAGE_EXT_BY_MIME = {
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp',
-  'image/gif': 'gif',
-  'image/avif': 'avif',
-  'image/x-icon': 'ico',
-} as const;
+const ALLOWED_IMAGE_MIME_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/avif',
+  'image/x-icon',
+] as const;
 
-type AllowedImageMimeType = keyof typeof IMAGE_EXT_BY_MIME;
+type AllowedImageMimeType = (typeof ALLOWED_IMAGE_MIME_TYPES)[number];
+
+const ALLOWED_IMAGE_MIME_TYPE_SET = new Set<string>(ALLOWED_IMAGE_MIME_TYPES);
+
+export function isAllowedImageMimeType(
+  value: string
+): value is AllowedImageMimeType {
+  return ALLOWED_IMAGE_MIME_TYPE_SET.has(value);
+}
 
 function hasBytesPrefix(buffer: Buffer, prefix: readonly number[]): boolean {
   if (buffer.length < prefix.length) return false;

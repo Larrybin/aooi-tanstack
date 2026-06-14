@@ -39,7 +39,10 @@ test('readTanStackPaymentRuntimeBindings reads TanStack worker bindings in worke
     isWorkersRuntime: () => true,
     getTanStackCloudflareBindings: async () => {
       readBindings = true;
-      return {};
+      return {
+        CREEM_API_KEY: 'test-creem-api-key',
+        CREEM_SIGNING_SECRET: 'test-creem-signing-secret',
+      };
     },
   });
 
