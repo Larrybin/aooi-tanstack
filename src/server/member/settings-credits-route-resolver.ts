@@ -73,6 +73,7 @@ const migratedSettingsPaths = [
   '/settings/security',
   '/settings/credits',
   '/settings/billing',
+  '/settings/payments',
 ] as const;
 const defaultPage = 1;
 const defaultPageSize = 20;
@@ -627,7 +628,11 @@ function fallbackTitleForPath(path: (typeof migratedSettingsPaths)[number]) {
     return 'Credits';
   }
 
-  return 'Billing';
+  if (path === '/settings/billing') {
+    return 'Billing';
+  }
+
+  return 'Payments';
 }
 
 function readString(value: unknown, fallback: string) {

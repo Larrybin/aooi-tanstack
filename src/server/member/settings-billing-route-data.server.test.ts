@@ -209,9 +209,11 @@ test('resolveSettingsBillingRouteData returns localized billing data', async () 
       localePath('/settings/security', locale),
       localePath('/settings/credits', locale),
       localePath('/settings/billing', locale),
+      localePath('/settings/payments', locale),
     ]
   );
   assert.equal(data.shell.nav.items[3]?.active, true);
+  assert.equal(data.shell.nav.items[4]?.active, false);
 });
 
 test('resolveSettingsBillingRouteData returns null for unsupported locale', async () => {

@@ -22,6 +22,7 @@ import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsSecurityRouteImport } from './routes/settings/security'
 import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
+import { Route as SettingsPaymentsRouteImport } from './routes/settings/payments'
 import { Route as SettingsCreditsRouteImport } from './routes/settings/credits'
 import { Route as SettingsBillingRouteImport } from './routes/settings/billing'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
@@ -41,6 +42,7 @@ import { Route as ApiPaymentNotifyRouteImport } from './routes/api/payment/notif
 import { Route as ApiPaymentCheckoutRouteImport } from './routes/api/payment/checkout'
 import { Route as LocaleSettingsSecurityRouteImport } from './routes/$locale/settings/security'
 import { Route as LocaleSettingsProfileRouteImport } from './routes/$locale/settings/profile'
+import { Route as LocaleSettingsPaymentsRouteImport } from './routes/$locale/settings/payments'
 import { Route as LocaleSettingsCreditsRouteImport } from './routes/$locale/settings/credits'
 import { Route as LocaleSettingsBillingRouteImport } from './routes/$locale/settings/billing'
 import { Route as LocaleBlogSlugRouteImport } from './routes/$locale/blog/$slug'
@@ -109,6 +111,11 @@ const SettingsSecurityRoute = SettingsSecurityRouteImport.update({
 const SettingsProfileRoute = SettingsProfileRouteImport.update({
   id: '/settings/profile',
   path: '/settings/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsPaymentsRoute = SettingsPaymentsRouteImport.update({
+  id: '/settings/payments',
+  path: '/settings/payments',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsCreditsRoute = SettingsCreditsRouteImport.update({
@@ -206,6 +213,11 @@ const LocaleSettingsProfileRoute = LocaleSettingsProfileRouteImport.update({
   path: '/$locale/settings/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocaleSettingsPaymentsRoute = LocaleSettingsPaymentsRouteImport.update({
+  id: '/$locale/settings/payments',
+  path: '/$locale/settings/payments',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LocaleSettingsCreditsRoute = LocaleSettingsCreditsRouteImport.update({
   id: '/$locale/settings/credits',
   path: '/$locale/settings/credits',
@@ -252,11 +264,13 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof BlogSlugRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/credits': typeof SettingsCreditsRoute
+  '/settings/payments': typeof SettingsPaymentsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/security': typeof SettingsSecurityRoute
   '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
   '/$locale/settings/billing': typeof LocaleSettingsBillingRoute
   '/$locale/settings/credits': typeof LocaleSettingsCreditsRoute
+  '/$locale/settings/payments': typeof LocaleSettingsPaymentsRoute
   '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
@@ -290,11 +304,13 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof BlogSlugRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/credits': typeof SettingsCreditsRoute
+  '/settings/payments': typeof SettingsPaymentsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/security': typeof SettingsSecurityRoute
   '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
   '/$locale/settings/billing': typeof LocaleSettingsBillingRoute
   '/$locale/settings/credits': typeof LocaleSettingsCreditsRoute
+  '/$locale/settings/payments': typeof LocaleSettingsPaymentsRoute
   '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
@@ -329,11 +345,13 @@ export interface FileRoutesById {
   '/blog/$slug': typeof BlogSlugRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/credits': typeof SettingsCreditsRoute
+  '/settings/payments': typeof SettingsPaymentsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/security': typeof SettingsSecurityRoute
   '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
   '/$locale/settings/billing': typeof LocaleSettingsBillingRoute
   '/$locale/settings/credits': typeof LocaleSettingsCreditsRoute
+  '/$locale/settings/payments': typeof LocaleSettingsPaymentsRoute
   '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
@@ -369,11 +387,13 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/settings/billing'
     | '/settings/credits'
+    | '/settings/payments'
     | '/settings/profile'
     | '/settings/security'
     | '/$locale/blog/$slug'
     | '/$locale/settings/billing'
     | '/$locale/settings/credits'
+    | '/$locale/settings/payments'
     | '/$locale/settings/profile'
     | '/$locale/settings/security'
     | '/api/payment/checkout'
@@ -407,11 +427,13 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/settings/billing'
     | '/settings/credits'
+    | '/settings/payments'
     | '/settings/profile'
     | '/settings/security'
     | '/$locale/blog/$slug'
     | '/$locale/settings/billing'
     | '/$locale/settings/credits'
+    | '/$locale/settings/payments'
     | '/$locale/settings/profile'
     | '/$locale/settings/security'
     | '/api/payment/checkout'
@@ -445,11 +467,13 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/settings/billing'
     | '/settings/credits'
+    | '/settings/payments'
     | '/settings/profile'
     | '/settings/security'
     | '/$locale/blog/$slug'
     | '/$locale/settings/billing'
     | '/$locale/settings/credits'
+    | '/$locale/settings/payments'
     | '/$locale/settings/profile'
     | '/$locale/settings/security'
     | '/api/payment/checkout'
@@ -484,11 +508,13 @@ export interface RootRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
   SettingsBillingRoute: typeof SettingsBillingRoute
   SettingsCreditsRoute: typeof SettingsCreditsRoute
+  SettingsPaymentsRoute: typeof SettingsPaymentsRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
   SettingsSecurityRoute: typeof SettingsSecurityRoute
   LocaleBlogSlugRoute: typeof LocaleBlogSlugRoute
   LocaleSettingsBillingRoute: typeof LocaleSettingsBillingRoute
   LocaleSettingsCreditsRoute: typeof LocaleSettingsCreditsRoute
+  LocaleSettingsPaymentsRoute: typeof LocaleSettingsPaymentsRoute
   LocaleSettingsProfileRoute: typeof LocaleSettingsProfileRoute
   LocaleSettingsSecurityRoute: typeof LocaleSettingsSecurityRoute
   ApiPaymentCheckoutRoute: typeof ApiPaymentCheckoutRoute
@@ -589,6 +615,13 @@ declare module '@tanstack/react-router' {
       path: '/settings/profile'
       fullPath: '/settings/profile'
       preLoaderRoute: typeof SettingsProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/payments': {
+      id: '/settings/payments'
+      path: '/settings/payments'
+      fullPath: '/settings/payments'
+      preLoaderRoute: typeof SettingsPaymentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings/credits': {
@@ -724,6 +757,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSettingsProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$locale/settings/payments': {
+      id: '/$locale/settings/payments'
+      path: '/$locale/settings/payments'
+      fullPath: '/$locale/settings/payments'
+      preLoaderRoute: typeof LocaleSettingsPaymentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$locale/settings/credits': {
       id: '/$locale/settings/credits'
       path: '/$locale/settings/credits'
@@ -780,11 +820,13 @@ const rootRouteChildren: RootRouteChildren = {
   BlogSlugRoute: BlogSlugRoute,
   SettingsBillingRoute: SettingsBillingRoute,
   SettingsCreditsRoute: SettingsCreditsRoute,
+  SettingsPaymentsRoute: SettingsPaymentsRoute,
   SettingsProfileRoute: SettingsProfileRoute,
   SettingsSecurityRoute: SettingsSecurityRoute,
   LocaleBlogSlugRoute: LocaleBlogSlugRoute,
   LocaleSettingsBillingRoute: LocaleSettingsBillingRoute,
   LocaleSettingsCreditsRoute: LocaleSettingsCreditsRoute,
+  LocaleSettingsPaymentsRoute: LocaleSettingsPaymentsRoute,
   LocaleSettingsProfileRoute: LocaleSettingsProfileRoute,
   LocaleSettingsSecurityRoute: LocaleSettingsSecurityRoute,
   ApiPaymentCheckoutRoute: ApiPaymentCheckoutRoute,

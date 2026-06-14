@@ -166,12 +166,14 @@ const requiredFiles = [
   'apps/web/src/routes/settings/security.tsx',
   'apps/web/src/routes/settings/credits.tsx',
   'apps/web/src/routes/settings/billing.tsx',
+  'apps/web/src/routes/settings/payments.tsx',
   'apps/web/src/routes/activity_.tsx',
   'apps/web/src/routes/$locale/settings_.tsx',
   'apps/web/src/routes/$locale/settings/profile.tsx',
   'apps/web/src/routes/$locale/settings/security.tsx',
   'apps/web/src/routes/$locale/settings/credits.tsx',
   'apps/web/src/routes/$locale/settings/billing.tsx',
+  'apps/web/src/routes/$locale/settings/payments.tsx',
   'apps/web/src/routes/$locale/activity_.tsx',
   'apps/web/src/routes/api/payment/checkout.ts',
   'apps/web/src/routes/api/payment/notify.ts',
@@ -214,6 +216,9 @@ const requiredFiles = [
   'src/server/member/settings-billing-route-data.ts',
   'src/server/member/settings-billing-route-resolver.ts',
   'src/server/member/settings-billing-route-messages.ts',
+  'src/server/member/settings-payments-route-data.ts',
+  'src/server/member/settings-payments-route-resolver.ts',
+  'src/server/member/settings-payments-route-messages.ts',
   'src/surfaces/landing/pricing/pricing.data.ts',
   'src/surfaces/landing/pricing/pricing.seo.ts',
   'src/surfaces/landing/pricing/pricing.view.tsx',
@@ -258,6 +263,10 @@ const requiredFiles = [
   'src/surfaces/member/settings-billing/settings-billing.seo.ts',
   'src/surfaces/member/settings-billing/settings-billing.types.ts',
   'src/surfaces/member/settings-billing/settings-billing.view.tsx',
+  'src/surfaces/member/settings-payments/settings-payments.data.ts',
+  'src/surfaces/member/settings-payments/settings-payments.seo.ts',
+  'src/surfaces/member/settings-payments/settings-payments.types.ts',
+  'src/surfaces/member/settings-payments/settings-payments.view.tsx',
   'src/surfaces/system/not-found/not-found.view.tsx',
   'scripts/tanstack-gate-4-plan.mjs',
   'docs/migration/gate-4-page-migration-plan.generated.md',
@@ -1861,6 +1870,214 @@ if (
 ) {
   fail(
     'src/app/[locale]/(landing)/settings/billing/page.tsx must remain until the legacy app route is retired'
+  );
+}
+
+const settingsPaymentsRouteFiles = [
+  {
+    file: 'apps/web/src/routes/settings/payments.tsx',
+    routeId: '/settings/payments',
+    localePattern: /defaultLocale/,
+  },
+  {
+    file: 'apps/web/src/routes/$locale/settings/payments.tsx',
+    routeId: '/$locale/settings/payments',
+    localePattern: /params\.locale/,
+  },
+];
+
+for (const { file, routeId, localePattern } of settingsPaymentsRouteFiles) {
+  const abs = join(root, file);
+  if (!existsSync(abs)) {
+    fail(`${file} must exist for Gate 4-B.3f settings payments route`);
+  }
+  if (!contains(abs, /createFileRoute/)) {
+    fail(`${file} must use createFileRoute`);
+  }
+  if (
+    !contains(abs, new RegExp(`createFileRoute\\('${escapeRegex(routeId)}'\\)`))
+  ) {
+    fail(`${file} must declare TanStack route ${routeId}`);
+  }
+  if (!contains(abs, /loadSettingsPaymentsRouteSurfaceData/)) {
+    fail(`${file} must load settings payments route surface data`);
+  }
+  if (!contains(abs, /getSettingsPaymentsRouteSurfaceHead/)) {
+    fail(`${file} must use settings payments route surface head`);
+  }
+  if (!contains(abs, /SettingsPaymentsRouteView/)) {
+    fail(`${file} must render SettingsPaymentsRouteView`);
+  }
+  if (!contains(abs, localePattern)) {
+    fail(`${file} must use the expected locale source`);
+  }
+}
+
+for (const fullPath of ['/settings/payments', '/$locale/settings/payments']) {
+  if (
+    !contains(
+      homeRouteTreeAbs,
+      new RegExp(`fullPath:\\s*'${escapeRegex(fullPath)}'`)
+    )
+  ) {
+    fail(
+      `${homeRouteTreeFile} must include settings payments fullPath ${fullPath}`
+    );
+  }
+}
+
+const settingsPaymentsDataFile =
+  'src/server/member/settings-payments-route-data.ts';
+const settingsPaymentsDataAbs = join(root, settingsPaymentsDataFile);
+if (
+  !contains(
+    settingsPaymentsDataAbs,
+    /createServerFn\(\{\s*method:\s*['"]GET['"]/
+  )
+) {
+  fail(
+    `${settingsPaymentsDataFile} must use createServerFn({ method: 'GET' })`
+  );
+}
+if (
+  !contains(
+    settingsPaymentsDataAbs,
+    /await\s+import\(\s*['"].\/settings-payments-route-resolver['"]\s*\)/
+  )
+) {
+  fail(
+    `${settingsPaymentsDataFile} must dynamically import the settings payments resolver`
+  );
+}
+
+const settingsPaymentsResolverFile =
+  'src/server/member/settings-payments-route-resolver.ts';
+const settingsPaymentsResolverAbs = join(root, settingsPaymentsResolverFile);
+for (const [regex, label] of [
+  [/normalizeLocale/, 'locale normalization'],
+  [/loadSettingsPaymentsRouteMessages/, 'settings payments message loader'],
+  [/resolveSitePaymentCapability/, 'payment capability guard'],
+  [/readSignedInUserIdentity|getSignedInUserIdentity/, 'signed-in user check'],
+  [/listMemberPaymentsQuery/, 'member payments query'],
+  [/PaymentType/, 'payment type query filter'],
+  [/pageSize/, 'page size query filter'],
+  [/orderNo/, 'order number query parsing'],
+  [/invoiceHref/, 'invoice link route data'],
+  [/invoiceExternal/, 'external invoice marker'],
+  [/settings\/invoices\/retrieve/, 'invoice retrieval link'],
+  [/JSON\.stringify/, 'route data serializability guard'],
+  [/noindex,nofollow/, 'member noindex robots head'],
+]) {
+  if (!contains(settingsPaymentsResolverAbs, regex)) {
+    fail(`${settingsPaymentsResolverFile} must use ${label}`);
+  }
+}
+for (const [regex, label] of [
+  [/cancelMemberSubscription/, 'subscription cancel action'],
+  [/retrieveMemberBillingPortalUrl/, 'provider portal redirect'],
+  [/retrieveBillingPortalUseCase/, 'billing portal use case'],
+  [/retrieveMemberInvoiceUrl|retrieveInvoiceUseCase/, 'invoice provider call'],
+  [/confirmPaymentCallbackUseCase/, 'payment callback mutation'],
+  [/PaymentCallbackHandler/, 'legacy payment callback handler'],
+  [/TableCard/, 'legacy table card'],
+  [/React callback columns|callback columns/, 'callback table columns'],
+  [/next\/headers/, 'next/headers import'],
+  [/session\.server/, 'legacy Next session server'],
+  [
+    /ConsoleLayout|LandingLayout|PublicAppProvider|AuthSnapshotProvider/,
+    'legacy member shell',
+  ],
+  [/next-intl/, 'next-intl import'],
+  [/next\/navigation/, 'next/navigation import'],
+  [/@\/app\/|src\/app\//, 'legacy app import'],
+  [/@\/themes\//, '@/themes import'],
+  [/settings-runtime\.query/, 'runtime settings query import'],
+]) {
+  if (contains(settingsPaymentsResolverAbs, regex)) {
+    fail(`${settingsPaymentsResolverFile} must not depend on ${label}`);
+  }
+}
+
+const settingsPaymentsMessagesFile =
+  'src/server/member/settings-payments-route-messages.ts';
+const settingsPaymentsMessagesAbs = join(root, settingsPaymentsMessagesFile);
+for (const [regex, label] of [
+  [/settings\/payments/, 'settings/payments messages'],
+  [/settings\/sidebar/, 'settings/sidebar messages'],
+  [
+    /\?\s*\(mergeDeep\(basePayments/,
+    'base fallback for missing payments messages',
+  ],
+  [
+    /\?\s*\(mergeDeep\(baseSidebar/,
+    'base fallback for missing sidebar messages',
+  ],
+  [/mergeDeep/, 'key-level fallback merge'],
+]) {
+  if (!contains(settingsPaymentsMessagesAbs, regex)) {
+    fail(`${settingsPaymentsMessagesFile} must implement ${label}`);
+  }
+}
+
+const settingsPaymentsSurfaceFiles = walk(
+  join(root, 'src/surfaces/member/settings-payments')
+)
+  .filter((file) => /\.(ts|tsx)$/.test(file))
+  .map((file) => normalizePath(relative(root, file)))
+  .sort();
+for (const file of settingsPaymentsSurfaceFiles) {
+  const abs = join(root, file);
+  for (const [regex, label] of [
+    [/\bfrom\s+['"]next(?:\/|['"])/, 'next runtime import'],
+    [/^\s*import\s+['"]next(?:\/|['"])/m, 'next side-effect import'],
+    [/from\s+['"]next-intl(?:\/|['"])/, 'next-intl import'],
+    [/@\/infra\/platform\/i18n\/navigation/, 'Next i18n navigation import'],
+    [/@\/app\/|src\/app\//, 'legacy app import'],
+    [/@\/themes\//, '@/themes import'],
+    [/^\s*import\s+['"]server-only['"]/m, 'server-only marker'],
+    [/session\.server/, 'legacy Next session server'],
+    [/TableCard/, 'legacy table card'],
+    [/PaymentCallbackHandler/, 'legacy payment callback handler'],
+  ]) {
+    if (contains(abs, regex)) {
+      fail(`${file} must not depend on ${label}`);
+    }
+  }
+}
+
+const settingsPaymentsViewFile =
+  'src/surfaces/member/settings-payments/settings-payments.view.tsx';
+const settingsPaymentsViewAbs = join(root, settingsPaymentsViewFile);
+for (const [regex, label] of [
+  [/document\.documentElement\.lang\s*=\s*data\.locale/, 'localized html lang'],
+  [/document\.documentElement\.dir\s*=\s*isRtlLocale/, 'localized html dir'],
+  [/data\.page\.records/, 'plain serializable payments table'],
+  [/data\.page\.tabs/, 'payment type filter tabs'],
+  [/invoiceHref/, 'invoice link rendering'],
+]) {
+  if (!contains(settingsPaymentsViewAbs, regex)) {
+    fail(`${settingsPaymentsViewFile} must apply ${label}`);
+  }
+}
+for (const [regex, label] of [
+  [/data\.page\.paymentCallback/, 'payment callback display'],
+  [/Payment callback/, 'payment callback copy'],
+  [/api\/payment\/callback/, 'payment callback API link'],
+  [/settings\/billing\/cancel/, 'cancel action link'],
+  [/settings\/billing\/retrieve/, 'provider portal link'],
+]) {
+  if (contains(settingsPaymentsViewAbs, regex)) {
+    fail(`${settingsPaymentsViewFile} must not render ${label}`);
+  }
+}
+
+if (
+  !existsSync(
+    join(root, 'src/app/[locale]/(landing)/settings/payments/page.tsx')
+  )
+) {
+  fail(
+    'src/app/[locale]/(landing)/settings/payments/page.tsx must remain until the legacy app route is retired'
   );
 }
 
