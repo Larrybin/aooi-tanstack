@@ -51,11 +51,13 @@ export default function CanvasMaskEditor({
   image,
   copy,
   locale,
+  signInCallbackPath,
   onReplaceImage,
 }: {
   image: UploadedRemoverImage;
   copy: RemoverCanvasEditorCopy;
   locale: string;
+  signInCallbackPath: string;
   onReplaceImage: () => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -231,8 +233,8 @@ export default function CanvasMaskEditor({
     }
   }
 
-  const myImagesPath = withLocale('/my-images', locale);
-  const signInHref = `${withLocale('/sign-in', locale)}?callbackUrl=${encodeURIComponent(myImagesPath)}`;
+  const callbackPath = withLocale(signInCallbackPath, locale);
+  const signInHref = `${withLocale('/sign-in', locale)}?callbackUrl=${encodeURIComponent(callbackPath)}`;
 
   function handlePointerDown(event: PointerEvent<HTMLCanvasElement>) {
     if (isBusy(jobState)) {

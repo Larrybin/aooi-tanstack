@@ -22,6 +22,18 @@ export function isLandingAiEnabled(
   return isAiEnabled(publicConfig);
 }
 
+export function isUnavailableTanStackPublicUrl(url: string) {
+  const normalizedUrl =
+    url.length > 1 && url.endsWith('/') ? url.slice(0, -1) : url;
+
+  return (
+    normalizedUrl === '/docs' ||
+    normalizedUrl.startsWith('/docs/') ||
+    normalizedUrl === '/my-images' ||
+    normalizedUrl.startsWith('/my-images/')
+  );
+}
+
 function shouldHideLandingUrl(
   url: string | undefined,
   publicConfig: PublicUiConfig
@@ -127,5 +139,15 @@ export function filterLandingButtons(
   return buttons.filter((button) => {
     const url = button.url ? button.url.trim() : '';
     return !shouldHideLandingUrl(url || undefined, nextPublicConfig);
+  });
+}
+
+export function filterTanStackLandingButtons(
+  buttons: readonly Button[] | undefined,
+  publicConfig: PublicUiConfig | undefined
+): Button[] {
+  return filterLandingButtons(buttons, publicConfig).filter((button) => {
+    const url = button.url ? button.url.trim() : '';
+    return !url || !isUnavailableTanStackPublicUrl(url);
   });
 }

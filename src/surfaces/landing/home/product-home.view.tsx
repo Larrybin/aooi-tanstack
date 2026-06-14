@@ -14,7 +14,13 @@ export function ProductHomeView({
 }) {
   switch (productHome.kind) {
     case 'ai-remover':
-      return <RemoverHome copy={productHome.copy} locale={locale} />;
+      return (
+        <RemoverHome
+          copy={productHome.copy}
+          locale={locale}
+          signInCallbackPath="/activity/ai-tasks"
+        />
+      );
     case 'background-remover':
       return <BackgroundRemoverHome copy={productHome.copy} locale={locale} />;
     case 'text-to-speech-generator':

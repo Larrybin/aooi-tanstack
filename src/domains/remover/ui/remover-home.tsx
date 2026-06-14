@@ -61,9 +61,11 @@ function ProcessExample({ copy }: { copy: RemoverHomeCopy['processExample'] }) {
 export function RemoverHome({
   copy,
   locale,
+  signInCallbackPath = '/my-images',
 }: {
   copy: RemoverHomeCopy;
   locale: string;
+  signInCallbackPath?: string;
 }) {
   const pricingHref = withLocale('/pricing', locale);
 
@@ -95,7 +97,11 @@ export function RemoverHome({
             </div>
           </div>
 
-          <RemoverEditorEntry copy={copy.editor} locale={locale} />
+          <RemoverEditorEntry
+            copy={copy.editor}
+            locale={locale}
+            signInCallbackPath={signInCallbackPath}
+          />
         </div>
       </section>
 

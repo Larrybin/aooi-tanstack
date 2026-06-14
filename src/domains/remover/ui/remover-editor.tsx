@@ -11,9 +11,11 @@ const CanvasMaskEditor = lazy(() => import('./remover-canvas-editor'));
 export function RemoverEditorEntry({
   copy,
   locale,
+  signInCallbackPath,
 }: {
   copy: RemoverEditorCopy;
   locale: string;
+  signInCallbackPath: string;
 }) {
   const [image, setImage] = useState<UploadedRemoverImage | null>(null);
   const [error, setError] = useState('');
@@ -73,6 +75,7 @@ export function RemoverEditorEntry({
           image={image}
           copy={copy.canvas}
           locale={locale}
+          signInCallbackPath={signInCallbackPath}
           onReplaceImage={() => setImage(null)}
         />
       </Suspense>

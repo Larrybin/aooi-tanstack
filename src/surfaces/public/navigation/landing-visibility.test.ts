@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   filterLandingButtons,
   filterLandingNavItems,
+  filterTanStackLandingButtons,
   isLandingBlogEnabled,
   isLandingDocsEnabled,
 } from './landing-visibility';
@@ -37,7 +38,7 @@ test('landing visibility 对 docs/blog 使用站点 capabilities，而不是 run
   }
 });
 
-test('filterLandingNavItems 不因 runtime public config 缺少 docs/blog 开关而隐藏对应入口', () => {
+test('filterLandingNavItems keeps docs when docs capability is enabled', () => {
   const originalDocs = site.capabilities.docs;
   const originalBlog = site.capabilities.blog;
   site.capabilities.docs = true;
@@ -85,6 +86,22 @@ test('filterLandingButtons hides AI routes when runtime public config disables A
     [
       { title: 'Generate', url: '/ai-image-generator' },
       { title: 'Chat', url: '/chat' },
+      { title: 'Pricing', url: '/pricing' },
+    ],
+    runtimePublicConfig
+  );
+
+  assert.deepEqual(
+    buttons.map((button) => button.url),
+    ['/pricing']
+  );
+});
+
+test('filterTanStackLandingButtons hides TanStack-unavailable public CTA links', () => {
+  const buttons = filterTanStackLandingButtons(
+    [
+      { title: 'Docs', url: '/docs' },
+      { title: 'My Images', url: '/my-images' },
       { title: 'Pricing', url: '/pricing' },
     ],
     runtimePublicConfig

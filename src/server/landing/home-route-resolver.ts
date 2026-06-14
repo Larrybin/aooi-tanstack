@@ -10,7 +10,7 @@ import type {
   HomeRouteData,
   HomeSectionData,
 } from '@/surfaces/landing/home/home.types';
-import { filterLandingButtons } from '@/surfaces/public/navigation/landing-visibility';
+import { filterTanStackLandingButtons } from '@/surfaces/public/navigation/landing-visibility';
 
 import enLanding from '@/config/locale/messages/en/landing.json';
 import zhTwLanding from '@/config/locale/messages/zh-TW/landing.json';
@@ -183,7 +183,7 @@ function buildHomePageData(
     hero: hero
       ? {
           ...hero,
-          buttons: filterLandingButtons(
+          buttons: filterTanStackLandingButtons(
             hero.buttons as readonly Button[] | undefined,
             publicUiConfig
           ) as HomeButtonData[],
@@ -225,7 +225,7 @@ function buildHomePageData(
     cta: cta
       ? {
           ...cta,
-          buttons: filterLandingButtons(
+          buttons: filterTanStackLandingButtons(
             cta.buttons as readonly Button[] | undefined,
             publicUiConfig
           ) as HomeButtonData[],

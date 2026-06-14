@@ -1,3 +1,4 @@
+import { redirectUnsignedSettingsVisitor } from '@/server/member/settings-auth-redirect';
 import { loadActivityRouteSurfaceData } from '@/surfaces/member/activity/activity.data';
 import { getActivityRouteSurfaceHead } from '@/surfaces/member/activity/activity.seo';
 import type { ActivityRouteData } from '@/surfaces/member/activity/activity.types';
@@ -16,6 +17,12 @@ export const Route = createFileRoute('/activity/chats')({
     if (!data) {
       throw notFound();
     }
+    redirectUnsignedSettingsVisitor({
+      data,
+      locale: defaultLocale,
+      pathname: '/activity/chats',
+      search: location.search,
+    });
     return data as ActivityRouteData;
   },
   head: ({ loaderData }) => getActivityRouteSurfaceHead(loaderData ?? null),
