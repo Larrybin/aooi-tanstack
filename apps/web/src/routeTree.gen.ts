@@ -53,6 +53,7 @@ import { Route as ApiTtsHistoryRouteImport } from './routes/api/tts/history'
 import { Route as ApiTtsGenerateRouteImport } from './routes/api/tts/generate'
 import { Route as ApiRemoverUploadRouteImport } from './routes/api/remover/upload'
 import { Route as ApiRemoverJobsRouteImport } from './routes/api/remover/jobs'
+import { Route as ApiRemoverCleanupRouteImport } from './routes/api/remover/cleanup'
 import { Route as ApiPaymentNotifyRouteImport } from './routes/api/payment/notify'
 import { Route as ApiPaymentCheckoutRouteImport } from './routes/api/payment/checkout'
 import { Route as ApiPaymentCallbackRouteImport } from './routes/api/payment/callback'
@@ -310,6 +311,11 @@ const ApiRemoverJobsRoute = ApiRemoverJobsRouteImport.update({
   path: '/api/remover/jobs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRemoverCleanupRoute = ApiRemoverCleanupRouteImport.update({
+  id: '/api/remover/cleanup',
+  path: '/api/remover/cleanup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPaymentNotifyRoute = ApiPaymentNotifyRouteImport.update({
   id: '/api/payment/notify',
   path: '/api/payment/notify',
@@ -551,6 +557,7 @@ export interface FileRoutesByFullPath {
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
+  '/api/remover/cleanup': typeof ApiRemoverCleanupRoute
   '/api/remover/jobs': typeof ApiRemoverJobsRouteWithChildren
   '/api/remover/upload': typeof ApiRemoverUploadRoute
   '/api/tts/generate': typeof ApiTtsGenerateRoute
@@ -632,6 +639,7 @@ export interface FileRoutesByTo {
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
+  '/api/remover/cleanup': typeof ApiRemoverCleanupRoute
   '/api/remover/jobs': typeof ApiRemoverJobsRouteWithChildren
   '/api/remover/upload': typeof ApiRemoverUploadRoute
   '/api/tts/generate': typeof ApiTtsGenerateRoute
@@ -714,6 +722,7 @@ export interface FileRoutesById {
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
+  '/api/remover/cleanup': typeof ApiRemoverCleanupRoute
   '/api/remover/jobs': typeof ApiRemoverJobsRouteWithChildren
   '/api/remover/upload': typeof ApiRemoverUploadRoute
   '/api/tts/generate': typeof ApiTtsGenerateRoute
@@ -797,6 +806,7 @@ export interface FileRouteTypes {
     | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
+    | '/api/remover/cleanup'
     | '/api/remover/jobs'
     | '/api/remover/upload'
     | '/api/tts/generate'
@@ -878,6 +888,7 @@ export interface FileRouteTypes {
     | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
+    | '/api/remover/cleanup'
     | '/api/remover/jobs'
     | '/api/remover/upload'
     | '/api/tts/generate'
@@ -959,6 +970,7 @@ export interface FileRouteTypes {
     | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
+    | '/api/remover/cleanup'
     | '/api/remover/jobs'
     | '/api/remover/upload'
     | '/api/tts/generate'
@@ -1040,6 +1052,7 @@ export interface RootRouteChildren {
   ApiPaymentCallbackRoute: typeof ApiPaymentCallbackRoute
   ApiPaymentCheckoutRoute: typeof ApiPaymentCheckoutRoute
   ApiPaymentNotifyRoute: typeof ApiPaymentNotifyRoute
+  ApiRemoverCleanupRoute: typeof ApiRemoverCleanupRoute
   ApiRemoverJobsRoute: typeof ApiRemoverJobsRouteWithChildren
   ApiRemoverUploadRoute: typeof ApiRemoverUploadRoute
   ApiTtsGenerateRoute: typeof ApiTtsGenerateRoute
@@ -1380,6 +1393,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRemoverJobsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/remover/cleanup': {
+      id: '/api/remover/cleanup'
+      path: '/api/remover/cleanup'
+      fullPath: '/api/remover/cleanup'
+      preLoaderRoute: typeof ApiRemoverCleanupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/payment/notify': {
       id: '/api/payment/notify'
       path: '/api/payment/notify'
@@ -1701,6 +1721,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPaymentCallbackRoute: ApiPaymentCallbackRoute,
   ApiPaymentCheckoutRoute: ApiPaymentCheckoutRoute,
   ApiPaymentNotifyRoute: ApiPaymentNotifyRoute,
+  ApiRemoverCleanupRoute: ApiRemoverCleanupRoute,
   ApiRemoverJobsRoute: ApiRemoverJobsRouteWithChildren,
   ApiRemoverUploadRoute: ApiRemoverUploadRoute,
   ApiTtsGenerateRoute: ApiTtsGenerateRoute,
