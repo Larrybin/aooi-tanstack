@@ -50,6 +50,7 @@ const migratedSettingsPaths = [
   '/settings/profile',
   '/settings/security',
   '/settings/credits',
+  '/settings/billing',
 ] as const;
 
 export async function resolveSettingsProfileRouteData(
@@ -278,7 +279,11 @@ function fallbackTitleForPath(path: (typeof migratedSettingsPaths)[number]) {
     return 'Security';
   }
 
-  return 'Credits';
+  if (path === '/settings/credits') {
+    return 'Credits';
+  }
+
+  return 'Billing';
 }
 
 function readString(value: unknown, fallback: string) {
