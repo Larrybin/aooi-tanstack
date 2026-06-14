@@ -8,6 +8,7 @@ import {
   getServerRuntimeEnv,
   isCloudflareWorkersRuntime,
   isRuntimeEnvEnabled,
+  runWithCloudflareBindings,
   type CloudflareBindings,
 } from './env.server';
 
@@ -40,6 +41,17 @@ test('getRuntimeEnvString 在无 bindings 值时回退到 process env', () => {
     }),
     'https://env.example.com'
   );
+});
+
+test('runWithCloudflareBindings scopes implicit runtime binding reads', async () => {
+  const value = await runWithCloudflareBindings(
+    {
+      NEXT_PUBLIC_APP_URL: 'https://scoped.example.com',
+    } as CloudflareBindings,
+    async () => getRuntimeEnvString('NEXT_PUBLIC_APP_URL')
+  );
+
+  assert.equal(value, 'https://scoped.example.com');
 });
 
 test('isRuntimeEnvEnabled 仅在显式 true 时返回 true', () => {

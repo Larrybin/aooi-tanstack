@@ -56,7 +56,7 @@ test('job status action does not expose high-res URL or storage keys', async () 
 
   const response = await action(
     new Request('https://example.com/api/remover/jobs/job_1'),
-    { params: Promise.resolve({ id: 'job_1' }) }
+    { routeParams: { id: 'job_1' } }
   );
   const body = (await response.json()) as {
     data: { job: Record<string, unknown> };
@@ -112,7 +112,7 @@ test('job status action submits processing jobs without provider task ids', asyn
 
   const response = await action(
     new Request('https://example.com/api/remover/jobs/job_1'),
-    { params: Promise.resolve({ id: 'job_1' }) }
+    { routeParams: { id: 'job_1' } }
   );
 
   assert.equal(response.status, 200);

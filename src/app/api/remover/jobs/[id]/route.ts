@@ -71,6 +71,6 @@ const getAction = createRemoverJobGetAction({
 export const GET = withApi(
   (req: Request, context: { params: Promise<{ id: string }> }) => {
     requireRemoverSite();
-    return getAction(req, context);
+    return getAction(req, { routeParams: context.params });
   }
 );

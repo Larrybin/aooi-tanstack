@@ -13,6 +13,7 @@ import {
   readTanStackBillingRuntimeSettings,
   readTanStackPaymentRuntimeBindings,
 } from '../../../server/billing-runtime';
+import { withTanStackCloudflareBindings } from '../../../server/cloudflare-bindings';
 
 const postPaymentCallback = withApi(
   createPaymentCallbackPostAction({
@@ -28,11 +29,13 @@ const postPaymentCallback = withApi(
     resolveMode: resolveConfigConsistencyMode,
   })
 );
+const postPaymentCallbackWithBindings =
+  withTanStackCloudflareBindings(postPaymentCallback);
 
 export const Route = createFileRoute('/api/payment/callback')({
   server: {
     handlers: {
-      POST: ({ request }) => postPaymentCallback(request),
+      POST: ({ request }) => postPaymentCallbackWithBindings(request),
     },
   },
 });

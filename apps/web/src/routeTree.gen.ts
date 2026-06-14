@@ -47,6 +47,8 @@ import { Route as SettingsBillingCancelRouteImport } from './routes/settings/bil
 import { Route as SettingsApikeysCreateRouteImport } from './routes/settings/apikeys_/create'
 import { Route as BlogCategorySlugRouteImport } from './routes/blog/category/$slug'
 import { Route as ApiUserGetUserCreditsRouteImport } from './routes/api/user/get-user-credits'
+import { Route as ApiRemoverUploadRouteImport } from './routes/api/remover/upload'
+import { Route as ApiRemoverJobsRouteImport } from './routes/api/remover/jobs'
 import { Route as ApiPaymentNotifyRouteImport } from './routes/api/payment/notify'
 import { Route as ApiPaymentCheckoutRouteImport } from './routes/api/payment/checkout'
 import { Route as ApiPaymentCallbackRouteImport } from './routes/api/payment/callback'
@@ -63,6 +65,9 @@ import { Route as LocaleActivityChatsRouteImport } from './routes/$locale/activi
 import { Route as LocaleActivityAiTasksRouteImport } from './routes/$locale/activity/ai-tasks'
 import { Route as SettingsApikeysIdEditRouteImport } from './routes/settings/apikeys_/$id/edit'
 import { Route as SettingsApikeysIdDeleteRouteImport } from './routes/settings/apikeys_/$id/delete'
+import { Route as ApiRemoverJobsIdRouteImport } from './routes/api/remover/jobs/$id'
+import { Route as ApiRemoverDownloadLowResRouteImport } from './routes/api/remover/download/low-res'
+import { Route as ApiRemoverDownloadHighResRouteImport } from './routes/api/remover/download/high-res'
 import { Route as ActivityAiTasksIdRefreshRouteImport } from './routes/activity/ai-tasks_/$id/refresh'
 import { Route as LocaleSettingsInvoicesRetrieveRouteImport } from './routes/$locale/settings/invoices/retrieve'
 import { Route as LocaleSettingsBillingRetrieveRouteImport } from './routes/$locale/settings/billing_/retrieve'
@@ -264,6 +269,16 @@ const ApiUserGetUserCreditsRoute = ApiUserGetUserCreditsRouteImport.update({
   path: '/api/user/get-user-credits',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRemoverUploadRoute = ApiRemoverUploadRouteImport.update({
+  id: '/api/remover/upload',
+  path: '/api/remover/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRemoverJobsRoute = ApiRemoverJobsRouteImport.update({
+  id: '/api/remover/jobs',
+  path: '/api/remover/jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPaymentNotifyRoute = ApiPaymentNotifyRouteImport.update({
   id: '/api/payment/notify',
   path: '/api/payment/notify',
@@ -344,6 +359,23 @@ const SettingsApikeysIdDeleteRoute = SettingsApikeysIdDeleteRouteImport.update({
   path: '/settings/apikeys/$id/delete',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRemoverJobsIdRoute = ApiRemoverJobsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiRemoverJobsRoute,
+} as any)
+const ApiRemoverDownloadLowResRoute =
+  ApiRemoverDownloadLowResRouteImport.update({
+    id: '/api/remover/download/low-res',
+    path: '/api/remover/download/low-res',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiRemoverDownloadHighResRoute =
+  ApiRemoverDownloadHighResRouteImport.update({
+    id: '/api/remover/download/high-res',
+    path: '/api/remover/download/high-res',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ActivityAiTasksIdRefreshRoute =
   ActivityAiTasksIdRefreshRouteImport.update({
     id: '/activity/ai-tasks_/$id/refresh',
@@ -445,6 +477,8 @@ export interface FileRoutesByFullPath {
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
+  '/api/remover/jobs': typeof ApiRemoverJobsRouteWithChildren
+  '/api/remover/upload': typeof ApiRemoverUploadRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/settings/apikeys/create': typeof SettingsApikeysCreateRoute
@@ -457,6 +491,9 @@ export interface FileRoutesByFullPath {
   '/$locale/settings/billing/retrieve': typeof LocaleSettingsBillingRetrieveRoute
   '/$locale/settings/invoices/retrieve': typeof LocaleSettingsInvoicesRetrieveRoute
   '/activity/ai-tasks/$id/refresh': typeof ActivityAiTasksIdRefreshRoute
+  '/api/remover/download/high-res': typeof ApiRemoverDownloadHighResRoute
+  '/api/remover/download/low-res': typeof ApiRemoverDownloadLowResRoute
+  '/api/remover/jobs/$id': typeof ApiRemoverJobsIdRoute
   '/settings/apikeys/$id/delete': typeof SettingsApikeysIdDeleteRoute
   '/settings/apikeys/$id/edit': typeof SettingsApikeysIdEditRoute
   '/$locale/activity/ai-tasks/$id/refresh': typeof LocaleActivityAiTasksIdRefreshRoute
@@ -510,6 +547,8 @@ export interface FileRoutesByTo {
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
+  '/api/remover/jobs': typeof ApiRemoverJobsRouteWithChildren
+  '/api/remover/upload': typeof ApiRemoverUploadRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/settings/apikeys/create': typeof SettingsApikeysCreateRoute
@@ -522,6 +561,9 @@ export interface FileRoutesByTo {
   '/$locale/settings/billing/retrieve': typeof LocaleSettingsBillingRetrieveRoute
   '/$locale/settings/invoices/retrieve': typeof LocaleSettingsInvoicesRetrieveRoute
   '/activity/ai-tasks/$id/refresh': typeof ActivityAiTasksIdRefreshRoute
+  '/api/remover/download/high-res': typeof ApiRemoverDownloadHighResRoute
+  '/api/remover/download/low-res': typeof ApiRemoverDownloadLowResRoute
+  '/api/remover/jobs/$id': typeof ApiRemoverJobsIdRoute
   '/settings/apikeys/$id/delete': typeof SettingsApikeysIdDeleteRoute
   '/settings/apikeys/$id/edit': typeof SettingsApikeysIdEditRoute
   '/$locale/activity/ai-tasks/$id/refresh': typeof LocaleActivityAiTasksIdRefreshRoute
@@ -576,6 +618,8 @@ export interface FileRoutesById {
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
+  '/api/remover/jobs': typeof ApiRemoverJobsRouteWithChildren
+  '/api/remover/upload': typeof ApiRemoverUploadRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/settings/apikeys_/create': typeof SettingsApikeysCreateRoute
@@ -588,6 +632,9 @@ export interface FileRoutesById {
   '/$locale/settings/billing_/retrieve': typeof LocaleSettingsBillingRetrieveRoute
   '/$locale/settings/invoices/retrieve': typeof LocaleSettingsInvoicesRetrieveRoute
   '/activity/ai-tasks_/$id/refresh': typeof ActivityAiTasksIdRefreshRoute
+  '/api/remover/download/high-res': typeof ApiRemoverDownloadHighResRoute
+  '/api/remover/download/low-res': typeof ApiRemoverDownloadLowResRoute
+  '/api/remover/jobs/$id': typeof ApiRemoverJobsIdRoute
   '/settings/apikeys_/$id/delete': typeof SettingsApikeysIdDeleteRoute
   '/settings/apikeys_/$id/edit': typeof SettingsApikeysIdEditRoute
   '/$locale/activity/ai-tasks_/$id/refresh': typeof LocaleActivityAiTasksIdRefreshRoute
@@ -643,6 +690,8 @@ export interface FileRouteTypes {
     | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
+    | '/api/remover/jobs'
+    | '/api/remover/upload'
     | '/api/user/get-user-credits'
     | '/blog/category/$slug'
     | '/settings/apikeys/create'
@@ -655,6 +704,9 @@ export interface FileRouteTypes {
     | '/$locale/settings/billing/retrieve'
     | '/$locale/settings/invoices/retrieve'
     | '/activity/ai-tasks/$id/refresh'
+    | '/api/remover/download/high-res'
+    | '/api/remover/download/low-res'
+    | '/api/remover/jobs/$id'
     | '/settings/apikeys/$id/delete'
     | '/settings/apikeys/$id/edit'
     | '/$locale/activity/ai-tasks/$id/refresh'
@@ -708,6 +760,8 @@ export interface FileRouteTypes {
     | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
+    | '/api/remover/jobs'
+    | '/api/remover/upload'
     | '/api/user/get-user-credits'
     | '/blog/category/$slug'
     | '/settings/apikeys/create'
@@ -720,6 +774,9 @@ export interface FileRouteTypes {
     | '/$locale/settings/billing/retrieve'
     | '/$locale/settings/invoices/retrieve'
     | '/activity/ai-tasks/$id/refresh'
+    | '/api/remover/download/high-res'
+    | '/api/remover/download/low-res'
+    | '/api/remover/jobs/$id'
     | '/settings/apikeys/$id/delete'
     | '/settings/apikeys/$id/edit'
     | '/$locale/activity/ai-tasks/$id/refresh'
@@ -773,6 +830,8 @@ export interface FileRouteTypes {
     | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
+    | '/api/remover/jobs'
+    | '/api/remover/upload'
     | '/api/user/get-user-credits'
     | '/blog/category/$slug'
     | '/settings/apikeys_/create'
@@ -785,6 +844,9 @@ export interface FileRouteTypes {
     | '/$locale/settings/billing_/retrieve'
     | '/$locale/settings/invoices/retrieve'
     | '/activity/ai-tasks_/$id/refresh'
+    | '/api/remover/download/high-res'
+    | '/api/remover/download/low-res'
+    | '/api/remover/jobs/$id'
     | '/settings/apikeys_/$id/delete'
     | '/settings/apikeys_/$id/edit'
     | '/$locale/activity/ai-tasks_/$id/refresh'
@@ -838,6 +900,8 @@ export interface RootRouteChildren {
   ApiPaymentCallbackRoute: typeof ApiPaymentCallbackRoute
   ApiPaymentCheckoutRoute: typeof ApiPaymentCheckoutRoute
   ApiPaymentNotifyRoute: typeof ApiPaymentNotifyRoute
+  ApiRemoverJobsRoute: typeof ApiRemoverJobsRouteWithChildren
+  ApiRemoverUploadRoute: typeof ApiRemoverUploadRoute
   ApiUserGetUserCreditsRoute: typeof ApiUserGetUserCreditsRoute
   BlogCategorySlugRoute: typeof BlogCategorySlugRoute
   SettingsApikeysCreateRoute: typeof SettingsApikeysCreateRoute
@@ -850,6 +914,8 @@ export interface RootRouteChildren {
   LocaleSettingsBillingRetrieveRoute: typeof LocaleSettingsBillingRetrieveRoute
   LocaleSettingsInvoicesRetrieveRoute: typeof LocaleSettingsInvoicesRetrieveRoute
   ActivityAiTasksIdRefreshRoute: typeof ActivityAiTasksIdRefreshRoute
+  ApiRemoverDownloadHighResRoute: typeof ApiRemoverDownloadHighResRoute
+  ApiRemoverDownloadLowResRoute: typeof ApiRemoverDownloadLowResRoute
   SettingsApikeysIdDeleteRoute: typeof SettingsApikeysIdDeleteRoute
   SettingsApikeysIdEditRoute: typeof SettingsApikeysIdEditRoute
   LocaleActivityAiTasksIdRefreshRoute: typeof LocaleActivityAiTasksIdRefreshRoute
@@ -1125,6 +1191,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiUserGetUserCreditsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/remover/upload': {
+      id: '/api/remover/upload'
+      path: '/api/remover/upload'
+      fullPath: '/api/remover/upload'
+      preLoaderRoute: typeof ApiRemoverUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/remover/jobs': {
+      id: '/api/remover/jobs'
+      path: '/api/remover/jobs'
+      fullPath: '/api/remover/jobs'
+      preLoaderRoute: typeof ApiRemoverJobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/payment/notify': {
       id: '/api/payment/notify'
       path: '/api/payment/notify'
@@ -1237,6 +1317,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsApikeysIdDeleteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/remover/jobs/$id': {
+      id: '/api/remover/jobs/$id'
+      path: '/$id'
+      fullPath: '/api/remover/jobs/$id'
+      preLoaderRoute: typeof ApiRemoverJobsIdRouteImport
+      parentRoute: typeof ApiRemoverJobsRoute
+    }
+    '/api/remover/download/low-res': {
+      id: '/api/remover/download/low-res'
+      path: '/api/remover/download/low-res'
+      fullPath: '/api/remover/download/low-res'
+      preLoaderRoute: typeof ApiRemoverDownloadLowResRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/remover/download/high-res': {
+      id: '/api/remover/download/high-res'
+      path: '/api/remover/download/high-res'
+      fullPath: '/api/remover/download/high-res'
+      preLoaderRoute: typeof ApiRemoverDownloadHighResRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/activity/ai-tasks_/$id/refresh': {
       id: '/activity/ai-tasks_/$id/refresh'
       path: '/activity/ai-tasks/$id/refresh'
@@ -1314,6 +1415,18 @@ const ApiAuthRouteChildren: ApiAuthRouteChildren = {
 const ApiAuthRouteWithChildren =
   ApiAuthRoute._addFileChildren(ApiAuthRouteChildren)
 
+interface ApiRemoverJobsRouteChildren {
+  ApiRemoverJobsIdRoute: typeof ApiRemoverJobsIdRoute
+}
+
+const ApiRemoverJobsRouteChildren: ApiRemoverJobsRouteChildren = {
+  ApiRemoverJobsIdRoute: ApiRemoverJobsIdRoute,
+}
+
+const ApiRemoverJobsRouteWithChildren = ApiRemoverJobsRoute._addFileChildren(
+  ApiRemoverJobsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRoute,
@@ -1360,6 +1473,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPaymentCallbackRoute: ApiPaymentCallbackRoute,
   ApiPaymentCheckoutRoute: ApiPaymentCheckoutRoute,
   ApiPaymentNotifyRoute: ApiPaymentNotifyRoute,
+  ApiRemoverJobsRoute: ApiRemoverJobsRouteWithChildren,
+  ApiRemoverUploadRoute: ApiRemoverUploadRoute,
   ApiUserGetUserCreditsRoute: ApiUserGetUserCreditsRoute,
   BlogCategorySlugRoute: BlogCategorySlugRoute,
   SettingsApikeysCreateRoute: SettingsApikeysCreateRoute,
@@ -1372,6 +1487,8 @@ const rootRouteChildren: RootRouteChildren = {
   LocaleSettingsBillingRetrieveRoute: LocaleSettingsBillingRetrieveRoute,
   LocaleSettingsInvoicesRetrieveRoute: LocaleSettingsInvoicesRetrieveRoute,
   ActivityAiTasksIdRefreshRoute: ActivityAiTasksIdRefreshRoute,
+  ApiRemoverDownloadHighResRoute: ApiRemoverDownloadHighResRoute,
+  ApiRemoverDownloadLowResRoute: ApiRemoverDownloadLowResRoute,
   SettingsApikeysIdDeleteRoute: SettingsApikeysIdDeleteRoute,
   SettingsApikeysIdEditRoute: SettingsApikeysIdEditRoute,
   LocaleActivityAiTasksIdRefreshRoute: LocaleActivityAiTasksIdRefreshRoute,

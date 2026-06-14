@@ -36,6 +36,7 @@ import {
   readTanStackBillingRuntimeSettings,
   readTanStackPaymentRuntimeBindings,
 } from '../../../server/billing-runtime';
+import { withTanStackCloudflareBindings } from '../../../server/cloudflare-bindings';
 
 const paymentNotifyDeps: PaymentNotifyRouteDeps = {
   createApiContext: createTanStackApiContext,
@@ -75,11 +76,13 @@ const paymentNotifyDeps: PaymentNotifyRouteDeps = {
 const postPaymentNotify = withApi(
   buildPaymentNotifyPostLogic(paymentNotifyDeps)
 );
+const postPaymentNotifyWithBindings =
+  withTanStackCloudflareBindings(postPaymentNotify);
 
 export const Route = createFileRoute('/api/payment/notify')({
   server: {
     handlers: {
-      POST: ({ request }) => postPaymentNotify(request),
+      POST: ({ request }) => postPaymentNotifyWithBindings(request),
     },
   },
 });

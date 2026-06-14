@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { assertPostgresOnlyDatabaseProvider } from '@/infra/runtime/database-provider';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 
@@ -76,7 +77,22 @@ export type ServerRuntimeEnv = {
   authBaseUrl: string;
 };
 
+const cloudflareBindingsStore =
+  new AsyncLocalStorage<CloudflareBindings | null>();
+
+export function runWithCloudflareBindings<T>(
+  bindings: CloudflareBindings | null,
+  callback: () => T
+): T {
+  return cloudflareBindingsStore.run(bindings, callback);
+}
+
 export function getCloudflareBindings(): CloudflareBindings | null {
+  const scopedBindings = cloudflareBindingsStore.getStore();
+  if (scopedBindings !== undefined) {
+    return scopedBindings;
+  }
+
   try {
     const { env } = getCloudflareContext();
     return { ...env };

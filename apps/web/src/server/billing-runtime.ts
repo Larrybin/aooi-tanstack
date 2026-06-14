@@ -17,6 +17,8 @@ import postgres from 'postgres';
 import { config } from '@/config/db/schema';
 import { mergeCloudflareLocalSmokeConfigSeedConfigs } from '@/shared/lib/cloudflare-local-smoke-config';
 
+import { readTanStackCloudflareBindings } from './cloudflare-bindings';
+
 type Configs = Record<string, string>;
 type ConfigRow = typeof config.$inferSelect;
 type ReadTanStackSettingsFreshDeps = {
@@ -29,18 +31,6 @@ type ReadTanStackPaymentRuntimeBindingsDeps = Pick<
   ReadTanStackSettingsFreshDeps,
   'getTanStackCloudflareBindings' | 'isWorkersRuntime'
 >;
-
-async function readTanStackCloudflareBindings(): Promise<CloudflareBindings | null> {
-  try {
-    const workers = (await import('cloudflare:workers')) as unknown as {
-      env?: CloudflareBindings;
-      default?: { env?: CloudflareBindings };
-    };
-    return workers.env ?? workers.default?.env ?? null;
-  } catch {
-    return null;
-  }
-}
 
 async function readConfigRowsWithDatabaseUrl(databaseUrl: string) {
   const client = postgres(databaseUrl, {

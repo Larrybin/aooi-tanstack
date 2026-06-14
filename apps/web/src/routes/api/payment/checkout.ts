@@ -11,6 +11,7 @@ import {
   readTanStackBillingRuntimeSettings,
   readTanStackPaymentRuntimeBindings,
 } from '../../../server/billing-runtime';
+import { withTanStackCloudflareBindings } from '../../../server/cloudflare-bindings';
 
 const postPaymentCheckout = withApi(
   createPaymentCheckoutPostAction({
@@ -22,11 +23,13 @@ const postPaymentCheckout = withApi(
     createPaymentCheckoutSession,
   })
 );
+const postPaymentCheckoutWithBindings =
+  withTanStackCloudflareBindings(postPaymentCheckout);
 
 export const Route = createFileRoute('/api/payment/checkout')({
   server: {
     handlers: {
-      POST: ({ request }) => postPaymentCheckout(request),
+      POST: ({ request }) => postPaymentCheckoutWithBindings(request),
     },
   },
 });

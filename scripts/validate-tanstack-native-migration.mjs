@@ -202,14 +202,31 @@ const requiredFiles = [
   'apps/web/src/routes/api/payment/callback.ts',
   'apps/web/src/routes/api/payment/checkout.ts',
   'apps/web/src/routes/api/payment/notify.ts',
+  'apps/web/src/routes/api/remover/upload.ts',
+  'apps/web/src/routes/api/remover/jobs.ts',
+  'apps/web/src/routes/api/remover/jobs/$id.ts',
+  'apps/web/src/routes/api/remover/download/low-res.ts',
+  'apps/web/src/routes/api/remover/download/high-res.ts',
   'apps/web/src/routes/api/user/get-user-credits.ts',
   'apps/web/src/routes/$locale/blog/category/$slug.tsx',
   'apps/web/src/server/api-context.ts',
   'apps/web/src/server/billing-runtime.ts',
+  'apps/web/src/server/cloudflare-bindings.ts',
   'src/server/api/auth/auth-action.ts',
   'src/server/api/payment/callback-action.ts',
   'src/server/api/payment/checkout-action.ts',
   'src/server/api/payment/notify-action.ts',
+  'src/server/api/remover/actor.ts',
+  'src/server/api/remover/context.ts',
+  'src/server/api/remover/download-action.ts',
+  'src/server/api/remover/guard.ts',
+  'src/server/api/remover/job-action.ts',
+  'src/server/api/remover/jobs-action.ts',
+  'src/server/api/remover/output-storage.ts',
+  'src/server/api/remover/provider-adapter.ts',
+  'src/server/api/remover/routes.ts',
+  'src/server/api/remover/upload-action.ts',
+  'src/server/api/storage/image-mime.ts',
   'src/server/api/user/get-user-credits-action.ts',
   'src/shared/seo/canonical.ts',
   'src/shared/i18n/locale.ts',
@@ -3794,6 +3811,7 @@ const sharedRouteActionContracts = [
     required: [
       [/handleAuthApiRequest/, 'handleAuthApiRequest'],
       [/@\/server\/api\/auth\/auth-action/, 'server auth action'],
+      [/withTanStackCloudflareBindings/, 'TanStack binding scope'],
     ],
     forbidden: [
       [/@\/app\/api\//, '@/app/api import'],
@@ -3806,6 +3824,7 @@ const sharedRouteActionContracts = [
     required: [
       [/handleAuthApiRequest/, 'handleAuthApiRequest'],
       [/@\/server\/api\/auth\/auth-action/, 'server auth action'],
+      [/withTanStackCloudflareBindings/, 'TanStack binding scope'],
     ],
     forbidden: [
       [/@\/app\/api\//, '@/app/api import'],
@@ -3819,6 +3838,7 @@ const sharedRouteActionContracts = [
       [/createPaymentCallbackPostAction/, 'createPaymentCallbackPostAction'],
       [/@\/server\/api\/payment\/callback-action/, 'server callback action'],
       [/readTanStackPaymentRuntimeBindings/, 'TanStack payment bindings'],
+      [/withTanStackCloudflareBindings/, 'TanStack binding scope'],
     ],
     forbidden: [
       [/@\/app\/api\//, '@/app/api import'],
@@ -3832,6 +3852,7 @@ const sharedRouteActionContracts = [
       [/createPaymentCheckoutPostAction/, 'createPaymentCheckoutPostAction'],
       [/@\/server\/api\/payment\/checkout-action/, 'server checkout action'],
       [/readTanStackPaymentRuntimeBindings/, 'TanStack payment bindings'],
+      [/withTanStackCloudflareBindings/, 'TanStack binding scope'],
     ],
     forbidden: [
       [/@\/app\/api\//, '@/app/api import'],
@@ -3846,6 +3867,7 @@ const sharedRouteActionContracts = [
       [/buildPaymentNotifyPostLogic/, 'buildPaymentNotifyPostLogic'],
       [/@\/server\/api\/payment\/notify-action/, 'server notify action'],
       [/readTanStackPaymentRuntimeBindings/, 'TanStack payment bindings'],
+      [/withTanStackCloudflareBindings/, 'TanStack binding scope'],
     ],
     forbidden: [
       [/@\/app\/api\//, '@/app/api import'],
@@ -3862,11 +3884,78 @@ const sharedRouteActionContracts = [
         /@\/server\/api\/user\/get-user-credits-action/,
         'server user credits action',
       ],
+      [/withTanStackCloudflareBindings/, 'TanStack binding scope'],
     ],
     forbidden: [
       [/@\/app\/api\//, '@/app/api import'],
       [/readAccountCreditsSummaryUseCase/, 'credits use-case invocation'],
       [/jsonOk/, 'credits HTTP response construction'],
+    ],
+  },
+  {
+    file: 'apps/web/src/routes/api/remover/upload.ts',
+    required: [
+      [/postRemoverUpload/, 'postRemoverUpload'],
+      [/@\/server\/api\/remover\/routes/, 'server remover routes'],
+      [/withTanStackCloudflareBindings/, 'TanStack binding scope'],
+    ],
+    forbidden: [
+      [/@\/app\/api\//, '@/app/api import'],
+      [/next\/headers/, 'Next headers import'],
+      [/createRemoverUploadPostAction/, 'remover action assembly'],
+    ],
+  },
+  {
+    file: 'apps/web/src/routes/api/remover/jobs.ts',
+    required: [
+      [/postRemoverJobs/, 'postRemoverJobs'],
+      [/@\/server\/api\/remover\/routes/, 'server remover routes'],
+      [/withTanStackCloudflareBindings/, 'TanStack binding scope'],
+    ],
+    forbidden: [
+      [/@\/app\/api\//, '@/app/api import'],
+      [/next\/headers/, 'Next headers import'],
+      [/createRemoverJobsPostAction/, 'remover action assembly'],
+    ],
+  },
+  {
+    file: 'apps/web/src/routes/api/remover/jobs/$id.ts',
+    required: [
+      [/getRemoverJob/, 'getRemoverJob'],
+      [/@\/server\/api\/remover\/routes/, 'server remover routes'],
+      [/withTanStackCloudflareBindings/, 'TanStack binding scope'],
+    ],
+    forbidden: [
+      [/@\/app\/api\//, '@/app/api import'],
+      [/next\/headers/, 'Next headers import'],
+      [/createRemoverJobGetAction/, 'remover action assembly'],
+    ],
+  },
+  {
+    file: 'apps/web/src/routes/api/remover/download/low-res.ts',
+    required: [
+      [/getRemoverLowResDownload/, 'getRemoverLowResDownload'],
+      [/postRemoverLowResDownload/, 'postRemoverLowResDownload'],
+      [/@\/server\/api\/remover\/routes/, 'server remover routes'],
+      [/withTanStackCloudflareBindings/, 'TanStack binding scope'],
+    ],
+    forbidden: [
+      [/@\/app\/api\//, '@/app/api import'],
+      [/next\/headers/, 'Next headers import'],
+      [/createRemoverDownload/, 'remover action assembly'],
+    ],
+  },
+  {
+    file: 'apps/web/src/routes/api/remover/download/high-res.ts',
+    required: [
+      [/postRemoverHighResDownload/, 'postRemoverHighResDownload'],
+      [/@\/server\/api\/remover\/routes/, 'server remover routes'],
+      [/withTanStackCloudflareBindings/, 'TanStack binding scope'],
+    ],
+    forbidden: [
+      [/@\/app\/api\//, '@/app/api import'],
+      [/next\/headers/, 'Next headers import'],
+      [/createRemoverDownload/, 'remover action assembly'],
     ],
   },
 ];
@@ -3888,7 +3977,6 @@ for (const contract of sharedRouteActionContracts) {
 const tanstackBillingRuntimeFile = 'apps/web/src/server/billing-runtime.ts';
 const tanstackBillingRuntimeAbs = join(root, tanstackBillingRuntimeFile);
 for (const [regex, label] of [
-  [/cloudflare:workers/, 'TanStack Cloudflare workers bindings import'],
   [/readTanStackCloudflareBindings/, 'TanStack binding reader'],
   [/HYPERDRIVE/, 'Hyperdrive binding fallback'],
   [/readConfigRowsWithDatabaseUrl/, 'direct config row reader'],
@@ -3898,6 +3986,35 @@ for (const [regex, label] of [
 ]) {
   if (!contains(tanstackBillingRuntimeAbs, regex)) {
     fail(`${tanstackBillingRuntimeFile} must implement ${label}`);
+  }
+}
+
+const tanstackCloudflareBindingsFile =
+  'apps/web/src/server/cloudflare-bindings.ts';
+const tanstackCloudflareBindingsAbs = join(
+  root,
+  tanstackCloudflareBindingsFile
+);
+for (const [regex, label] of [
+  [/cloudflare:workers/, 'TanStack Cloudflare workers bindings import'],
+  [/readTanStackCloudflareBindings/, 'TanStack binding reader'],
+  [/runWithTanStackCloudflareBindings/, 'TanStack binding scope runner'],
+  [/runWithCloudflareBindings/, 'runtime binding scope propagation'],
+]) {
+  if (!contains(tanstackCloudflareBindingsAbs, regex)) {
+    fail(`${tanstackCloudflareBindingsFile} must implement ${label}`);
+  }
+}
+
+const runtimeEnvFile = 'src/infra/runtime/env.server.ts';
+const runtimeEnvAbs = join(root, runtimeEnvFile);
+for (const [regex, label] of [
+  [/AsyncLocalStorage/, 'request-scoped runtime binding store'],
+  [/runWithCloudflareBindings/, 'request-scoped binding runner'],
+  [/cloudflareBindingsStore\.getStore/, 'scoped binding read before OpenNext'],
+]) {
+  if (!contains(runtimeEnvAbs, regex)) {
+    fail(`${runtimeEnvFile} must implement ${label}`);
   }
 }
 
