@@ -211,6 +211,10 @@ const requiredFiles = [
   'apps/web/src/routes/api/remover/jobs/$id.ts',
   'apps/web/src/routes/api/remover/download/low-res.ts',
   'apps/web/src/routes/api/remover/download/high-res.ts',
+  'apps/web/src/routes/api/tts/history.ts',
+  'apps/web/src/routes/api/tts/quota.ts',
+  'apps/web/src/routes/api/tts/generate.ts',
+  'apps/web/src/routes/api/tts/download/$id.ts',
   'apps/web/src/routes/api/user/get-user-credits.ts',
   'apps/web/src/routes/$locale/blog/category/$slug.tsx',
   'apps/web/src/server/api-context.ts',
@@ -235,6 +239,16 @@ const requiredFiles = [
   'src/server/api/remover/routes.ts',
   'src/server/api/remover/upload-action.ts',
   'src/server/api/storage/image-mime.ts',
+  'src/server/api/tts/actor.ts',
+  'src/server/api/tts/context.ts',
+  'src/server/api/tts/generate-action.ts',
+  'src/server/api/tts/guard.ts',
+  'src/server/api/tts/guest-ip-limit.ts',
+  'src/server/api/tts/provider.ts',
+  'src/server/api/tts/routes.ts',
+  'src/server/api/tts/routes-core.ts',
+  'src/server/api/tts/routes.test.ts',
+  'src/server/api/tts/turnstile.ts',
   'src/server/api/user/get-user-credits-action.ts',
   'src/shared/seo/canonical.ts',
   'src/shared/i18n/locale.ts',
@@ -4033,6 +4047,63 @@ const sharedRouteActionContracts = [
       [/createRemoverDownload/, 'remover action assembly'],
     ],
   },
+  {
+    file: 'apps/web/src/routes/api/tts/history.ts',
+    required: [
+      [/getTextToSpeechHistory/, 'getTextToSpeechHistory'],
+      [/@\/server\/api\/tts\/routes/, 'server TTS routes'],
+      [/withTanStackCloudflareBindings/, 'TanStack binding scope'],
+    ],
+    forbidden: [
+      [/@\/app\/api\//, '@/app/api import'],
+      [/next\/headers/, 'Next headers import'],
+      [/listTextToSpeechHistory/, 'TTS history flow assembly'],
+    ],
+  },
+  {
+    file: 'apps/web/src/routes/api/tts/quota.ts',
+    required: [
+      [/getTextToSpeechQuota/, 'getTextToSpeechQuota'],
+      [/@\/server\/api\/tts\/routes/, 'server TTS routes'],
+      [/withTanStackCloudflareBindings/, 'TanStack binding scope'],
+    ],
+    forbidden: [
+      [/@\/app\/api\//, '@/app/api import'],
+      [/next\/headers/, 'Next headers import'],
+      [/resolveTextToSpeechQuotaSummary/, 'TTS quota flow assembly'],
+    ],
+  },
+  {
+    file: 'apps/web/src/routes/api/tts/generate.ts',
+    required: [
+      [/postTextToSpeechGenerate/, 'postTextToSpeechGenerate'],
+      [/@\/server\/api\/tts\/routes/, 'server TTS routes'],
+      [/withTanStackCloudflareBindings/, 'TanStack binding scope'],
+    ],
+    forbidden: [
+      [/@\/app\/api\//, '@/app/api import'],
+      [/next\/headers/, 'Next headers import'],
+      [/createTextToSpeechGeneratePostAction/, 'TTS action assembly'],
+    ],
+  },
+  {
+    file: 'apps/web/src/routes/api/tts/download/$id.ts',
+    required: [
+      [/getTextToSpeechDownload/, 'getTextToSpeechDownload'],
+      [/@\/server\/api\/tts\/routes/, 'server TTS routes'],
+      [/withTanStackCloudflareBindings/, 'TanStack binding scope'],
+      [
+        /createFileRoute\('\/api\/tts\/download\/\$id'\)/,
+        'dynamic download route',
+      ],
+    ],
+    forbidden: [
+      [/@\/app\/api\//, '@/app/api import'],
+      [/next\/headers/, 'Next headers import'],
+      [/params\s*:\s*Promise/, 'legacy params Promise'],
+      [/resolveTextToSpeechDownload/, 'TTS download flow assembly'],
+    ],
+  },
 ];
 
 for (const contract of sharedRouteActionContracts) {
@@ -4096,6 +4167,55 @@ for (const [regex, label] of [
 ]) {
   if (contains(backgroundRemoverRoutesCoreAbs, regex)) {
     fail(`${backgroundRemoverRoutesCoreFile} must not depend on ${label}`);
+  }
+}
+
+const textToSpeechRoutesFile = 'src/server/api/tts/routes.ts';
+const textToSpeechRoutesAbs = join(root, textToSpeechRoutesFile);
+for (const [regex, label] of [
+  [/resolveTextToSpeechActor/, 'request actor resolver'],
+  [/createTextToSpeechRoutes/, 'text-to-speech route factory'],
+  [
+    /createCloudflareTextToSpeechProvider/,
+    'Cloudflare text-to-speech provider',
+  ],
+  [/verifyTextToSpeechTurnstile/, 'Turnstile verification'],
+  [/getStorageService/, 'storage service'],
+  [/requireTextToSpeechGeneratorSite/, 'site capability guard'],
+]) {
+  if (!contains(textToSpeechRoutesAbs, regex)) {
+    fail(`${textToSpeechRoutesFile} must use ${label}`);
+  }
+}
+for (const [regex, label] of [
+  [/@\/app\/api\//, '@/app/api import'],
+  [/next\/headers/, 'Next headers import'],
+  [/from\s+['"]next\//, 'next import'],
+]) {
+  if (contains(textToSpeechRoutesAbs, regex)) {
+    fail(`${textToSpeechRoutesFile} must not depend on ${label}`);
+  }
+}
+
+const textToSpeechRoutesCoreFile = 'src/server/api/tts/routes-core.ts';
+const textToSpeechRoutesCoreAbs = join(root, textToSpeechRoutesCoreFile);
+for (const [regex, label] of [
+  [/createTextToSpeechRoutes/, 'text-to-speech route factory'],
+  [/createTextToSpeechGeneratePostAction/, 'text-to-speech generate action'],
+  [/resolveTextToSpeechDownload/, 'text-to-speech download resolver'],
+]) {
+  if (!contains(textToSpeechRoutesCoreAbs, regex)) {
+    fail(`${textToSpeechRoutesCoreFile} must use ${label}`);
+  }
+}
+for (const [regex, label] of [
+  [/@\/app\/api\//, '@/app/api import'],
+  [/next\/headers/, 'Next headers import'],
+  [/from\s+['"]next\//, 'next import'],
+  [/^\s*import\s+['"]server-only['"]/m, 'server-only marker'],
+]) {
+  if (contains(textToSpeechRoutesCoreAbs, regex)) {
+    fail(`${textToSpeechRoutesCoreFile} must not depend on ${label}`);
   }
 }
 

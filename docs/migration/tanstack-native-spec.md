@@ -135,7 +135,10 @@ Server Routes:
 - `/api/ai/generate`
 - `/api/storage/upload-image`
 - `/api/remover/jobs`
+- `/api/tts/history`
+- `/api/tts/quota`
 - `/api/tts/generate`
+- `/api/tts/download/$id`
 - all webhooks/callbacks/public APIs
 
 Server Functions are only for same-origin internal page actions, such as settings/admin/member dashboard mutations.

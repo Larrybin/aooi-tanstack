@@ -47,6 +47,9 @@ import { Route as SettingsBillingCancelRouteImport } from './routes/settings/bil
 import { Route as SettingsApikeysCreateRouteImport } from './routes/settings/apikeys_/create'
 import { Route as BlogCategorySlugRouteImport } from './routes/blog/category/$slug'
 import { Route as ApiUserGetUserCreditsRouteImport } from './routes/api/user/get-user-credits'
+import { Route as ApiTtsQuotaRouteImport } from './routes/api/tts/quota'
+import { Route as ApiTtsHistoryRouteImport } from './routes/api/tts/history'
+import { Route as ApiTtsGenerateRouteImport } from './routes/api/tts/generate'
 import { Route as ApiRemoverUploadRouteImport } from './routes/api/remover/upload'
 import { Route as ApiRemoverJobsRouteImport } from './routes/api/remover/jobs'
 import { Route as ApiPaymentNotifyRouteImport } from './routes/api/payment/notify'
@@ -67,6 +70,7 @@ import { Route as LocaleActivityChatsRouteImport } from './routes/$locale/activi
 import { Route as LocaleActivityAiTasksRouteImport } from './routes/$locale/activity/ai-tasks'
 import { Route as SettingsApikeysIdEditRouteImport } from './routes/settings/apikeys_/$id/edit'
 import { Route as SettingsApikeysIdDeleteRouteImport } from './routes/settings/apikeys_/$id/delete'
+import { Route as ApiTtsDownloadIdRouteImport } from './routes/api/tts/download/$id'
 import { Route as ApiRemoverJobsIdRouteImport } from './routes/api/remover/jobs/$id'
 import { Route as ApiRemoverDownloadLowResRouteImport } from './routes/api/remover/download/low-res'
 import { Route as ApiRemoverDownloadHighResRouteImport } from './routes/api/remover/download/high-res'
@@ -273,6 +277,21 @@ const ApiUserGetUserCreditsRoute = ApiUserGetUserCreditsRouteImport.update({
   path: '/api/user/get-user-credits',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTtsQuotaRoute = ApiTtsQuotaRouteImport.update({
+  id: '/api/tts/quota',
+  path: '/api/tts/quota',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTtsHistoryRoute = ApiTtsHistoryRouteImport.update({
+  id: '/api/tts/history',
+  path: '/api/tts/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTtsGenerateRoute = ApiTtsGenerateRouteImport.update({
+  id: '/api/tts/generate',
+  path: '/api/tts/generate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiRemoverUploadRoute = ApiRemoverUploadRouteImport.update({
   id: '/api/remover/upload',
   path: '/api/remover/upload',
@@ -373,6 +392,11 @@ const SettingsApikeysIdEditRoute = SettingsApikeysIdEditRouteImport.update({
 const SettingsApikeysIdDeleteRoute = SettingsApikeysIdDeleteRouteImport.update({
   id: '/settings/apikeys_/$id/delete',
   path: '/settings/apikeys/$id/delete',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTtsDownloadIdRoute = ApiTtsDownloadIdRouteImport.update({
+  id: '/api/tts/download/$id',
+  path: '/api/tts/download/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiRemoverJobsIdRoute = ApiRemoverJobsIdRouteImport.update({
@@ -509,6 +533,9 @@ export interface FileRoutesByFullPath {
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
   '/api/remover/jobs': typeof ApiRemoverJobsRouteWithChildren
   '/api/remover/upload': typeof ApiRemoverUploadRoute
+  '/api/tts/generate': typeof ApiTtsGenerateRoute
+  '/api/tts/history': typeof ApiTtsHistoryRoute
+  '/api/tts/quota': typeof ApiTtsQuotaRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/settings/apikeys/create': typeof SettingsApikeysCreateRoute
@@ -526,6 +553,7 @@ export interface FileRoutesByFullPath {
   '/api/remover/download/high-res': typeof ApiRemoverDownloadHighResRoute
   '/api/remover/download/low-res': typeof ApiRemoverDownloadLowResRoute
   '/api/remover/jobs/$id': typeof ApiRemoverJobsIdRoute
+  '/api/tts/download/$id': typeof ApiTtsDownloadIdRoute
   '/settings/apikeys/$id/delete': typeof SettingsApikeysIdDeleteRoute
   '/settings/apikeys/$id/edit': typeof SettingsApikeysIdEditRoute
   '/$locale/activity/ai-tasks/$id/refresh': typeof LocaleActivityAiTasksIdRefreshRoute
@@ -583,6 +611,9 @@ export interface FileRoutesByTo {
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
   '/api/remover/jobs': typeof ApiRemoverJobsRouteWithChildren
   '/api/remover/upload': typeof ApiRemoverUploadRoute
+  '/api/tts/generate': typeof ApiTtsGenerateRoute
+  '/api/tts/history': typeof ApiTtsHistoryRoute
+  '/api/tts/quota': typeof ApiTtsQuotaRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/settings/apikeys/create': typeof SettingsApikeysCreateRoute
@@ -600,6 +631,7 @@ export interface FileRoutesByTo {
   '/api/remover/download/high-res': typeof ApiRemoverDownloadHighResRoute
   '/api/remover/download/low-res': typeof ApiRemoverDownloadLowResRoute
   '/api/remover/jobs/$id': typeof ApiRemoverJobsIdRoute
+  '/api/tts/download/$id': typeof ApiTtsDownloadIdRoute
   '/settings/apikeys/$id/delete': typeof SettingsApikeysIdDeleteRoute
   '/settings/apikeys/$id/edit': typeof SettingsApikeysIdEditRoute
   '/$locale/activity/ai-tasks/$id/refresh': typeof LocaleActivityAiTasksIdRefreshRoute
@@ -658,6 +690,9 @@ export interface FileRoutesById {
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
   '/api/remover/jobs': typeof ApiRemoverJobsRouteWithChildren
   '/api/remover/upload': typeof ApiRemoverUploadRoute
+  '/api/tts/generate': typeof ApiTtsGenerateRoute
+  '/api/tts/history': typeof ApiTtsHistoryRoute
+  '/api/tts/quota': typeof ApiTtsQuotaRoute
   '/api/user/get-user-credits': typeof ApiUserGetUserCreditsRoute
   '/blog/category/$slug': typeof BlogCategorySlugRoute
   '/settings/apikeys_/create': typeof SettingsApikeysCreateRoute
@@ -675,6 +710,7 @@ export interface FileRoutesById {
   '/api/remover/download/high-res': typeof ApiRemoverDownloadHighResRoute
   '/api/remover/download/low-res': typeof ApiRemoverDownloadLowResRoute
   '/api/remover/jobs/$id': typeof ApiRemoverJobsIdRoute
+  '/api/tts/download/$id': typeof ApiTtsDownloadIdRoute
   '/settings/apikeys_/$id/delete': typeof SettingsApikeysIdDeleteRoute
   '/settings/apikeys_/$id/edit': typeof SettingsApikeysIdEditRoute
   '/$locale/activity/ai-tasks_/$id/refresh': typeof LocaleActivityAiTasksIdRefreshRoute
@@ -734,6 +770,9 @@ export interface FileRouteTypes {
     | '/api/payment/notify'
     | '/api/remover/jobs'
     | '/api/remover/upload'
+    | '/api/tts/generate'
+    | '/api/tts/history'
+    | '/api/tts/quota'
     | '/api/user/get-user-credits'
     | '/blog/category/$slug'
     | '/settings/apikeys/create'
@@ -751,6 +790,7 @@ export interface FileRouteTypes {
     | '/api/remover/download/high-res'
     | '/api/remover/download/low-res'
     | '/api/remover/jobs/$id'
+    | '/api/tts/download/$id'
     | '/settings/apikeys/$id/delete'
     | '/settings/apikeys/$id/edit'
     | '/$locale/activity/ai-tasks/$id/refresh'
@@ -808,6 +848,9 @@ export interface FileRouteTypes {
     | '/api/payment/notify'
     | '/api/remover/jobs'
     | '/api/remover/upload'
+    | '/api/tts/generate'
+    | '/api/tts/history'
+    | '/api/tts/quota'
     | '/api/user/get-user-credits'
     | '/blog/category/$slug'
     | '/settings/apikeys/create'
@@ -825,6 +868,7 @@ export interface FileRouteTypes {
     | '/api/remover/download/high-res'
     | '/api/remover/download/low-res'
     | '/api/remover/jobs/$id'
+    | '/api/tts/download/$id'
     | '/settings/apikeys/$id/delete'
     | '/settings/apikeys/$id/edit'
     | '/$locale/activity/ai-tasks/$id/refresh'
@@ -882,6 +926,9 @@ export interface FileRouteTypes {
     | '/api/payment/notify'
     | '/api/remover/jobs'
     | '/api/remover/upload'
+    | '/api/tts/generate'
+    | '/api/tts/history'
+    | '/api/tts/quota'
     | '/api/user/get-user-credits'
     | '/blog/category/$slug'
     | '/settings/apikeys_/create'
@@ -899,6 +946,7 @@ export interface FileRouteTypes {
     | '/api/remover/download/high-res'
     | '/api/remover/download/low-res'
     | '/api/remover/jobs/$id'
+    | '/api/tts/download/$id'
     | '/settings/apikeys_/$id/delete'
     | '/settings/apikeys_/$id/edit'
     | '/$locale/activity/ai-tasks_/$id/refresh'
@@ -956,6 +1004,9 @@ export interface RootRouteChildren {
   ApiPaymentNotifyRoute: typeof ApiPaymentNotifyRoute
   ApiRemoverJobsRoute: typeof ApiRemoverJobsRouteWithChildren
   ApiRemoverUploadRoute: typeof ApiRemoverUploadRoute
+  ApiTtsGenerateRoute: typeof ApiTtsGenerateRoute
+  ApiTtsHistoryRoute: typeof ApiTtsHistoryRoute
+  ApiTtsQuotaRoute: typeof ApiTtsQuotaRoute
   ApiUserGetUserCreditsRoute: typeof ApiUserGetUserCreditsRoute
   BlogCategorySlugRoute: typeof BlogCategorySlugRoute
   SettingsApikeysCreateRoute: typeof SettingsApikeysCreateRoute
@@ -972,6 +1023,7 @@ export interface RootRouteChildren {
   ApiBackgroundRemoverResultIdRoute: typeof ApiBackgroundRemoverResultIdRoute
   ApiRemoverDownloadHighResRoute: typeof ApiRemoverDownloadHighResRoute
   ApiRemoverDownloadLowResRoute: typeof ApiRemoverDownloadLowResRoute
+  ApiTtsDownloadIdRoute: typeof ApiTtsDownloadIdRoute
   SettingsApikeysIdDeleteRoute: typeof SettingsApikeysIdDeleteRoute
   SettingsApikeysIdEditRoute: typeof SettingsApikeysIdEditRoute
   LocaleActivityAiTasksIdRefreshRoute: typeof LocaleActivityAiTasksIdRefreshRoute
@@ -1247,6 +1299,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiUserGetUserCreditsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/tts/quota': {
+      id: '/api/tts/quota'
+      path: '/api/tts/quota'
+      fullPath: '/api/tts/quota'
+      preLoaderRoute: typeof ApiTtsQuotaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/tts/history': {
+      id: '/api/tts/history'
+      path: '/api/tts/history'
+      fullPath: '/api/tts/history'
+      preLoaderRoute: typeof ApiTtsHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/tts/generate': {
+      id: '/api/tts/generate'
+      path: '/api/tts/generate'
+      fullPath: '/api/tts/generate'
+      preLoaderRoute: typeof ApiTtsGenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/remover/upload': {
       id: '/api/remover/upload'
       path: '/api/remover/upload'
@@ -1385,6 +1458,13 @@ declare module '@tanstack/react-router' {
       path: '/settings/apikeys/$id/delete'
       fullPath: '/settings/apikeys/$id/delete'
       preLoaderRoute: typeof SettingsApikeysIdDeleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/tts/download/$id': {
+      id: '/api/tts/download/$id'
+      path: '/api/tts/download/$id'
+      fullPath: '/api/tts/download/$id'
+      preLoaderRoute: typeof ApiTtsDownloadIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/remover/jobs/$id': {
@@ -1561,6 +1641,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPaymentNotifyRoute: ApiPaymentNotifyRoute,
   ApiRemoverJobsRoute: ApiRemoverJobsRouteWithChildren,
   ApiRemoverUploadRoute: ApiRemoverUploadRoute,
+  ApiTtsGenerateRoute: ApiTtsGenerateRoute,
+  ApiTtsHistoryRoute: ApiTtsHistoryRoute,
+  ApiTtsQuotaRoute: ApiTtsQuotaRoute,
   ApiUserGetUserCreditsRoute: ApiUserGetUserCreditsRoute,
   BlogCategorySlugRoute: BlogCategorySlugRoute,
   SettingsApikeysCreateRoute: SettingsApikeysCreateRoute,
@@ -1577,6 +1660,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiBackgroundRemoverResultIdRoute: ApiBackgroundRemoverResultIdRoute,
   ApiRemoverDownloadHighResRoute: ApiRemoverDownloadHighResRoute,
   ApiRemoverDownloadLowResRoute: ApiRemoverDownloadLowResRoute,
+  ApiTtsDownloadIdRoute: ApiTtsDownloadIdRoute,
   SettingsApikeysIdDeleteRoute: SettingsApikeysIdDeleteRoute,
   SettingsApikeysIdEditRoute: SettingsApikeysIdEditRoute,
   LocaleActivityAiTasksIdRefreshRoute: LocaleActivityAiTasksIdRefreshRoute,

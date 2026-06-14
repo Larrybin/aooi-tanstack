@@ -1,5 +1,3 @@
-import 'server-only';
-
 import { site } from '@/site';
 
 import { NotFoundError } from '@/shared/lib/api/errors';
