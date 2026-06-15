@@ -1,4 +1,3 @@
-import 'server-only';
 
 import { createHash, timingSafeEqual } from 'crypto';
 import { db } from '@/infra/adapters/db';

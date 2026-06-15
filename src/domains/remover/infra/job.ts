@@ -1,4 +1,3 @@
-import 'server-only';
 
 import { reserveProductQuota } from '@/domains/product-quota/application/quota-service';
 import { db } from '@/infra/adapters/db';

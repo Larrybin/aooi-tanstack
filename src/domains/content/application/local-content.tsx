@@ -1,4 +1,3 @@
-import 'server-only';
 
 import { formatPostDate } from '@/domains/content/domain/post-date';
 import { generateTOC } from '@/domains/content/domain/toc';

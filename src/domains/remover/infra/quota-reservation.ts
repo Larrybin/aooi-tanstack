@@ -1,4 +1,3 @@
-import 'server-only';
 
 import type { ProductActor } from '@/domains/product-access/domain/actor';
 import {

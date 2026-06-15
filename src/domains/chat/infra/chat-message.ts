@@ -1,4 +1,3 @@
-import 'server-only';
 
 import { appendUserToResult, type User } from '@/domains/account/infra/user';
 import { db } from '@/infra/adapters/db';

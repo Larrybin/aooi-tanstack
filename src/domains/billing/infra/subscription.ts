@@ -1,4 +1,3 @@
-import 'server-only';
 
 import { db } from '@/infra/adapters/db';
 import { and, count, desc, eq, inArray, ne } from 'drizzle-orm';

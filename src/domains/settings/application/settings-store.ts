@@ -1,4 +1,3 @@
-import 'server-only';
 
 import { revalidateTag } from 'next/cache';
 import { type KnownSettingKey } from '@/domains/settings/registry';

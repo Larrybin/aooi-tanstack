@@ -1,4 +1,3 @@
-import 'server-only';
 
 import { PostStatus } from '@/domains/content/domain/post-types';
 import { addPostRow, updatePostRow } from '@/domains/content/infra/post-repo';

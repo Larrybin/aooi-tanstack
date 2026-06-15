@@ -1,4 +1,3 @@
-import 'server-only';
 
 import type { ProductOwner } from '@/domains/product-access/domain/ownership';
 import { db } from '@/infra/adapters/db';

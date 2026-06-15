@@ -1,4 +1,3 @@
-import 'server-only';
 
 import { formatPostDate } from '@/domains/content/domain/post-date';
 import { PostStatus, type PostType } from '@/domains/content/domain/post-types';

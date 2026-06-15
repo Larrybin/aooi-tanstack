@@ -1,4 +1,3 @@
-import 'server-only';
 
 import { formatPostDateForLocale } from '@/shared/lib/post-date';
 
