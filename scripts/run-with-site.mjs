@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
 import { loadRootDotenv } from '../src/config/load-dotenv-core.mjs';
 import siteEnvModule from '../src/config/site-env.cjs';
 import {
@@ -180,7 +181,11 @@ async function main() {
   const command = args[0];
   const commandArgs = args.slice(1);
   const originalEnv = { ...process.env };
-  loadRootDotenv(process.env);
+  try {
+    loadRootDotenv(process.env);
+  } catch {
+    // Root dotenv loading is optional for wrapper scripts.
+  }
   const siteEnv = buildSiteEnv([command, ...commandArgs], process.env, {
     originalEnv,
   });

@@ -31,7 +31,8 @@ function parseDotenv(content) {
 }
 
 function resolveDotenvFiles({ nodeEnv, isDev }) {
-  const mode = nodeEnv === 'test' ? 'test' : isDev ? 'development' : 'production';
+  const mode =
+    nodeEnv === 'test' ? 'test' : isDev ? 'development' : 'production';
   return [
     `.env.${mode}.local`,
     mode !== 'test' ? '.env.local' : '',
@@ -65,10 +66,11 @@ function expandParsedValues(entries, env) {
     const sourceValue = Object.prototype.hasOwnProperty.call(env, name)
       ? env[name]
       : parsed[name];
-    parsed[name] = interpolateValue(String(sourceValue ?? ''), env, parsed).replace(
-      /\\\$/g,
-      '$'
-    );
+    parsed[name] = interpolateValue(
+      String(sourceValue ?? ''),
+      env,
+      parsed
+    ).replace(/\\\$/g, '$');
   }
 
   return parsed;
@@ -125,21 +127,25 @@ export function loadDotenvForScripts({
     return { loaded: false, loadedFiles: [] };
   }
 
-  const { loadedFiles } = loadRootDotenv(env, {
-    rootDir,
-    nodeEnv: env.NODE_ENV,
-    isDev: env.NODE_ENV !== 'production',
-    readFileSyncImpl,
-    existsSyncImpl,
-  });
+  try {
+    const { loadedFiles } = loadRootDotenv(env, {
+      rootDir,
+      nodeEnv: env.NODE_ENV,
+      isDev: env.NODE_ENV !== 'production',
+      readFileSyncImpl,
+      existsSyncImpl,
+    });
 
-  applySiteLocalEnvOverlay({
-    env,
-    originalEnv,
-    rootDir,
-    siteKey,
-    readFileSyncImpl,
-  });
+    applySiteLocalEnvOverlay({
+      env,
+      originalEnv,
+      rootDir,
+      siteKey,
+      readFileSyncImpl,
+    });
 
-  return { loaded: true, loadedFiles };
+    return { loaded: true, loadedFiles };
+  } catch {
+    return { loaded: true, loadedFiles: [] };
+  }
 }

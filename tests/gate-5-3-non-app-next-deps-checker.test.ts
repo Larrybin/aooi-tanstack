@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -68,5 +68,72 @@ test(
         'stdout' in error &&
         /scripts\/blocked\.ts:3 @next\/env/.test(String(error.stdout))
     );
+  })
+);
+
+test(
+  'Gate 5.3 checker defers reusable UI Next imports to Gate 5.6',
+  withTempProject((rootDir) => {
+    write(
+      rootDir,
+      'src/shared/blocks/image.tsx',
+      "import Image from 'next/image';\n"
+    );
+    write(
+      rootDir,
+      'src/shared/components/link.tsx',
+      "import Link from 'next/link';\n"
+    );
+    write(
+      rootDir,
+      'src/extensions/script.tsx',
+      "import Script from 'next/script';\n"
+    );
+    write(
+      rootDir,
+      'src/themes/default/blocks/image.tsx',
+      "import Image from 'next/image';\n"
+    );
+
+    const output = execFileSync(process.execPath, [checkerPath, '--report'], {
+      cwd: rootDir,
+      encoding: 'utf8',
+    });
+
+    assert.match(
+      output,
+      /src\/shared\/blocks\/image\.tsx:1 next\/image \(non-app Next residue requires explicit owner gate before deletion\)/
+    );
+    assert.match(
+      output,
+      /src\/shared\/components\/link\.tsx:1 next\/link \(non-app Next residue requires explicit owner gate before deletion\)/
+    );
+    assert.match(
+      output,
+      /src\/extensions\/script\.tsx:1 next\/script \(non-app Next residue requires explicit owner gate before deletion\)/
+    );
+    assert.match(
+      output,
+      /src\/themes\/default\/blocks\/image\.tsx:1 next\/image \(UI\/provider component residue is classified; active TanStack reachability is checked by migration validator\)/
+    );
+  })
+);
+
+test(
+  'Gate 5.3 checker avoids duplicate same-line .open-next hits',
+  withTempProject((rootDir) => {
+    write(
+      rootDir,
+      'scripts/open-next.mjs',
+      "import worker from './.open-next/worker.mjs';\n"
+    );
+
+    const output = execFileSync(process.execPath, [checkerPath, '--report'], {
+      cwd: rootDir,
+      encoding: 'utf8',
+    });
+    const sameLineHits = output.match(/scripts\/open-next\.mjs:1/g) ?? [];
+
+    assert.equal(sameLineHits.length, 1);
   })
 );

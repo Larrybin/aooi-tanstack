@@ -1,5 +1,11 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -79,20 +85,77 @@ test(
         'A=$B',
         'B=from-later',
         'FALLBACK=${MISSING:-fallback}',
+        'HASH="value # literal"',
+        String.raw`ESCAPED=\$HASH`,
+        'EARLIER=from-earlier',
+        'FROM_EARLIER=$EARLIER',
+        'FROM_SHELL=$SHELL_VALUE',
         String.raw`SINGLE='line\ntext'`,
         String.raw`DOUBLE="line\ntext"`,
         '',
       ].join('\n')
     );
-    const env = {} as NodeJS.ProcessEnv;
+    const env = { SHELL_VALUE: 'from-shell' } as NodeJS.ProcessEnv;
 
     loadRootDotenv(env, { rootDir, nodeEnv: 'development' });
 
     assert.equal(env.A, 'from-later');
     assert.equal(env.B, 'from-later');
     assert.equal(env.FALLBACK, 'fallback');
+    assert.equal(env.HASH, 'value # literal');
+    assert.equal(env.ESCAPED, '$HASH');
+    assert.equal(env.FROM_EARLIER, 'from-earlier');
+    assert.equal(env.FROM_SHELL, 'from-shell');
     assert.equal(env.SINGLE, String.raw`line\ntext`);
     assert.equal(env.DOUBLE, 'line\ntext');
+  })
+);
+
+test(
+  'loadDotenvForScripts silently skips root dotenv read failures',
+  withTempProject((rootDir) => {
+    const env = {} as NodeJS.ProcessEnv;
+
+    assert.doesNotThrow(() => {
+      const result = loadDotenvForScripts({
+        env,
+        originalEnv: { ...env },
+        rootDir,
+        existsSyncImpl: () => true,
+        readFileSyncImpl: () => {
+          throw Object.assign(new Error('permission denied'), {
+            code: 'EACCES',
+          });
+        },
+      });
+
+      assert.equal(result.loaded, true);
+      assert.deepEqual(result.loadedFiles, []);
+    });
+  })
+);
+
+test(
+  'loadDotenvForScripts silently skips site dotenv read failures',
+  withTempProject((rootDir) => {
+    const env = { SITE: 'demo' } as NodeJS.ProcessEnv;
+
+    assert.doesNotThrow(() => {
+      const result = loadDotenvForScripts({
+        env,
+        originalEnv: { ...env },
+        rootDir,
+        existsSyncImpl: () => false,
+        readFileSyncImpl: () => {
+          throw Object.assign(new Error('permission denied'), {
+            code: 'EACCES',
+          });
+        },
+      });
+
+      assert.equal(result.loaded, true);
+      assert.deepEqual(result.loadedFiles, []);
+    });
   })
 );
 
@@ -143,7 +206,11 @@ test(
     const env = { NEXT_RUNTIME: 'edge' } as NodeJS.ProcessEnv;
 
     assert.equal(shouldLoadDotenvForScripts(env), false);
-    const result = loadDotenvForScripts({ env, originalEnv: { ...env }, rootDir });
+    const result = loadDotenvForScripts({
+      env,
+      originalEnv: { ...env },
+      rootDir,
+    });
 
     assert.equal(result.loaded, false);
     assert.equal(env.VALUE, undefined);
@@ -155,4 +222,8 @@ test('run-with-site uses the shared dotenv core and does not import @next/env', 
 
   assert.match(source, /load-dotenv-core\.mjs/);
   assert.doesNotMatch(source, /@next\/env/);
+  assert.match(
+    source,
+    /try\s*{\s*loadRootDotenv\(process\.env\);\s*}\s*catch\s*{/s
+  );
 });
