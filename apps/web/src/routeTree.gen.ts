@@ -62,6 +62,7 @@ import { Route as ApiConfigGetConfigsRouteImport } from './routes/api/config/get
 import { Route as ApiBackgroundRemoverRemoveRouteImport } from './routes/api/background-remover/remove'
 import { Route as ApiBackgroundRemoverCleanupRouteImport } from './routes/api/background-remover/cleanup'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiAiQueryRouteImport } from './routes/api/ai/query'
 import { Route as ApiAiCapabilitiesRouteImport } from './routes/api/ai/capabilities'
 import { Route as LocaleSettingsSecurityRouteImport } from './routes/$locale/settings/security'
 import { Route as LocaleSettingsProfileRouteImport } from './routes/$locale/settings/profile'
@@ -359,6 +360,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/$',
   getParentRoute: () => ApiAuthRoute,
 } as any)
+const ApiAiQueryRoute = ApiAiQueryRouteImport.update({
+  id: '/api/ai/query',
+  path: '/api/ai/query',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAiCapabilitiesRoute = ApiAiCapabilitiesRouteImport.update({
   id: '/api/ai/capabilities',
   path: '/api/ai/capabilities',
@@ -556,6 +562,7 @@ export interface FileRoutesByFullPath {
   '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
   '/api/ai/capabilities': typeof ApiAiCapabilitiesRoute
+  '/api/ai/query': typeof ApiAiQueryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/background-remover/cleanup': typeof ApiBackgroundRemoverCleanupRoute
   '/api/background-remover/remove': typeof ApiBackgroundRemoverRemoveRoute
@@ -639,6 +646,7 @@ export interface FileRoutesByTo {
   '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
   '/api/ai/capabilities': typeof ApiAiCapabilitiesRoute
+  '/api/ai/query': typeof ApiAiQueryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/background-remover/cleanup': typeof ApiBackgroundRemoverCleanupRoute
   '/api/background-remover/remove': typeof ApiBackgroundRemoverRemoveRoute
@@ -723,6 +731,7 @@ export interface FileRoutesById {
   '/$locale/settings/profile': typeof LocaleSettingsProfileRoute
   '/$locale/settings/security': typeof LocaleSettingsSecurityRoute
   '/api/ai/capabilities': typeof ApiAiCapabilitiesRoute
+  '/api/ai/query': typeof ApiAiQueryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/background-remover/cleanup': typeof ApiBackgroundRemoverCleanupRoute
   '/api/background-remover/remove': typeof ApiBackgroundRemoverRemoveRoute
@@ -808,6 +817,7 @@ export interface FileRouteTypes {
     | '/$locale/settings/profile'
     | '/$locale/settings/security'
     | '/api/ai/capabilities'
+    | '/api/ai/query'
     | '/api/auth/$'
     | '/api/background-remover/cleanup'
     | '/api/background-remover/remove'
@@ -891,6 +901,7 @@ export interface FileRouteTypes {
     | '/$locale/settings/profile'
     | '/$locale/settings/security'
     | '/api/ai/capabilities'
+    | '/api/ai/query'
     | '/api/auth/$'
     | '/api/background-remover/cleanup'
     | '/api/background-remover/remove'
@@ -974,6 +985,7 @@ export interface FileRouteTypes {
     | '/$locale/settings/profile'
     | '/$locale/settings/security'
     | '/api/ai/capabilities'
+    | '/api/ai/query'
     | '/api/auth/$'
     | '/api/background-remover/cleanup'
     | '/api/background-remover/remove'
@@ -1058,6 +1070,7 @@ export interface RootRouteChildren {
   LocaleSettingsProfileRoute: typeof LocaleSettingsProfileRoute
   LocaleSettingsSecurityRoute: typeof LocaleSettingsSecurityRoute
   ApiAiCapabilitiesRoute: typeof ApiAiCapabilitiesRoute
+  ApiAiQueryRoute: typeof ApiAiQueryRoute
   ApiBackgroundRemoverCleanupRoute: typeof ApiBackgroundRemoverCleanupRoute
   ApiBackgroundRemoverRemoveRoute: typeof ApiBackgroundRemoverRemoveRoute
   ApiConfigGetConfigsRoute: typeof ApiConfigGetConfigsRoute
@@ -1469,6 +1482,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof ApiAuthRoute
     }
+    '/api/ai/query': {
+      id: '/api/ai/query'
+      path: '/api/ai/query'
+      fullPath: '/api/ai/query'
+      preLoaderRoute: typeof ApiAiQueryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/ai/capabilities': {
       id: '/api/ai/capabilities'
       path: '/api/ai/capabilities'
@@ -1735,6 +1755,7 @@ const rootRouteChildren: RootRouteChildren = {
   LocaleSettingsProfileRoute: LocaleSettingsProfileRoute,
   LocaleSettingsSecurityRoute: LocaleSettingsSecurityRoute,
   ApiAiCapabilitiesRoute: ApiAiCapabilitiesRoute,
+  ApiAiQueryRoute: ApiAiQueryRoute,
   ApiBackgroundRemoverCleanupRoute: ApiBackgroundRemoverCleanupRoute,
   ApiBackgroundRemoverRemoveRoute: ApiBackgroundRemoverRemoveRoute,
   ApiConfigGetConfigsRoute: ApiConfigGetConfigsRoute,
