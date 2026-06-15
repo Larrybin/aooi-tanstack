@@ -58,6 +58,9 @@ import { Route as ApiRemoverCleanupRouteImport } from './routes/api/remover/clea
 import { Route as ApiPaymentNotifyRouteImport } from './routes/api/payment/notify'
 import { Route as ApiPaymentCheckoutRouteImport } from './routes/api/payment/checkout'
 import { Route as ApiPaymentCallbackRouteImport } from './routes/api/payment/callback'
+import { Route as ApiEmailVerifyCodeRouteImport } from './routes/api/email/verify-code'
+import { Route as ApiEmailTestRouteImport } from './routes/api/email/test'
+import { Route as ApiEmailSendEmailRouteImport } from './routes/api/email/send-email'
 import { Route as ApiDocsSearchRouteImport } from './routes/api/docs/search'
 import { Route as ApiConfigGetConfigsRouteImport } from './routes/api/config/get-configs'
 import { Route as ApiChatNewRouteImport } from './routes/api/chat/new'
@@ -345,6 +348,21 @@ const ApiPaymentCallbackRoute = ApiPaymentCallbackRouteImport.update({
   path: '/api/payment/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiEmailVerifyCodeRoute = ApiEmailVerifyCodeRouteImport.update({
+  id: '/api/email/verify-code',
+  path: '/api/email/verify-code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEmailTestRoute = ApiEmailTestRouteImport.update({
+  id: '/api/email/test',
+  path: '/api/email/test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEmailSendEmailRoute = ApiEmailSendEmailRouteImport.update({
+  id: '/api/email/send-email',
+  path: '/api/email/send-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDocsSearchRoute = ApiDocsSearchRouteImport.update({
   id: '/api/docs/search',
   path: '/api/docs/search',
@@ -616,6 +634,9 @@ export interface FileRoutesByFullPath {
   '/api/chat/new': typeof ApiChatNewRoute
   '/api/config/get-configs': typeof ApiConfigGetConfigsRoute
   '/api/docs/search': typeof ApiDocsSearchRoute
+  '/api/email/send-email': typeof ApiEmailSendEmailRoute
+  '/api/email/test': typeof ApiEmailTestRoute
+  '/api/email/verify-code': typeof ApiEmailVerifyCodeRoute
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
@@ -707,6 +728,9 @@ export interface FileRoutesByTo {
   '/api/chat/new': typeof ApiChatNewRoute
   '/api/config/get-configs': typeof ApiConfigGetConfigsRoute
   '/api/docs/search': typeof ApiDocsSearchRoute
+  '/api/email/send-email': typeof ApiEmailSendEmailRoute
+  '/api/email/test': typeof ApiEmailTestRoute
+  '/api/email/verify-code': typeof ApiEmailVerifyCodeRoute
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
@@ -799,6 +823,9 @@ export interface FileRoutesById {
   '/api/chat/new': typeof ApiChatNewRoute
   '/api/config/get-configs': typeof ApiConfigGetConfigsRoute
   '/api/docs/search': typeof ApiDocsSearchRoute
+  '/api/email/send-email': typeof ApiEmailSendEmailRoute
+  '/api/email/test': typeof ApiEmailTestRoute
+  '/api/email/verify-code': typeof ApiEmailVerifyCodeRoute
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/notify': typeof ApiPaymentNotifyRoute
@@ -892,6 +919,9 @@ export interface FileRouteTypes {
     | '/api/chat/new'
     | '/api/config/get-configs'
     | '/api/docs/search'
+    | '/api/email/send-email'
+    | '/api/email/test'
+    | '/api/email/verify-code'
     | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
@@ -983,6 +1013,9 @@ export interface FileRouteTypes {
     | '/api/chat/new'
     | '/api/config/get-configs'
     | '/api/docs/search'
+    | '/api/email/send-email'
+    | '/api/email/test'
+    | '/api/email/verify-code'
     | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
@@ -1074,6 +1107,9 @@ export interface FileRouteTypes {
     | '/api/chat/new'
     | '/api/config/get-configs'
     | '/api/docs/search'
+    | '/api/email/send-email'
+    | '/api/email/test'
+    | '/api/email/verify-code'
     | '/api/payment/callback'
     | '/api/payment/checkout'
     | '/api/payment/notify'
@@ -1161,6 +1197,9 @@ export interface RootRouteChildren {
   ApiBackgroundRemoverRemoveRoute: typeof ApiBackgroundRemoverRemoveRoute
   ApiConfigGetConfigsRoute: typeof ApiConfigGetConfigsRoute
   ApiDocsSearchRoute: typeof ApiDocsSearchRoute
+  ApiEmailSendEmailRoute: typeof ApiEmailSendEmailRoute
+  ApiEmailTestRoute: typeof ApiEmailTestRoute
+  ApiEmailVerifyCodeRoute: typeof ApiEmailVerifyCodeRoute
   ApiPaymentCallbackRoute: typeof ApiPaymentCallbackRoute
   ApiPaymentCheckoutRoute: typeof ApiPaymentCheckoutRoute
   ApiPaymentNotifyRoute: typeof ApiPaymentNotifyRoute
@@ -1541,6 +1580,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPaymentCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/email/verify-code': {
+      id: '/api/email/verify-code'
+      path: '/api/email/verify-code'
+      fullPath: '/api/email/verify-code'
+      preLoaderRoute: typeof ApiEmailVerifyCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/email/test': {
+      id: '/api/email/test'
+      path: '/api/email/test'
+      fullPath: '/api/email/test'
+      preLoaderRoute: typeof ApiEmailTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/email/send-email': {
+      id: '/api/email/send-email'
+      path: '/api/email/send-email'
+      fullPath: '/api/email/send-email'
+      preLoaderRoute: typeof ApiEmailSendEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/docs/search': {
       id: '/api/docs/search'
       path: '/api/docs/search'
@@ -1915,6 +1975,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiBackgroundRemoverRemoveRoute: ApiBackgroundRemoverRemoveRoute,
   ApiConfigGetConfigsRoute: ApiConfigGetConfigsRoute,
   ApiDocsSearchRoute: ApiDocsSearchRoute,
+  ApiEmailSendEmailRoute: ApiEmailSendEmailRoute,
+  ApiEmailTestRoute: ApiEmailTestRoute,
+  ApiEmailVerifyCodeRoute: ApiEmailVerifyCodeRoute,
   ApiPaymentCallbackRoute: ApiPaymentCallbackRoute,
   ApiPaymentCheckoutRoute: ApiPaymentCheckoutRoute,
   ApiPaymentNotifyRoute: ApiPaymentNotifyRoute,
