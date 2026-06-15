@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { ApiContext } from '@/app/api/_lib/context';
+import { createAiQueryPostHandler } from '@/server/api/ai/query-route';
+import { createSendEmailPostHandler } from '@/server/api/email/send-email-route';
+import { createEmailTestPostHandler } from '@/server/api/email/test-route';
+import { createVerifyCodePostHandler } from '@/server/api/email/verify-code-route';
+import { createStorageUploadImagePostHandler } from '@/server/api/storage/upload-image-route';
 import type { z } from 'zod';
 
 import { AITaskStatus, type AIProvider } from '@/extensions/ai';
@@ -13,12 +18,6 @@ import {
 } from '@/shared/lib/api/limiters';
 import { LimiterBucket } from '@/shared/lib/api/limiters-config';
 import { createMemoryRateLimitStore } from '@/shared/lib/api/rate-limit-store';
-
-import { createAiQueryPostHandler } from './ai/query/route';
-import { createSendEmailPostHandler } from './email/send-email/route';
-import { createEmailTestPostHandler } from './email/test/route';
-import { createVerifyCodePostHandler } from './email/verify-code/route';
-import { createStorageUploadImagePostHandler } from './storage/upload-image/route';
 
 function createLog(): ApiContext['log'] {
   return {
@@ -480,6 +479,7 @@ test('storage/upload-image 路由并发契约: 全局与单用户上限同时生
   });
 
   const handler = createStorageUploadImagePostHandler({
+    resolveConfigConsistencyMode: () => 'cached',
     getApiContext: (req: Request) =>
       createApiContextStub({
         body: {},

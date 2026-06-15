@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { invalidateRuntimeSettingsCacheVersion } from '@/domains/settings/application/settings-cache-version';
 import {
   AI_RUNTIME_SETTING_KEYS,
   EMAIL_RUNTIME_SETTING_KEYS,
@@ -75,6 +76,36 @@ test('readTanStackSettingsCached reuses rows until its ttl expires', async () =>
   assert.equal(calls, 1);
 
   now = 1001;
+
+  assert.equal(
+    (await readTanStackSettingsCached(deps))[PUBLIC_UI_SETTING_KEYS.aiEnabled],
+    'false'
+  );
+  assert.equal(calls, 2);
+});
+
+test('readTanStackSettingsCached observes settings invalidation', async () => {
+  let calls = 0;
+  const deps = buildDeps({
+    cacheKey: 'settings-cache-invalidation-test',
+    now: () => 0,
+    readConfigRows: async () => {
+      calls += 1;
+      return [
+        {
+          name: PUBLIC_UI_SETTING_KEYS.aiEnabled,
+          value: calls === 1 ? 'true' : 'false',
+        },
+      ];
+    },
+  });
+
+  assert.equal(
+    (await readTanStackSettingsCached(deps))[PUBLIC_UI_SETTING_KEYS.aiEnabled],
+    'true'
+  );
+
+  invalidateRuntimeSettingsCacheVersion();
 
   assert.equal(
     (await readTanStackSettingsCached(deps))[PUBLIC_UI_SETTING_KEYS.aiEnabled],

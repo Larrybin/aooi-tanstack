@@ -15,6 +15,8 @@ import { config } from '@/config/db/schema';
 import { mergeCloudflareLocalSmokeConfigSeedConfigs } from '@/shared/lib/cloudflare-local-smoke-config';
 import { unstable_cache } from '@/shared/lib/next-cache';
 
+import { invalidateRuntimeSettingsCacheVersion } from './settings-cache-version';
+
 export type Config = typeof config.$inferSelect;
 export type NewConfig = typeof config.$inferInsert;
 export type UpdateConfig = Partial<Omit<NewConfig, 'name'>>;
@@ -76,6 +78,7 @@ export async function addConfig(newConfig: NewConfig) {
 }
 
 export function invalidateSettingsCache() {
+  invalidateRuntimeSettingsCacheVersion();
   revalidateTag(CONFIGS_CACHE_TAG, 'max');
   revalidateTag(PUBLIC_CONFIGS_CACHE_TAG, 'max');
 }

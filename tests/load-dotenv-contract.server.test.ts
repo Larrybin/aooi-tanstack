@@ -112,6 +112,32 @@ test(
 );
 
 test(
+  'loadRootDotenv preserves quoted multiline values',
+  withTempProject((rootDir) => {
+    write(
+      rootDir,
+      '.env',
+      [
+        'PRIVATE_KEY="-----BEGIN KEY-----',
+        'line2',
+        '-----END KEY-----"',
+        'NEXT_VALUE=ok',
+        '',
+      ].join('\n')
+    );
+    const env = {} as NodeJS.ProcessEnv;
+
+    loadRootDotenv(env, { rootDir, nodeEnv: 'development' });
+
+    assert.equal(
+      env.PRIVATE_KEY,
+      ['-----BEGIN KEY-----', 'line2', '-----END KEY-----'].join('\n')
+    );
+    assert.equal(env.NEXT_VALUE, 'ok');
+  })
+);
+
+test(
   'loadDotenvForScripts silently skips root dotenv read failures',
   withTempProject((rootDir) => {
     const env = {} as NodeJS.ProcessEnv;
