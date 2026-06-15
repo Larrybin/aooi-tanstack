@@ -1,28 +1,10 @@
 import { assertPostgresOnlyDatabaseProvider } from '@/infra/runtime/database-provider';
-import { loadEnvConfig } from '@next/env';
 import { defineConfig } from 'drizzle-kit';
 
-import { getTrimmedEnvValue, isProductionEnv } from '@/config/env-contract';
-import siteEnvModule from '@/config/site-env.cjs';
+import { getTrimmedEnvValue } from '@/config/env-contract';
+import { loadDotenvForScripts } from '@/config/load-dotenv';
 
-const { applySiteLocalEnvOverlay } = siteEnvModule;
-
-function loadDotenvForDrizzleKit() {
-  try {
-    const originalEnv = { ...process.env };
-    const isDev = !isProductionEnv();
-    loadEnvConfig(process.cwd(), isDev);
-    applySiteLocalEnvOverlay({
-      env: process.env,
-      originalEnv,
-      siteKey: process.env.SITE,
-    });
-  } catch {
-    // optional
-  }
-}
-
-loadDotenvForDrizzleKit();
+loadDotenvForScripts();
 
 const databaseUrl = getTrimmedEnvValue(undefined, 'DATABASE_URL') ?? '';
 if (!databaseUrl) {

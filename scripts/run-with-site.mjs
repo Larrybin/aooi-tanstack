@@ -1,8 +1,7 @@
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import * as nextEnvModule from '@next/env';
-
+import { loadRootDotenv } from '../src/config/load-dotenv-core.mjs';
 import siteEnvModule from '../src/config/site-env.cjs';
 import {
   getActiveSplitWorkerSlots,
@@ -15,8 +14,6 @@ const TEST_AUTH_SHARED_SECRET = 'dev-local-auth-secret-dev-local-auth-secret';
 const TEST_STORAGE_PUBLIC_BASE_URL = 'http://127.0.0.1:9787/assets/';
 const ACTIVE_SPLIT_WORKERS_ENV = 'CLOUDFLARE_ACTIVE_SPLIT_WORKERS';
 const { applySiteLocalEnvOverlay } = siteEnvModule;
-const loadEnvConfig =
-  nextEnvModule.loadEnvConfig || nextEnvModule.default?.loadEnvConfig;
 const SITE_REQUIRED_COMMANDS = [
   'pnpm exec next',
   'node scripts/next-build.mjs',
@@ -70,15 +67,6 @@ export function requiresContentGeneration(commandParts) {
   return CONTENT_GENERATION_REQUIRED_COMMANDS.some((prefix) =>
     joinedCommand.startsWith(prefix)
   );
-}
-
-function loadRootDotenv(env = process.env) {
-  try {
-    const isDev = env.NODE_ENV !== 'production';
-    loadEnvConfig(process.cwd(), isDev);
-  } catch {
-    // optional for scripts that run before local env files exist
-  }
 }
 
 function applyActiveSplitWorkerEnv({ env, rootDir, siteKey }) {
