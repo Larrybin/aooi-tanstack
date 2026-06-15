@@ -5,18 +5,41 @@ import type {
 } from '@/domains/settings/application/settings-runtime.contracts';
 import { getRuntimeEnvString } from '@/infra/runtime/env.server';
 
+import type { ConfigConsistencyMode } from '@/shared/lib/config-consistency';
+
 import {
+  readTanStackSettingsCached,
   readTanStackSettingsFresh,
-  type ReadTanStackSettingsFreshDeps,
+  type ReadTanStackSettingsCachedDeps,
 } from './billing-runtime';
 import { readTanStackCloudflareBindings } from './cloudflare-bindings';
 
-type ReadTanStackAiRuntimeDeps = ReadTanStackSettingsFreshDeps;
+type ReadTanStackAiRuntimeDeps = ReadTanStackSettingsCachedDeps;
 
-export async function readTanStackAiRuntimeSettings(
+export async function readTanStackAiRuntimeSettingsCached(
+  deps: ReadTanStackAiRuntimeDeps = {}
+): Promise<AiRuntimeSettings> {
+  return buildAiRuntimeSettings(
+    await readTanStackSettingsCached({
+      ...deps,
+      cacheKey: deps.cacheKey ?? 'ai-runtime',
+    })
+  );
+}
+
+export async function readTanStackAiRuntimeSettingsFresh(
   deps: ReadTanStackAiRuntimeDeps = {}
 ): Promise<AiRuntimeSettings> {
   return buildAiRuntimeSettings(await readTanStackSettingsFresh(deps));
+}
+
+export async function readTanStackAiRuntimeSettings(
+  mode: ConfigConsistencyMode = 'cached',
+  deps: ReadTanStackAiRuntimeDeps = {}
+): Promise<AiRuntimeSettings> {
+  return mode === 'fresh'
+    ? readTanStackAiRuntimeSettingsFresh(deps)
+    : readTanStackAiRuntimeSettingsCached(deps);
 }
 
 function readBindingString(

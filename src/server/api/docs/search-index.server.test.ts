@@ -16,7 +16,7 @@ const DOCS: DocsSearchDocument[] = [
   {
     locale: 'zh',
     slug: 'quick-start',
-    path: '/zh/docs/quick-start',
+    path: '/docs/quick-start',
     title: '快速开始',
     description: '本地运行应用。',
     content: '安装依赖并启动开发服务器。',
@@ -45,6 +45,16 @@ test('searchDocsIndex filters by locale', () => {
 
   assert.equal(results.length > 0, true);
   assert.equal(results.every((result) => result.url.startsWith('/zh/')), true);
+});
+
+test('searchDocsIndex prefixes localized document urls from locale and slug', () => {
+  const results = searchDocsIndex({
+    documents: DOCS,
+    query: '本地开发',
+    locale: 'zh',
+  });
+
+  assert.equal(results[0]?.url, '/zh/docs/quick-start#local-development');
 });
 
 test('searchDocsIndex returns deterministic limited results', () => {

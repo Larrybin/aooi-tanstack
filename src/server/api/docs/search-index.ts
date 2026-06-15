@@ -1,3 +1,5 @@
+import { localePath } from '@/shared/i18n/locale';
+
 export type DocsSearchDocument = {
   locale: string;
   slug: string;
@@ -86,6 +88,7 @@ function scoreDocument(
   terms: readonly string[]
 ): ScoredResult[] {
   const results: ScoredResult[] = [];
+  const documentUrl = buildDocumentUrl(document);
   const titleScore = scoreText(document.title, terms) * 8;
   const descriptionScore = scoreText(document.description, terms) * 4;
   const contentScore = scoreText(document.content, terms);
@@ -94,7 +97,7 @@ function scoreDocument(
   if (pageScore > 0) {
     results.push({
       id: `docs:${document.locale}:${document.slug || 'index'}:page`,
-      url: document.path,
+      url: documentUrl,
       type: 'page',
       content: document.title || document.path,
       breadcrumbs: buildBreadcrumbs(document),
@@ -108,7 +111,7 @@ function scoreDocument(
 
     results.push({
       id: `docs:${document.locale}:${document.slug || 'index'}:heading:${heading.url}`,
-      url: `${document.path}${heading.url}`,
+      url: `${documentUrl}${heading.url}`,
       type: 'heading',
       content: heading.title,
       breadcrumbs: buildBreadcrumbs(document),
@@ -120,7 +123,7 @@ function scoreDocument(
   if (snippet) {
     results.push({
       id: `docs:${document.locale}:${document.slug || 'index'}:text`,
-      url: document.path,
+      url: documentUrl,
       type: 'text',
       content: snippet,
       breadcrumbs: buildBreadcrumbs(document),
@@ -129,6 +132,11 @@ function scoreDocument(
   }
 
   return results;
+}
+
+function buildDocumentUrl(document: DocsSearchDocument) {
+  const docsPath = document.slug ? `/docs/${document.slug}` : '/docs';
+  return localePath(docsPath, document.locale);
 }
 
 function buildBreadcrumbs(document: DocsSearchDocument) {

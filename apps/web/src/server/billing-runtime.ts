@@ -27,10 +27,24 @@ export type ReadTanStackSettingsFreshDeps = {
   isWorkersRuntime?: typeof isCloudflareWorkersRuntime;
   readConfigRows?: (databaseUrl?: string) => Promise<ConfigRow[]>;
 };
+export type ReadTanStackSettingsCachedDeps = ReadTanStackSettingsFreshDeps & {
+  cacheKey?: string;
+  cacheTtlMs?: number;
+  now?: () => number;
+};
 type ReadTanStackPaymentRuntimeBindingsDeps = Pick<
   ReadTanStackSettingsFreshDeps,
   'getTanStackCloudflareBindings' | 'isWorkersRuntime'
 >;
+
+const TANSTACK_SETTINGS_CACHE_TTL_MS = 60 * 1000;
+const settingsCache = new Map<
+  string,
+  {
+    expiresAt: number;
+    value: Configs;
+  }
+>();
 
 async function readConfigRowsWithDatabaseUrl(databaseUrl: string) {
   const client = postgres(databaseUrl, {
@@ -83,6 +97,25 @@ export async function readTanStackSettingsFresh(
   return mergeCloudflareLocalSmokeConfigSeedConfigs(
     mergeAuthSpikeOAuthConfigSeedConfigs(configs)
   );
+}
+
+export async function readTanStackSettingsCached(
+  deps: ReadTanStackSettingsCachedDeps = {}
+): Promise<Configs> {
+  const now = deps.now?.() ?? Date.now();
+  const cacheKey = deps.cacheKey ?? 'default';
+  const cached = settingsCache.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    return structuredClone(cached.value);
+  }
+
+  const value = await readTanStackSettingsFresh(deps);
+  settingsCache.set(cacheKey, {
+    expiresAt: now + (deps.cacheTtlMs ?? TANSTACK_SETTINGS_CACHE_TTL_MS),
+    value: structuredClone(value),
+  });
+
+  return structuredClone(value);
 }
 
 export async function readTanStackBillingRuntimeSettings(

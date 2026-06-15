@@ -33,7 +33,7 @@ const postAiQuery = withTanStackCloudflareBindings(
     findAITaskById,
     updateAITaskById,
     failAITaskByIdAndRefundCredit,
-    readAiRuntimeSettings: async () => readTanStackAiRuntimeSettings(),
+    readAiRuntimeSettings: readTanStackAiRuntimeSettings,
     readAiProviderBindings: readTanStackAiProviderBindings,
     getAIService: createAIService,
     rateLimiter: createLimiterFactory().createAiQueryCooldownLimiter(),
