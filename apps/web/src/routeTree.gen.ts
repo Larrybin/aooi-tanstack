@@ -83,6 +83,7 @@ import { Route as ApiRemoverDownloadLowResRouteImport } from './routes/api/remov
 import { Route as ApiRemoverDownloadHighResRouteImport } from './routes/api/remover/download/high-res'
 import { Route as ApiBackgroundRemoverResultIdRouteImport } from './routes/api/background-remover/result/$id'
 import { Route as ApiBackgroundRemoverDownloadIdRouteImport } from './routes/api/background-remover/download/$id'
+import { Route as ApiAiNotifyProviderRouteImport } from './routes/api/ai/notify/$provider'
 import { Route as ActivityAiTasksIdRefreshRouteImport } from './routes/activity/ai-tasks_/$id/refresh'
 import { Route as LocaleSettingsInvoicesRetrieveRouteImport } from './routes/$locale/settings/invoices/retrieve'
 import { Route as LocaleSettingsBillingRetrieveRouteImport } from './routes/$locale/settings/billing_/retrieve'
@@ -470,6 +471,11 @@ const ApiBackgroundRemoverDownloadIdRoute =
     path: '/api/background-remover/download/$id',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiAiNotifyProviderRoute = ApiAiNotifyProviderRouteImport.update({
+  id: '/api/ai/notify/$provider',
+  path: '/api/ai/notify/$provider',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ActivityAiTasksIdRefreshRoute =
   ActivityAiTasksIdRefreshRouteImport.update({
     id: '/activity/ai-tasks_/$id/refresh',
@@ -597,6 +603,7 @@ export interface FileRoutesByFullPath {
   '/$locale/settings/billing/retrieve': typeof LocaleSettingsBillingRetrieveRoute
   '/$locale/settings/invoices/retrieve': typeof LocaleSettingsInvoicesRetrieveRoute
   '/activity/ai-tasks/$id/refresh': typeof ActivityAiTasksIdRefreshRoute
+  '/api/ai/notify/$provider': typeof ApiAiNotifyProviderRoute
   '/api/background-remover/download/$id': typeof ApiBackgroundRemoverDownloadIdRoute
   '/api/background-remover/result/$id': typeof ApiBackgroundRemoverResultIdRoute
   '/api/remover/download/high-res': typeof ApiRemoverDownloadHighResRoute
@@ -682,6 +689,7 @@ export interface FileRoutesByTo {
   '/$locale/settings/billing/retrieve': typeof LocaleSettingsBillingRetrieveRoute
   '/$locale/settings/invoices/retrieve': typeof LocaleSettingsInvoicesRetrieveRoute
   '/activity/ai-tasks/$id/refresh': typeof ActivityAiTasksIdRefreshRoute
+  '/api/ai/notify/$provider': typeof ApiAiNotifyProviderRoute
   '/api/background-remover/download/$id': typeof ApiBackgroundRemoverDownloadIdRoute
   '/api/background-remover/result/$id': typeof ApiBackgroundRemoverResultIdRoute
   '/api/remover/download/high-res': typeof ApiRemoverDownloadHighResRoute
@@ -768,6 +776,7 @@ export interface FileRoutesById {
   '/$locale/settings/billing_/retrieve': typeof LocaleSettingsBillingRetrieveRoute
   '/$locale/settings/invoices/retrieve': typeof LocaleSettingsInvoicesRetrieveRoute
   '/activity/ai-tasks_/$id/refresh': typeof ActivityAiTasksIdRefreshRoute
+  '/api/ai/notify/$provider': typeof ApiAiNotifyProviderRoute
   '/api/background-remover/download/$id': typeof ApiBackgroundRemoverDownloadIdRoute
   '/api/background-remover/result/$id': typeof ApiBackgroundRemoverResultIdRoute
   '/api/remover/download/high-res': typeof ApiRemoverDownloadHighResRoute
@@ -855,6 +864,7 @@ export interface FileRouteTypes {
     | '/$locale/settings/billing/retrieve'
     | '/$locale/settings/invoices/retrieve'
     | '/activity/ai-tasks/$id/refresh'
+    | '/api/ai/notify/$provider'
     | '/api/background-remover/download/$id'
     | '/api/background-remover/result/$id'
     | '/api/remover/download/high-res'
@@ -940,6 +950,7 @@ export interface FileRouteTypes {
     | '/$locale/settings/billing/retrieve'
     | '/$locale/settings/invoices/retrieve'
     | '/activity/ai-tasks/$id/refresh'
+    | '/api/ai/notify/$provider'
     | '/api/background-remover/download/$id'
     | '/api/background-remover/result/$id'
     | '/api/remover/download/high-res'
@@ -1025,6 +1036,7 @@ export interface FileRouteTypes {
     | '/$locale/settings/billing_/retrieve'
     | '/$locale/settings/invoices/retrieve'
     | '/activity/ai-tasks_/$id/refresh'
+    | '/api/ai/notify/$provider'
     | '/api/background-remover/download/$id'
     | '/api/background-remover/result/$id'
     | '/api/remover/download/high-res'
@@ -1110,6 +1122,7 @@ export interface RootRouteChildren {
   LocaleSettingsBillingRetrieveRoute: typeof LocaleSettingsBillingRetrieveRoute
   LocaleSettingsInvoicesRetrieveRoute: typeof LocaleSettingsInvoicesRetrieveRoute
   ActivityAiTasksIdRefreshRoute: typeof ActivityAiTasksIdRefreshRoute
+  ApiAiNotifyProviderRoute: typeof ApiAiNotifyProviderRoute
   ApiBackgroundRemoverDownloadIdRoute: typeof ApiBackgroundRemoverDownloadIdRoute
   ApiBackgroundRemoverResultIdRoute: typeof ApiBackgroundRemoverResultIdRoute
   ApiRemoverDownloadHighResRoute: typeof ApiRemoverDownloadHighResRoute
@@ -1642,6 +1655,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBackgroundRemoverDownloadIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ai/notify/$provider': {
+      id: '/api/ai/notify/$provider'
+      path: '/api/ai/notify/$provider'
+      fullPath: '/api/ai/notify/$provider'
+      preLoaderRoute: typeof ApiAiNotifyProviderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/activity/ai-tasks_/$id/refresh': {
       id: '/activity/ai-tasks_/$id/refresh'
       path: '/activity/ai-tasks/$id/refresh'
@@ -1803,6 +1823,7 @@ const rootRouteChildren: RootRouteChildren = {
   LocaleSettingsBillingRetrieveRoute: LocaleSettingsBillingRetrieveRoute,
   LocaleSettingsInvoicesRetrieveRoute: LocaleSettingsInvoicesRetrieveRoute,
   ActivityAiTasksIdRefreshRoute: ActivityAiTasksIdRefreshRoute,
+  ApiAiNotifyProviderRoute: ApiAiNotifyProviderRoute,
   ApiBackgroundRemoverDownloadIdRoute: ApiBackgroundRemoverDownloadIdRoute,
   ApiBackgroundRemoverResultIdRoute: ApiBackgroundRemoverResultIdRoute,
   ApiRemoverDownloadHighResRoute: ApiRemoverDownloadHighResRoute,

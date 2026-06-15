@@ -4,7 +4,7 @@ import test from 'node:test';
 import {
   signAiNotifyCallback,
   verifyAiNotifyCallbackSignature,
-} from './signature';
+} from './notify-signature';
 
 test('ai notify signature verifies matching payload', async () => {
   const signature = await signAiNotifyCallback({

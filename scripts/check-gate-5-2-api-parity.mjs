@@ -23,7 +23,11 @@ const GATE_5_2_APIS = [
     legacyRoute: 'src/app/api/ai/notify/[provider]/route.ts',
     tanstackRoute: 'apps/web/src/routes/api/ai/notify/$provider.ts',
     serverFiles: ['src/server/api/ai/notify-route.ts'],
-    legacyTests: ['src/app/api/ai/notify/[provider]/route.test.ts'],
+    legacyTests: [
+      'src/app/api/ai/notify/[provider]/route.test.ts',
+      'src/app/api/ai/notify-route.server.test.ts',
+      'src/app/api/ai/notify/signature.server.test.ts',
+    ],
   },
   {
     api: '/api/chat',
