@@ -1,4 +1,3 @@
-import 'server-only';
 
 import { BusinessError } from '@/shared/lib/errors';
 

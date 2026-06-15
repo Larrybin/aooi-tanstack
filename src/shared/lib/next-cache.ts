@@ -1,4 +1,3 @@
-import 'server-only';
 
 import { unstable_cache as nextUnstableCache } from 'next/cache';
 

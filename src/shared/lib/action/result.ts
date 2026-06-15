@@ -1,4 +1,3 @@
-import 'server-only';
 
 export type ActionResult = {
   status: 'success' | 'error';

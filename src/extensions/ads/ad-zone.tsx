@@ -1,4 +1,3 @@
-import 'server-only';
 
 import { getAdsRuntimeCached } from '@/infra/adapters/ads/service';
 

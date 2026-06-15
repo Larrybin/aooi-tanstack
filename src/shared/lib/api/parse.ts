@@ -5,7 +5,6 @@
  * - `parseParams(paramsPromise, Schema)` for Next.js Route Handler params (Promise).
  */
 
-import 'server-only';
 
 import { getRequestLogger } from '@/infra/platform/logging/request-logger.server';
 import type { z } from 'zod';

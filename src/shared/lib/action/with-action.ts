@@ -1,4 +1,3 @@
-import 'server-only';
 
 import { headers } from 'next/headers';
 import { createUseCaseLogger } from '@/infra/platform/logging/logger.server';

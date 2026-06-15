@@ -1,4 +1,3 @@
-import 'server-only';
 
 import {
   CLOUDFLARE_WORKERS_AI_PROVIDER,

@@ -11,7 +11,6 @@
  * - Reject if missing or mismatched.
  */
 
-import 'server-only';
 
 import { getRequestLogger } from '@/infra/platform/logging/request-logger.server';
 import { site } from '@/site';
