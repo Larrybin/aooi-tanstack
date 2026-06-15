@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
+import ts from 'typescript';
 
 const root = process.cwd();
 const TEST_FILE_PATTERN = /\.(test|spec)\.(mjs|[tj]sx?)$/;
@@ -59,6 +60,10 @@ function shouldScanFile(filePath) {
   return /\.(ts|tsx|mts|mjs|js|jsx|cjs|json|toml|d\.ts)$/.test(repoPath);
 }
 
+function isCodeFile(repoPath) {
+  return /\.(?:[cm]?[tj]sx?|d\.ts)$/.test(repoPath);
+}
+
 function walk(currentPath, out) {
   if (!existsSync(currentPath)) return;
   const stats = statSync(currentPath);
@@ -85,42 +90,95 @@ function collectFiles() {
 
 function detectSpecifiers(repoPath, source) {
   const hits = [];
+  const seen = new Set();
+  const addHit = ({ line, specifier, kind }) => {
+    if (!isTrackedDependency(specifier)) return;
+    const key = `${line}:${specifier}:${kind}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    hits.push({ line, specifier, kind });
+  };
+
   if (repoPath === 'package.json') {
     const pkg = JSON.parse(source);
     for (const section of ['dependencies', 'devDependencies', 'optionalDependencies']) {
       const deps = pkg[section] ?? {};
       for (const depName of Object.keys(deps)) {
         if (isTrackedDependency(depName)) {
-          hits.push({ line: 1, specifier: depName, kind: `package:${section}` });
+          addHit({ line: 1, specifier: depName, kind: `package:${section}` });
         }
       }
     }
     return hits;
   }
 
-  const lines = source.split('\n');
-  const importPatterns = [
-    /(?:import|export)\s+(?:[^'";]+?\s+from\s+)?['"]([^'"]+)['"]/g,
-    /import\(\s*['"]([^'"]+)['"]\s*\)/g,
-    /require\(\s*['"]([^'"]+)['"]\s*\)/g,
-    /declare\s+module\s+['"]([^'"]+)['"]/g,
-  ];
+  if (isCodeFile(repoPath)) {
+    const sourceFile = ts.createSourceFile(
+      repoPath,
+      source,
+      ts.ScriptTarget.Latest,
+      true,
+      repoPath.endsWith('.tsx') || repoPath.endsWith('.jsx')
+        ? ts.ScriptKind.TSX
+        : ts.ScriptKind.TS
+    );
+    const lineOf = (node) =>
+      sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1;
+    const addModuleSpecifier = (moduleSpecifier, kind) => {
+      if (!moduleSpecifier || !ts.isStringLiteralLike(moduleSpecifier)) return;
+      addHit({
+        line: lineOf(moduleSpecifier),
+        specifier: moduleSpecifier.text,
+        kind,
+      });
+    };
 
-  for (let index = 0; index < lines.length; index += 1) {
-    const line = lines[index];
-    for (const pattern of importPatterns) {
-      pattern.lastIndex = 0;
-      let match;
-      while ((match = pattern.exec(line)) !== null) {
-        const specifier = match[1];
-        if (isTrackedDependency(specifier)) {
-          hits.push({ line: index + 1, specifier, kind: 'import' });
+    const visit = (node) => {
+      if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) {
+        addModuleSpecifier(node.moduleSpecifier, 'import');
+      } else if (ts.isCallExpression(node)) {
+        const [firstArg] = node.arguments;
+        if (
+          firstArg &&
+          ts.isStringLiteralLike(firstArg) &&
+          (node.expression.kind === ts.SyntaxKind.ImportKeyword ||
+            (ts.isIdentifier(node.expression) && node.expression.text === 'require'))
+        ) {
+          addHit({
+            line: lineOf(firstArg),
+            specifier: firstArg.text,
+            kind: 'import',
+          });
+        }
+      } else if (ts.isModuleDeclaration(node)) {
+        if (ts.isStringLiteralLike(node.name)) {
+          addHit({
+            line: lineOf(node.name),
+            specifier: node.name.text,
+            kind: 'import',
+          });
         }
       }
-    }
 
-    if (line.includes('.open-next')) {
-      hits.push({ line: index + 1, specifier: '.open-next', kind: 'open-next-reference' });
+      ts.forEachChild(node, visit);
+    };
+
+    visit(sourceFile);
+  }
+
+  const lines = source.split('\n');
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const lineNumber = index + 1;
+    if (
+      line.includes('.open-next') &&
+      !hits.some((hit) => hit.line === lineNumber && hit.specifier.includes('.open-next'))
+    ) {
+      addHit({
+        line: lineNumber,
+        specifier: '.open-next',
+        kind: 'open-next-reference',
+      });
     }
   }
 

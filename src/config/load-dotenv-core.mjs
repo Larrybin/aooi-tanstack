@@ -4,34 +4,29 @@ import path from 'node:path';
 import siteEnvModule from './site-env.cjs';
 
 const { applySiteLocalEnvOverlay } = siteEnvModule;
+const DOTENV_LINE_PATTERN =
+  /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/gm;
+const UNESCAPED_DOLLAR_PATTERN = /(?<!\\)\$/g;
+const INTERPOLATION_PATTERN = /((?!(?<=\\))\${?([\w]+)(?::-([^}\\]*))?}?)/;
 
 function parseDotenv(content) {
   const entries = {};
-  for (const line of content.split(/\r?\n/u)) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const assignment = trimmed.startsWith('export ')
-      ? trimmed.slice('export '.length).trim()
-      : trimmed;
-    const equalsIndex = assignment.indexOf('=');
-    if (equalsIndex <= 0) continue;
+  const normalizedContent = content.toString().replace(/\r\n?/gm, '\n');
+  DOTENV_LINE_PATTERN.lastIndex = 0;
 
-    const name = assignment.slice(0, equalsIndex).trim();
-    if (!/^[A-Za-z_][A-Za-z0-9_]*$/u.test(name)) continue;
+  let match;
+  while ((match = DOTENV_LINE_PATTERN.exec(normalizedContent)) !== null) {
+    const name = match[1];
+    let value = (match[2] || '').trim();
+    const quote = value[0];
+    value = value.replace(/^(['"`])([\s\S]*)\1$/gm, '$2');
+    if (quote === '"') {
+      value = value.replace(/\\n/g, '\n').replace(/\\r/g, '\r');
+    }
 
-    let value = assignment.slice(equalsIndex + 1).trim();
-    const commentIndex = value.search(/\s#/u);
-    if (commentIndex >= 0 && !value.startsWith('"') && !value.startsWith("'")) {
-      value = value.slice(0, commentIndex).trim();
-    }
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1);
-    }
-    entries[name] = value.replace(/\\n/g, '\n');
+    entries[name] = value;
   }
+
   return entries;
 }
 
@@ -45,11 +40,38 @@ function resolveDotenvFiles({ nodeEnv, isDev }) {
   ].filter(Boolean);
 }
 
-function expandValue(value, env) {
-  return value.replace(/(^|[^\\])\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?/gu, (match, prefix, name) => {
-    const replacement = env[name];
-    return `${prefix}${typeof replacement === 'string' ? replacement : ''}`;
-  }).replace(/\\\$/g, '$');
+function searchLastUnescapedDollar(value) {
+  const matches = Array.from(value.matchAll(UNESCAPED_DOLLAR_PATTERN));
+  return matches.length > 0 ? matches.at(-1).index : -1;
+}
+
+function interpolateValue(value, env, parsed) {
+  const dollarIndex = searchLastUnescapedDollar(value);
+  if (dollarIndex === -1) return value;
+
+  const tail = value.slice(dollarIndex);
+  const match = tail.match(INTERPOLATION_PATTERN);
+  if (!match) return value;
+
+  const [fullMatch, , name, defaultValue] = match;
+  const replacement = env[name] || defaultValue || parsed[name] || '';
+  return interpolateValue(value.replace(fullMatch, replacement), env, parsed);
+}
+
+function expandParsedValues(entries, env) {
+  const parsed = { ...entries };
+
+  for (const name of Object.keys(parsed)) {
+    const sourceValue = Object.prototype.hasOwnProperty.call(env, name)
+      ? env[name]
+      : parsed[name];
+    parsed[name] = interpolateValue(String(sourceValue ?? ''), env, parsed).replace(
+      /\\\$/g,
+      '$'
+    );
+  }
+
+  return parsed;
 }
 
 export function loadRootDotenv(
@@ -63,17 +85,20 @@ export function loadRootDotenv(
   } = {}
 ) {
   const originalEnv = { ...env };
+  const expansionEnv = { ...env };
   const loadedFiles = [];
 
   for (const fileName of resolveDotenvFiles({ nodeEnv, isDev })) {
     const filePath = path.join(rootDir, fileName);
     if (!existsSyncImpl(filePath)) continue;
     const entries = parseDotenv(readFileSyncImpl(filePath, 'utf8'));
+    const expandedEntries = expandParsedValues(entries, expansionEnv);
     loadedFiles.push(filePath);
-    for (const [name, rawValue] of Object.entries(entries)) {
+    Object.assign(expansionEnv, expandedEntries);
+    for (const [name, value] of Object.entries(expandedEntries)) {
       if (Object.prototype.hasOwnProperty.call(originalEnv, name)) continue;
       if (Object.prototype.hasOwnProperty.call(env, name)) continue;
-      env[name] = expandValue(rawValue, env);
+      env[name] = value;
     }
   }
 

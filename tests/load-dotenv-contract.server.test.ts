@@ -70,6 +70,33 @@ test(
 );
 
 test(
+  'loadRootDotenv preserves Next-compatible expansion semantics',
+  withTempProject((rootDir) => {
+    write(
+      rootDir,
+      '.env',
+      [
+        'A=$B',
+        'B=from-later',
+        'FALLBACK=${MISSING:-fallback}',
+        String.raw`SINGLE='line\ntext'`,
+        String.raw`DOUBLE="line\ntext"`,
+        '',
+      ].join('\n')
+    );
+    const env = {} as NodeJS.ProcessEnv;
+
+    loadRootDotenv(env, { rootDir, nodeEnv: 'development' });
+
+    assert.equal(env.A, 'from-later');
+    assert.equal(env.B, 'from-later');
+    assert.equal(env.FALLBACK, 'fallback');
+    assert.equal(env.SINGLE, String.raw`line\ntext`);
+    assert.equal(env.DOUBLE, 'line\ntext');
+  })
+);
+
+test(
   'SITE overlay reads only sites/<SITE>/.env.local and can override root dotenv values',
   withTempProject((rootDir) => {
     write(rootDir, '.env', 'VALUE=root\n');
