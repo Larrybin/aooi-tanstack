@@ -12,6 +12,8 @@ import { tryJsonParse } from '@/shared/lib/json';
 import { readRequestTextWithLimit } from '@/shared/lib/runtime/request-body';
 import type { AuthSessionUserIdentity } from '@/shared/types/auth-session';
 
+import { requireTanStackPermission } from './permission-context';
+
 const JSON_BODY_LIMIT_BYTES = 1024 * 1024;
 
 export type TanStackApiLog = {
@@ -27,6 +29,7 @@ export type TanStackApiContext = {
     schema: TSchema
   ) => Promise<z.infer<TSchema>>;
   requireUser: () => Promise<AuthSessionUserIdentity>;
+  requirePermission: (userId: string, code: string) => Promise<void>;
 };
 
 function parseContentLengthHeader(value: string | null): number | null {
@@ -97,5 +100,6 @@ export function createTanStackApiContext(request: Request): TanStackApiContext {
     log,
     parseJson: (schema) => parseJson(request, schema),
     requireUser: () => requireUser(request),
+    requirePermission: requireTanStackPermission,
   };
 }
