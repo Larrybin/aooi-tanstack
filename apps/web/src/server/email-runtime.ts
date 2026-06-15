@@ -10,17 +10,38 @@ import {
 import { getRuntimeEnvString } from '@/infra/runtime/env.server';
 
 import {
+  readTanStackSettingsCached,
   readTanStackSettingsFresh,
-  type ReadTanStackSettingsFreshDeps,
+  type ReadTanStackSettingsCachedDeps,
 } from './billing-runtime';
 import { readTanStackCloudflareBindings } from './cloudflare-bindings';
 
-type ReadTanStackEmailRuntimeDeps = ReadTanStackSettingsFreshDeps;
+type ReadTanStackEmailRuntimeDeps = ReadTanStackSettingsCachedDeps;
+type GetRandomValues = <T extends ArrayBufferView | null>(array: T) => T;
+
+const UINT32_RANGE = 0x1_0000_0000;
+
+export async function readTanStackEmailRuntimeSettingsFresh(
+  deps: ReadTanStackEmailRuntimeDeps = {}
+): Promise<EmailRuntimeSettings> {
+  return buildEmailRuntimeSettings(await readTanStackSettingsFresh(deps));
+}
+
+export async function readTanStackEmailRuntimeSettingsCached(
+  deps: ReadTanStackEmailRuntimeDeps = {}
+): Promise<EmailRuntimeSettings> {
+  return buildEmailRuntimeSettings(
+    await readTanStackSettingsCached({
+      ...deps,
+      cacheKey: deps.cacheKey ?? 'email-runtime',
+    })
+  );
+}
 
 export async function readTanStackEmailRuntimeSettings(
   deps: ReadTanStackEmailRuntimeDeps = {}
 ): Promise<EmailRuntimeSettings> {
-  return buildEmailRuntimeSettings(await readTanStackSettingsFresh(deps));
+  return readTanStackEmailRuntimeSettingsCached(deps);
 }
 
 export async function readTanStackEmailRuntimeBindings(
@@ -45,13 +66,26 @@ export async function createTanStackEmailService(): Promise<EmailService> {
   return createEmailService({ settings, bindings });
 }
 
-export function createRuntimeRandomInt(min: number, max: number): number {
+export function createRuntimeRandomInt(
+  min: number,
+  max: number,
+  getRandomValues: GetRandomValues = crypto.getRandomValues.bind(crypto)
+): number {
   const range = max - min;
-  if (!Number.isInteger(min) || !Number.isInteger(max) || range <= 0) {
+  if (
+    !Number.isInteger(min) ||
+    !Number.isInteger(max) ||
+    range <= 0 ||
+    range > UINT32_RANGE
+  ) {
     throw new RangeError('invalid randomInt range');
   }
 
   const value = new Uint32Array(1);
-  crypto.getRandomValues(value);
+  const limit = UINT32_RANGE - (UINT32_RANGE % range);
+  do {
+    getRandomValues(value);
+  } while (value[0] >= limit);
+
   return min + (value[0] % range);
 }

@@ -1,17 +1,22 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-
 import {
   AI_RUNTIME_SETTING_KEYS,
+  EMAIL_RUNTIME_SETTING_KEYS,
   PUBLIC_UI_SETTING_KEYS,
 } from '@/domains/settings/registry';
 import type { ServerRuntimeEnv } from '@/infra/runtime/env.server';
 
+import { readTanStackAiRuntimeSettings } from '../../apps/web/src/server/ai-runtime';
 import {
   readTanStackSettingsCached,
   type ReadTanStackSettingsCachedDeps,
 } from '../../apps/web/src/server/billing-runtime';
-import { readTanStackAiRuntimeSettings } from '../../apps/web/src/server/ai-runtime';
+import {
+  createRuntimeRandomInt,
+  readTanStackEmailRuntimeSettings,
+  readTanStackEmailRuntimeSettingsFresh,
+} from '../../apps/web/src/server/email-runtime';
 import { readTanStackPublicUiConfigCached } from '../../apps/web/src/server/public-ui-config-runtime';
 
 const TEST_RUNTIME_ENV: ServerRuntimeEnv = {
@@ -129,5 +134,55 @@ test('readTanStackAiRuntimeSettings defaults to cached and preserves fresh mode'
     (await readTanStackAiRuntimeSettings('fresh', deps)).aiEnabled,
     false
   );
+  assert.equal(calls, 2);
+});
+
+test('readTanStackEmailRuntimeSettings defaults to cached and preserves fresh mode', async () => {
+  let calls = 0;
+  const deps = buildDeps({
+    cacheKey: 'email-runtime-cache-test',
+    now: () => 0,
+    readConfigRows: async () => {
+      calls += 1;
+      return [
+        {
+          name: EMAIL_RUNTIME_SETTING_KEYS.resendSenderEmail,
+          value: calls === 1 ? 'ops@example.com' : 'ops-next@example.com',
+        },
+      ];
+    },
+  });
+
+  assert.equal(
+    (await readTanStackEmailRuntimeSettings(deps)).resendSenderEmail,
+    'ops@example.com'
+  );
+  assert.equal(
+    (await readTanStackEmailRuntimeSettings(deps)).resendSenderEmail,
+    'ops@example.com'
+  );
+  assert.equal(calls, 1);
+
+  assert.equal(
+    (await readTanStackEmailRuntimeSettingsFresh(deps)).resendSenderEmail,
+    'ops-next@example.com'
+  );
+  assert.equal(calls, 2);
+});
+
+test('createRuntimeRandomInt retries rejected values to avoid modulo bias', () => {
+  const values = [0xffffffff, 5];
+  let calls = 0;
+
+  const result = createRuntimeRandomInt(0, 10, (array) => {
+    if (!(array instanceof Uint32Array)) {
+      throw new TypeError('expected Uint32Array');
+    }
+    array[0] = values[calls] ?? 0;
+    calls += 1;
+    return array;
+  });
+
+  assert.equal(result, 5);
   assert.equal(calls, 2);
 });

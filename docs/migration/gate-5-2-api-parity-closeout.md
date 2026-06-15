@@ -60,7 +60,8 @@ The checker verifies for the 12 Gate 5.2 APIs:
 - Legacy route still exists.
 - Server API core/factory exists.
 - Server API core/factory does not import `apps/web/**`.
-- TanStack route closure does not import `src/app/**`, `@/app/**`, `next/*`, `next-intl`, `settings-runtime.query`, or `next-cache`.
+- Declared TanStack runtime helper files exist.
+- TanStack route/runtime helper layer does not import `src/app/**`, `@/app/**`, `next/*`, `next-intl`, `settings-runtime.query`, or `next-cache`.
 - Migrated legacy API tests are no longer under `src/app/api/**`.
 
 ## Tests moved out of `src/app/api/**`

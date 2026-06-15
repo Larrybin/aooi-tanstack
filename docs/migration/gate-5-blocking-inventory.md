@@ -1,23 +1,22 @@
 # Gate 5 Blocking Inventory
 
-Status: updated after Gate 5.2 partial API migrations
+Status: updated after Gate 5.2 API parity closeout
 Scope: `migration/tanstack-start-native` only. `main` remains unchanged.
 
 ## Current branch state
 
 - Branch: `migration/tanstack-start-native`
-- HEAD: `3c019964`
-- Upstream HEAD: `fd3d40b3`
-- Ahead/behind upstream: `0	5`
-- `origin/main...HEAD`: `2	109`
+- PR: #172 `feat(tanstack): migrate Gate 5.2 API routes`
+- Base branch: `codex/gate-4-foundation-validation`
+- Gate 5.2 API parity: complete; legacy Next routes remain until the approved deletion gate.
 
 ## Summary
 
 - Next API route handlers: 35
-- TanStack API route handlers: 24
-- Next API routes already covered by TanStack path: 23
-- Next API routes missing TanStack path coverage: 12
-- `src/app/api` test files that must move before final deletion: 17
+- TanStack API route handlers: 36
+- Next API routes already covered by TanStack path: 35
+- Next API routes missing TanStack path coverage: 0
+- `src/app/api` test files that must move before final deletion: 12
 - Direct blocked dependencies still present: 8
 - Active package scripts with Next/OpenNext references: 8
 - `next_intl` active scan hits: 28
@@ -32,33 +31,30 @@ Scope: `migration/tanstack-start-native` only. `main` remains unchanged.
 
 ### 1. Public API parity gaps
 
-Every listed route must either move to `apps/web/src/routes/api/**` with its tests moved out of `src/app/api/**`, or be explicitly decommissioned as dev-only/non-production. Tests under `src/app/api/**` are not accepted as final Gate 5 evidence.
-
-| API route | Next source | Owner | Phase | Required decision |
-| --- | --- | --- | --- | --- |
-| `/api/ai/generate` | `src/app/api/ai/generate/route.ts` | apps/web/src/routes/api + src/domains/ai | Gate 5.2 | migrate to TanStack API route |
-| `/api/ai/notify/$provider` | `src/app/api/ai/notify/[provider]/route.ts` | apps/web/src/routes/api + src/domains/ai | Gate 5.2 | migrate to TanStack API route |
-| `/api/ai/query` | `src/app/api/ai/query/route.ts` | apps/web/src/routes/api + src/domains/ai | Gate 5.2 | migrate to TanStack API route |
-| `/api/chat` | `src/app/api/chat/route.ts` | apps/web/src/routes/api + src/domains/chat | Gate 5.2 | migrate to TanStack API route |
-| `/api/chat/info` | `src/app/api/chat/info/route.ts` | apps/web/src/routes/api + src/domains/chat | Gate 5.2 | migrate to TanStack API route |
-| `/api/chat/list` | `src/app/api/chat/list/route.ts` | apps/web/src/routes/api + src/domains/chat | Gate 5.2 | migrate to TanStack API route |
-| `/api/chat/messages` | `src/app/api/chat/messages/route.ts` | apps/web/src/routes/api + src/domains/chat | Gate 5.2 | migrate to TanStack API route |
-| `/api/chat/new` | `src/app/api/chat/new/route.ts` | apps/web/src/routes/api + src/domains/chat | Gate 5.2 | migrate to TanStack API route |
-| `/api/email/send-email` | `src/app/api/email/send-email/route.ts` | apps/web/src/routes/api + src/infra/adapters/email | Gate 5.2 | migrate to TanStack API route |
-| `/api/email/test` | `src/app/api/email/test/route.ts` | apps/web/src/routes/api + src/infra/adapters/email | Gate 5.2 | migrate to TanStack API route |
-| `/api/email/verify-code` | `src/app/api/email/verify-code/route.ts` | apps/web/src/routes/api + src/infra/adapters/email | Gate 5.2 | migrate to TanStack API route |
-| `/api/storage/upload-image` | `src/app/api/storage/upload-image/route.ts` | apps/web/src/routes/api + storage adapter | Gate 5.2 | migrate to TanStack API route |
+No Gate 5.2 public API parity gaps remain. Legacy Next routes still exist as compatibility entrypoints until the approved deletion gate, but they no longer own the main route logic for the APIs below.
 
 Resolved Gate 5.2 API parity:
 
 | API route | TanStack source | Runtime/test owner | Status |
 | --- | --- | --- | --- |
 | `/api/ai/capabilities` | `apps/web/src/routes/api/ai/capabilities.ts` | `src/server/api/ai/capabilities-route.ts`, `src/domains/ai/application/capabilities-core.ts` | migrated/resolved |
+| `/api/ai/generate` | `apps/web/src/routes/api/ai/generate.ts` | `src/server/api/ai/generate-route.ts`, `src/server/api/ai/generate-route.server.test.ts` | migrated/resolved |
+| `/api/ai/notify/$provider` | `apps/web/src/routes/api/ai/notify/$provider.ts` | `src/server/api/ai/notify-route.ts`, `src/server/api/ai/notify-route.server.test.ts` | migrated/resolved |
+| `/api/ai/query` | `apps/web/src/routes/api/ai/query.ts` | `src/server/api/ai/query-route.ts`, `src/server/api/ai/query-route.server.test.ts` | migrated/resolved |
+| `/api/chat` | `apps/web/src/routes/api/chat.ts` | `src/server/api/chat/create-handlers.ts`, `src/server/api/chat/create-handlers.server.test.ts` | migrated/resolved |
+| `/api/chat/info` | `apps/web/src/routes/api/chat/info.ts` | `src/server/api/chat/create-handlers.ts`, `src/server/api/chat/create-handlers.server.test.ts` | migrated/resolved |
+| `/api/chat/list` | `apps/web/src/routes/api/chat/list.ts` | `src/server/api/chat/create-handlers.ts`, `src/server/api/chat/create-handlers.server.test.ts` | migrated/resolved |
+| `/api/chat/messages` | `apps/web/src/routes/api/chat/messages.ts` | `src/server/api/chat/create-handlers.ts`, `src/server/api/chat/create-handlers.server.test.ts` | migrated/resolved |
+| `/api/chat/new` | `apps/web/src/routes/api/chat/new.ts` | `src/server/api/chat/create-handlers.ts`, `src/server/api/chat/create-handlers.server.test.ts` | migrated/resolved |
 | `/api/config/get-configs` | `apps/web/src/routes/api/config/get-configs.ts` | `src/server/api/config/get-configs-logic.ts` | migrated/resolved |
 | `/api/docs/search` | `apps/web/src/routes/api/docs/search.ts` | `src/server/api/docs/search-route.ts`, `src/server/api/docs/search-index.ts` | migrated/resolved |
+| `/api/email/send-email` | `apps/web/src/routes/api/email/send-email.ts` | `src/server/api/email/send-email-route.ts`, `src/server/api/email/email-routes.server.test.ts` | migrated/resolved |
+| `/api/email/test` | `apps/web/src/routes/api/email/test.ts` | `src/server/api/email/test-route.ts`, `src/server/api/email/email-routes.server.test.ts` | migrated/resolved |
+| `/api/email/verify-code` | `apps/web/src/routes/api/email/verify-code.ts` | `src/server/api/email/verify-code-route.ts`, `src/server/api/email/email-routes.server.test.ts` | migrated/resolved |
 | `/api/remover/cleanup` | `apps/web/src/routes/api/remover/cleanup.ts` | `src/server/api/remover/cleanup-route.ts` | migrated/resolved |
+| `/api/storage/upload-image` | `apps/web/src/routes/api/storage/upload-image.ts` | `src/server/api/storage/upload-image-route.ts`, `src/server/api/storage/upload-image-route.server.test.ts` | migrated/resolved |
 
-Already covered paths are not deletion blockers, but their tests must still move away from `src/app/api/**` before final deletion.
+Already covered paths are not API parity blockers, but remaining legacy tests must still move away from `src/app/api/**` before final deletion.
 
 <details><summary>Covered Next API paths</summary>
 
@@ -86,12 +82,8 @@ Already covered paths are not deletion blockers, but their tests must still move
 
 ### 2. `src/app/api` tests still own API parity evidence
 
-These tests must move to TanStack route/helper/domain locations before `src/app/**` deletion.
+These remaining legacy API tests must move to TanStack route/helper/domain locations before `src/app/**` deletion.
 
-- `src/app/api/ai/generate/route.test.ts`
-- `src/app/api/ai/notify-route.server.test.ts`
-- `src/app/api/ai/notify/signature.server.test.ts`
-- `src/app/api/chat/create-handlers.test.ts`
 - `src/app/api/limiters-contract.test.ts`
 - `src/app/api/payment/callback/route.test.ts`
 - `src/app/api/payment/checkout/route.test.ts`
@@ -101,7 +93,6 @@ These tests must move to TanStack route/helper/domain locations before `src/app/
 - `src/app/api/remover/jobs/action.test.ts`
 - `src/app/api/remover/provider-adapter.server.test.ts`
 - `src/app/api/remover/upload/action.test.ts`
-- `src/app/api/storage/upload-image/route.test.ts`
 - `src/app/api/tts/generate/action.test.ts`
 - `src/app/api/tts/generate/provider.server.test.ts`
 - `src/app/api/user/get-user-credits/action.test.ts`
@@ -114,6 +105,16 @@ Resolved Gate 5.2 test evidence:
 - `src/server/api/docs/search-route.server.test.ts`
 - `src/server/api/docs/search-index.server.test.ts`
 - `src/server/api/remover/cleanup-route.server.test.ts`
+- `src/server/api/ai/query-route.server.test.ts`
+- `src/server/api/ai/generate-route.server.test.ts`
+- `src/server/api/ai/notify-route.server.test.ts`
+- `src/server/api/ai/notify-signature.server.test.ts`
+- `src/server/api/chat/create-handlers.server.test.ts`
+- `src/server/api/email/email-routes.server.test.ts`
+- `src/server/api/storage/upload-image-route.server.test.ts`
+- `src/infra/adapters/email/contract.test.ts`
+- `src/server/tanstack-settings-runtime.server.test.ts`
+- `tests/tanstack-permission-context.server.test.ts`
 
 ### 3. Non-app `next-intl` / `next/navigation` / `next/image` / `next/cache` residues
 

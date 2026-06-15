@@ -456,6 +456,7 @@ test('architecture: Batch 2 旧 facade 与旧 bag 输入必须保持归零', asy
 
 test('architecture: email provider 只能通过统一 service factory 构造', async () => {
   const files = await readSourceFiles();
+  const emailServiceFactoryPath = 'src/infra/adapters/email/service-builder.ts';
 
   for (const file of files) {
     if (isTestFile(file.repoPath)) continue;
@@ -470,7 +471,7 @@ test('architecture: email provider 只能通过统一 service factory 构造', a
 
     assert.equal(
       file.repoPath,
-      'src/infra/adapters/email/service.ts',
+      emailServiceFactoryPath,
       `${file.repoPath} 不应绕过 email service factory 构造 ResendProvider`
     );
   }
