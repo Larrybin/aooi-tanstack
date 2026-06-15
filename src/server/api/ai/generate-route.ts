@@ -1,13 +1,15 @@
-import type { resolveConfiguredAICapability } from '@/domains/ai/application/capabilities';
-import type { getAiProviderBindings } from '@/domains/ai/application/provider-bindings';
-import type { getAIService } from '@/domains/ai/application/service';
+import type { resolveConfiguredAICapability } from '@/domains/ai/application/capabilities-core';
+import type { AIService } from '@/domains/ai/application/service-builder';
 import type {
   createAITask,
   failAITaskByIdAndRefundCredit,
   NewAITask,
   updateAITaskById,
 } from '@/domains/ai/infra/ai-task';
-import type { AiRuntimeSettings } from '@/domains/settings/application/settings-runtime.contracts';
+import type {
+  AiProviderBindings,
+  AiRuntimeSettings,
+} from '@/domains/settings/application/settings-runtime.contracts';
 import { site } from '@/site';
 
 import { AITaskStatus, type AIGenerateParams } from '@/extensions/ai';
@@ -43,8 +45,11 @@ export type AiGenerateRouteDeps = {
     requireUser: AiGenerateApiContext['requireUser'];
   };
   readAiRuntimeSettings: () => Promise<AiRuntimeSettings>;
-  readAiProviderBindings: typeof getAiProviderBindings;
-  getAIService: typeof getAIService;
+  readAiProviderBindings: () => AiProviderBindings | Promise<AiProviderBindings>;
+  getAIService: (input: {
+    settings: AiRuntimeSettings;
+    bindings: AiProviderBindings;
+  }) => AIService | Promise<AIService>;
   resolveConfiguredAICapability: typeof resolveConfiguredAICapability;
   createAITask: typeof createAITask;
   updateAITaskById: typeof updateAITaskById;
@@ -68,7 +73,7 @@ export function createAiGeneratePostAction(deps: AiGenerateRouteDeps) {
       await api.parseJson(AiGenerateBodySchema);
 
     const settings = await deps.readAiRuntimeSettings();
-    const bindings = deps.readAiProviderBindings();
+    const bindings = await deps.readAiProviderBindings();
     const capability = deps.resolveConfiguredAICapability(settings, bindings, {
       mediaType,
       scene: scene || '',
@@ -76,7 +81,7 @@ export function createAiGeneratePostAction(deps: AiGenerateRouteDeps) {
       model,
     });
 
-    const aiService = deps.getAIService({ settings, bindings });
+    const aiService = await deps.getAIService({ settings, bindings });
     const aiProvider = aiService.getProvider(capability.provider);
     if (!aiProvider) {
       throw new BadRequestError('invalid ai capability');

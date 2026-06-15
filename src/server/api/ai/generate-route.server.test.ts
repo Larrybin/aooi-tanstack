@@ -7,7 +7,7 @@ import { BadRequestError } from '@/shared/lib/api/errors';
 import {
   createAiGeneratePostHandler,
   type AiGenerateRouteDeps,
-} from './create-handler';
+} from './generate-route';
 
 type AiGenerateCreateApiContext = AiGenerateRouteDeps['createApiContext'];
 type NewAiTask = Parameters<AiGenerateRouteDeps['createAITask']>[0];
