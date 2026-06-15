@@ -1,4 +1,3 @@
-import 'server-only';
 
 import { headers } from 'next/headers';
 import { db } from '@/infra/adapters/db';

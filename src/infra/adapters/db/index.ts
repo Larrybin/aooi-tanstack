@@ -1,4 +1,3 @@
-import 'server-only';
 
 import { cache } from 'react';
 import { createUseCaseLogger } from '@/infra/platform/logging/logger.server';

@@ -1,4 +1,3 @@
-import 'server-only';
 
 import { getRuntimeEnvString } from '@/infra/runtime/env.server';
 

@@ -1,4 +1,3 @@
-import 'server-only';
 
 import type { CustomerServiceRuntimeSettings } from '@/domains/settings/application/settings-runtime.contracts';
 import { readCustomerServiceRuntimeSettingsCached } from '@/domains/settings/application/settings-runtime.query';

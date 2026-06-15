@@ -1,4 +1,3 @@
-import 'server-only';
 
 import { getOrCreateRequestId } from '@/infra/platform/logging/request-id.server';
 

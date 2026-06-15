@@ -1,4 +1,3 @@
-import 'server-only';
 
 import type { AffiliateRuntimeSettings } from '@/domains/settings/application/settings-runtime.contracts';
 import { readAffiliateRuntimeSettingsCached } from '@/domains/settings/application/settings-runtime.query';

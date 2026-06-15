@@ -1,4 +1,3 @@
-import 'server-only';
 
 import { site, siteI18nManifest } from '@/site';
 

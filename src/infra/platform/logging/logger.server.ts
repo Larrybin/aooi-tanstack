@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-import 'server-only';
 
 import { isDebugEnv, isProductionEnv } from '@/shared/lib/env';
 

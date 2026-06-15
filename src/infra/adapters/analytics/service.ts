@@ -1,4 +1,3 @@
-import 'server-only';
 
 import type { AnalyticsRuntimeSettings } from '@/domains/settings/application/settings-runtime.contracts';
 import { readAnalyticsRuntimeSettingsCached } from '@/domains/settings/application/settings-runtime.query';
