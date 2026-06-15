@@ -27,6 +27,7 @@ import { Route as SettingsCreditsRouteImport } from './routes/settings/credits'
 import { Route as SettingsBillingRouteImport } from './routes/settings/billing'
 import { Route as SettingsApikeysRouteImport } from './routes/settings/apikeys'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiAuthRouteImport } from './routes/api/auth'
 import { Route as ActivityFeedbacksRouteImport } from './routes/activity/feedbacks'
 import { Route as ActivityChatsRouteImport } from './routes/activity/chats'
@@ -59,6 +60,10 @@ import { Route as ApiPaymentCheckoutRouteImport } from './routes/api/payment/che
 import { Route as ApiPaymentCallbackRouteImport } from './routes/api/payment/callback'
 import { Route as ApiDocsSearchRouteImport } from './routes/api/docs/search'
 import { Route as ApiConfigGetConfigsRouteImport } from './routes/api/config/get-configs'
+import { Route as ApiChatNewRouteImport } from './routes/api/chat/new'
+import { Route as ApiChatMessagesRouteImport } from './routes/api/chat/messages'
+import { Route as ApiChatListRouteImport } from './routes/api/chat/list'
+import { Route as ApiChatInfoRouteImport } from './routes/api/chat/info'
 import { Route as ApiBackgroundRemoverRemoveRouteImport } from './routes/api/background-remover/remove'
 import { Route as ApiBackgroundRemoverCleanupRouteImport } from './routes/api/background-remover/cleanup'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -182,6 +187,11 @@ const SettingsApikeysRoute = SettingsApikeysRouteImport.update({
 const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/blog/$slug',
   path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthRoute = ApiAuthRouteImport.update({
@@ -344,6 +354,26 @@ const ApiConfigGetConfigsRoute = ApiConfigGetConfigsRouteImport.update({
   id: '/api/config/get-configs',
   path: '/api/config/get-configs',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChatNewRoute = ApiChatNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => ApiChatRoute,
+} as any)
+const ApiChatMessagesRoute = ApiChatMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => ApiChatRoute,
+} as any)
+const ApiChatListRoute = ApiChatListRouteImport.update({
+  id: '/list',
+  path: '/list',
+  getParentRoute: () => ApiChatRoute,
+} as any)
+const ApiChatInfoRoute = ApiChatInfoRouteImport.update({
+  id: '/info',
+  path: '/info',
+  getParentRoute: () => ApiChatRoute,
 } as any)
 const ApiBackgroundRemoverRemoveRoute =
   ApiBackgroundRemoverRemoveRouteImport.update({
@@ -556,6 +586,7 @@ export interface FileRoutesByFullPath {
   '/activity/chats': typeof ActivityChatsRoute
   '/activity/feedbacks': typeof ActivityFeedbacksRoute
   '/api/auth': typeof ApiAuthRouteWithChildren
+  '/api/chat': typeof ApiChatRouteWithChildren
   '/blog/$slug': typeof BlogSlugRoute
   '/settings/apikeys': typeof SettingsApikeysRoute
   '/settings/billing': typeof SettingsBillingRoute
@@ -579,6 +610,10 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/background-remover/cleanup': typeof ApiBackgroundRemoverCleanupRoute
   '/api/background-remover/remove': typeof ApiBackgroundRemoverRemoveRoute
+  '/api/chat/info': typeof ApiChatInfoRoute
+  '/api/chat/list': typeof ApiChatListRoute
+  '/api/chat/messages': typeof ApiChatMessagesRoute
+  '/api/chat/new': typeof ApiChatNewRoute
   '/api/config/get-configs': typeof ApiConfigGetConfigsRoute
   '/api/docs/search': typeof ApiDocsSearchRoute
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
@@ -642,6 +677,7 @@ export interface FileRoutesByTo {
   '/activity/chats': typeof ActivityChatsRoute
   '/activity/feedbacks': typeof ActivityFeedbacksRoute
   '/api/auth': typeof ApiAuthRouteWithChildren
+  '/api/chat': typeof ApiChatRouteWithChildren
   '/blog/$slug': typeof BlogSlugRoute
   '/settings/apikeys': typeof SettingsApikeysRoute
   '/settings/billing': typeof SettingsBillingRoute
@@ -665,6 +701,10 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/background-remover/cleanup': typeof ApiBackgroundRemoverCleanupRoute
   '/api/background-remover/remove': typeof ApiBackgroundRemoverRemoveRoute
+  '/api/chat/info': typeof ApiChatInfoRoute
+  '/api/chat/list': typeof ApiChatListRoute
+  '/api/chat/messages': typeof ApiChatMessagesRoute
+  '/api/chat/new': typeof ApiChatNewRoute
   '/api/config/get-configs': typeof ApiConfigGetConfigsRoute
   '/api/docs/search': typeof ApiDocsSearchRoute
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
@@ -729,6 +769,7 @@ export interface FileRoutesById {
   '/activity/chats': typeof ActivityChatsRoute
   '/activity/feedbacks': typeof ActivityFeedbacksRoute
   '/api/auth': typeof ApiAuthRouteWithChildren
+  '/api/chat': typeof ApiChatRouteWithChildren
   '/blog/$slug': typeof BlogSlugRoute
   '/settings/apikeys': typeof SettingsApikeysRoute
   '/settings/billing': typeof SettingsBillingRoute
@@ -752,6 +793,10 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/background-remover/cleanup': typeof ApiBackgroundRemoverCleanupRoute
   '/api/background-remover/remove': typeof ApiBackgroundRemoverRemoveRoute
+  '/api/chat/info': typeof ApiChatInfoRoute
+  '/api/chat/list': typeof ApiChatListRoute
+  '/api/chat/messages': typeof ApiChatMessagesRoute
+  '/api/chat/new': typeof ApiChatNewRoute
   '/api/config/get-configs': typeof ApiConfigGetConfigsRoute
   '/api/docs/search': typeof ApiDocsSearchRoute
   '/api/payment/callback': typeof ApiPaymentCallbackRoute
@@ -817,6 +862,7 @@ export interface FileRouteTypes {
     | '/activity/chats'
     | '/activity/feedbacks'
     | '/api/auth'
+    | '/api/chat'
     | '/blog/$slug'
     | '/settings/apikeys'
     | '/settings/billing'
@@ -840,6 +886,10 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/background-remover/cleanup'
     | '/api/background-remover/remove'
+    | '/api/chat/info'
+    | '/api/chat/list'
+    | '/api/chat/messages'
+    | '/api/chat/new'
     | '/api/config/get-configs'
     | '/api/docs/search'
     | '/api/payment/callback'
@@ -903,6 +953,7 @@ export interface FileRouteTypes {
     | '/activity/chats'
     | '/activity/feedbacks'
     | '/api/auth'
+    | '/api/chat'
     | '/blog/$slug'
     | '/settings/apikeys'
     | '/settings/billing'
@@ -926,6 +977,10 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/background-remover/cleanup'
     | '/api/background-remover/remove'
+    | '/api/chat/info'
+    | '/api/chat/list'
+    | '/api/chat/messages'
+    | '/api/chat/new'
     | '/api/config/get-configs'
     | '/api/docs/search'
     | '/api/payment/callback'
@@ -989,6 +1044,7 @@ export interface FileRouteTypes {
     | '/activity/chats'
     | '/activity/feedbacks'
     | '/api/auth'
+    | '/api/chat'
     | '/blog/$slug'
     | '/settings/apikeys'
     | '/settings/billing'
@@ -1012,6 +1068,10 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/background-remover/cleanup'
     | '/api/background-remover/remove'
+    | '/api/chat/info'
+    | '/api/chat/list'
+    | '/api/chat/messages'
+    | '/api/chat/new'
     | '/api/config/get-configs'
     | '/api/docs/search'
     | '/api/payment/callback'
@@ -1076,6 +1136,7 @@ export interface RootRouteChildren {
   ActivityChatsRoute: typeof ActivityChatsRoute
   ActivityFeedbacksRoute: typeof ActivityFeedbacksRoute
   ApiAuthRoute: typeof ApiAuthRouteWithChildren
+  ApiChatRoute: typeof ApiChatRouteWithChildren
   BlogSlugRoute: typeof BlogSlugRoute
   SettingsApikeysRoute: typeof SettingsApikeysRoute
   SettingsBillingRoute: typeof SettingsBillingRoute
@@ -1261,6 +1322,13 @@ declare module '@tanstack/react-router' {
       path: '/blog/$slug'
       fullPath: '/blog/$slug'
       preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth': {
@@ -1486,6 +1554,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/config/get-configs'
       preLoaderRoute: typeof ApiConfigGetConfigsRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/chat/new': {
+      id: '/api/chat/new'
+      path: '/new'
+      fullPath: '/api/chat/new'
+      preLoaderRoute: typeof ApiChatNewRouteImport
+      parentRoute: typeof ApiChatRoute
+    }
+    '/api/chat/messages': {
+      id: '/api/chat/messages'
+      path: '/messages'
+      fullPath: '/api/chat/messages'
+      preLoaderRoute: typeof ApiChatMessagesRouteImport
+      parentRoute: typeof ApiChatRoute
+    }
+    '/api/chat/list': {
+      id: '/api/chat/list'
+      path: '/list'
+      fullPath: '/api/chat/list'
+      preLoaderRoute: typeof ApiChatListRouteImport
+      parentRoute: typeof ApiChatRoute
+    }
+    '/api/chat/info': {
+      id: '/api/chat/info'
+      path: '/info'
+      fullPath: '/api/chat/info'
+      preLoaderRoute: typeof ApiChatInfoRouteImport
+      parentRoute: typeof ApiChatRoute
     }
     '/api/background-remover/remove': {
       id: '/api/background-remover/remove'
@@ -1739,6 +1835,23 @@ const ApiAuthRouteChildren: ApiAuthRouteChildren = {
 const ApiAuthRouteWithChildren =
   ApiAuthRoute._addFileChildren(ApiAuthRouteChildren)
 
+interface ApiChatRouteChildren {
+  ApiChatInfoRoute: typeof ApiChatInfoRoute
+  ApiChatListRoute: typeof ApiChatListRoute
+  ApiChatMessagesRoute: typeof ApiChatMessagesRoute
+  ApiChatNewRoute: typeof ApiChatNewRoute
+}
+
+const ApiChatRouteChildren: ApiChatRouteChildren = {
+  ApiChatInfoRoute: ApiChatInfoRoute,
+  ApiChatListRoute: ApiChatListRoute,
+  ApiChatMessagesRoute: ApiChatMessagesRoute,
+  ApiChatNewRoute: ApiChatNewRoute,
+}
+
+const ApiChatRouteWithChildren =
+  ApiChatRoute._addFileChildren(ApiChatRouteChildren)
+
 interface ApiRemoverJobsRouteChildren {
   ApiRemoverJobsIdRoute: typeof ApiRemoverJobsIdRoute
 }
@@ -1777,6 +1890,7 @@ const rootRouteChildren: RootRouteChildren = {
   ActivityChatsRoute: ActivityChatsRoute,
   ActivityFeedbacksRoute: ActivityFeedbacksRoute,
   ApiAuthRoute: ApiAuthRouteWithChildren,
+  ApiChatRoute: ApiChatRouteWithChildren,
   BlogSlugRoute: BlogSlugRoute,
   SettingsApikeysRoute: SettingsApikeysRoute,
   SettingsBillingRoute: SettingsBillingRoute,

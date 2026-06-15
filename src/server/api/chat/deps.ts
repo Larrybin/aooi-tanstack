@@ -2,7 +2,6 @@ import {
   consumeCredits,
   refundConsumedCreditById,
 } from '@/domains/account/infra/credit';
-import { getAiProviderBindings } from '@/domains/ai/application/provider-bindings';
 import type {
   ChatMessageRecord,
   ChatRecord,
@@ -25,7 +24,10 @@ import {
   getChatMessagesCount,
   getChatMessageWindow,
 } from '@/domains/chat/infra/chat-message';
-import { readAiRuntimeSettingsCached } from '@/domains/settings/application/settings-runtime.query';
+import type {
+  AiProviderBindings,
+  AiRuntimeSettings,
+} from '@/domains/settings/application/settings-runtime.contracts';
 
 function toChatStatus(status: DomainChatStatus): ChatStatus {
   switch (status) {
@@ -105,7 +107,7 @@ function mapChatMessageRecord(
   };
 }
 
-export const chatNewDeps = {
+const chatNewDeps = {
   createChat: async (record: NewChatRecord) =>
     mapChatRecord(
       await createChat({
@@ -124,7 +126,7 @@ export const chatNewDeps = {
     ) as ChatRecord,
 };
 
-export const chatListDeps = {
+const chatListDeps = {
   getChats: async ({
     userId,
     status,
@@ -157,11 +159,11 @@ export const chatListDeps = {
     }),
 };
 
-export const chatInfoDeps = {
+const chatInfoDeps = {
   findChatById: async (id: string) => mapChatRecord(await findChatById(id)),
 };
 
-export const chatMessagesDeps = {
+const chatMessagesDeps = {
   findChatById: async (id: string) => mapChatRecord(await findChatById(id)),
   getChatMessages: async ({
     chatId,
@@ -183,7 +185,11 @@ export const chatMessagesDeps = {
     getChatMessagesCount({ chatId }),
 };
 
-export const chatStreamDeps = {
+function createChatStreamDeps(input: {
+  readAiRuntimeSettings: () => Promise<AiRuntimeSettings>;
+  readAiProviderBindings: () => Promise<AiProviderBindings>;
+}) {
+  return {
   findChatById: async (id: string) => mapChatRecord(await findChatById(id)),
   createChatMessage: async (record: NewChatMessageRecord) =>
     mapChatMessageRecord(
@@ -211,8 +217,24 @@ export const chatStreamDeps = {
         limit,
       })
     ).map(mapChatMessageRecord),
-  readAiRuntimeSettings: readAiRuntimeSettingsCached,
-  readAiProviderBindings: async () => getAiProviderBindings(),
+  readAiRuntimeSettings: input.readAiRuntimeSettings,
+  readAiProviderBindings: input.readAiProviderBindings,
   consumeCredits,
   refundConsumedCreditById,
-};
+  };
+}
+
+export function createChatDataDeps(input: {
+  readAiRuntimeSettings: () => Promise<AiRuntimeSettings>;
+  readAiProviderBindings: () => Promise<AiProviderBindings>;
+}) {
+  return {
+    chatNewDeps,
+    chatListDeps,
+    chatInfoDeps,
+    chatMessagesDeps,
+    chatStreamDeps: createChatStreamDeps(input),
+  };
+}
+
+export type ChatDataDeps = ReturnType<typeof createChatDataDeps>;

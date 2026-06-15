@@ -1,4 +1,3 @@
-import type { ApiContext } from '@/app/api/_lib/context';
 import {
   createChatUseCase,
   getChatInfoUseCase,
@@ -7,6 +6,7 @@ import {
   streamChatUseCase,
 } from '@/domains/chat/application/use-cases';
 import type { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import type { z } from 'zod';
 import type { convertToModelMessages, streamText, UIMessage } from 'ai';
 
 import { jsonOk } from '@/shared/lib/api/response';
@@ -23,22 +23,28 @@ import {
   ChatMessagesBodySchema,
   type ChatMessagesBody,
 } from '@/shared/schemas/api/chat/messages';
-import { ChatNewBodySchema } from '@/shared/schemas/api/chat/new';
+import {
+  ChatNewBodySchema,
+  type ChatNewBody,
+} from '@/shared/schemas/api/chat/new';
 import {
   ChatStreamBodySchema,
   type ChatStreamBody,
 } from '@/shared/schemas/api/chat/stream';
 
-import type {
-  chatInfoDeps,
-  chatListDeps,
-  chatMessagesDeps,
-  chatNewDeps,
-  chatStreamDeps,
-} from './deps';
+import type { ChatDataDeps } from './deps';
 
-export type ChatApiContext = Pick<ApiContext, 'log' | 'requireUser'> & {
-  parseJson: ApiContext['parseJson'];
+type ChatLog = {
+  debug(message: string, meta?: unknown): void;
+  info(message: string, meta?: unknown): void;
+  warn(message: string, meta?: unknown): void;
+  error(message: string, meta?: unknown): void;
+};
+
+export type ChatApiContext = {
+  log: ChatLog;
+  parseJson: <TSchema extends z.ZodTypeAny>(schema: TSchema) => Promise<z.infer<TSchema>>;
+  requireUser: () => Promise<{ id: string }>;
 };
 
 export type ChatHandlerDeps = {
@@ -49,11 +55,11 @@ export type ChatHandlerDeps = {
   createProvider: typeof createOpenRouter;
   streamText: typeof streamText;
   convertToModelMessages: typeof convertToModelMessages;
-  chatNewDeps: typeof chatNewDeps;
-  chatListDeps: typeof chatListDeps;
-  chatInfoDeps: typeof chatInfoDeps;
-  chatMessagesDeps: typeof chatMessagesDeps;
-  chatStreamDeps: typeof chatStreamDeps;
+  chatNewDeps: ChatDataDeps['chatNewDeps'];
+  chatListDeps: ChatDataDeps['chatListDeps'];
+  chatInfoDeps: ChatDataDeps['chatInfoDeps'];
+  chatMessagesDeps: ChatDataDeps['chatMessagesDeps'];
+  chatStreamDeps: ChatDataDeps['chatStreamDeps'];
 };
 
 export function createChatNewPostAction(deps: ChatHandlerDeps) {
@@ -61,7 +67,9 @@ export function createChatNewPostAction(deps: ChatHandlerDeps) {
     await deps.requireAiEnabled();
 
     const api = deps.createApiContext(request);
-    const { message, body } = await api.parseJson(ChatNewBodySchema);
+    const { message, body } = (await api.parseJson(
+      ChatNewBodySchema
+    )) as ChatNewBody;
     const user = await api.requireUser();
 
     const chat = await createChatUseCase(
@@ -86,8 +94,9 @@ export function createChatListPostAction(deps: ChatHandlerDeps) {
     await deps.requireAiEnabled();
 
     const api = deps.createApiContext(request);
-    const { page, limit }: ChatListBody =
-      await api.parseJson(ChatListBodySchema);
+    const { page, limit } = (await api.parseJson(
+      ChatListBodySchema
+    )) as ChatListBody;
     const user = await api.requireUser();
 
     const result = await listChatsUseCase(
@@ -111,7 +120,7 @@ export function createChatInfoPostAction(deps: ChatHandlerDeps) {
     await deps.requireAiEnabled();
 
     const api = deps.createApiContext(request);
-    const { chatId }: ChatInfoBody = await api.parseJson(ChatInfoBodySchema);
+    const { chatId } = (await api.parseJson(ChatInfoBodySchema)) as ChatInfoBody;
     const user = await api.requireUser();
 
     const chat = await getChatInfoUseCase(
@@ -134,9 +143,9 @@ export function createChatMessagesPostAction(deps: ChatHandlerDeps) {
 
     const api = deps.createApiContext(request);
     const { log } = api;
-    const { chatId, page, limit }: ChatMessagesBody = await api.parseJson(
+    const { chatId, page, limit } = (await api.parseJson(
       ChatMessagesBodySchema
-    );
+    )) as ChatMessagesBody;
     const user = await api.requireUser();
 
     const result = await listChatMessagesUseCase(
@@ -164,7 +173,7 @@ export function createChatStreamPostAction(deps: ChatHandlerDeps) {
 
     const api = deps.createApiContext(request);
     const { log } = api;
-    const parsed: ChatStreamBody = await api.parseJson(ChatStreamBodySchema);
+    const parsed = (await api.parseJson(ChatStreamBodySchema)) as ChatStreamBody;
     const { chatId, message: rawMessage, model, webSearch, reasoning } = parsed;
     const user = await api.requireUser();
 
