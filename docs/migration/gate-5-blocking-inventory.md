@@ -1,23 +1,23 @@
 # Gate 5 Blocking Inventory
 
-Status: generated for Gate 5.1
+Status: updated after Gate 5.2 partial API migrations
 Scope: `migration/tanstack-start-native` only. `main` remains unchanged.
 
 ## Current branch state
 
 - Branch: `migration/tanstack-start-native`
-- HEAD: `fd3d40b3`
+- HEAD: `3c019964`
 - Upstream HEAD: `fd3d40b3`
-- Ahead/behind upstream: `0	0`
-- `origin/main...HEAD`: `2	104`
+- Ahead/behind upstream: `0	5`
+- `origin/main...HEAD`: `2	109`
 
 ## Summary
 
 - Next API route handlers: 35
-- TanStack API route handlers: 20
-- Next API routes already covered by TanStack path: 19
-- Next API routes missing TanStack path coverage: 16
-- `src/app/api` test files that must move before final deletion: 19
+- TanStack API route handlers: 24
+- Next API routes already covered by TanStack path: 23
+- Next API routes missing TanStack path coverage: 12
+- `src/app/api` test files that must move before final deletion: 17
 - Direct blocked dependencies still present: 8
 - Active package scripts with Next/OpenNext references: 8
 - `next_intl` active scan hits: 28
@@ -36,7 +36,6 @@ Every listed route must either move to `apps/web/src/routes/api/**` with its tes
 
 | API route | Next source | Owner | Phase | Required decision |
 | --- | --- | --- | --- | --- |
-| `/api/ai/capabilities` | `src/app/api/ai/capabilities/route.ts` | apps/web/src/routes/api + src/domains/ai | Gate 5.2 | migrate to TanStack API route |
 | `/api/ai/generate` | `src/app/api/ai/generate/route.ts` | apps/web/src/routes/api + src/domains/ai | Gate 5.2 | migrate to TanStack API route |
 | `/api/ai/notify/$provider` | `src/app/api/ai/notify/[provider]/route.ts` | apps/web/src/routes/api + src/domains/ai | Gate 5.2 | migrate to TanStack API route |
 | `/api/ai/query` | `src/app/api/ai/query/route.ts` | apps/web/src/routes/api + src/domains/ai | Gate 5.2 | migrate to TanStack API route |
@@ -45,13 +44,19 @@ Every listed route must either move to `apps/web/src/routes/api/**` with its tes
 | `/api/chat/list` | `src/app/api/chat/list/route.ts` | apps/web/src/routes/api + src/domains/chat | Gate 5.2 | migrate to TanStack API route |
 | `/api/chat/messages` | `src/app/api/chat/messages/route.ts` | apps/web/src/routes/api + src/domains/chat | Gate 5.2 | migrate to TanStack API route |
 | `/api/chat/new` | `src/app/api/chat/new/route.ts` | apps/web/src/routes/api + src/domains/chat | Gate 5.2 | migrate to TanStack API route |
-| `/api/config/get-configs` | `src/app/api/config/get-configs/route.ts` | apps/web/src/routes/api + src/domains/settings/config | Gate 5.2 | migrate to TanStack API route |
-| `/api/docs/search` | `src/app/api/docs/search/route.ts` | apps/web/src/routes/api + src/domains/content/docs | Gate 5.2 | migrate to TanStack API route |
 | `/api/email/send-email` | `src/app/api/email/send-email/route.ts` | apps/web/src/routes/api + src/infra/adapters/email | Gate 5.2 | migrate to TanStack API route |
 | `/api/email/test` | `src/app/api/email/test/route.ts` | apps/web/src/routes/api + src/infra/adapters/email | Gate 5.2 | migrate to TanStack API route |
 | `/api/email/verify-code` | `src/app/api/email/verify-code/route.ts` | apps/web/src/routes/api + src/infra/adapters/email | Gate 5.2 | migrate to TanStack API route |
-| `/api/remover/cleanup` | `src/app/api/remover/cleanup/route.ts` | apps/web/src/routes/api + src/domains/remover | Gate 5.2 | migrate to TanStack API route |
 | `/api/storage/upload-image` | `src/app/api/storage/upload-image/route.ts` | apps/web/src/routes/api + storage adapter | Gate 5.2 | migrate to TanStack API route |
+
+Resolved Gate 5.2 API parity:
+
+| API route | TanStack source | Runtime/test owner | Status |
+| --- | --- | --- | --- |
+| `/api/ai/capabilities` | `apps/web/src/routes/api/ai/capabilities.ts` | `src/server/api/ai/capabilities-route.ts`, `src/domains/ai/application/capabilities-core.ts` | migrated/resolved |
+| `/api/config/get-configs` | `apps/web/src/routes/api/config/get-configs.ts` | `src/server/api/config/get-configs-logic.ts` | migrated/resolved |
+| `/api/docs/search` | `apps/web/src/routes/api/docs/search.ts` | `src/server/api/docs/search-route.ts`, `src/server/api/docs/search-index.ts` | migrated/resolved |
+| `/api/remover/cleanup` | `apps/web/src/routes/api/remover/cleanup.ts` | `src/server/api/remover/cleanup-route.ts` | migrated/resolved |
 
 Already covered paths are not deletion blockers, but their tests must still move away from `src/app/api/**` before final deletion.
 
@@ -83,12 +88,10 @@ Already covered paths are not deletion blockers, but their tests must still move
 
 These tests must move to TanStack route/helper/domain locations before `src/app/**` deletion.
 
-- `src/app/api/ai/capabilities/route.test.ts`
 - `src/app/api/ai/generate/route.test.ts`
 - `src/app/api/ai/notify-route.server.test.ts`
 - `src/app/api/ai/notify/signature.server.test.ts`
 - `src/app/api/chat/create-handlers.test.ts`
-- `src/app/api/config/get-configs/route.test.ts`
 - `src/app/api/limiters-contract.test.ts`
 - `src/app/api/payment/callback/route.test.ts`
 - `src/app/api/payment/checkout/route.test.ts`
@@ -102,6 +105,15 @@ These tests must move to TanStack route/helper/domain locations before `src/app/
 - `src/app/api/tts/generate/action.test.ts`
 - `src/app/api/tts/generate/provider.server.test.ts`
 - `src/app/api/user/get-user-credits/action.test.ts`
+
+Resolved Gate 5.2 test evidence:
+
+- `src/server/api/ai/capabilities-route.server.test.ts`
+- `src/domains/ai/application/capabilities.test.ts`
+- `src/server/api/config/get-configs-logic.server.test.ts`
+- `src/server/api/docs/search-route.server.test.ts`
+- `src/server/api/docs/search-index.server.test.ts`
+- `src/server/api/remover/cleanup-route.server.test.ts`
 
 ### 3. Non-app `next-intl` / `next/navigation` / `next/image` / `next/cache` residues
 
