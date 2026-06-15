@@ -38,7 +38,7 @@ The checker owns only non-app import inventory and owner-gate classification. Ta
 | `migrated` | already replaced or no longer a residue |
 | `active_blocker` | must be fixed in Gate 5.3 |
 | `legacy_only` | legacy-only surface; not active TanStack route closure |
-| `defer_gate_5_4_server_only` | `server-only` marker; belongs to Gate 5.4 |
+| `defer_gate_5_4_server_only` | source `server-only` marker; belongs to Gate 5.4 |
 | `defer_gate_5_5_opennext_worker` | OpenNext / split worker topology; belongs to Gate 5.5 |
 | `defer_gate_5_6_next_cache` | `next/cache` residue; deletion/cache replacement gate |
 | `defer_gate_5_6_next_deletion` | package/legacy Next deletion residue; belongs to Gate 5.6 |
@@ -123,3 +123,7 @@ Stop if implementation requires:
 - removing Next/OpenNext dependencies;
 - changing Cloudflare topology;
 - changing auth/session/payment/quota/storage/email/AI semantics.
+
+## Gate 5.4 handoff note
+
+After Gate 5.4 removes source-level markers, `package.json` `server-only` remains classified as `defer_gate_5_6_next_deletion`; package deletion is not part of Gate 5.4.

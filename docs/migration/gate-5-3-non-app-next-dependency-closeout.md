@@ -156,3 +156,7 @@ Result: passed.
 - OpenNext worker topology remains unchanged and belongs to Gate 5.5.
 - Package dependencies for Next, next-intl, @next/env, OpenNext, and server-only remain until Gate 5.6.
 - Legacy-only UI/provider components still contain Next imports but are classified; active TanStack route reachability remains enforced by `scripts/validate-tanstack-native-migration.mjs`.
+
+## Post Gate 5.4 classification update
+
+Source-level `server-only` markers are handled by Gate 5.4. The remaining `package.json` dependency is classified as `defer_gate_5_6_next_deletion` and must not be removed before the final Next/OpenNext deletion gate.

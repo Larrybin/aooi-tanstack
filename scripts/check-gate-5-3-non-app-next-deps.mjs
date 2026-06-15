@@ -240,6 +240,12 @@ function classifyHit(hit) {
   }
 
   if (specifier === 'server-only') {
+    if (kind.startsWith('package:')) {
+      return reasonFor(
+        'defer_gate_5_6_next_deletion',
+        'package dependency removed only in Gate 5.6'
+      );
+    }
     return reasonFor(
       'defer_gate_5_4_server_only',
       'server-only marker removal belongs to Gate 5.4'
