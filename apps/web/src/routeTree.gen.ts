@@ -52,6 +52,7 @@ import { Route as ApiUserGetUserCreditsRouteImport } from './routes/api/user/get
 import { Route as ApiTtsQuotaRouteImport } from './routes/api/tts/quota'
 import { Route as ApiTtsHistoryRouteImport } from './routes/api/tts/history'
 import { Route as ApiTtsGenerateRouteImport } from './routes/api/tts/generate'
+import { Route as ApiStorageUploadImageRouteImport } from './routes/api/storage/upload-image'
 import { Route as ApiRemoverUploadRouteImport } from './routes/api/remover/upload'
 import { Route as ApiRemoverJobsRouteImport } from './routes/api/remover/jobs'
 import { Route as ApiRemoverCleanupRouteImport } from './routes/api/remover/cleanup'
@@ -316,6 +317,11 @@ const ApiTtsHistoryRoute = ApiTtsHistoryRouteImport.update({
 const ApiTtsGenerateRoute = ApiTtsGenerateRouteImport.update({
   id: '/api/tts/generate',
   path: '/api/tts/generate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStorageUploadImageRoute = ApiStorageUploadImageRouteImport.update({
+  id: '/api/storage/upload-image',
+  path: '/api/storage/upload-image',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiRemoverUploadRoute = ApiRemoverUploadRouteImport.update({
@@ -643,6 +649,7 @@ export interface FileRoutesByFullPath {
   '/api/remover/cleanup': typeof ApiRemoverCleanupRoute
   '/api/remover/jobs': typeof ApiRemoverJobsRouteWithChildren
   '/api/remover/upload': typeof ApiRemoverUploadRoute
+  '/api/storage/upload-image': typeof ApiStorageUploadImageRoute
   '/api/tts/generate': typeof ApiTtsGenerateRoute
   '/api/tts/history': typeof ApiTtsHistoryRoute
   '/api/tts/quota': typeof ApiTtsQuotaRoute
@@ -737,6 +744,7 @@ export interface FileRoutesByTo {
   '/api/remover/cleanup': typeof ApiRemoverCleanupRoute
   '/api/remover/jobs': typeof ApiRemoverJobsRouteWithChildren
   '/api/remover/upload': typeof ApiRemoverUploadRoute
+  '/api/storage/upload-image': typeof ApiStorageUploadImageRoute
   '/api/tts/generate': typeof ApiTtsGenerateRoute
   '/api/tts/history': typeof ApiTtsHistoryRoute
   '/api/tts/quota': typeof ApiTtsQuotaRoute
@@ -832,6 +840,7 @@ export interface FileRoutesById {
   '/api/remover/cleanup': typeof ApiRemoverCleanupRoute
   '/api/remover/jobs': typeof ApiRemoverJobsRouteWithChildren
   '/api/remover/upload': typeof ApiRemoverUploadRoute
+  '/api/storage/upload-image': typeof ApiStorageUploadImageRoute
   '/api/tts/generate': typeof ApiTtsGenerateRoute
   '/api/tts/history': typeof ApiTtsHistoryRoute
   '/api/tts/quota': typeof ApiTtsQuotaRoute
@@ -928,6 +937,7 @@ export interface FileRouteTypes {
     | '/api/remover/cleanup'
     | '/api/remover/jobs'
     | '/api/remover/upload'
+    | '/api/storage/upload-image'
     | '/api/tts/generate'
     | '/api/tts/history'
     | '/api/tts/quota'
@@ -1022,6 +1032,7 @@ export interface FileRouteTypes {
     | '/api/remover/cleanup'
     | '/api/remover/jobs'
     | '/api/remover/upload'
+    | '/api/storage/upload-image'
     | '/api/tts/generate'
     | '/api/tts/history'
     | '/api/tts/quota'
@@ -1116,6 +1127,7 @@ export interface FileRouteTypes {
     | '/api/remover/cleanup'
     | '/api/remover/jobs'
     | '/api/remover/upload'
+    | '/api/storage/upload-image'
     | '/api/tts/generate'
     | '/api/tts/history'
     | '/api/tts/quota'
@@ -1206,6 +1218,7 @@ export interface RootRouteChildren {
   ApiRemoverCleanupRoute: typeof ApiRemoverCleanupRoute
   ApiRemoverJobsRoute: typeof ApiRemoverJobsRouteWithChildren
   ApiRemoverUploadRoute: typeof ApiRemoverUploadRoute
+  ApiStorageUploadImageRoute: typeof ApiStorageUploadImageRoute
   ApiTtsGenerateRoute: typeof ApiTtsGenerateRoute
   ApiTtsHistoryRoute: typeof ApiTtsHistoryRoute
   ApiTtsQuotaRoute: typeof ApiTtsQuotaRoute
@@ -1536,6 +1549,13 @@ declare module '@tanstack/react-router' {
       path: '/api/tts/generate'
       fullPath: '/api/tts/generate'
       preLoaderRoute: typeof ApiTtsGenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/storage/upload-image': {
+      id: '/api/storage/upload-image'
+      path: '/api/storage/upload-image'
+      fullPath: '/api/storage/upload-image'
+      preLoaderRoute: typeof ApiStorageUploadImageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/remover/upload': {
@@ -1984,6 +2004,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRemoverCleanupRoute: ApiRemoverCleanupRoute,
   ApiRemoverJobsRoute: ApiRemoverJobsRouteWithChildren,
   ApiRemoverUploadRoute: ApiRemoverUploadRoute,
+  ApiStorageUploadImageRoute: ApiStorageUploadImageRoute,
   ApiTtsGenerateRoute: ApiTtsGenerateRoute,
   ApiTtsHistoryRoute: ApiTtsHistoryRoute,
   ApiTtsQuotaRoute: ApiTtsQuotaRoute,

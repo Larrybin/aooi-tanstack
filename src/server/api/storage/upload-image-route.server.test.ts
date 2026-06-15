@@ -8,7 +8,7 @@ import {
 } from '@/shared/lib/api/errors';
 import { readUploadRequestInput } from '@/shared/lib/runtime/upload';
 
-import { createStorageUploadImagePostHandler } from './route';
+import { createStorageUploadImagePostHandler } from './upload-image-route';
 import { detectAllowedImageMime, uploadImageFiles } from './upload-image-files';
 
 function createLog() {
@@ -150,6 +150,7 @@ test('storage/upload-image 路由会把 fresh 模式闭包传给 getStorageServi
       files: [createPngFile()],
       runtimePlatform: 'node',
     }),
+    uploadImageFiles,
     getStorageService: async (options) => {
       receivedModes.push(options?.mode);
       return {

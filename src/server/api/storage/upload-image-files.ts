@@ -1,4 +1,4 @@
-import type { getStorageService } from '@/infra/adapters/storage/service';
+import type { StorageService } from '@/infra/adapters/storage/service-builder';
 
 import {
   BadRequestError,
@@ -98,7 +98,7 @@ export function detectAllowedImageMime(
 
 type UploadImageDeps = {
   getStorageService: () => Promise<
-    Pick<Awaited<ReturnType<typeof getStorageService>>, 'uploadFile'>
+    Pick<StorageService, 'uploadFile'>
   >;
   log: {
     error: (message: string, meta?: Record<string, unknown>) => void;
