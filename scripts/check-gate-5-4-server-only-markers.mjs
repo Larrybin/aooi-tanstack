@@ -141,17 +141,29 @@ function resolveSpecifier(fromRepoPath, specifier) {
   return null;
 }
 
+function isTanStackServerFunctionBoundary(repoPath, source) {
+  return (
+    repoPath.startsWith('src/server/') &&
+    source.includes('@tanstack/react-start') &&
+    /\bcreateServerFn\b/.test(source)
+  );
+}
+
 function buildGraph(files) {
   const fileSet = new Set(files.map(toRepoPath));
   const sources = new Map();
   const graph = new Map();
   const entryRoots = [];
+  const serverBoundaries = new Set();
   for (const filePath of files) {
     const repoPath = toRepoPath(filePath);
     if (!SOURCE_EXTENSIONS.some((extension) => repoPath.endsWith(extension))) continue;
     const source = readFileSync(filePath, 'utf8');
     sources.set(repoPath, source);
     if (isEntryRoot(repoPath, source)) entryRoots.push(repoPath);
+    if (isTanStackServerFunctionBoundary(repoPath, source)) {
+      serverBoundaries.add(repoPath);
+    }
   }
   for (const [repoPath, source] of sources) {
     const resolved = [];
@@ -159,19 +171,19 @@ function buildGraph(files) {
       const resolvedPath = resolveSpecifier(repoPath, specifier);
       if (!resolvedPath) continue;
       const resolvedRepoPath = toRepoPath(resolvedPath);
-      if (resolvedRepoPath.startsWith('src/server/')) continue;
-      if (/\.data\.(ts|tsx)$/.test(resolvedRepoPath)) continue;
       if (fileSet.has(resolvedRepoPath) && !isIgnoredRepoPath(resolvedRepoPath)) resolved.push(resolvedRepoPath);
     }
     graph.set(repoPath, resolved);
   }
-  return { graph, entryRoots };
+  return { graph, entryRoots, serverBoundaries };
 }
 
 function findReachabilityViolations(files) {
-  const { graph, entryRoots } = buildGraph(files);
+  const { graph, entryRoots, serverBoundaries } = buildGraph(files);
   const protectedSet = new Set(protectedServerOnlyFiles);
   const violations = [];
+  const serverBoundaryHits = [];
+  const seenServerBoundaryHits = new Set();
   for (const entry of entryRoots) {
     const queue = [{ repoPath: entry, path: [entry] }];
     const seen = new Set([entry]);
@@ -181,6 +193,18 @@ function findReachabilityViolations(files) {
         violations.push({ entry, target: current.repoPath, path: current.path });
         continue;
       }
+      if (current.repoPath !== entry && serverBoundaries.has(current.repoPath)) {
+        const key = `${entry}:${current.repoPath}`;
+        if (!seenServerBoundaryHits.has(key)) {
+          seenServerBoundaryHits.add(key);
+          serverBoundaryHits.push({
+            entry,
+            boundary: current.repoPath,
+            path: current.path,
+          });
+        }
+        continue;
+      }
       for (const next of graph.get(current.repoPath) ?? []) {
         if (seen.has(next)) continue;
         seen.add(next);
@@ -188,7 +212,7 @@ function findReachabilityViolations(files) {
       }
     }
   }
-  return violations;
+  return { violations, serverBoundaryHits };
 }
 
 function assertProtectedManifest() {
@@ -198,23 +222,53 @@ function assertProtectedManifest() {
   return { uniqueCount: unique.size, missing, duplicates };
 }
 
+function assertServerOnlyPackageDependency() {
+  const packagePath = abs('package.json');
+  if (!existsSync(packagePath)) return { present: false, section: null };
+
+  const pkg = JSON.parse(readFileSync(packagePath, 'utf8'));
+  for (const section of [
+    'dependencies',
+    'devDependencies',
+    'optionalDependencies',
+  ]) {
+    if (Object.hasOwn(pkg[section] ?? {}, marker)) {
+      return { present: true, section };
+    }
+  }
+
+  return { present: false, section: null };
+}
+
 const files = collectFiles();
 const markerResult = collectSourceMarkerHits(files);
 const manifestResult = assertProtectedManifest();
-const reachabilityViolations = findReachabilityViolations(files);
+const reachabilityResult = findReachabilityViolations(files);
+const packageResult = assertServerOnlyPackageDependency();
 
 console.log('Gate 5.4 server-only marker report');
 console.log(`protected module count: ${manifestResult.uniqueCount}`);
 console.log(`source marker count: ${markerResult.hits.length}`);
-console.log(`reachability violation count: ${reachabilityViolations.length}`);
+console.log(`server boundary hit count: ${reachabilityResult.serverBoundaryHits.length}`);
+console.log(`reachability violation count: ${reachabilityResult.violations.length}`);
+console.log(
+  `server-only package dependency: ${packageResult.present ? packageResult.section : 'missing'}`
+);
 
 if (reportMode && markerResult.hits.length > 0) {
   console.log('\n[source markers]');
   for (const hit of markerResult.hits) console.log(`- ${hit.repoPath}:${hit.line}`);
 }
-if (reachabilityViolations.length > 0) {
+if (reportMode && reachabilityResult.serverBoundaryHits.length > 0) {
+  console.log('\n[server boundaries]');
+  for (const boundary of reachabilityResult.serverBoundaryHits) {
+    console.log(`- ${boundary.entry} -> ${boundary.boundary}`);
+    console.log(`  path: ${boundary.path.join(' -> ')}`);
+  }
+}
+if (reachabilityResult.violations.length > 0) {
   console.log('\n[reachability violations]');
-  for (const violation of reachabilityViolations) {
+  for (const violation of reachabilityResult.violations) {
     console.log(`- ${violation.entry} -> ${violation.target}`);
     console.log(`  path: ${violation.path.join(' -> ')}`);
   }
@@ -225,7 +279,8 @@ if (manifestResult.uniqueCount !== protectedServerOnlyFiles.length) failures.pus
 if (manifestResult.missing.length > 0) failures.push(`protected files missing: ${manifestResult.missing.join(', ')}`);
 if (manifestResult.duplicates.length > 0) failures.push(`protected duplicate files: ${manifestResult.duplicates.join(', ')}`);
 if (markerResult.unexpected.length > 0) failures.push(`unexpected marker files: ${markerResult.unexpected.map((hit) => hit.repoPath).join(', ')}`);
-if (reachabilityViolations.length > 0) failures.push(`protected reachability violations: ${reachabilityViolations.length}`);
+if (reachabilityResult.violations.length > 0) failures.push(`protected reachability violations: ${reachabilityResult.violations.length}`);
+if (!packageResult.present) failures.push('server-only package dependency is missing');
 if (!reportMode && markerResult.hits.length > 0) failures.push(`source server-only marker imports remain: ${markerResult.hits.length}`);
 
 if (failures.length > 0) {

@@ -28,8 +28,9 @@ scripts/gate-5-4-server-only-protected-files.mjs
 Strict mode fails when:
 
 - any non-app source-level exact `import 'server-only'` / `import "server-only"` remains;
-- any protected module is reachable from protected browser-capable entry roots;
+- any protected module is reachable from protected browser-capable entry roots outside an explicit TanStack server-function boundary;
 - any marker exists outside the protected manifest.
+- the `server-only` package dependency is removed before Gate 5.6.
 
 ## Protected module contract
 
@@ -44,7 +45,9 @@ Forbidden entry roots include:
 - `src/shared/components/**`;
 - `src/domains/**/ui/**`.
 
-The checker stops traversal at explicit server data boundaries such as `src/server/**` and `*.data.ts(x)`. Existing TanStack server data/resolver paths remain governed by `scripts/validate-tanstack-native-migration.mjs` and architecture checks.
+The checker follows `*.data.ts(x)` files and non-boundary `src/server/**` files. It stops only at explicit TanStack server-function boundaries, defined as `src/server/**` files that use `createServerFn` from `@tanstack/react-start`, and reports those boundaries.
+
+Non-client `src/themes/**` and non-client extension server components are legacy-only composition surfaces in this gate. They are intentionally outside the Gate 5.4 protected reachability scope and remain owned by later route/deletion gates. Any `'use client'` file under `src/themes/**`, `src/extensions/**`, or any other scanned source path is still a forbidden browser-capable entry root.
 
 Allowed server owners include:
 
@@ -60,7 +63,7 @@ Allowed server owners include:
 
 Remove only exact marker lines:
 
-```ts
+```text
 import 'server-only';
 import "server-only";
 ```

@@ -30,15 +30,17 @@ The checker verifies:
 
 - no non-`src/app/**` source marker imports remain;
 - the original protected module manifest has 72 files;
-- protected modules are not reachable from browser-capable client/surface/TanStack page entries;
-- `package.json` `server-only` dependency is allowed until Gate 5.6;
+- protected modules are not reachable from browser-capable client/surface/TanStack page entries outside explicit TanStack server-function boundaries;
+- surface `*.data.ts(x)` and non-boundary `src/server/**` files are traversed by the checker;
+- explicit TanStack server-function boundaries are reported by the checker;
+- `package.json` `server-only` dependency is required until Gate 5.6;
 - `vite.config.mts` `server-only` alias is allowed until Gate 5.6.
 
 ### Marker removal
 
 Removed exact source marker lines only:
 
-```ts
+```text
 import 'server-only';
 import "server-only";
 ```
@@ -69,7 +71,9 @@ Source-level marker removal is now closed by Gate 5.4.
 source marker count before: 72
 source marker count after: 0
 protected module count: 72
+server boundary hit count: 62
 reachability violation count: 0
+server-only package dependency: dependencies
 ```
 
 ## Preserved boundaries
@@ -82,6 +86,7 @@ src/shared/lib/next-cache.ts keeps next/cache
 src/shared/lib/action/with-action.ts keeps next/headers
 src/app/** untouched
 Cloudflare worker/OpenNext topology untouched
+non-client src/themes/** and non-client extension server components remain legacy-only and are not in the Gate 5.4 reachability scope
 ```
 
 ## Validation commands and results
