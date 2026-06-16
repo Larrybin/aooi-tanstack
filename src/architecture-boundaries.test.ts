@@ -1087,15 +1087,15 @@ test('architecture: 架构门禁配置保持单一事实源', async () => {
     ruleNames.includes('no-circular'),
     'dependency-cruiser.cjs 必须启用 no-circular'
   );
-  assert.ok(
+  assert.equal(
     ruleNames.includes('no-admin-app-to-domain-infra-or-adapters'),
-    'dependency-cruiser.cjs 必须包含 admin app 入口目录门禁'
+    false,
+    'legacy admin app 入口目录门禁应随 src/app 删除'
   );
-  assert.ok(
-    ruleNames.includes(
-      'no-surfaces-admin-to-app-facades-domain-infra-or-adapters'
-    ),
-    'dependency-cruiser.cjs 必须包含 surfaces/admin 目录门禁'
+  assert.equal(
+    ARCHITECTURE_RULES.appOnlyFacades.length,
+    0,
+    'app-only facades 应随 src/app 删除'
   );
 });
 

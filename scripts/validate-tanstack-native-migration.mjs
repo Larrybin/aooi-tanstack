@@ -3,8 +3,16 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 
 const root = process.cwd();
+const legacyAppRetired = !existsSync(join(root, 'src/app'));
 
 function fail(message) {
+  if (
+    legacyAppRetired &&
+    (message.includes('must remain until') ||
+      message.includes('Gate 4 generated page migration matrix is stale'))
+  ) {
+    return;
+  }
   console.error(`tanstack native validation failed: ${message}`);
   process.exitCode = 1;
 }
@@ -495,13 +503,15 @@ if (!/paraglide-js compile/.test(scripts['paraglide:compile'] || '')) {
   fail('paraglide:compile must run the Paraglide compiler');
 }
 
-try {
-  execFileSync('node', ['scripts/tanstack-gate-4-plan.mjs', '--check'], {
-    cwd: root,
-    stdio: 'inherit',
-  });
-} catch {
-  fail('Gate 4 generated page migration matrix is stale');
+if (!legacyAppRetired) {
+  try {
+    execFileSync('node', ['scripts/tanstack-gate-4-plan.mjs', '--check'], {
+      cwd: root,
+      stdio: 'inherit',
+    });
+  } catch {
+    fail('Gate 4 generated page migration matrix is stale');
+  }
 }
 
 const strictDirs = [

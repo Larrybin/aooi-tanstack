@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import Script from 'next/script';
 
 import type { AnalyticsConfigs, AnalyticsProvider } from './types';
 
@@ -28,14 +27,12 @@ export class GoogleAnalyticsProvider implements AnalyticsProvider {
     return (
       <>
         {/* Google tag (gtag.js) */}
-        <Script
+        <script
           src={`https://www.googletagmanager.com/gtag/js?id=${this.configs.gaId}`}
-          strategy="afterInteractive"
           async
         />
-        <Script
+        <script
           id={this.name}
-          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               window.dataLayer = window.dataLayer || [];

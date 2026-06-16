@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import Script from 'next/script';
 
 import type { CustomerServiceConfigs, CustomerServiceProvider } from './types';
 
@@ -28,9 +27,8 @@ export class TawkCustomerServiceProvider implements CustomerServiceProvider {
   getHeadScripts(): ReactNode {
     return (
       <>
-        <Script
+        <script
           id={`${this.name}-script`}
-          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
                 var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();

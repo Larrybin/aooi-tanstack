@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import Script from 'next/script';
 
 import type { AffiliateConfigs, AffiliateProvider } from './types';
 
@@ -28,14 +27,13 @@ export class AffonsoAffiliateProvider implements AffiliateProvider {
   getHeadScripts(): ReactNode {
     return (
       <>
-        <Script
+        <script
           id={`${this.name}-script`}
           async
           defer
           src="https://affonso.io/js/pixel.min.js"
           data-affonso={this.configs.affonsoId}
           data-cookie_duration={this.configs.cookieDuration ?? 30}
-          strategy="afterInteractive"
         />
       </>
     );

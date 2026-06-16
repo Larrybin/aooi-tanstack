@@ -84,7 +84,6 @@ export function LandingShellView({
         <header className="landing-shell-header">
           <a className="landing-shell-brand" href={shell.brand.url || '/'}>
             {shell.brand.logo ? (
-              // eslint-disable-next-line @next/next/no-img-element -- TanStack routes cannot use next/image.
               <img
                 src={shell.brand.logo.src}
                 alt={shell.brand.logo.alt}

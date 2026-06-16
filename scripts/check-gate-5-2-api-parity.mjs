@@ -186,6 +186,7 @@ if (unknownApis.length > 0) {
 }
 
 const failures = [];
+const legacyAppRetired = !fileExists('src/app');
 
 function repoPath(filePath) {
   return path.resolve(root, filePath);
@@ -236,7 +237,9 @@ function checkServerFile(filePath, api) {
 }
 
 for (const entry of selected) {
-  checkExists(entry.legacyRoute, 'legacy route', entry.api);
+  if (!legacyAppRetired) {
+    checkExists(entry.legacyRoute, 'legacy route', entry.api);
+  }
   checkExists(entry.tanstackRoute, 'TanStack route', entry.api);
 
   for (const serverFile of entry.serverFiles) {

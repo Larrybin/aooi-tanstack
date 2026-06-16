@@ -1,11 +1,6 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-
-const LocaleDetector = dynamic(
-  () => import('./locale-detector').then((mod) => mod.LocaleDetector),
-  { ssr: false }
-);
+import { LocaleDetector } from './locale-detector';
 
 export function LocaleDetectorLazy() {
   return <LocaleDetector />;

@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import Script from 'next/script';
 
 import type { AnalyticsConfigs, AnalyticsProvider } from './types';
 
@@ -27,9 +26,8 @@ export class ClarityAnalyticsProvider implements AnalyticsProvider {
   getHeadScripts(): ReactNode {
     return (
       <>
-        <Script
+        <script
           id={`${this.name}-script`}
-          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
                 (function(c,l,a,r,i,t,y){

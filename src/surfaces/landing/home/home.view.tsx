@@ -40,7 +40,6 @@ function HomeImage({ image, className }: { image?: Image; className: string }) {
   }
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element -- TanStack routes cannot use next/image.
     <img
       className={className}
       src={image.src}

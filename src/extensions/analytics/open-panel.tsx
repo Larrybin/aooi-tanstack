@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import Script from 'next/script';
 
 import type { AnalyticsConfigs, AnalyticsProvider } from './types';
 
@@ -33,9 +32,8 @@ export class OpenPanelAnalyticsProvider implements AnalyticsProvider {
     return (
       <>
         {/* OpenPanel Analytics */}
-        <Script
+        <script
           id={this.name}
-          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               window.op = window.op||function(...args){(window.op.q=window.op.q||[]).push(args);};
@@ -48,9 +46,8 @@ export class OpenPanelAnalyticsProvider implements AnalyticsProvider {
             `,
           }}
         />
-        <Script
+        <script
           src="https://openpanel.dev/op1.js"
-          strategy="afterInteractive"
           defer
           async
         />

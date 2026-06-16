@@ -17,7 +17,7 @@
 
 import '@/config/load-dotenv';
 
-import { accessControlRuntimeDeps } from '@/app/access-control/runtime-deps';
+import { AccessControlRoleStatus } from '@/infra/adapters/access-control/repository';
 import { db } from '@/infra/adapters/db';
 import { and, eq } from 'drizzle-orm';
 
@@ -111,7 +111,7 @@ async function main() {
       name: `rbac_selfcheck_${suffix}`,
       title: 'RBAC Self Check',
       description: 'Created by scripts/self-check-rbac.ts',
-      status: accessControlRuntimeDeps.AccessControlRoleStatus.ACTIVE,
+      status: AccessControlRoleStatus.ACTIVE,
       createdAt: now,
       updatedAt: now,
       sort: 0,

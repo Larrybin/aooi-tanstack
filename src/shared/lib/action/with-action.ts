@@ -1,5 +1,4 @@
 
-import { headers } from 'next/headers';
 import { createUseCaseLogger } from '@/infra/platform/logging/logger.server';
 import {
   generateRequestId,
@@ -16,11 +15,7 @@ const log = createUseCaseLogger({
 });
 
 async function getActionRequestId(): Promise<string> {
-  try {
-    return getOrCreateRequestId(await headers());
-  } catch {
-    return generateRequestId();
-  }
+  return generateRequestId();
 }
 
 export async function withAction<T>(

@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 const rootDir = process.cwd();
 
 export const NO_DB_CLOUDFLARE_BUILD_SITES = Object.freeze([
+  'dev-local',
   'mamamiya',
   'ai-remover',
   'background-remover',

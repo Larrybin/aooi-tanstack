@@ -173,7 +173,6 @@ function Image(props: React.ImgHTMLAttributes<HTMLImageElement>) {
   // MDX content may not provide stable dimensions, so keep native img with safe alt fallback.
   const className = `rounded-lg ${props.className || ''}`;
 
-  // eslint-disable-next-line @next/next/no-img-element
   return <img {...props} alt={props.alt || ''} className={className} />;
 }
 

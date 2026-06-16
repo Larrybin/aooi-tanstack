@@ -38,7 +38,6 @@ function dedupeCaseInsensitive(values: string[]): string[] {
 /**
  * Upserts a single upstream request header override for Next.js Middleware/Proxy.
  *
- * This preserves any existing request header overrides (e.g. `next-intl`'s
  * `X-NEXT-INTL-LOCALE`) by merging with the current `x-middleware-override-headers`
  * instead of overwriting it.
  */

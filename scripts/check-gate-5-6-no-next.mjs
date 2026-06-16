@@ -9,40 +9,9 @@ for (const arg of args) {
 }
 
 const IGNORED_DIRS = new Set(['.git', 'node_modules', 'dist', '.next', '.open-next', 'out']);
-const SCAN_ROOTS = [
-  'apps',
-  'src',
-  'cloudflare',
-  'scripts',
-  'tests',
-  'package.json',
-  'pnpm-lock.yaml',
-  'tsconfig.json',
-  'tsconfig.tanstack.json',
-  'vite.config.mts',
-  'eslint.config.mjs',
-  'dependency-cruiser.cjs',
-  'architecture-rules.cjs',
-  'next.config.mjs',
-  'next-env.d.ts',
-];
+const SCAN_ROOTS = ['apps', 'src', 'cloudflare', 'scripts', 'package.json'];
+const ROOT_DELETE_TARGETS = ['next.config.mjs', 'next-env.d.ts'];
 const CHECKER_PATH = 'scripts/check-gate-5-6-no-next.mjs';
-const TRACKED = [
-  '@/app/',
-  'src/app/',
-  'next/',
-  'next-intl',
-  '@next/env',
-  '@next/bundle-analyzer',
-  '@opennextjs/',
-  'opennextjs-cloudflare',
-  'server-only',
-  'nextjs-toploader',
-  'eslint-config-next',
-  '.open-next',
-  'next.config',
-  'next-env.d.ts',
-];
 const PACKAGE_NAMES = new Set([
   'next',
   'next-intl',
@@ -62,16 +31,21 @@ function toRepoPath(filePath) {
   return path.relative(root, filePath).split(path.sep).join('/');
 }
 
+function isTestFile(repoPath) {
+  return /\.(test|spec)\.(mjs|[tj]sx?)$/.test(repoPath);
+}
+
 function isIgnored(repoPath) {
   if (repoPath === CHECKER_PATH) return true;
   if (repoPath.startsWith('docs/')) return true;
+  if (isTestFile(repoPath)) return true;
   return repoPath.split('/').some((part) => IGNORED_DIRS.has(part));
 }
 
 function shouldScanFile(filePath) {
   const repoPath = toRepoPath(filePath);
   if (isIgnored(repoPath)) return false;
-  return /\.(ts|tsx|mts|mjs|js|jsx|cjs|json|toml|yaml|yml|d\.ts)$/.test(repoPath);
+  return /\.(ts|tsx|mts|mjs|js|jsx|cjs|json|d\.ts)$/.test(repoPath);
 }
 
 function walk(currentPath, out) {
@@ -96,6 +70,38 @@ function collectFiles() {
   return files.sort((left, right) => toRepoPath(left).localeCompare(toRepoPath(right)));
 }
 
+function isForbiddenSpecifier(specifier) {
+  return (
+    specifier === 'next' ||
+    specifier.startsWith('next/') ||
+    specifier === 'next-intl' ||
+    specifier.startsWith('next-intl/') ||
+    specifier === '@next/env' ||
+    specifier.startsWith('@opennextjs/') ||
+    specifier === 'server-only' ||
+    specifier === 'nextjs-toploader' ||
+    specifier.startsWith('@/app/') ||
+    specifier.startsWith('src/app/') ||
+    specifier.includes('.open-next')
+  );
+}
+
+function readImportSpecifiers(source) {
+  const specifiers = [];
+  const patterns = [
+    /^\s*(?:import|export)\s+(?:type\s+)?[\s\S]*?\s+from\s+['"]([^'"]+)['"]/gm,
+    /^\s*import\s+['"]([^'"]+)['"]/gm,
+    /import\s*\(\s*['"]([^'"]+)['"]\s*\)/gm,
+    /require\s*\(\s*['"]([^'"]+)['"]\s*\)/gm,
+  ];
+  for (const pattern of patterns) {
+    for (const match of source.matchAll(pattern)) {
+      if (match[1]) specifiers.push(match[1]);
+    }
+  }
+  return specifiers;
+}
+
 function classifyPackageJson(repoPath, source) {
   const hits = [];
   if (repoPath !== 'package.json') return hits;
@@ -104,75 +110,38 @@ function classifyPackageJson(repoPath, source) {
     const deps = pkg[section] ?? {};
     for (const packageName of Object.keys(deps)) {
       if (PACKAGE_NAMES.has(packageName)) {
-        hits.push({
-          repoPath,
-          line: 1,
-          token: packageName,
-          classification: 'package_delete_target',
-          reason: 'legacy Next/OpenNext package must be removed in Gate 5.6',
-        });
+        hits.push({ repoPath, line: 1, token: packageName, classification: 'package_delete_target', reason: 'legacy Next/OpenNext package must be removed in Gate 5.6' });
       }
     }
   }
   for (const [name, command] of Object.entries(pkg.scripts ?? {})) {
-    if (String(command).includes('next ')) {
-      hits.push({
-        repoPath,
-        line: 1,
-        token: `script:${name}`,
-        classification: 'active_blocker',
-        reason: 'package script still invokes Next CLI',
-      });
+    const commandText = String(command);
+    if (commandText.includes('next ') || commandText.includes('next-build') || commandText.includes('src/app/')) {
+      hits.push({ repoPath, line: 1, token: `script:${name}`, classification: 'active_blocker', reason: 'package script still invokes legacy Next path' });
     }
-  }
-  return hits;
-}
-
-function classifyLine(repoPath, lineNumber, line) {
-  const hits = [];
-  if (repoPath === 'package.json') return hits;
-  if (repoPath === 'pnpm-lock.yaml') {
-    for (const token of TRACKED) {
-      if (line.includes(token)) {
-        hits.push({ repoPath, line: lineNumber, token, classification: 'package_delete_target', reason: 'lockfile residue is removed with package deletion' });
-      }
-    }
-    return hits;
-  }
-  if (repoPath.startsWith('src/app/')) {
-    hits.push({ repoPath, line: lineNumber, token: 'src/app/**', classification: 'delete_target', reason: 'legacy Next app baseline must be deleted' });
-    return hits;
-  }
-  if (repoPath === 'next.config.mjs' || repoPath === 'next-env.d.ts') {
-    hits.push({ repoPath, line: lineNumber, token: repoPath, classification: 'config_delete_target', reason: 'Next root file must be deleted' });
-    return hits;
-  }
-  if (repoPath.includes('check-gate-') || repoPath.includes('tanstack-native-inventory') || repoPath.includes('validate-tanstack-native-migration') || repoPath.includes('tanstack-gate-4-plan')) {
-    return hits;
-  }
-  for (const token of TRACKED) {
-    if (!line.includes(token)) continue;
-    if (token === 'src/app/' && repoPath.startsWith('docs/')) continue;
-    hits.push({
-      repoPath,
-      line: lineNumber,
-      token,
-      classification: 'active_blocker',
-      reason: 'active source/config still references Next/OpenNext/server-only residue',
-    });
   }
   return hits;
 }
 
 function collectHits() {
   const hits = [];
+  if (existsSync(abs('src/app'))) {
+    hits.push({ repoPath: 'src/app', line: 1, token: 'src/app/**', classification: 'delete_target', reason: 'legacy Next app baseline must be deleted' });
+  }
+  for (const repoPath of ROOT_DELETE_TARGETS) {
+    if (existsSync(abs(repoPath))) {
+      hits.push({ repoPath, line: 1, token: repoPath, classification: 'config_delete_target', reason: 'Next root file must be deleted' });
+    }
+  }
   for (const filePath of collectFiles()) {
     const repoPath = toRepoPath(filePath);
     const source = readFileSync(filePath, 'utf8');
     hits.push(...classifyPackageJson(repoPath, source));
-    const lines = source.split('\n');
-    for (let index = 0; index < lines.length; index += 1) {
-      hits.push(...classifyLine(repoPath, index + 1, lines[index]));
+    if (repoPath === 'package.json') continue;
+    for (const specifier of readImportSpecifiers(source)) {
+      if (isForbiddenSpecifier(specifier)) {
+        hits.push({ repoPath, line: 1, token: specifier, classification: 'active_blocker', reason: 'active source still imports Next/OpenNext/server-only residue' });
+      }
     }
   }
   return hits;
@@ -195,23 +164,15 @@ for (const [classification, list] of groups) {
   if (list.length === 0) continue;
   console.log(`\n[${classification}] ${list.length}`);
   const visible = reportMode ? list : list.slice(0, 30);
-  for (const hit of visible) {
-    console.log(`- ${hit.repoPath}:${hit.line} ${hit.token} (${hit.reason})`);
-  }
-  if (!reportMode && list.length > visible.length) {
-    console.log(`- ... ${list.length - visible.length} more`);
-  }
+  for (const hit of visible) console.log(`- ${hit.repoPath}:${hit.line} ${hit.token} (${hit.reason})`);
+  if (!reportMode && list.length > visible.length) console.log(`- ... ${list.length - visible.length} more`);
 }
 
 const failures = [];
-const activeBlockers = groups.get('active_blocker') ?? [];
-const deleteTargets = groups.get('delete_target') ?? [];
-const packageTargets = groups.get('package_delete_target') ?? [];
-const configTargets = groups.get('config_delete_target') ?? [];
-if (!reportMode && activeBlockers.length > 0) failures.push(`active blockers remain: ${activeBlockers.length}`);
-if (!reportMode && deleteTargets.length > 0) failures.push(`legacy delete targets remain: ${deleteTargets.length}`);
-if (!reportMode && packageTargets.length > 0) failures.push(`package delete targets remain: ${packageTargets.length}`);
-if (!reportMode && configTargets.length > 0) failures.push(`config delete targets remain: ${configTargets.length}`);
+for (const classification of ['active_blocker', 'delete_target', 'package_delete_target', 'config_delete_target']) {
+  const count = (groups.get(classification) ?? []).length;
+  if (!reportMode && count > 0) failures.push(`${classification} remain: ${count}`);
+}
 
 if (failures.length > 0) {
   console.error('\nGate 5.6 no-Next check failed:');

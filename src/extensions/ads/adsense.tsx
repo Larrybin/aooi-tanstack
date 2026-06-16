@@ -1,4 +1,3 @@
-import Script from 'next/script';
 
 import { AdsenseSlot } from './adsense-slot';
 import type { AdsProvider, AdsZoneContext, AdsZoneName } from './types';
@@ -15,7 +14,7 @@ export class AdsenseProvider implements AdsProvider {
 
   getHeadScripts() {
     return (
-      <Script
+      <script
         src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${this.configs.clientId}`}
         crossOrigin="anonymous"
         strategy="lazyOnload"

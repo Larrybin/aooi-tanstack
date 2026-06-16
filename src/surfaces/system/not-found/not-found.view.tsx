@@ -19,8 +19,6 @@ export function NotFoundSurfaceView(props: NotFoundRouteProps) {
 
   return (
     <div className="flex h-screen flex-col items-center justify-center gap-4">
-      {/* TanStack surface: do not import next/image here. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={site.brand.logo}
         alt="Logo"

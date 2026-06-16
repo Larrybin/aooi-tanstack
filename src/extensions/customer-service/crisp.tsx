@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import Script from 'next/script';
 
 import type { CustomerServiceConfigs, CustomerServiceProvider } from './types';
 
@@ -27,9 +26,8 @@ export class CrispCustomerServiceProvider implements CustomerServiceProvider {
   getHeadScripts(): ReactNode {
     return (
       <>
-        <Script
+        <script
           id={`${this.name}-script`}
-          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
                 window.$crisp=[];

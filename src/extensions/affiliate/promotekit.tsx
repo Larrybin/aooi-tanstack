@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import Script from 'next/script';
 
 import type { AffiliateConfigs, AffiliateProvider } from './types';
 
@@ -27,13 +26,12 @@ export class PromoteKitAffiliateProvider implements AffiliateProvider {
   getHeadScripts(): ReactNode {
     return (
       <>
-        <Script
+        <script
           id={`${this.name}-script`}
           async
           defer
           src="https://cdn.promotekit.com/promotekit.js"
           data-promotekit={this.configs.promotekitId}
-          strategy="afterInteractive"
         />
       </>
     );

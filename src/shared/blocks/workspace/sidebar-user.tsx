@@ -4,7 +4,7 @@ import { Fragment } from 'react';
 import { signOut } from '@/infra/platform/auth/client';
 import { Link, useRouter } from '@/infra/platform/i18n/navigation';
 import { ChevronsUpDown, LogOut, User } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/shared/lib/i18n/native';
 
 import { SmartIcon } from '@/shared/blocks/common/smart-icon';
 import {

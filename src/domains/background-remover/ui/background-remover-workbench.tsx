@@ -283,7 +283,6 @@ export function BackgroundRemoverWorkbench({
                   <p className="mb-2 text-xs font-medium text-[#334155]">
                     {copy.before}
                   </p>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={previewUrl}
                     alt={copy.originalAlt}
@@ -295,7 +294,6 @@ export function BackgroundRemoverWorkbench({
                     {copy.transparentPng}
                   </p>
                   {result ? (
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={result.previewUrl}
                       alt={copy.resultAlt}

@@ -45,7 +45,6 @@ export function BlogIndexSurfaceView({ data }: { data: BlogIndexRouteData }) {
                 href={post.url}
               >
                 {post.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- TanStack routes cannot use next/image.
                   <img src={post.image} alt={post.title} loading="lazy" />
                 ) : null}
                 <span className="blog-category-post-body">

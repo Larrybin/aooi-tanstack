@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { usePathname, useRouter } from '@/infra/platform/i18n/navigation';
 import { siteI18nManifest } from '@/site';
 import { Check, Globe, Languages } from 'lucide-react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from '@/shared/lib/i18n/native';
 
 import {
   defaultLocale,

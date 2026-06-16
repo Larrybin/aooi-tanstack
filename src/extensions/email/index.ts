@@ -58,5 +58,3 @@ export interface EmailProvider {
   // send email
   sendEmail(email: EmailMessage): Promise<EmailSendResult>;
 }
-
-// Providers are exported via `./providers` (server-only)

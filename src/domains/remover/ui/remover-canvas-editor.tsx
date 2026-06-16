@@ -429,7 +429,6 @@ export default function CanvasMaskEditor({
           {resultUrl ? (
             <>
               <div className="mt-3 overflow-hidden rounded-lg border border-teal-200 bg-white">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={resultUrl}
                   alt={copy.resultAlt}

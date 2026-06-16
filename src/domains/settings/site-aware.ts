@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+import { getTranslations } from '@/shared/lib/i18n/native';
 
 import { resolveSitePaymentCapability } from '@/config/payment-capability';
 

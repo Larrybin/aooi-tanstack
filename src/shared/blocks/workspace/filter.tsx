@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
 
 import {
   Select,
@@ -15,8 +14,6 @@ import {
 import type { Filter as FilterType } from '@/shared/types/blocks/common';
 
 export function Filter({ filter }: { filter: FilterType }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const [value, setValue] = useState(filter.value || '');
 
   const onChange = (value: string) => {
@@ -26,7 +23,7 @@ export function Filter({ filter }: { filter: FilterType }) {
 
     setValue(value);
 
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(globalThis.location.search);
     params.delete('page');
 
     if (value && value !== 'all') {
@@ -35,7 +32,7 @@ export function Filter({ filter }: { filter: FilterType }) {
       params.delete(filter.name);
     }
 
-    router.push(`?${params.toString()}`);
+    globalThis.location.assign(`?${params.toString()}`);
   };
 
   return (

@@ -1,6 +1,5 @@
 'use client';
 
-import Image, { type ImageProps } from 'next/image';
 import { site } from '@/site';
 
 import { resolveImageSourceStrategy } from '@/shared/config/image-policy.mjs';
@@ -10,13 +9,13 @@ type AppImageCommonProps = {
   src: string;
   alt: string;
   className?: string;
-  style?: ImageProps['style'];
+  style?: React.CSSProperties;
   priority?: boolean;
-  fetchPriority?: ImageProps['fetchPriority'];
-  quality?: ImageProps['quality'];
-  loading?: ImageProps['loading'];
-  placeholder?: ImageProps['placeholder'];
-  blurDataURL?: ImageProps['blurDataURL'];
+  fetchPriority?: 'high' | 'low' | 'auto';
+  quality?: number;
+  loading?: 'eager' | 'lazy';
+  placeholder?: 'blur' | 'empty';
+  blurDataURL?: string;
   title?: string;
   sizes?: string;
 };
@@ -46,17 +45,6 @@ export function AppImage({ src, alt, className, ...props }: AppImageProps) {
     return null;
   }
 
-  if (strategy.kind === 'next-image') {
-    return (
-      <Image
-        src={strategy.resolvedSrc}
-        alt={alt}
-        className={className}
-        {...props}
-      />
-    );
-  }
-
   const imgProps =
     'fill' in props && props.fill
       ? {
@@ -68,7 +56,6 @@ export function AppImage({ src, alt, className, ...props }: AppImageProps) {
         };
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={strategy.resolvedSrc}
       alt={alt}

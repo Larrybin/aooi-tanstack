@@ -23,33 +23,20 @@ const ARCHITECTURE_RULES = {
     '@/core',
     '@/features',
   ],
-  publicCompositionPathPatterns: [
-    '^src/app/\\[locale\\]/\\(landing\\)/(?:page|layout)\\.tsx$',
-    '^src/app/\\[locale\\]/\\(landing\\)/pricing/',
-    '^src/app/\\[locale\\]/\\(landing\\)/blog/',
-    '^src/app/\\[locale\\]/\\(landing\\)/\\[slug\\]/',
-    '^src/app/\\[locale\\]/\\(docs\\)/',
-  ],
+  publicCompositionPathPatterns: [],
   domainForbiddenImports: [
     '^@/app(?:/|$)',
     '^@/surfaces(?:/|$)',
     '^@/infra/platform(?:/|$)',
     '^@/infra/adapters(?:/|$)',
     '^@/shared/schemas/api(?:/|$)',
-    '^next/',
   ],
   applicationAllowedPlatformImports: [
     '^@/infra/platform/logging(?:/|$)',
     '^@/infra/platform/request-context(?:/|$)',
   ],
-  appOnlyFacades: [
-    'src/app/account/runtime-deps.ts',
-    'src/app/access-control/runtime-deps.ts',
-  ],
-  appOnlyFacadeImportPatterns: [
-    '^@/app/account/runtime-deps$',
-    '^@/app/access-control/runtime-deps$',
-  ],
+  appOnlyFacades: [],
+  appOnlyFacadeImportPatterns: [],
   appAdminForbiddenImports: [
     '^@/domains/[^/]+/infra(?:/|$)',
     '^@/infra/adapters(?:/|$)',
@@ -68,7 +55,6 @@ const ARCHITECTURE_RULES = {
     '^@/infra/adapters/payment(?:/|$)',
   ],
   surfacesAdminForbiddenImports: [
-    '^@/app/(?:account|access-control)/runtime-deps$',
     '^@/domains/[^/]+/infra(?:/|$)',
     '^@/infra/adapters(?:/|$)',
   ],
@@ -132,7 +118,6 @@ const ARCHITECTURE_RULES = {
     '^localize-callback-url\\.ts$',
     '^map-cleanup(?:\\.test)?\\.ts$',
     '^middleware-request-headers(?:\\.test)?\\.ts$',
-    '^next-cache\\.ts$',
     '^post-date\\.ts$',
     '^storage-public-url\\.ts$',
     '^support-email(?:\\.test)?\\.ts$',

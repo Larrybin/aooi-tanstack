@@ -11,7 +11,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
-import Image from "next/image";
 import { cn } from "@/shared/lib/utils";
 import type { FileUIPart, UIMessage } from "ai";
 import {
@@ -368,7 +367,7 @@ export function MessageAttachment({
     >
       {isImage ? (
         <>
-          <Image
+          <img
             alt={filename || "attachment"}
             className="size-full object-cover"
             height={100}

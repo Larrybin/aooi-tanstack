@@ -1,7 +1,6 @@
 'use client';
 
 import type { JSX } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import {
   Pagination as PaginationComponent,
@@ -151,14 +150,10 @@ export function Pagination({
     limit = 30;
   }
   const totalPages = Math.ceil(total / limit);
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
-  const handlePageChange = (page: number) => {
-    const params = new URLSearchParams(searchParams);
-    params.set('page', page.toString());
-    router.push(`${pathname}?${params.toString()}`);
+  const handlePageChange = (nextPage: number) => {
+    const url = new URL(globalThis.location.href);
+    url.searchParams.set('page', nextPage.toString());
+    globalThis.location.assign(`${url.pathname}?${url.searchParams.toString()}`);
   };
 
   if (totalPages <= 1) {

@@ -1,6 +1,3 @@
-import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
-import nextTypescript from 'eslint-config-next/typescript';
-
 import aooi from './eslint/aooi-eslint-plugin.mjs';
 
 const noDoubleUnknownTypeAssertion = {
@@ -76,15 +73,6 @@ const clientSurfaceNoRestrictedImports = {
   ...baseNoRestrictedImports,
   paths: [
     ...baseNoRestrictedImports.paths,
-    {
-      name: 'next/headers',
-      message: "Client 模块禁止导入 'next/headers'（仅 Server 侧可用）。",
-    },
-    {
-      name: 'server-only',
-      message:
-        "Client 模块禁止导入 'server-only'（该标记仅用于 server-only 模块）。",
-    },
   ],
   patterns: [
     ...(baseNoRestrictedImports.patterns || []),
@@ -178,14 +166,11 @@ const eslintConfig = [
       'raphael-starterkit-v1-main/**',
     ],
   },
-  ...nextCoreWebVitals,
-  ...nextTypescript,
   {
     plugins: { aooi },
   },
   {
     files: [
-      'src/app/api/**/*.{ts,tsx}',
       'src/domains/**/application/**/*.{ts,tsx}',
       'src/domains/**/infra/**/*.{ts,tsx}',
       'src/infra/**/*.{ts,tsx}',

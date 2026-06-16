@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import Script from 'next/script';
 
 import type { AnalyticsConfigs, AnalyticsProvider } from './types';
 
@@ -29,19 +28,17 @@ export class PlausibleAnalyticsProvider implements AnalyticsProvider {
     return (
       <>
         {/* Plausible Analytics */}
-        <Script
+        <script
           id={this.name}
-          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }
             `,
           }}
         />
-        <Script
+        <script
           data-domain={this.configs.domain}
           src={this.configs.src}
-          strategy="afterInteractive"
           defer
           async
         />

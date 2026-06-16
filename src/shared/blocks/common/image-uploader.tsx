@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useReducer, useRef } from 'react';
 import { IconUpload, IconX } from '@tabler/icons-react';
 import { ImageIcon } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslations } from '@/shared/lib/i18n/native';
 import { toast } from 'sonner';
 
 import { Button } from '@/shared/components/ui/button';

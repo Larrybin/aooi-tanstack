@@ -1,15 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Input } from '@/shared/components/ui/input';
 import type { Search as SearchType } from '@/shared/types/blocks/common';
 
 export function Search({ search }: { search: SearchType }) {
   const [value, setValue] = useState(search.value || '');
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   const handleSearch = () => {
     if (value === search.value) {
@@ -18,7 +15,7 @@ export function Search({ search }: { search: SearchType }) {
 
     setValue(value);
 
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(globalThis.location.search);
     params.delete('page');
 
     params.set(search.name, value);
@@ -29,7 +26,7 @@ export function Search({ search }: { search: SearchType }) {
       params.delete(search.name);
     }
 
-    router.push(`?${params.toString()}`);
+    globalThis.location.assign(`?${params.toString()}`);
   };
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -3,7 +3,6 @@
 import { Button } from "@/shared/components/ui/button";
 import type { FileUIPart } from "ai";
 import { ImageIcon, PaperclipIcon, XIcon } from "lucide-react";
-import Image from "next/image";
 import {
   createContext,
   Fragment,
@@ -71,7 +70,7 @@ export function PromptInputAttachment({
           <div className="relative size-5 shrink-0">
             <div className="absolute inset-0 flex size-5 items-center justify-center overflow-hidden rounded bg-background transition-opacity group-hover:opacity-0">
               {isImage ? (
-                <Image
+                <img
                   alt={filename || "attachment"}
                   className="size-5 object-cover"
                   height={20}
@@ -106,7 +105,7 @@ export function PromptInputAttachment({
         <div className="w-auto space-y-3">
           {isImage && (
             <div className="flex max-h-96 w-96 items-center justify-center overflow-hidden rounded-md border">
-              <Image
+              <img
                 alt={filename || "attachment preview"}
                 className="max-h-full max-w-full object-contain"
                 height={384}
@@ -183,7 +182,7 @@ export const PromptInputActionAddAttachments = ({
         attachments.openFileDialog();
       }}
     >
-      <ImageIcon className="mr-2 size-4" /> {label}
+      <imgIcon className="mr-2 size-4" /> {label}
     </DropdownMenuItem>
   );
 };

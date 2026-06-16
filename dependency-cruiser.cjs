@@ -98,7 +98,7 @@ module.exports = {
       severity: 'error',
       from: { path: '^src/domains/[^/]+/domain/' },
       to: {
-        path: '^src/(app|surfaces|infra/adapters|shared/schemas/api)/',
+        path: '^src/(surfaces|infra/adapters|shared/schemas/api)/',
       },
     },
     {
@@ -106,7 +106,7 @@ module.exports = {
       severity: 'error',
       from: { path: '^src/infra/' },
       to: {
-        path: '^src/(app|surfaces|domains/[^/]+/application)/',
+        path: '^src/(surfaces|domains/[^/]+/application)/',
         pathNot:
           '^src/domains/settings/application/(?:[^/]+\\.query|settings-store|settings-runtime\\.contracts)\\.ts$',
       },
@@ -136,36 +136,6 @@ module.exports = {
       },
     },
     ...createPathRules({
-      baseName: 'no-admin-app-to-domain-infra-or-adapters',
-      fromPath: '^src/app/\\[locale\\]/\\(admin\\)/admin/',
-      importPatterns: ARCHITECTURE_RULES.appAdminForbiddenImports,
-    }),
-    ...createPathRules({
-      baseName: 'no-member-settings-to-billing-infra-or-payment-adapters',
-      fromPath: '^src/app/\\[locale\\]/\\(landing\\)/settings/',
-      importPatterns: ARCHITECTURE_RULES.memberSettingsForbiddenImports,
-    }),
-    ...createPathRules({
-      baseName: 'no-member-activity-to-chat-ai-infra',
-      fromPath: '^src/app/\\[locale\\]/\\(landing\\)/activity/',
-      importPatterns: ARCHITECTURE_RULES.memberActivityForbiddenImports,
-    }),
-    ...createPathRules({
-      baseName: 'no-member-chat-to-chat-infra',
-      fromPath: '^src/app/\\[locale\\]/\\(chat\\)/',
-      importPatterns: ARCHITECTURE_RULES.memberChatForbiddenImports,
-    }),
-    ...createPathRules({
-      baseName: 'no-payment-callback-to-billing-infra-or-payment-adapters',
-      fromPath: '^src/app/api/payment/callback/route\\.ts$',
-      importPatterns: ARCHITECTURE_RULES.paymentCallbackRouteForbiddenImports,
-    }),
-    ...createExactPathRules({
-      baseName: 'no-surfaces-admin-to-app-facades-domain-infra-or-adapters',
-      fromPath: '^src/surfaces/admin/',
-      targetPaths: ARCHITECTURE_RULES.appOnlyFacades,
-    }),
-    ...createPathRules({
       baseName: 'no-surfaces-admin-to-app-facades-domain-infra-or-adapters-3',
       fromPath: '^src/surfaces/admin/',
       importPatterns: ARCHITECTURE_RULES.surfacesAdminForbiddenImports.filter(
@@ -178,7 +148,7 @@ module.exports = {
       path: 'node_modules',
     },
     exclude:
-      '(^node_modules)|(^\\.next)|(^\\.open-next)|(^dist)|(^build)|(^output)|(^\\.tmp)|(^src/shared/types/cloudflare\\.d\\.ts$)',
+      '(^node_modules)|(^dist)|(^build)|(^output)|(^\\.tmp)|(^src/shared/types/cloudflare\\.d\\.ts$)',
     tsPreCompilationDeps: true,
     tsConfig: {
       fileName: 'tsconfig.json',

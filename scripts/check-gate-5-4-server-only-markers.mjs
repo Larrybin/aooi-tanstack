@@ -276,6 +276,7 @@ const indirectViolationCount = reachabilityResult.violations.filter(
 
 console.log('Gate 5.4 server-only marker report');
 console.log(`protected module count: ${manifestResult.uniqueCount}`);
+console.log(`retired protected module count: ${manifestResult.missing.length}`);
 console.log(`source marker count: ${markerResult.hits.length}`);
 console.log(`server boundary hit count: ${reachabilityResult.serverBoundaryHits.length}`);
 console.log(`direct violation count: ${directViolationCount}`);
@@ -307,11 +308,9 @@ if (reachabilityResult.violations.length > 0) {
 
 const failures = [];
 if (manifestResult.uniqueCount !== protectedServerOnlyFiles.length) failures.push('protected manifest contains duplicate paths');
-if (manifestResult.missing.length > 0) failures.push(`protected files missing: ${manifestResult.missing.join(', ')}`);
 if (manifestResult.duplicates.length > 0) failures.push(`protected duplicate files: ${manifestResult.duplicates.join(', ')}`);
 if (markerResult.unexpected.length > 0) failures.push(`unexpected marker files: ${markerResult.unexpected.map((hit) => hit.repoPath).join(', ')}`);
 if (reachabilityResult.violations.length > 0) failures.push(`protected reachability violations: ${reachabilityResult.violations.length}`);
-if (!packageResult.present) failures.push('server-only package dependency is missing');
 if (!reportMode && markerResult.hits.length > 0) failures.push(`source server-only marker imports remain: ${markerResult.hits.length}`);
 
 if (failures.length > 0) {

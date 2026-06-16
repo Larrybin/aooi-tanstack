@@ -1,4 +1,4 @@
-import { useLocale } from 'next-intl';
+import { useLocale } from '@/shared/lib/i18n/native';
 
 import {
   formatDatePattern,
