@@ -7,6 +7,10 @@ import { fileURLToPath } from 'node:url';
 
 import { writeCloudflareSecretsFile } from './create-cf-secrets-file.mjs';
 import { buildCloudflareWranglerConfig } from './create-cf-wrangler-config.mjs';
+import {
+  assertCloudflareBuildArtifactsReady,
+  NATIVE_TANSTACK_SERVER_ARTIFACT,
+} from './lib/cloudflare-build-artifacts.mjs';
 import { resolveCloudflareWorkerKeys } from './lib/cloudflare-runtime-bindings.mjs';
 import { resolveRequiredSiteKey } from './lib/site-config.mjs';
 import { resolveSiteDeployContract } from './lib/site-deploy-contract.mjs';
@@ -130,21 +134,16 @@ function runWrangler(args) {
   });
 }
 
-async function assertBundleExists(target) {
-  if (target.label === 'router') {
-    const workerPath = path.resolve(rootDir, '.open-next/worker.js');
-    if (!fs.existsSync(workerPath)) {
-      fail(`missing ${path.relative(rootDir, workerPath)}`);
-    }
-    return;
-  }
-
-  const handlerPath = path.resolve(
-    rootDir,
-    path.join(path.dirname(target.bundleEntryRelativePath), 'handler.mjs')
-  );
-  if (!fs.existsSync(handlerPath)) {
-    fail(`missing ${path.relative(rootDir, handlerPath)}`);
+async function assertNativeBuildArtifactsExist() {
+  try {
+    await assertCloudflareBuildArtifactsReady({
+      rootPath: rootDir,
+      contextMessage:
+        'Cloudflare build dry-run requires built TanStack artifacts.',
+      nextStepMessage: 'Run `SITE=<site-key> pnpm cf:build` first.',
+    });
+  } catch (error) {
+    fail(error instanceof Error ? error.message : String(error));
   }
 }
 
@@ -171,7 +170,7 @@ export function buildVersionUploadDryRunArgs({
 async function readServerBundleDiagnostics(target) {
   const handlerPath = path.resolve(
     rootDir,
-    path.join(path.dirname(target.bundleEntryRelativePath), 'handler.mjs')
+    target.bundleEntryRelativePath || NATIVE_TANSTACK_SERVER_ARTIFACT
   );
   const metaPath = `${handlerPath}.meta.json`;
   const handlerStats = await fs.promises.stat(handlerPath);
@@ -216,6 +215,7 @@ async function main() {
     );
   }
   const uploadTargets = buildUploadTargets(contract, rootDir, workerKeys);
+  await assertNativeBuildArtifactsExist();
   const tempDir = await mkdtemp(path.join(os.tmpdir(), 'cf-build-dry-run-'));
   const emptyAssetsDir = path.join(tempDir, 'assets');
   const secretsPath = path.join(tempDir, 'cloudflare.secrets.env');
@@ -230,7 +230,6 @@ async function main() {
     const activeSecretsPath = secretsContent.trim() ? secretsPath : null;
 
     for (const target of uploadTargets) {
-      await assertBundleExists(target);
       const tempConfigPath = path.join(
         tempDir,
         `${target.label}.wrangler.toml`
@@ -268,7 +267,7 @@ async function main() {
       );
       if (diagnostics) {
         console.log(
-          `[cf:build] ${target.label}: raw handler ${diagnostics.handlerSize.kib} KiB / ${diagnostics.handlerSize.mib} MiB (${path.relative(rootDir, diagnostics.handlerPath)})`
+          `[cf:build] ${target.label}: raw server artifact ${diagnostics.handlerSize.kib} KiB / ${diagnostics.handlerSize.mib} MiB (${path.relative(rootDir, diagnostics.handlerPath)})`
         );
         console.log(
           `[cf:build] ${target.label}: top inputs ${diagnostics.topInputsSummary}`

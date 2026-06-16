@@ -2,54 +2,26 @@ import { stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { resolveRequiredSiteKey } from './site-config.mjs';
-import { resolveSiteDeployContract } from './site-deploy-contract.mjs';
-
 const rootDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '../..'
 );
 
-const ROUTER_RUNTIME_ARTIFACTS = [
-  '.open-next/worker.js',
-  '.open-next/cloudflare/images.js',
-  '.open-next/cloudflare/init.js',
-  '.open-next/middleware/handler.mjs',
-  '.open-next/.build/durable-objects/queue.js',
-  '.open-next/.build/durable-objects/sharded-tag-cache.js',
+export const NATIVE_TANSTACK_SERVER_ARTIFACT = 'dist/server/server.mjs';
+export const NATIVE_TANSTACK_ASSETS_DIR = 'dist/client';
+
+const APP_RUNTIME_ARTIFACTS = [
+  NATIVE_TANSTACK_SERVER_ARTIFACT,
+  NATIVE_TANSTACK_ASSETS_DIR,
 ];
 
 const STATE_RUNTIME_ARTIFACTS = [
-  '.open-next/.build/durable-objects/queue.js',
-  '.open-next/.build/durable-objects/sharded-tag-cache.js',
+  'cloudflare/workers/state.ts',
+  'cloudflare/workers/stateful-limiters.ts',
 ];
 
-function resolveServerWorkerHandlerPath(target, processEnv = process.env) {
-  const contract = resolveSiteDeployContract({
-    rootDir,
-    siteKey: resolveRequiredSiteKey(processEnv),
-  });
-  const metadata = contract.serverWorkers[target];
-  return path.join(
-    path.dirname(metadata.bundleEntryRelativePath),
-    'handler.mjs'
-  );
-}
-
-export function getRequiredCloudflareBuildArtifactPaths(
-  processEnv = process.env
-) {
-  const contract = resolveSiteDeployContract({
-    rootDir,
-    siteKey: resolveRequiredSiteKey(processEnv),
-  });
-
-  return [
-    ...ROUTER_RUNTIME_ARTIFACTS,
-    ...Object.keys(contract.serverWorkers).map((target) =>
-      resolveServerWorkerHandlerPath(target, processEnv)
-    ),
-  ];
+export function getRequiredCloudflareBuildArtifactPaths() {
+  return [...APP_RUNTIME_ARTIFACTS];
 }
 
 export function getRequiredCloudflareStateBuildArtifactPaths() {
@@ -58,10 +30,9 @@ export function getRequiredCloudflareStateBuildArtifactPaths() {
 
 export async function assertCloudflareBuildArtifactsReady({
   rootPath = rootDir,
-  processEnv = process.env,
-  artifactPaths = getRequiredCloudflareBuildArtifactPaths(processEnv),
-  contextMessage = 'Cloudflare deployment requires built OpenNext artifacts.',
-  nextStepMessage = 'Run `pnpm cf:build` before deploying.',
+  artifactPaths = getRequiredCloudflareBuildArtifactPaths(),
+  contextMessage = 'Cloudflare deployment requires built TanStack artifacts.',
+  nextStepMessage = 'Run the Cloudflare build before deploying.',
 } = {}) {
   const missingPaths = [];
 
@@ -73,15 +44,9 @@ export async function assertCloudflareBuildArtifactsReady({
     }
   }
 
-  if (missingPaths.length === 0) {
-    return;
-  }
+  if (missingPaths.length === 0) return;
 
   throw new Error(
-    [
-      contextMessage,
-      nextStepMessage,
-      `Missing artifacts: ${missingPaths.join(', ')}`,
-    ].join(' ')
+    [contextMessage, nextStepMessage, `Missing artifacts: ${missingPaths.join(', ')}`].join(' ')
   );
 }

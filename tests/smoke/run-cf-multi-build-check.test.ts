@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
+import { NATIVE_TANSTACK_SERVER_ARTIFACT } from '../../scripts/lib/cloudflare-build-artifacts.mjs';
 import {
   buildVersionUploadDryRunArgs,
   parseDryRunUploadSize,
@@ -16,11 +17,31 @@ test('run-cf-multi-build-check 只覆盖 app worker，不再 dry-run state', asy
   assert.doesNotMatch(source, /wrangler\.state\.toml/);
 });
 
+test('run-cf-multi-build-check requires native TanStack artifacts', async () => {
+  const source = await readFile('scripts/run-cf-multi-build-check.mjs', 'utf8');
+
+  assert.equal(NATIVE_TANSTACK_SERVER_ARTIFACT, 'dist/server/server.mjs');
+  assert.match(source, /NATIVE_TANSTACK_SERVER_ARTIFACT/);
+  assert.doesNotMatch(source, /\.open-next/);
+  assert.doesNotMatch(source, /handler\.mjs/);
+});
+
 test('run-cf-multi-build-check supports scoped app worker dry-runs', () => {
-  assert.deepEqual(resolveBuildWorkerKeys(['--workers=router,public-web']), [
-    'router',
-    'public-web',
-  ]);
+  const previousSite = process.env.SITE;
+  try {
+    process.env.SITE = 'mamamiya';
+
+    assert.deepEqual(resolveBuildWorkerKeys(['--workers=router,public-web']), [
+      'router',
+      'public-web',
+    ]);
+  } finally {
+    if (previousSite === undefined) {
+      delete process.env.SITE;
+    } else {
+      process.env.SITE = previousSite;
+    }
+  }
 });
 
 test('run-cf-multi-build-check expands app scope to active site workers only', () => {

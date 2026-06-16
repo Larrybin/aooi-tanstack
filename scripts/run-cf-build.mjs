@@ -10,13 +10,8 @@ import { withSiteRoutePruning } from './lib/site-route-pruning.mjs';
 const rootDir = process.cwd();
 const activeSplitWorkersEnv = 'CLOUDFLARE_ACTIVE_SPLIT_WORKERS';
 
-export function buildOpenNextBuildArgs() {
-  return [
-    'exec',
-    'opennextjs-cloudflare',
-    'build',
-    '--skipWranglerConfigCheck',
-  ];
+export function buildNativeTanStackBuildArgs() {
+  return ['exec', 'vite', 'build', '--config', 'vite.config.mts'];
 }
 
 export function buildMultiBuildCheckArgs(scriptArgs = process.argv.slice(2)) {
@@ -83,14 +78,11 @@ async function main() {
     rootDir,
     contract,
     async task() {
-      await runCommand('pnpm', buildOpenNextBuildArgs(), { env: commandEnv });
+      await runCommand('pnpm', buildNativeTanStackBuildArgs(), {
+        env: commandEnv,
+      });
     },
   });
-  await runCommand(
-    'node',
-    ['--import', 'tsx', 'scripts/bundle-cf-server-functions.mjs'],
-    { env: commandEnv }
-  );
   await runCommand('node', buildMultiBuildCheckArgs(), { env: commandEnv });
 }
 

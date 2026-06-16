@@ -21,16 +21,17 @@ import {
 import {
   buildI18nCheckArgs,
   buildMultiBuildCheckArgs,
-  buildOpenNextBuildArgs,
+  buildNativeTanStackBuildArgs,
   isStrictI18nPublishingEnabled,
 } from '../../scripts/run-cf-build.mjs';
 
-test('cf:build 对 OpenNext 固定跳过根 wrangler config 交互检查', () => {
-  assert.deepEqual(buildOpenNextBuildArgs(), [
+test('cf:build uses the native TanStack Vite build entry', () => {
+  assert.deepEqual(buildNativeTanStackBuildArgs(), [
     'exec',
-    'opennextjs-cloudflare',
+    'vite',
     'build',
-    '--skipWranglerConfigCheck',
+    '--config',
+    'vite.config.mts',
   ]);
 });
 
@@ -164,7 +165,7 @@ test('cf:build:no-db reports all sites even when one site fails', async () => {
   ]);
 });
 
-test('cf:build prunes disabled free tool routes only during OpenNext build', async () => {
+test('cf:build prunes disabled free tool routes only during native build', async () => {
   const rootDir = await mkdtemp(path.join(os.tmpdir(), 'site-route-prune-'));
   const prunedRoute = 'src/app/api/auth';
   const prunedRouteFile = path.join(prunedRoute, 'route.ts');
