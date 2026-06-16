@@ -39,12 +39,25 @@ The checker verifies:
 
 - `dist/server/server.mjs` exists after build;
 - `dist/client` exists after build;
+- root Wrangler `assets.directory` is `dist/client`;
+- server Wrangler `assets.directory` is `../dist/client`;
+- server worker wrappers import `../../dist/server/server.mjs`;
+- topology `bundleEntryRelativePath` values are all `dist/server/server.mjs`;
+- `cf:build` calls `pnpm exec vite build --config vite.config.mts`;
 - active worker runtime no longer imports `.open-next` or `@opennextjs`;
 - active Wrangler/config paths no longer point to `.open-next` artifacts;
 - active build scripts no longer require `.open-next` artifacts;
 - package dependencies are deferred to Gate 5.6.
 
 Gate 5.5 smoke checks must use routes already represented by the TanStack native route tree. Legacy Next-only pages such as `/chat` and `/admin/**` remain Gate 5.6 route-migration work until native route parity lands.
+
+The native router must still own framework-neutral request boundary behavior:
+
+- scope Cloudflare bindings around native server execution;
+- attach request id/path/url headers;
+- attach the shared security response headers;
+- redirect unsigned `/settings`, `/activity`, and `/admin` requests before service binding forwarding;
+- keep next/cache Durable Object exports isolated in the state worker until Gate 5.6 replaces cache semantics.
 
 ## Required final validation
 

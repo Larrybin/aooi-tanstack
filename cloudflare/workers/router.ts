@@ -5,6 +5,11 @@ import {
   resolveWorkerRoutingDecision,
 } from '../../src/shared/config/cloudflare-worker-splits';
 import { buildForwardedWorkerRequest } from './router-forwarding';
+import {
+  applyNativeRouterMiddleware,
+  buildNativeForwardingRequest,
+  withRouterResponseHeaders,
+} from './router-middleware';
 
 type WorkerServiceBinding = {
   fetch(
@@ -23,21 +28,6 @@ type RouterEnv = Record<string, string | WorkerServiceBinding> & {
   CHAT_WORKER?: WorkerServiceBinding;
 };
 
-function withRequestId(response: Response, requestId: string) {
-  const nextResponse = new Response(response.body, response);
-  nextResponse.headers.set('x-request-id', requestId);
-  return nextResponse;
-}
-
-function buildNativeForwardingRequest(request: Request, requestId: string) {
-  const url = new URL(request.url);
-  const headers = new Headers(request.headers);
-  headers.set('x-request-id', requestId);
-  headers.set('x-pathname', url.pathname);
-  headers.set('x-url', request.url);
-  return new Request(request, { headers });
-}
-
 function isStaticAssetRequest(url: URL) {
   return (
     url.pathname.startsWith('/assets/') ||
@@ -55,18 +45,31 @@ const routerWorker = {
     if (isStaticAssetRequest(url) && env.ASSETS) {
       const assetResponse = await env.ASSETS.fetch(request);
       if (assetResponse.status !== 404) {
-        return withRequestId(assetResponse, requestId);
+        return withRouterResponseHeaders(assetResponse, request, requestId);
       }
     }
 
-    const forwardingRequest = buildNativeForwardingRequest(request, requestId);
+    const middlewareResult = applyNativeRouterMiddleware(request);
+    if (middlewareResult instanceof Response) {
+      return withRouterResponseHeaders(middlewareResult, request, requestId);
+    }
+
+    const forwardingRequest = buildNativeForwardingRequest(
+      middlewareResult,
+      requestId,
+      request
+    );
     const declaredWorkerTargets = getDeclaredServerWorkerTargets(env);
     const routingDecision = resolveWorkerRoutingDecision(
-      url.pathname,
+      new URL(forwardingRequest.url).pathname,
       declaredWorkerTargets
     );
     if (routingDecision.kind === 'disabled-api') {
-      return withRequestId(new Response('Not found', { status: 404 }), requestId);
+      return withRouterResponseHeaders(
+        new Response('Not found', { status: 404 }),
+        request,
+        requestId
+      );
     }
 
     const workerTarget = routingDecision.target;
@@ -91,7 +94,7 @@ const routerWorker = {
         cacheEverything: false,
       },
     });
-    return withRequestId(response, requestId);
+    return withRouterResponseHeaders(response, request, requestId);
   },
 };
 

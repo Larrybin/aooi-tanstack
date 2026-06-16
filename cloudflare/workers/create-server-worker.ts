@@ -1,5 +1,6 @@
 import {
   isRuntimeEnvEnabled,
+  runWithCloudflareBindings,
   type CloudflareBindings,
 } from '../../src/infra/runtime/env.server';
 
@@ -65,7 +66,9 @@ function resolveModuleHandler<Env>(module: CloudflareFetchModule<Env>) {
     return (request: Request) => module.default!.fetch(request);
   }
 
-  throw new Error('Cloudflare server worker module has no handler or default.fetch');
+  throw new Error(
+    'Cloudflare server worker module has no handler or default.fetch'
+  );
 }
 
 export function createServerWorker<Env>(
@@ -78,19 +81,22 @@ export function createServerWorker<Env>(
 
   return {
     async fetch(request: Request, env: Env, ctx: ExecutionContext) {
-      const handler = (handlerPromise ??= loadModule().then(resolveModuleHandler));
+      const handler = (handlerPromise ??=
+        loadModule().then(resolveModuleHandler));
 
-      const beforeFetchResponse = await options.beforeFetch?.(
-        request,
-        env,
-        ctx
-      );
-      if (beforeFetchResponse) {
-        return beforeFetchResponse;
-      }
+      return runWithCloudflareBindings(env as CloudflareBindings, async () => {
+        const beforeFetchResponse = await options.beforeFetch?.(
+          request,
+          env,
+          ctx
+        );
+        if (beforeFetchResponse) {
+          return beforeFetchResponse;
+        }
 
-      printServerWorkerAuthDebug(request, env);
-      return (await handler)(request, env, ctx, request.signal);
+        printServerWorkerAuthDebug(request, env);
+        return (await handler)(request, env, ctx, request.signal);
+      });
     },
   };
 }

@@ -274,6 +274,7 @@ Strict checker result:
 ```text
 active OpenNext runtime/build blockers: 0
 active OpenNext config blockers: 0
+positive native contract blockers: 0
 deferred Gate 5.6 dependency residues: 26
 ```
 
@@ -282,6 +283,7 @@ Remaining residues are deferred to Gate 5.6:
 - `package.json` `@opennextjs/cloudflare`;
 - `src/shared/types/open-next-generated.d.ts`;
 - migration checker/inventory text that still mentions `.open-next`;
+- state worker next/cache DO compatibility exports, isolated until Gate 5.6 cache replacement;
 - historical R2 bucket names containing `opennext-cache`.
 
 ### 6. Direct package dependencies to remove only after replacements land

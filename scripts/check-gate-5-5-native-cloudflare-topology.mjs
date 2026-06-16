@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
@@ -10,6 +10,14 @@ for (const arg of args) {
 
 const NATIVE_SERVER_ARTIFACT = 'dist/server/server.mjs';
 const NATIVE_ASSETS_DIR = 'dist/client';
+const SERVER_WORKER_TARGETS = [
+  'public-web',
+  'auth',
+  'payment',
+  'member',
+  'chat',
+  'admin',
+];
 const IGNORED_DIRS = new Set(['.git', 'node_modules', 'dist', '.next']);
 const SCAN_ROOTS = [
   'cloudflare',
@@ -71,7 +79,9 @@ function walk(currentPath, out) {
 function collectFiles() {
   const files = [];
   for (const scanRoot of SCAN_ROOTS) walk(abs(scanRoot), files);
-  return files.sort((left, right) => toRepoPath(left).localeCompare(toRepoPath(right)));
+  return files.sort((left, right) =>
+    toRepoPath(left).localeCompare(toRepoPath(right))
+  );
 }
 
 function classifyHit(repoPath, line, text) {
@@ -95,7 +105,8 @@ function classifyHit(repoPath, line, text) {
   ) {
     return {
       classification: 'defer_gate_5_6_dependency',
-      reason: 'migration checker/inventory text is cleaned up in final deletion gate',
+      reason:
+        'migration checker/inventory text is cleaned up in final deletion gate',
     };
   }
 
@@ -112,7 +123,8 @@ function classifyHit(repoPath, line, text) {
   ) {
     return {
       classification: 'active_blocker',
-      reason: 'active Cloudflare worker runtime still imports OpenNext artifacts',
+      reason:
+        'active Cloudflare worker runtime still imports OpenNext artifacts',
     };
   }
 
@@ -122,7 +134,10 @@ function classifyHit(repoPath, line, text) {
     repoPath === 'scripts/bundle-cf-server-functions.mjs' ||
     repoPath === 'scripts/run-cf-build.mjs'
   ) {
-    if (trimmed.includes('.open-next') || trimmed.includes('opennextjs-cloudflare')) {
+    if (
+      trimmed.includes('.open-next') ||
+      trimmed.includes('opennextjs-cloudflare')
+    ) {
       return {
         classification: 'active_blocker',
         reason: 'active build script still requires OpenNext artifacts',
@@ -143,14 +158,19 @@ function classifyHit(repoPath, line, text) {
   if (repoPath === 'src/shared/types/open-next-generated.d.ts') {
     return {
       classification: 'defer_gate_5_6_dependency',
-      reason: 'OpenNext generated declarations are removed with final deletion gate',
+      reason:
+        'OpenNext generated declarations are removed with final deletion gate',
     };
   }
 
-  if (repoPath.includes('cloudflare-worker-topology') && trimmed.includes('.open-next')) {
+  if (
+    repoPath.includes('cloudflare-worker-topology') &&
+    trimmed.includes('.open-next')
+  ) {
     return {
       classification: 'active_config_blocker',
-      reason: 'active topology metadata still points to OpenNext server function artifacts',
+      reason:
+        'active topology metadata still points to OpenNext server function artifacts',
     };
   }
 
@@ -171,9 +191,20 @@ function collectHits() {
     const lines = readFileSync(filePath, 'utf8').split('\n');
     for (let index = 0; index < lines.length; index += 1) {
       const line = lines[index];
-      if (!line.includes('.open-next') && !line.includes('@opennextjs') && !line.includes('opennextjs-cloudflare')) continue;
+      if (
+        !line.includes('.open-next') &&
+        !line.includes('@opennextjs') &&
+        !line.includes('opennextjs-cloudflare')
+      )
+        continue;
       const classification = classifyHit(repoPath, index + 1, line);
-      if (classification) hits.push({ repoPath, line: index + 1, text: line.trim(), ...classification });
+      if (classification)
+        hits.push({
+          repoPath,
+          line: index + 1,
+          text: line.trim(),
+          ...classification,
+        });
     }
   }
   return hits;
@@ -182,8 +213,109 @@ function collectHits() {
 function hasNativeArtifactContract() {
   return {
     serverArtifactPresent: existsSync(abs(NATIVE_SERVER_ARTIFACT)),
-    assetsDirPresent: existsSync(abs(NATIVE_ASSETS_DIR)) && statSync(abs(NATIVE_ASSETS_DIR)).isDirectory(),
+    assetsDirPresent:
+      existsSync(abs(NATIVE_ASSETS_DIR)) &&
+      statSync(abs(NATIVE_ASSETS_DIR)).isDirectory(),
   };
+}
+
+function readRepoFile(repoPath) {
+  return readFileSync(abs(repoPath), 'utf8');
+}
+
+function pushFailureIfMissing(failures, condition, message) {
+  if (!condition) failures.push(message);
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function hasAssetsDirectory(source, expectedDirectory) {
+  return new RegExp(
+    String.raw`\[assets\][\s\S]*?directory\s*=\s*"${escapeRegExp(expectedDirectory)}"`
+  ).test(source);
+}
+
+function collectPositiveContractFailures() {
+  const failures = [];
+  const rootWrangler = readRepoFile('wrangler.cloudflare.toml');
+  const topology = readRepoFile(
+    'src/shared/config/cloudflare-worker-topology.ts'
+  );
+  const buildScript = readRepoFile('scripts/run-cf-build.mjs');
+  const stateWorker = readRepoFile('cloudflare/workers/state.ts');
+  const routerWorker = readRepoFile('cloudflare/workers/router.ts');
+
+  pushFailureIfMissing(
+    failures,
+    hasAssetsDirectory(rootWrangler, NATIVE_ASSETS_DIR),
+    `wrangler.cloudflare.toml assets.directory must be ${NATIVE_ASSETS_DIR}`
+  );
+
+  for (const target of SERVER_WORKER_TARGETS) {
+    const workerPath = `cloudflare/workers/server-${target}.ts`;
+    const wranglerPath = `cloudflare/wrangler.server-${target}.toml`;
+    const workerSource = readRepoFile(workerPath);
+    const wranglerSource = readRepoFile(wranglerPath);
+
+    pushFailureIfMissing(
+      failures,
+      workerSource.includes("import('../../dist/server/server.mjs')"),
+      `${workerPath} must import ../../${NATIVE_SERVER_ARTIFACT}`
+    );
+    pushFailureIfMissing(
+      failures,
+      hasAssetsDirectory(wranglerSource, `../${NATIVE_ASSETS_DIR}`),
+      `${wranglerPath} assets.directory must be ../${NATIVE_ASSETS_DIR}`
+    );
+    pushFailureIfMissing(
+      failures,
+      !workerSource.includes('NEXT_CACHE_DO_QUEUE') &&
+        !workerSource.includes('NEXT_TAG_CACHE_DO_SHARDED') &&
+        !workerSource.includes('DOQueueHandler') &&
+        !workerSource.includes('DOShardedTagCache'),
+      `${workerPath} must not import or call next/cache Durable Object bindings`
+    );
+  }
+
+  const topologyArtifactCount =
+    topology.split(`bundleEntryRelativePath: '${NATIVE_SERVER_ARTIFACT}'`)
+      .length - 1;
+  pushFailureIfMissing(
+    failures,
+    topologyArtifactCount === SERVER_WORKER_TARGETS.length,
+    `cloudflare-worker-topology must pin all server bundle entries to ${NATIVE_SERVER_ARTIFACT}`
+  );
+
+  pushFailureIfMissing(
+    failures,
+    buildScript.includes(
+      "'exec', 'vite', 'build', '--config', 'vite.config.mts'"
+    ),
+    'run-cf-build.mjs must invoke pnpm exec vite build --config vite.config.mts'
+  );
+  pushFailureIfMissing(
+    failures,
+    !buildScript.includes('bundle-cf-server-functions') &&
+      !buildScript.includes('opennextjs-cloudflare build'),
+    'run-cf-build.mjs must not call obsolete OpenNext/bundler build paths'
+  );
+  pushFailureIfMissing(
+    failures,
+    routerWorker.includes('withRouterResponseHeaders') &&
+      routerWorker.includes('applyNativeRouterMiddleware'),
+    'router.ts must apply native router middleware and response headers'
+  );
+  pushFailureIfMissing(
+    failures,
+    stateWorker.includes('DOQueueHandler') &&
+      stateWorker.includes('DOShardedTagCache') &&
+      stateWorker.includes('StatefulLimitersDurableObject'),
+    'state.ts must keep state Durable Object exports isolated in state worker'
+  );
+
+  return failures;
 }
 
 function printGroup(name, hits) {
@@ -196,19 +328,34 @@ function printGroup(name, hits) {
 }
 
 const hits = collectHits();
-const activeBlockers = hits.filter((hit) => hit.classification === 'active_blocker');
-const configBlockers = hits.filter((hit) => hit.classification === 'active_config_blocker');
-const deferred = hits.filter((hit) => hit.classification === 'defer_gate_5_6_dependency');
+const activeBlockers = hits.filter(
+  (hit) => hit.classification === 'active_blocker'
+);
+const configBlockers = hits.filter(
+  (hit) => hit.classification === 'active_config_blocker'
+);
+const deferred = hits.filter(
+  (hit) => hit.classification === 'defer_gate_5_6_dependency'
+);
 const artifact = hasNativeArtifactContract();
 const artifactBlockers = [];
-if (!artifact.serverArtifactPresent) artifactBlockers.push(NATIVE_SERVER_ARTIFACT);
+if (!artifact.serverArtifactPresent)
+  artifactBlockers.push(NATIVE_SERVER_ARTIFACT);
 if (!artifact.assetsDirPresent) artifactBlockers.push(NATIVE_ASSETS_DIR);
+const positiveContractFailures = collectPositiveContractFailures();
 
 console.log('Gate 5.5 native Cloudflare topology report');
-console.log(`native server artifact: ${NATIVE_SERVER_ARTIFACT} ${artifact.serverArtifactPresent ? 'present' : 'missing'}`);
-console.log(`native assets directory: ${NATIVE_ASSETS_DIR} ${artifact.assetsDirPresent ? 'present' : 'missing'}`);
+console.log(
+  `native server artifact: ${NATIVE_SERVER_ARTIFACT} ${artifact.serverArtifactPresent ? 'present' : 'missing'}`
+);
+console.log(
+  `native assets directory: ${NATIVE_ASSETS_DIR} ${artifact.assetsDirPresent ? 'present' : 'missing'}`
+);
 console.log(`active OpenNext runtime/build blockers: ${activeBlockers.length}`);
 console.log(`active OpenNext config blockers: ${configBlockers.length}`);
+console.log(
+  `positive native contract blockers: ${positiveContractFailures.length}`
+);
 console.log(`deferred Gate 5.6 dependency residues: ${deferred.length}`);
 
 printGroup('active_blocker', activeBlockers);
@@ -217,13 +364,20 @@ printGroup('defer_gate_5_6_dependency', deferred);
 
 const failures = [];
 if (artifactBlockers.length > 0) {
-  failures.push(`native artifact contract missing: ${artifactBlockers.join(', ')}`);
+  failures.push(
+    `native artifact contract missing: ${artifactBlockers.join(', ')}`
+  );
 }
+for (const failure of positiveContractFailures) failures.push(failure);
 if (!reportMode && activeBlockers.length > 0) {
-  failures.push(`active OpenNext runtime/build blockers remain: ${activeBlockers.length}`);
+  failures.push(
+    `active OpenNext runtime/build blockers remain: ${activeBlockers.length}`
+  );
 }
 if (!reportMode && configBlockers.length > 0) {
-  failures.push(`active OpenNext config blockers remain: ${configBlockers.length}`);
+  failures.push(
+    `active OpenNext config blockers remain: ${configBlockers.length}`
+  );
 }
 
 if (failures.length > 0) {
@@ -232,4 +386,8 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log(reportMode ? '\nGate 5.5 report completed.' : '\nGate 5.5 native Cloudflare topology check passed.');
+console.log(
+  reportMode
+    ? '\nGate 5.5 report completed.'
+    : '\nGate 5.5 native Cloudflare topology check passed.'
+);

@@ -64,6 +64,10 @@ test('server workers 不包含 middleware 或分发逻辑', async () => {
     assert.ok(!source.includes('middlewareHandler'));
     assert.ok(!source.includes('resolveWorkerTarget'));
     assert.ok(!source.includes('handleImageRequest'));
+    assert.ok(!source.includes('NEXT_CACHE_DO_QUEUE'));
+    assert.ok(!source.includes('NEXT_TAG_CACHE_DO_SHARDED'));
+    assert.ok(!source.includes('DOQueueHandler'));
+    assert.ok(!source.includes('DOShardedTagCache'));
   }
 });
 

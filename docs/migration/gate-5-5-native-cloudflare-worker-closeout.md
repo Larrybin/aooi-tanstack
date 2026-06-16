@@ -14,6 +14,8 @@ assets: dist/client
 Closed active paths:
 
 - worker wrappers now import `dist/server/server.mjs`;
+- worker wrappers scope native server execution with Cloudflare bindings;
+- router middleware restores request id/path/url headers, security response headers, protected-route unsigned redirects, invalid registered-locale 404s, and `/docs` index rewrites;
 - root and server Wrangler assets point to `dist/client`;
 - `cf:build` runs `pnpm exec vite build --config vite.config.mts`;
 - `cf:build` no longer calls OpenNext or `scripts/bundle-cf-server-functions.mjs`;
@@ -27,6 +29,7 @@ native server artifact: dist/server/server.mjs present
 native assets directory: dist/client present
 active OpenNext runtime/build blockers: 0
 active OpenNext config blockers: 0
+positive native contract blockers: 0
 deferred Gate 5.6 dependency residues: 26
 ```
 
@@ -34,7 +37,8 @@ Deferred residues are intentionally left for Gate 5.6:
 
 - `@opennextjs/cloudflare` package dependency;
 - `src/shared/types/open-next-generated.d.ts`;
-- migration checker/inventory text that still mentions `.open-next`.
+- migration checker/inventory text that still mentions `.open-next`;
+- next/cache replacement and OpenNext cache package deletion.
 
 ## Validation commands and results
 
@@ -76,13 +80,14 @@ pnpm cf:build:no-db --site=mp4-compressor -- --workers=router,public-web
 Result: passed. Dry-run upload gzip sizes:
 
 ```text
-router: 91.63 KiB
-public-web: 1503.43 KiB
+router: 93.24 KiB
+public-web: 1503.48 KiB
 ```
 
 ## Known risks before Gate 5.6
 
 - Do not delete `src/app/**` or Next/OpenNext package dependencies until Gate 5.6.
 - Cloudflare app smoke now covers the current TanStack native route tree (`/pricing`, `/docs`, `/logo.png`, `/activity/chats`, `/settings/profile`, `/settings/security`). Next-only page routes such as `/chat` and `/admin/**` are not Gate 5.5 native parity signals.
+- State worker next/cache DO classes remain isolated compatibility exports. Gate 5.6 still owns replacing `next/cache` semantics.
 - `SITE=dev-local pnpm cf:check` still requires production-like runtime bindings such as `RESEND_API_KEY`; closeout Cloudflare structure validation used the supported no-db `mp4-compressor` path with explicit `STORAGE_PUBLIC_BASE_URL`.
 - Existing R2 bucket names still contain `opennext-cache`; this is storage naming residue, not an active worker/build artifact path.

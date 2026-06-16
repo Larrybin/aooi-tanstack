@@ -5,6 +5,7 @@ import {
   createServerWorker,
   shouldPrintServerWorkerAuthDebug,
 } from '../cloudflare/workers/create-server-worker';
+import { getRuntimeEnvString } from '../src/infra/runtime/env.server';
 
 test('shouldPrintServerWorkerAuthDebug 在 binding-only auth debug 场景下返回 true', () => {
   const previousDebugFlag = process.env.CF_LOCAL_AUTH_DEBUG;
@@ -59,6 +60,39 @@ test('createServerWorker 调用 native module default.fetch 且不写入 process
       delete process.env.BETTER_AUTH_SECRET;
     } else {
       process.env.BETTER_AUTH_SECRET = previousSecret;
+    }
+  }
+});
+
+test('createServerWorker 在 native default.fetch 内暴露 Cloudflare bindings', async () => {
+  const previousAppUrl = process.env.NEXT_PUBLIC_APP_URL;
+  delete process.env.NEXT_PUBLIC_APP_URL;
+
+  try {
+    const worker = createServerWorker(async () => ({
+      default: {
+        fetch() {
+          return new Response(
+            getRuntimeEnvString('NEXT_PUBLIC_APP_URL') || 'missing'
+          );
+        },
+      },
+    }));
+    const response = await worker.fetch(
+      new Request('https://example.test/native'),
+      {
+        NEXT_PUBLIC_APP_URL: 'https://binding.example.test',
+      },
+      {} as ExecutionContext
+    );
+
+    assert.equal(await response.text(), 'https://binding.example.test');
+    assert.equal(process.env.NEXT_PUBLIC_APP_URL, undefined);
+  } finally {
+    if (previousAppUrl === undefined) {
+      delete process.env.NEXT_PUBLIC_APP_URL;
+    } else {
+      process.env.NEXT_PUBLIC_APP_URL = previousAppUrl;
     }
   }
 });
