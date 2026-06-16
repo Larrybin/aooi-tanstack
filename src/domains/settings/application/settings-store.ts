@@ -1,5 +1,4 @@
 
-import { revalidateTag } from 'next/cache';
 import { type KnownSettingKey } from '@/domains/settings/registry';
 import { db } from '@/infra/adapters/db';
 import { mergeAuthSpikeOAuthConfigSeedConfigs } from '@/infra/platform/auth/oauth-spike-config';
@@ -12,8 +11,10 @@ import { sql } from 'drizzle-orm';
 
 import { config } from '@/config/db/schema';
 import { mergeCloudflareLocalSmokeConfigSeedConfigs } from '@/shared/lib/cloudflare-local-smoke-config';
-import { unstable_cache } from '@/shared/lib/next-cache';
-
+import {
+  cacheSettingsReader,
+  revalidateSettingsCacheTag,
+} from './settings-cache';
 import { invalidateRuntimeSettingsCacheVersion } from './settings-cache-version';
 
 export type Config = typeof config.$inferSelect;
@@ -78,8 +79,8 @@ export async function addConfig(newConfig: NewConfig) {
 
 export function invalidateSettingsCache() {
   invalidateRuntimeSettingsCacheVersion();
-  revalidateTag(CONFIGS_CACHE_TAG, 'max');
-  revalidateTag(PUBLIC_CONFIGS_CACHE_TAG, 'max');
+  revalidateSettingsCacheTag(CONFIGS_CACHE_TAG);
+  revalidateSettingsCacheTag(PUBLIC_CONFIGS_CACHE_TAG);
 }
 
 async function getConfigsFromDb(): Promise<Configs> {
@@ -106,12 +107,10 @@ export async function readSettingsFresh(): Promise<Configs> {
   return { ...configs };
 }
 
-const getConfigsCached = unstable_cache(
+const getConfigsCached = cacheSettingsReader(
   async (): Promise<Configs> => await getConfigsFromDb(),
-  [CONFIGS_CACHE_TAG],
   {
-    tags: [CONFIGS_CACHE_TAG],
-    revalidate: CONFIGS_CACHE_REVALIDATE_SECONDS,
+    revalidateSeconds: CONFIGS_CACHE_REVALIDATE_SECONDS,
   }
 );
 

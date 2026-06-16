@@ -1,8 +1,6 @@
 
 import { getRuntimeEnvString } from '@/infra/runtime/env.server';
 
-import { unstable_cache } from '@/shared/lib/next-cache';
-
 import {
   buildAdsRuntimeSettings,
   buildAffiliateRuntimeSettings,
@@ -27,6 +25,7 @@ import type {
   EmailRuntimeSettings,
   PublicUiConfig,
 } from './settings-runtime.contracts';
+import { cacheSettingsReader } from './settings-cache';
 import {
   CONFIGS_CACHE_TAG,
   PUBLIC_CONFIGS_CACHE_TAG,
@@ -47,89 +46,61 @@ function readAuthServerBindingsFromRuntime(): AuthServerBindings {
 
 const PUBLIC_UI_CONFIG_CACHE_REVALIDATE_SECONDS = 60 * 60;
 
-const readPublicUiConfigCachedValue = unstable_cache(
+const readPublicUiConfigCachedValue = cacheSettingsReader(
   async (): Promise<PublicUiConfig> =>
     buildPublicUiConfig(await readSettingsCached()),
-  [PUBLIC_CONFIGS_CACHE_TAG],
-  {
-    tags: [PUBLIC_CONFIGS_CACHE_TAG],
-    revalidate: PUBLIC_UI_CONFIG_CACHE_REVALIDATE_SECONDS,
-  }
+  { revalidateSeconds: PUBLIC_UI_CONFIG_CACHE_REVALIDATE_SECONDS }
 );
 
-const readAuthUiRuntimeSettingsCachedValue = unstable_cache(
+const readAuthUiRuntimeSettingsCachedValue = cacheSettingsReader(
   async (): Promise<AuthUiRuntimeSettings> =>
     buildAuthUiRuntimeSettings(
       await readSettingsCached(),
       readAuthServerBindingsFromRuntime()
     ),
-  [`${CONFIGS_CACHE_TAG}:auth-runtime`],
-  {
-    tags: [CONFIGS_CACHE_TAG],
-  }
+  { revalidateSeconds: 60 }
 );
 
-const readBillingRuntimeSettingsCachedValue = unstable_cache(
+const readBillingRuntimeSettingsCachedValue = cacheSettingsReader(
   async (): Promise<BillingRuntimeSettings> =>
     buildBillingRuntimeSettings(await readSettingsCached()),
-  [`${CONFIGS_CACHE_TAG}:billing-runtime`],
-  {
-    tags: [CONFIGS_CACHE_TAG],
-  }
+  { revalidateSeconds: 60 }
 );
 
-const readAiRuntimeSettingsCachedValue = unstable_cache(
+const readAiRuntimeSettingsCachedValue = cacheSettingsReader(
   async (): Promise<AiRuntimeSettings> =>
     buildAiRuntimeSettings(await readSettingsCached()),
-  [`${CONFIGS_CACHE_TAG}:ai-runtime`],
-  {
-    tags: [CONFIGS_CACHE_TAG],
-  }
+  { revalidateSeconds: 60 }
 );
 
-const readEmailRuntimeSettingsCachedValue = unstable_cache(
+const readEmailRuntimeSettingsCachedValue = cacheSettingsReader(
   async (): Promise<EmailRuntimeSettings> =>
     buildEmailRuntimeSettings(await readSettingsCached()),
-  [`${CONFIGS_CACHE_TAG}:email-runtime`],
-  {
-    tags: [CONFIGS_CACHE_TAG],
-  }
+  { revalidateSeconds: 60 }
 );
 
-const readAnalyticsRuntimeSettingsCachedValue = unstable_cache(
+const readAnalyticsRuntimeSettingsCachedValue = cacheSettingsReader(
   async (): Promise<AnalyticsRuntimeSettings> =>
     buildAnalyticsRuntimeSettings(await readSettingsCached()),
-  [`${CONFIGS_CACHE_TAG}:analytics-runtime`],
-  {
-    tags: [CONFIGS_CACHE_TAG],
-  }
+  { revalidateSeconds: 60 }
 );
 
-const readAffiliateRuntimeSettingsCachedValue = unstable_cache(
+const readAffiliateRuntimeSettingsCachedValue = cacheSettingsReader(
   async (): Promise<AffiliateRuntimeSettings> =>
     buildAffiliateRuntimeSettings(await readSettingsCached()),
-  [`${CONFIGS_CACHE_TAG}:affiliate-runtime`],
-  {
-    tags: [CONFIGS_CACHE_TAG],
-  }
+  { revalidateSeconds: 60 }
 );
 
-const readCustomerServiceRuntimeSettingsCachedValue = unstable_cache(
+const readCustomerServiceRuntimeSettingsCachedValue = cacheSettingsReader(
   async (): Promise<CustomerServiceRuntimeSettings> =>
     buildCustomerServiceRuntimeSettings(await readSettingsCached()),
-  [`${CONFIGS_CACHE_TAG}:customer-service-runtime`],
-  {
-    tags: [CONFIGS_CACHE_TAG],
-  }
+  { revalidateSeconds: 60 }
 );
 
-const readAdsRuntimeSettingsCachedValue = unstable_cache(
+const readAdsRuntimeSettingsCachedValue = cacheSettingsReader(
   async (): Promise<AdsRuntimeSettings> =>
     buildAdsRuntimeSettings(await readSettingsCached()),
-  [`${CONFIGS_CACHE_TAG}:ads-runtime`],
-  {
-    tags: [CONFIGS_CACHE_TAG],
-  }
+  { revalidateSeconds: 60 }
 );
 
 export async function readPublicUiConfigCached(): Promise<PublicUiConfig> {
