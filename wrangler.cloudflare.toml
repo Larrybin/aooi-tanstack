@@ -11,7 +11,7 @@ custom_domain = true
 
 [assets]
 binding = "ASSETS"
-directory = ".open-next/assets"
+directory = "dist/client"
 
 [images]
 binding = "IMAGES"

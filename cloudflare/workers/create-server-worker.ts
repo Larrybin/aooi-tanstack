@@ -1,4 +1,7 @@
-import { isRuntimeEnvEnabled } from '../../src/infra/runtime/env.server';
+import {
+  isRuntimeEnvEnabled,
+  type CloudflareBindings,
+} from '../../src/infra/runtime/env.server';
 
 type CloudflareFetchHandler<Env> = (
   request: Request,
@@ -8,7 +11,10 @@ type CloudflareFetchHandler<Env> = (
 ) => Promise<Response> | Response;
 
 type CloudflareFetchModule<Env> = {
-  handler: CloudflareFetchHandler<Env>;
+  handler?: CloudflareFetchHandler<Env>;
+  default?: {
+    fetch(request: Request): Promise<Response> | Response;
+  };
 };
 
 type BeforeFetchHook<Env> = (
@@ -18,39 +24,6 @@ type BeforeFetchHook<Env> = (
 ) => Promise<Response | null> | Response | null;
 
 type RuntimeEnvOptions = Parameters<typeof isRuntimeEnvEnabled>[1];
-
-type RunWithCloudflareRequestContext = <Env>(
-  request: Request,
-  env: Env,
-  ctx: ExecutionContext,
-  callback: () => Promise<Response> | Response
-) => Promise<Response> | Response;
-
-let runWithCloudflareRequestContextPromise:
-  | Promise<RunWithCloudflareRequestContext>
-  | undefined;
-
-function loadRunWithCloudflareRequestContext() {
-  return (runWithCloudflareRequestContextPromise ??=
-    import('../../.open-next/cloudflare/init.js').then(
-      (module) =>
-        module.runWithCloudflareRequestContext as RunWithCloudflareRequestContext
-    ));
-}
-
-export function syncWorkerStringBindingsToProcessEnv(env: unknown) {
-  if (!env || typeof env !== 'object') {
-    return;
-  }
-
-  for (const [key, value] of Object.entries(env)) {
-    if (typeof value !== 'string' || value.length === 0) {
-      continue;
-    }
-
-    process.env[key] = value;
-  }
-}
 
 export function shouldPrintServerWorkerAuthDebug(
   request: Request,
@@ -64,8 +37,12 @@ export function shouldPrintServerWorkerAuthDebug(
   return url.pathname.startsWith('/api/auth/');
 }
 
-function printServerWorkerAuthDebug(request: Request) {
-  if (!shouldPrintServerWorkerAuthDebug(request)) {
+function printServerWorkerAuthDebug(request: Request, env: unknown) {
+  if (
+    !shouldPrintServerWorkerAuthDebug(request, {
+      bindings: env as CloudflareBindings,
+    })
+  ) {
     return;
   }
 
@@ -79,6 +56,18 @@ function printServerWorkerAuthDebug(request: Request) {
   });
 }
 
+function resolveModuleHandler<Env>(module: CloudflareFetchModule<Env>) {
+  if (module.handler) {
+    return module.handler;
+  }
+
+  if (module.default?.fetch) {
+    return (request: Request) => module.default!.fetch(request);
+  }
+
+  throw new Error('Cloudflare server worker module has no handler or default.fetch');
+}
+
 export function createServerWorker<Env>(
   loadModule: () => Promise<CloudflareFetchModule<Env>>,
   options: {
@@ -89,26 +78,19 @@ export function createServerWorker<Env>(
 
   return {
     async fetch(request: Request, env: Env, ctx: ExecutionContext) {
-      syncWorkerStringBindingsToProcessEnv(env);
-      const handler = (handlerPromise ??= loadModule().then(
-        ({ handler }) => handler
-      ));
-      const runWithCloudflareRequestContext =
-        await loadRunWithCloudflareRequestContext();
+      const handler = (handlerPromise ??= loadModule().then(resolveModuleHandler));
 
-      return runWithCloudflareRequestContext(request, env, ctx, async () => {
-        const beforeFetchResponse = await options.beforeFetch?.(
-          request,
-          env,
-          ctx
-        );
-        if (beforeFetchResponse) {
-          return beforeFetchResponse;
-        }
+      const beforeFetchResponse = await options.beforeFetch?.(
+        request,
+        env,
+        ctx
+      );
+      if (beforeFetchResponse) {
+        return beforeFetchResponse;
+      }
 
-        printServerWorkerAuthDebug(request);
-        return (await handler)(request, env, ctx, request.signal);
-      });
+      printServerWorkerAuthDebug(request, env);
+      return (await handler)(request, env, ctx, request.signal);
     },
   };
 }

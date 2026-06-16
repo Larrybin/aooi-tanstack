@@ -1,4 +1,3 @@
-import { maybeHandleAuthRuntimeDiagnosticsRequest } from './auth-runtime-diagnostics';
 import { createServerWorker } from './create-server-worker';
 
 type PublicWebEnv = Record<string, unknown> & {
@@ -6,25 +5,8 @@ type PublicWebEnv = Record<string, unknown> & {
   REMOVER_CLEANUP_SECRET?: string;
 };
 
-const publicWebWorker = createServerWorker<PublicWebEnv>(
-  () =>
-    import('../../.open-next/server-functions/default/handler.mjs') as Promise<{
-      handler: (
-        request: Request,
-        env: PublicWebEnv,
-        ctx: ExecutionContext,
-        signal?: AbortSignal
-      ) => Promise<Response> | Response;
-    }>,
-  {
-    beforeFetch(request) {
-      return maybeHandleAuthRuntimeDiagnosticsRequest({
-        request,
-        workerTarget: 'public-web',
-        role: 'auth-ui',
-      });
-    },
-  }
+const publicWebWorker = createServerWorker<PublicWebEnv>(() =>
+  import('../../dist/server/server.mjs')
 );
 
 function getStringBinding(env: PublicWebEnv, key: keyof PublicWebEnv) {

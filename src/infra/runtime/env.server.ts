@@ -1,6 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { assertPostgresOnlyDatabaseProvider } from '@/infra/runtime/database-provider';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 import type { EnvLike } from '@/config/env-contract';
 import {
@@ -93,12 +92,7 @@ export function getCloudflareBindings(): CloudflareBindings | null {
     return scopedBindings;
   }
 
-  try {
-    const { env } = getCloudflareContext();
-    return { ...env };
-  } catch {
-    return null;
-  }
+  return null;
 }
 
 export function getCloudflareAIBinding(): CloudflareAIBinding | null {

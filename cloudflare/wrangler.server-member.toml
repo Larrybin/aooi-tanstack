@@ -7,7 +7,7 @@ preview_urls = false
 
 [assets]
 binding = "ASSETS"
-directory = "../.open-next/assets"
+directory = "../dist/client"
 
 [[r2_buckets]]
 binding = "NEXT_INC_CACHE_R2_BUCKET"
