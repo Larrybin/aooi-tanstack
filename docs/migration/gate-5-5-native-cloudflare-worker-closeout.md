@@ -83,5 +83,6 @@ public-web: 1503.43 KiB
 ## Known risks before Gate 5.6
 
 - Do not delete `src/app/**` or Next/OpenNext package dependencies until Gate 5.6.
+- Cloudflare app smoke now covers the current TanStack native route tree (`/pricing`, `/docs`, `/logo.png`, `/activity/chats`, `/settings/profile`, `/settings/security`). Next-only page routes such as `/chat` and `/admin/**` are not Gate 5.5 native parity signals.
 - `SITE=dev-local pnpm cf:check` still requires production-like runtime bindings such as `RESEND_API_KEY`; closeout Cloudflare structure validation used the supported no-db `mp4-compressor` path with explicit `STORAGE_PUBLIC_BASE_URL`.
 - Existing R2 bucket names still contain `opennext-cache`; this is storage naming residue, not an active worker/build artifact path.

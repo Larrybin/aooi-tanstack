@@ -9,7 +9,7 @@ import {
   validateCloudflareAppSmokeResponse,
 } from '../../scripts/run-cf-app-smoke.mjs';
 
-test('getCloudflareAppSmokeChecks 覆盖 default/docs/image/chat/member/admin 路由', () => {
+test('getCloudflareAppSmokeChecks 覆盖 native public/assets/member 路由', () => {
   const checks = getCloudflareAppSmokeChecks({
     baseUrlOrigin: 'https://mamamiya.pdfreprinting.net',
   }).map((check) => check.name);
@@ -17,16 +17,16 @@ test('getCloudflareAppSmokeChecks 覆盖 default/docs/image/chat/member/admin �
   assert.deepEqual(checks, [
     'default-route',
     'docs-route',
-    'image-route',
-    'chat-public-route',
-    'member-protected-route',
-    'admin-protected-route',
+    'static-asset-route',
+    'member-chats-protected-route',
+    'member-profile-protected-route',
+    'member-security-protected-route',
   ]);
 });
 
-test('validateCloudflareAppSmokeResponse 校验图片响应 content-type', async () => {
+test('validateCloudflareAppSmokeResponse 校验静态图片响应 content-type', async () => {
   const check = getCloudflareAppSmokeChecks().find(
-    (item) => item.name === 'image-route'
+    (item) => item.name === 'static-asset-route'
   );
   assert(check);
 
@@ -41,7 +41,7 @@ test('validateCloudflareAppSmokeResponse 校验图片响应 content-type', async
 test('validateCloudflareAppSmokeResponse 校验 protected route 的同源重定向', async () => {
   const check = getCloudflareAppSmokeChecks({
     baseUrlOrigin: 'https://mamamiya.pdfreprinting.net',
-  }).find((item) => item.name === 'member-protected-route');
+  }).find((item) => item.name === 'member-profile-protected-route');
   assert(check);
 
   const response = new Response(null, {
@@ -58,19 +58,19 @@ test('validateCloudflareAppSmokeResponse 校验 protected route 的同源重定�
 test('validateCloudflareAppSmokeResponse 支持相对 Location 重定向头', async () => {
   const check = getCloudflareAppSmokeChecks({
     baseUrlOrigin: 'https://mamamiya.pdfreprinting.net',
-  }).find((item) => item.name === 'admin-protected-route');
+  }).find((item) => item.name === 'member-security-protected-route');
   assert(check);
 
   const response = new Response(null, {
     status: 307,
     headers: {
-      location: '/sign-in?callbackUrl=%2Fadmin%2Fsettings%2Fauth',
+      location: '/sign-in?callbackUrl=%2Fsettings%2Fsecurity',
     },
   });
 
   Object.defineProperty(response, 'url', {
     configurable: true,
-    value: 'https://mamamiya.pdfreprinting.net/admin/settings/auth',
+    value: 'https://mamamiya.pdfreprinting.net/settings/security',
   });
 
   await validateCloudflareAppSmokeResponse(check, response, '');
@@ -117,17 +117,20 @@ test('runCloudflareAppSmoke 对生产只读 smoke 路由逐项校验', async () 
       }),
     ],
     [
-      '/_next/image',
+      '/logo.png',
       new Response('png', {
         status: 200,
         headers: { 'content-type': 'image/png' },
       }),
     ],
     [
-      '/chat',
-      new Response('<html><body><button>Sign In</button></body></html>', {
-        status: 200,
-        headers: { 'content-type': 'text/html; charset=utf-8' },
+      '/activity/chats',
+      new Response(null, {
+        status: 307,
+        headers: {
+          location:
+            'https://mamamiya.pdfreprinting.net/sign-in?callbackUrl=%2Factivity%2Fchats',
+        },
       }),
     ],
     [
@@ -141,12 +144,12 @@ test('runCloudflareAppSmoke 对生产只读 smoke 路由逐项校验', async () 
       }),
     ],
     [
-      '/admin/settings/auth',
+      '/settings/security',
       new Response(null, {
         status: 307,
         headers: {
           location:
-            'https://mamamiya.pdfreprinting.net/sign-in?callbackUrl=%2Fadmin%2Fsettings%2Fauth',
+            'https://mamamiya.pdfreprinting.net/sign-in?callbackUrl=%2Fsettings%2Fsecurity',
         },
       }),
     ],
@@ -169,9 +172,9 @@ test('runCloudflareAppSmoke 对生产只读 smoke 路由逐项校验', async () 
   assert.deepEqual(visited, [
     '/pricing',
     '/docs',
-    '/_next/image',
-    '/chat',
+    '/logo.png',
+    '/activity/chats',
     '/settings/profile',
-    '/admin/settings/auth',
+    '/settings/security',
   ]);
 });

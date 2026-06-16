@@ -44,6 +44,8 @@ The checker verifies:
 - active build scripts no longer require `.open-next` artifacts;
 - package dependencies are deferred to Gate 5.6.
 
+Gate 5.5 smoke checks must use routes already represented by the TanStack native route tree. Legacy Next-only pages such as `/chat` and `/admin/**` remain Gate 5.6 route-migration work until native route parity lands.
+
 ## Required final validation
 
 ```bash

@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  createServerWorker,
   shouldPrintServerWorkerAuthDebug,
-  syncWorkerStringBindingsToProcessEnv,
 } from '../cloudflare/workers/create-server-worker';
 
 test('shouldPrintServerWorkerAuthDebug 在 binding-only auth debug 场景下返回 true', () => {
@@ -30,17 +30,29 @@ test('shouldPrintServerWorkerAuthDebug 在 binding-only auth debug 场景下返�
   }
 });
 
-test('syncWorkerStringBindingsToProcessEnv 会把字符串 bindings 同步到 process.env', () => {
+test('createServerWorker 调用 native module default.fetch 且不写入 process.env', async () => {
   const previousSecret = process.env.BETTER_AUTH_SECRET;
   delete process.env.BETTER_AUTH_SECRET;
 
   try {
-    syncWorkerStringBindingsToProcessEnv({
-      BETTER_AUTH_SECRET: 'binding-secret',
-      NON_STRING_BINDING: { ignored: true },
-    });
+    const worker = createServerWorker(async () => ({
+      default: {
+        fetch(request: Request) {
+          return new Response(new URL(request.url).pathname);
+        },
+      },
+    }));
+    const response = await worker.fetch(
+      new Request('https://example.test/native'),
+      {
+        BETTER_AUTH_SECRET: 'binding-secret',
+      },
+      {} as ExecutionContext
+    );
 
-    assert.equal(process.env.BETTER_AUTH_SECRET, 'binding-secret');
+    assert.equal(response.status, 200);
+    assert.equal(await response.text(), '/native');
+    assert.equal(process.env.BETTER_AUTH_SECRET, undefined);
     assert.equal(process.env.NON_STRING_BINDING, undefined);
   } finally {
     if (previousSecret === undefined) {

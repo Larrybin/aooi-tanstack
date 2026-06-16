@@ -6,15 +6,14 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
+import { NATIVE_TANSTACK_SERVER_ARTIFACT } from '../../scripts/lib/cloudflare-build-artifacts.mjs';
 import { resolveSiteDeployContract } from '../../scripts/lib/site-deploy-contract.mjs';
-import { readOpenNextGeneratedModules } from '../../scripts/sync-open-next-generated-types.mjs';
 import {
   AUTH_HANDLER_WORKER_TARGETS,
   AUTH_UI_WORKER_TARGETS,
   CLOUDFLARE_ALL_SERVER_WORKER_TARGETS,
   CLOUDFLARE_SERVICE_BINDINGS,
   CLOUDFLARE_SPLIT_WORKER_TARGETS,
-  getServerWorkerMetadata,
   resolveWorkerTarget,
 } from '../../src/shared/config/cloudflare-worker-splits';
 
@@ -68,14 +67,15 @@ test('server workers 不包含 middleware 或分发逻辑', async () => {
   }
 });
 
-test('server worker 公共入口会把字符串 env 绑定同步到 process.env', async () => {
+test('server worker 公共入口使用 binding-only runtime env，不再同步 process.env', async () => {
   const source = await fs.readFile(
     path.join(rootDir, 'cloudflare/workers/create-server-worker.ts'),
     'utf8'
   );
 
-  assert.match(source, /syncWorkerStringBindingsToProcessEnv/);
-  assert.match(source, /process\.env\[key\] = value/);
+  assert.doesNotMatch(source, /syncWorkerStringBindingsToProcessEnv/);
+  assert.doesNotMatch(source, /process\.env\[key\] = value/);
+  assert.match(source, /bindings:\s*env as CloudflareBindings/);
 });
 
 test('共享 worker helper 不允许顶层静态 import OpenNext 构建产物', async () => {
@@ -96,22 +96,17 @@ test('共享 worker helper 不允许顶层静态 import OpenNext 构建产物', 
   }
 });
 
-test('server worker helper 仅在运行时懒加载 OpenNext request context', async () => {
-  const source = await fs.readFile(
-    path.join(rootDir, 'cloudflare/workers/create-server-worker.ts'),
-    'utf8'
-  );
+test('server workers 统一加载 native TanStack server artifact', async () => {
+  assert.equal(NATIVE_TANSTACK_SERVER_ARTIFACT, 'dist/server/server.mjs');
 
-  assert.doesNotMatch(
-    source,
-    /^\s*import\s.+cloudflare\/init\.js['"]/m,
-    'create-server-worker 不应顶层静态 import OpenNext init'
-  );
-  assert.match(
-    source,
-    /import\(\s*['"]\.\.\/\.\.\/\.open-next\/cloudflare\/init\.js['"]\s*\)/,
-    'create-server-worker 应在 fetch 边界懒加载 OpenNext init'
-  );
+  for (const target of CLOUDFLARE_ALL_SERVER_WORKER_TARGETS) {
+    const source = await fs.readFile(
+      path.join(rootDir, `cloudflare/workers/server-${target}.ts`),
+      'utf8'
+    );
+    assert.match(source, /import\('\.\.\/\.\.\/dist\/server\/server\.mjs'\)/);
+    assert.doesNotMatch(source, /\.open-next/);
+  }
 });
 
 test('build tsconfig 覆盖 Cloudflare worker 与声明文件输入', async () => {
@@ -126,43 +121,26 @@ test('build tsconfig 覆盖 Cloudflare worker 与声明文件输入', async () =
   assert.ok(includes.includes('cloudflare/**/*.ts'));
 });
 
-test('router 依赖的 OpenNext 模块声明文件存在并被 build tsconfig 覆盖', async () => {
+test('native TanStack server module declaration exists and is covered by tsconfig', async () => {
   const tsconfig = JSON.parse(
     await fs.readFile(path.join(rootDir, 'tsconfig.json'), 'utf8')
   ) as {
     include?: string[];
   };
-  const declaredModules = await readOpenNextGeneratedModules();
-  const declaredModulePaths = new Set(
-    declaredModules.map(({ moduleSpecifier }) => moduleSpecifier)
+  const declarationSource = await fs.readFile(
+    path.join(
+      rootDir,
+      'src/shared/types/tanstack-native-server-generated.d.ts'
+    ),
+    'utf8'
   );
 
   assert.ok((tsconfig.include || []).includes('src/**/*.d.ts'));
-  assert.ok(
-    declaredModulePaths.has('../../.open-next/cloudflare/images.js'),
-    '缺少 router images 声明'
+  assert.match(
+    declarationSource,
+    /declare module '\.\.\/\.\.\/dist\/server\/server\.mjs'/
   );
-  assert.ok(
-    declaredModulePaths.has('../../.open-next/cloudflare/init.js'),
-    '缺少 router init 声明'
-  );
-  assert.ok(
-    declaredModulePaths.has('../../.open-next/middleware/handler.mjs'),
-    '缺少 middleware handler 声明'
-  );
-  const serverHandlerPaths = new Set([
-    '../../.open-next/server-functions/default/handler.mjs',
-    ...CLOUDFLARE_ALL_SERVER_WORKER_TARGETS.map((target) => {
-      const metadata = getServerWorkerMetadata(target);
-      return `../../${path
-        .join(path.dirname(metadata.bundleEntryRelativePath), 'handler.mjs')
-        .replaceAll(path.sep, '/')}`;
-    }),
-  ]);
-
-  for (const handlerPath of serverHandlerPaths) {
-    assert.ok(declaredModulePaths.has(handlerPath), `缺少 ${handlerPath} 声明`);
-  }
+  assert.match(declarationSource, /fetch\(request: Request\)/);
 });
 
 test('router wrangler services 与 split manifest 一致', async () => {
