@@ -137,3 +137,22 @@ test(
     assert.equal(sameLineHits.length, 1);
   })
 );
+
+test(
+  'Gate 5.3 checker ignores migration checker implementation files',
+  withTempProject((rootDir) => {
+    write(
+      rootDir,
+      'scripts/check-gate-5-4-server-only-markers.mjs',
+      "const ignored = ['.open-next', 'server-only'];\n"
+    );
+
+    const output = execFileSync(process.execPath, [checkerPath, '--report'], {
+      cwd: rootDir,
+      encoding: 'utf8',
+    });
+
+    assert.doesNotMatch(output, /check-gate-5-4-server-only-markers/);
+    assert.match(output, /Gate 5\.3 non-app Next dependency report: 0 hit/);
+  })
+);

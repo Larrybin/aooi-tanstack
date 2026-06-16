@@ -20,7 +20,10 @@ const SCAN_ROOTS = [
   'package.json',
   'vite.config.mts',
 ];
-const CHECKER_PATH = 'scripts/check-gate-5-3-non-app-next-deps.mjs';
+const CHECKER_PATHS = new Set([
+  'scripts/check-gate-5-3-non-app-next-deps.mjs',
+  'scripts/check-gate-5-4-server-only-markers.mjs',
+]);
 const VALID_CLASSIFICATIONS = new Set([
   'migrated',
   'active_blocker',
@@ -44,7 +47,7 @@ function toRepoPath(filePath) {
 }
 
 function isIgnoredRepoPath(repoPath) {
-  if (repoPath === CHECKER_PATH) return true;
+  if (CHECKER_PATHS.has(repoPath)) return true;
   if (repoPath.startsWith('src/app/')) return true;
   if (repoPath.startsWith('docs/')) return true;
   if (TEST_FILE_PATTERN.test(repoPath)) return true;
