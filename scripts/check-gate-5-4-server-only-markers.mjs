@@ -178,6 +178,20 @@ function buildGraph(files) {
   return { graph, entryRoots, serverBoundaries };
 }
 
+function classifyReachabilityViolation(pathParts) {
+  if (pathParts.length === 2) return 'direct';
+  if (
+    pathParts.some(
+      (repoPath) =>
+        repoPath.startsWith('src/server/') ||
+        /\.data\.(ts|tsx)$/.test(repoPath)
+    )
+  ) {
+    return 'boundary';
+  }
+  return 'indirect';
+}
+
 function findReachabilityViolations(files) {
   const { graph, entryRoots, serverBoundaries } = buildGraph(files);
   const protectedSet = new Set(protectedServerOnlyFiles);
@@ -190,7 +204,12 @@ function findReachabilityViolations(files) {
     while (queue.length > 0) {
       const current = queue.shift();
       if (current.repoPath !== entry && protectedSet.has(current.repoPath)) {
-        violations.push({ entry, target: current.repoPath, path: current.path });
+        violations.push({
+          entry,
+          target: current.repoPath,
+          path: current.path,
+          type: classifyReachabilityViolation(current.path),
+        });
         continue;
       }
       if (current.repoPath !== entry && serverBoundaries.has(current.repoPath)) {
@@ -245,11 +264,23 @@ const markerResult = collectSourceMarkerHits(files);
 const manifestResult = assertProtectedManifest();
 const reachabilityResult = findReachabilityViolations(files);
 const packageResult = assertServerOnlyPackageDependency();
+const directViolationCount = reachabilityResult.violations.filter(
+  (violation) => violation.type === 'direct'
+).length;
+const boundaryViolationCount = reachabilityResult.violations.filter(
+  (violation) => violation.type === 'boundary'
+).length;
+const indirectViolationCount = reachabilityResult.violations.filter(
+  (violation) => violation.type === 'indirect'
+).length;
 
 console.log('Gate 5.4 server-only marker report');
 console.log(`protected module count: ${manifestResult.uniqueCount}`);
 console.log(`source marker count: ${markerResult.hits.length}`);
 console.log(`server boundary hit count: ${reachabilityResult.serverBoundaryHits.length}`);
+console.log(`direct violation count: ${directViolationCount}`);
+console.log(`boundary violation count: ${boundaryViolationCount}`);
+console.log(`indirect violation count: ${indirectViolationCount}`);
 console.log(`reachability violation count: ${reachabilityResult.violations.length}`);
 console.log(
   `server-only package dependency: ${packageResult.present ? packageResult.section : 'missing'}`
@@ -269,7 +300,7 @@ if (reportMode && reachabilityResult.serverBoundaryHits.length > 0) {
 if (reachabilityResult.violations.length > 0) {
   console.log('\n[reachability violations]');
   for (const violation of reachabilityResult.violations) {
-    console.log(`- ${violation.entry} -> ${violation.target}`);
+    console.log(`- [${violation.type}] ${violation.entry} -> ${violation.target}`);
     console.log(`  path: ${violation.path.join(' -> ')}`);
   }
 }

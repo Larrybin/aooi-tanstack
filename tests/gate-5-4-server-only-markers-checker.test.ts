@@ -138,6 +138,39 @@ test(
   })
 );
 
+
+
+test(
+  'Gate 5.4 checker blocks use client files from importing protected modules',
+  withTempProject((rootDir) => {
+    write(
+      rootDir,
+      'src/ui/client-entry.tsx',
+      `'use client';
+import { protectedServerModule } from '@/${protectedTarget.slice(4)}';
+export function ClientEntry() { return String(protectedServerModule); }
+`
+    );
+
+    assertCheckerFails(rootDir, /direct violation count: 1/);
+  })
+);
+
+test(
+  'Gate 5.4 checker blocks shared components from importing protected modules',
+  withTempProject((rootDir) => {
+    write(
+      rootDir,
+      'src/shared/components/leaky-widget.tsx',
+      `import { protectedServerModule } from '@/${protectedTarget.slice(4)}';
+export function LeakyWidget() { return String(protectedServerModule); }
+`
+    );
+
+    assertCheckerFails(rootDir, /direct violation count: 1/);
+  })
+);
+
 test(
   'Gate 5.4 checker requires the server-only package until Gate 5.6',
   withTempProject((rootDir) => {

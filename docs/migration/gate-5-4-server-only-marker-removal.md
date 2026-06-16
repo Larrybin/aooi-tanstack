@@ -29,6 +29,7 @@ Strict mode fails when:
 
 - any non-app source-level exact `import 'server-only'` / `import "server-only"` remains;
 - any protected module is reachable from protected browser-capable entry roots outside an explicit TanStack server-function boundary;
+- direct, boundary, indirect, and total reachability violation counts are reported separately;
 - any marker exists outside the protected manifest.
 - the `server-only` package dependency is removed before Gate 5.6.
 

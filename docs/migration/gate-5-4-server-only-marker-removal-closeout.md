@@ -139,3 +139,7 @@ Result: passed.
 - Package dependencies for Next, next-intl, @next/env, @opennextjs/cloudflare, and server-only remain until Gate 5.6.
 - `next/cache` and `next/headers` residues remain intentionally classified for later gates.
 - Protected manifest must remain in place until final deletion gates provide equivalent executable boundary checks.
+
+## Gate 5.4-R review hardening
+
+The protected reachability checker now reports direct, boundary, indirect, and total violation counts separately. It also has focused negative tests for `'use client'` files and `src/shared/components/**` importing protected modules directly, plus existing `.data.ts` direct, non-boundary `src/server`, `createServerFn` boundary, and package-dependency tests.
