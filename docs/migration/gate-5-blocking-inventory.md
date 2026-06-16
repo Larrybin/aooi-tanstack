@@ -260,67 +260,29 @@ Phase: Gate 5.4. Decision: remove `import 'server-only'` markers and enforce ser
 
 ### 5. OpenNext / `.open-next` / Cloudflare worker residues
 
-Phase: Gate 5.5. These block native TanStack Cloudflare worker ownership.
+Phase: Gate 5.5 closed. Active Cloudflare worker/runtime/build/config blockers are zero.
 
-- `cloudflare/workers/create-server-worker.ts:35`
-- `cloudflare/workers/router.ts:4`
-- `cloudflare/workers/router.ts:5`
-- `cloudflare/workers/router.ts:6`
-- `cloudflare/workers/server-admin.ts:5`
-- `cloudflare/workers/server-auth.ts:6`
-- `cloudflare/workers/server-chat.ts:5`
-- `cloudflare/workers/server-member.ts:5`
-- `cloudflare/workers/server-payment.ts:5`
-- `cloudflare/workers/server-public-web.ts:11`
-- `cloudflare/workers/state.ts:1`
-- `cloudflare/workers/state.ts:2`
-- `cloudflare/wrangler.server-admin.toml:10`
-- `cloudflare/wrangler.server-auth.toml:10`
-- `cloudflare/wrangler.server-chat.toml:10`
-- `cloudflare/wrangler.server-member.toml:10`
-- `cloudflare/wrangler.server-payment.toml:10`
-- `cloudflare/wrangler.server-public-web.toml:10`
-- `package.json:182`
-- `scripts/bundle-cf-server-functions.mjs:7`
-- `scripts/bundle-cf-server-functions.mjs:24`
-- `scripts/bundle-cf-server-functions.mjs:43`
-- `scripts/bundle-cf-server-functions.mjs:104`
-- `scripts/conventions-index.mjs:8`
-- `scripts/detect-cloudflare-acceptance-changes.mjs:14`
-- `scripts/lib/cloudflare-build-artifacts.mjs:14`
-- `scripts/lib/cloudflare-build-artifacts.mjs:15`
-- `scripts/lib/cloudflare-build-artifacts.mjs:16`
-- `scripts/lib/cloudflare-build-artifacts.mjs:17`
-- `scripts/lib/cloudflare-build-artifacts.mjs:18`
-- `scripts/lib/cloudflare-build-artifacts.mjs:19`
-- `scripts/lib/cloudflare-build-artifacts.mjs:23`
-- `scripts/lib/cloudflare-build-artifacts.mjs:24`
-- `scripts/next-build.mjs:5`
-- `scripts/run-cf-multi-build-check.mjs:135`
-- `scripts/sync-open-next-generated-types.mjs:7`
-- `scripts/tanstack-gate-4-plan.mjs:12`
-- `scripts/tanstack-native-inventory.mjs:17`
-- `scripts/validate-tanstack-native-migration.mjs:16`
-- `src/infra/runtime/env.server.ts:3`
-- `src/shared/config/cloudflare-worker-topology.ts:83`
-- `src/shared/config/cloudflare-worker-topology.ts:91`
-- `src/shared/config/cloudflare-worker-topology.ts:99`
-- `src/shared/config/cloudflare-worker-topology.ts:107`
-- `src/shared/config/cloudflare-worker-topology.ts:115`
-- `src/shared/config/cloudflare-worker-topology.ts:123`
-- `src/shared/types/open-next-generated.d.ts:5`
-- `src/shared/types/open-next-generated.d.ts:6`
-- `src/shared/types/open-next-generated.d.ts:9`
-- `src/shared/types/open-next-generated.d.ts:22`
-- `src/shared/types/open-next-generated.d.ts:31`
-- `src/shared/types/open-next-generated.d.ts:39`
-- `src/shared/types/open-next-generated.d.ts:45`
-- `src/shared/types/open-next-generated.d.ts:51`
-- `src/shared/types/open-next-generated.d.ts:60`
-- `src/shared/types/open-next-generated.d.ts:69`
-- `src/shared/types/open-next-generated.d.ts:78`
-- `src/shared/types/open-next-generated.d.ts:87`
-- `src/shared/types/open-next-generated.d.ts:96`
+Gate 5.5 selected native artifacts:
+
+```text
+server: dist/server/server.mjs
+assets: dist/client
+```
+
+Strict checker result:
+
+```text
+active OpenNext runtime/build blockers: 0
+active OpenNext config blockers: 0
+deferred Gate 5.6 dependency residues: 26
+```
+
+Remaining residues are deferred to Gate 5.6:
+
+- `package.json` `@opennextjs/cloudflare`;
+- `src/shared/types/open-next-generated.d.ts`;
+- migration checker/inventory text that still mentions `.open-next`;
+- historical R2 bucket names containing `opennext-cache`.
 
 ### 6. Direct package dependencies to remove only after replacements land
 
@@ -345,8 +307,6 @@ Phase: Gate 5.5. These block native TanStack Cloudflare worker ownership.
 | `build:fast` | `node scripts/run-with-site.mjs node scripts/next-build.mjs --max-old-space-size=4096` | Gate 5.6 |
 | `analyze` | `ANALYZE=true node scripts/run-with-site.mjs node scripts/next-build.mjs` | Gate 5.6 |
 | `start` | `node scripts/run-with-site.mjs pnpm exec next start` | Gate 5.6 |
-| `cf:build` | `node scripts/run-with-site.mjs node --import tsx scripts/run-cf-build.mjs` | Gate 5.5 then Gate 5.6 |
-| `cf:build:no-db` | `node scripts/run-cf-build-no-db.mjs` | Gate 5.5 then Gate 5.6 |
 
 ### 8. `@/app` / `src/app` import residues outside legacy tree
 
@@ -358,7 +318,7 @@ Phase: Gate 5.3 or Gate 5.6 depending on owner. Production imports must be zero 
 
 1. Do not delete `src/app/**` until every public API above is migrated or explicitly decommissioned.
 2. Do not remove `next`, `next-intl`, `@next/env`, `@opennextjs/cloudflare`, or `server-only` until non-app imports and build/runtime users are gone.
-3. Gate 5.5 must be a standalone PR: split-worker route scopes, OpenNext cache DO removal, and TanStack artifact checks are too risky to mix with deleting `src/app/**`.
+3. Gate 5.5 is closed by the native Cloudflare topology checker; Gate 5.6 owns Next/OpenNext package and legacy deletion.
 4. Final validation must use an executable no-Next runtime checker that excludes validation scripts/docs from forbidden-token matching.
 
 ## Commands used to generate this inventory
