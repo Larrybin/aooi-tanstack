@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -77,18 +76,6 @@ function assertFreeToolNoDbContract({ contract, rootDir }) {
         `free-tool-no-db route pruning must include ${relativePath}`
       );
     }
-  }
-
-  const legalLayoutPath = path.resolve(
-    rootDir,
-    'src/app/[locale]/(landing)/[slug]/layout.tsx'
-  );
-  const legalLayoutSource = readFileSync(legalLayoutPath, 'utf8');
-  if (!legalLayoutSource.includes('getProductLanding(siteKey)')) {
-    failures.push('legal page layout must use the product shell registry');
-  }
-  if (legalLayoutSource.includes("siteKey === 'ai-remover'")) {
-    failures.push('legal page layout must not hard-code one product shell');
   }
 
   return {

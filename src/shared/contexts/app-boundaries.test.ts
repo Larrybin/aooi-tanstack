@@ -38,99 +38,63 @@ test('PublicAppProvider 不再在公共壳层读取 session、details 或 config
   assert.equal(content.includes('get-user-info'), false);
 });
 
-test('公共 layout 都必须向 PublicAppProvider 注入 typed initial props', async () => {
-  const layoutFiles = [
-    'src/themes/default/layouts/landing-marketing.tsx',
-    'src/app/[locale]/(landing)/pricing/layout.tsx',
-    'src/app/[locale]/(landing)/blog/layout.tsx',
-    'src/app/[locale]/(landing)/activity/layout.tsx',
-    'src/app/[locale]/(landing)/(ai)/layout.tsx',
-    'src/app/[locale]/(landing)/settings/layout.tsx',
-    'src/app/[locale]/(landing)/[slug]/layout.tsx',
-    'src/app/[locale]/(chat)/layout.tsx',
-    'src/app/[locale]/(admin)/layout.tsx',
-  ];
+test('landing shell 向 PublicAppProvider 注入 typed initial props', async () => {
+  const shellFile = 'src/surfaces/landing/shell/landing-shell.view.tsx';
+  const content = await readRepoFile(shellFile);
 
-  for (const layoutFile of layoutFiles) {
-    const content = await readRepoFile(layoutFile);
-    assert.equal(
-      content.includes('<PublicAppProvider'),
-      true,
-      `${layoutFile} 必须使用 PublicAppProvider`
-    );
-    assert.equal(
-      content.includes('initialUiConfig='),
-      true,
-      `${layoutFile} 必须传入 initialUiConfig`
-    );
-    assert.equal(
-      content.includes('initialAuthSettings='),
-      true,
-      `${layoutFile} 必须传入 initialAuthSettings`
-    );
-    assert.equal(
-      content.includes('initialBillingSettings='),
-      true,
-      `${layoutFile} 必须传入 initialBillingSettings`
-    );
-    assert.equal(
-      content.includes('initialConfigs='),
-      false,
-      `${layoutFile} 不应继续传入 initialConfigs`
-    );
-  }
+  assert.equal(content.includes('<PublicAppProvider'), true);
+  assert.equal(content.includes('initialUiConfig='), true);
+  assert.equal(content.includes('initialAuthSettings='), true);
+  assert.equal(content.includes('initialBillingSettings='), true);
+  assert.equal(content.includes('initialConfigs='), false);
 });
 
-test('legal page layout uses the product shell registry instead of a single product special case', async () => {
+test('product home route data keeps product shells registered explicitly', async () => {
   const content = await readRepoFile(
-    'src/app/[locale]/(landing)/[slug]/layout.tsx'
+    'src/server/landing/product-home-route-data.ts'
   );
 
-  assert.equal(
-    content.includes(
-      "import { getProductLanding } from '@/surfaces/public/product-landing';"
-    ),
-    true
-  );
-  assert.equal(content.includes('getProductLanding(siteKey)'), true);
+  assert.equal(content.includes("case 'ai-remover':"), true);
+  assert.equal(content.includes("case 'background-remover':"), true);
+  assert.equal(content.includes("case 'text-to-speech-generator':"), true);
+  assert.equal(content.includes("case 'mp4-compressor':"), true);
   assert.equal(content.includes("siteKey === 'ai-remover'"), false);
 });
 
-test('themes/default/layouts 不再直接读取 settings runtime query', async () => {
-  const layoutFiles = [
-    'src/themes/default/layouts/landing.tsx',
-    'src/themes/default/layouts/landing-marketing.tsx',
-  ];
+test('landing shell 不再直接读取 settings runtime query', async () => {
+  const content = await readRepoFile(
+    'src/surfaces/landing/shell/landing-shell.view.tsx'
+  );
 
-  for (const layoutFile of layoutFiles) {
-    const content = await readRepoFile(layoutFile);
-    assert.equal(
-      content.includes('settings-runtime.query'),
-      false,
-      `${layoutFile} 不应再直接依赖 settings-runtime.query`
-    );
-  }
+  assert.equal(content.includes('settings-runtime.query'), false);
 });
 
 test('仓库源码不再引用旧的 get-user-info 路径', async () => {
-  const filesToCheck = [
-    'src/shared/contexts/app.tsx',
-    'src/themes/default/blocks/pricing.tsx',
-    'src/domains/ai/ui/image-generator.tsx',
-    'src/domains/ai/ui/music-generator.tsx',
-  ];
+  const srcRoot = path.resolve(repoRoot, 'src');
 
-  for (const file of filesToCheck) {
-    const content = await readRepoFile(file);
-    assert.equal(content.includes('/api/user/get-user-info'), false, file);
+  for (const file of await collectSourceFiles(srcRoot)) {
+    if (file.endsWith('app-boundaries.test.ts')) {
+      continue;
+    }
+    if (/\.(test|spec)\.tsx?$/.test(file)) {
+      continue;
+    }
+
+    const content = await readFile(file, 'utf8');
+    assert.equal(
+      content.includes('/api/user/get-user-info'),
+      false,
+      path.relative(repoRoot, file)
+    );
   }
 });
 
 test('公共消费方不再在首屏隐式读取 useSession', async () => {
   const filesToCheck = [
-    'src/themes/default/blocks/pricing.tsx',
-    'src/domains/ai/ui/image-generator.tsx',
-    'src/domains/ai/ui/music-generator.tsx',
+    'src/surfaces/landing/shell/landing-shell.view.tsx',
+    'src/surfaces/landing/home/home.view.tsx',
+    'src/surfaces/landing/home/product-home.view.tsx',
+    'src/surfaces/landing/pricing/pricing.view.tsx',
   ];
 
   for (const file of filesToCheck) {
@@ -139,16 +103,12 @@ test('公共消费方不再在首屏隐式读取 useSession', async () => {
   }
 });
 
-test('根 locale layout 默认不注入全量 messages，也不再挂全局动态 metadata', async () => {
-  const content = await readRepoFile('src/app/[locale]/layout.tsx');
+test('TanStack root route owns html locale without Next i18n metadata', async () => {
+  const content = await readRepoFile('apps/web/src/routes/__root.tsx');
 
-  assert.equal(
-    content.includes(
-      '<NextIntlClientProvider locale={locale} messages={null}>'
-    ),
-    true
-  );
-  assert.equal(content.includes('generateMetadata = getMetadata()'), false);
+  assert.equal(content.includes('<html lang={locale} dir={dir}>'), true);
+  assert.equal(content.includes('NextIntlClientProvider'), false);
+  assert.equal(content.includes('generateMetadata'), false);
 });
 
 test('shared/common 不再持有 markdown-it 解析器实现', async () => {

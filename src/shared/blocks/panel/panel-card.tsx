@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { Link } from '@/infra/platform/i18n/navigation';
 
+import { Link } from '@/shared/blocks/common/navigation';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import {

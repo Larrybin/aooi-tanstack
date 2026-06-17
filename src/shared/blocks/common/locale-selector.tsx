@@ -1,10 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { usePathname, useRouter } from '@/infra/platform/i18n/navigation';
 import { siteI18nManifest } from '@/site';
 import { Check, Globe, Languages } from 'lucide-react';
-import { useLocale, useTranslations } from '@/shared/lib/i18n/native';
 
 import {
   defaultLocale,
@@ -12,6 +10,7 @@ import {
   locales,
   type Locale,
 } from '@/config/locale';
+import { usePathname, useRouter } from '@/shared/blocks/common/navigation';
 import { Button } from '@/shared/components/ui/button';
 import {
   DropdownMenu,
@@ -19,6 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu';
+import { useLocale, useTranslations } from '@/shared/lib/i18n/native';
 
 type SiteI18nManifestLocales = Record<
   string,
@@ -118,10 +118,14 @@ export function LocaleSelector({
       return;
     }
 
+    const normalizedPath = normalizeLocaleSwitcherPath(pathname, currentLocale);
+    const localizedPath =
+      value === defaultLocale
+        ? normalizedPath
+        : `/${value}${normalizedPath === '/' ? '' : normalizedPath}`;
     const search = typeof window === 'undefined' ? '' : window.location.search;
-    router.push(`${pathname}${search}`, {
-      locale: value,
-    });
+
+    router.push(`${localizedPath}${search}`);
   };
 
   if (availableLocales.length <= 1) {

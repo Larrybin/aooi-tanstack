@@ -89,7 +89,7 @@ export function buildLocalizedSignInPath(locale: string): string {
 }
 
 export function buildLocalizedAdminNoPermissionPath(locale: string): string {
-  return buildLocalizedAppPath(locale, '/admin/no-permission');
+  return buildLocalizedAppPath(locale, '/no-permission');
 }
 
 export function buildFormFieldSelector(fieldName: string): string {

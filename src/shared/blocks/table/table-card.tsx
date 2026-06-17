@@ -1,5 +1,4 @@
-import { Link } from '@/infra/platform/i18n/navigation';
-
+import { Link } from '@/shared/blocks/common/navigation';
 import { Pagination } from '@/shared/blocks/common/pagination';
 import { SmartIcon } from '@/shared/blocks/common/smart-icon';
 import { Tabs } from '@/shared/blocks/common/tabs';

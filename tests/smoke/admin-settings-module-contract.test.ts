@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { access, readFile } from 'node:fs/promises';
+import { access } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -40,13 +40,10 @@ test('buildAdminSettingsPath/buildLocalizedSignInPath/buildLocalizedAdminNoPermi
   );
   assert.equal(buildLocalizedSignInPath('en'), '/sign-in');
   assert.equal(buildLocalizedSignInPath('zh'), '/zh/sign-in');
-  assert.equal(
-    buildLocalizedAdminNoPermissionPath('en'),
-    '/admin/no-permission'
-  );
+  assert.equal(buildLocalizedAdminNoPermissionPath('en'), '/no-permission');
   assert.equal(
     buildLocalizedAdminNoPermissionPath('zh-TW'),
-    '/zh-TW/admin/no-permission'
+    '/zh-TW/no-permission'
   );
 });
 
@@ -59,29 +56,15 @@ test('getAdminSettingsModuleContractChecks: 覆盖 6 个代表性 settings tab',
   );
 });
 
-test('AdminLayout: 非管理员拒绝跳转统一收敛到 /admin/no-permission', async () => {
-  const layoutPath = path.resolve(
-    rootDir,
-    'src/app/[locale]/(admin)/layout.tsx'
+test('no-permission 页面位于 TanStack 公共 auth 路由', async () => {
+  await assert.doesNotReject(
+    access(path.resolve(rootDir, 'apps/web/src/routes/no-permission.tsx'))
   );
-  const content = await readFile(layoutPath, 'utf8');
-
-  assert.match(content, /redirectUrl:\s*`\/admin\/no-permission`/);
-  assert.doesNotMatch(content, /redirectUrl:\s*`\/no-permission`/);
-});
-
-test('/admin/no-permission 页面必须位于 admin 受保护 layout 之外', async () => {
-  const publicPagePath = path.resolve(
-    rootDir,
-    'src/app/[locale]/admin/no-permission/page.tsx'
+  await assert.doesNotReject(
+    access(
+      path.resolve(rootDir, 'apps/web/src/routes/$locale/no-permission.tsx')
+    )
   );
-  const protectedPagePath = path.resolve(
-    rootDir,
-    'src/app/[locale]/(admin)/admin/no-permission/page.tsx'
-  );
-
-  await assert.doesNotReject(access(publicPagePath));
-  await assert.rejects(access(protectedPagePath));
 });
 
 test('validateAdminSettingsModuleContractSnapshot: 校验普通 tab 快照', () => {

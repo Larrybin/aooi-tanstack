@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useRouter } from '@/infra/platform/i18n/navigation';
 
+import { useRouter } from '@/shared/blocks/common/navigation';
 import { fetchJson, toastFetchError } from '@/shared/lib/api/fetch-json';
 
 export function PaymentCallbackHandler({

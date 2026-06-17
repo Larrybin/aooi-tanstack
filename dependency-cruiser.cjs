@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 const { ARCHITECTURE_RULES } = require('./architecture-rules.cjs');
 
 function escapeRegex(value) {

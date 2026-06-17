@@ -1,3 +1,5 @@
+import tseslint from 'typescript-eslint';
+
 import aooi from './eslint/aooi-eslint-plugin.mjs';
 
 const noDoubleUnknownTypeAssertion = {
@@ -71,9 +73,7 @@ const baseNoRestrictedImports = {
 
 const clientSurfaceNoRestrictedImports = {
   ...baseNoRestrictedImports,
-  paths: [
-    ...baseNoRestrictedImports.paths,
-  ],
+  paths: [...baseNoRestrictedImports.paths],
   patterns: [
     ...(baseNoRestrictedImports.patterns || []),
     {
@@ -158,6 +158,7 @@ const eslintConfig = [
       '**/.codex/**',
       '**/.gstack/**',
       '**/dist/**',
+      '**/public/vendor/**',
       'apps/web/src/routeTree.gen.ts',
       'src/paraglide/**',
       '**/output/**',
@@ -167,7 +168,13 @@ const eslintConfig = [
     ],
   },
   {
-    plugins: { aooi },
+    languageOptions: {
+      parser: tseslint.parser,
+    },
+    plugins: {
+      '@typescript-eslint': tseslint.plugin,
+      aooi,
+    },
   },
   {
     files: [
@@ -312,6 +319,23 @@ const eslintConfig = [
   },
   {
     files: ['scripts/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          ...baseNoRestrictedImports,
+          paths: baseNoRestrictedImports.paths.filter(
+            (rule) => rule.name !== '@/config/load-dotenv'
+          ),
+          patterns: (baseNoRestrictedImports.patterns || []).filter(
+            (rule) => rule !== noRuntimeLoadDotenvImportPattern
+          ),
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/infra/adapters/db/config.ts'],
     rules: {
       'no-restricted-imports': [
         'error',

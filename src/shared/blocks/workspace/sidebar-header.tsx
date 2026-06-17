@@ -1,6 +1,5 @@
-import { Link } from '@/infra/platform/i18n/navigation';
-
 import { AppImage } from '@/shared/blocks/common/app-image';
+import { Link } from '@/shared/blocks/common/navigation';
 import {
   SidebarHeader as SidebarHeaderComponent,
   SidebarMenu,

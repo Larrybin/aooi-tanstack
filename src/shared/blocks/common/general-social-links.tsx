@@ -1,8 +1,8 @@
 'use client';
 
 import type { PublicUiConfig } from '@/domains/settings/application/settings-runtime.contracts';
-import { Link } from '@/infra/platform/i18n/navigation';
 
+import { Link } from '@/shared/blocks/common/navigation';
 import { usePublicAppContext } from '@/shared/contexts/app';
 
 import { SmartIcon } from './smart-icon';

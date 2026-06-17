@@ -1,8 +1,8 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { Link, usePathname } from '@/infra/platform/i18n/navigation';
 
+import { Link, usePathname } from '@/shared/blocks/common/navigation';
 import { SmartIcon } from '@/shared/blocks/common/smart-icon';
 import type { Nav } from '@/shared/types/blocks/common';
 

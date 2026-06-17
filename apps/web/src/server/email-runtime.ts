@@ -17,7 +17,7 @@ import {
 import { readTanStackCloudflareBindings } from './cloudflare-bindings';
 
 type ReadTanStackEmailRuntimeDeps = ReadTanStackSettingsCachedDeps;
-type GetRandomValues = <T extends ArrayBufferView | null>(array: T) => T;
+type GetRandomValues = <T extends ArrayBufferView>(array: T) => T;
 
 const UINT32_RANGE = 0x1_0000_0000;
 

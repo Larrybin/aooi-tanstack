@@ -25,23 +25,33 @@ const dbFreeForbiddenImportFragments = [
 ];
 const publicStaticRuntimeReaderAllowlist = [
   {
-    file: 'src/app/[locale]/(landing)/pricing/layout.tsx',
+    file: 'src/server/pricing/pricing-route-resolver.ts',
     allowedRuntimeReaders: {},
   },
   {
-    file: 'src/app/[locale]/(landing)/page.tsx',
+    file: 'src/server/landing/home-route-resolver.ts',
     allowedRuntimeReaders: {},
   },
   {
-    file: 'src/app/[locale]/(landing)/blog/layout.tsx',
+    file: 'src/server/landing/landing-shell-data.ts',
     allowedRuntimeReaders: {},
   },
   {
-    file: 'src/app/[locale]/(landing)/(ai)/layout.tsx',
+    file: 'src/server/landing/blog-index-route-resolver.ts',
     allowedRuntimeReaders: {},
   },
   {
-    file: 'src/app/[locale]/(landing)/[slug]/layout.tsx',
+    file: 'src/server/landing/blog-category-route-resolver.ts',
+    allowedRuntimeReaders: {},
+  },
+  {
+    file: 'src/server/landing/blog-post-route-resolver.ts',
+    allowedRuntimeReaders: {
+      readAdsRuntimeSettingsCached: 'blog post ad zones are runtime-configured',
+    },
+  },
+  {
+    file: 'src/server/landing/slug-route-resolver.ts',
     allowedRuntimeReaders: {},
   },
 ] as const;
@@ -49,6 +59,7 @@ const publicStaticRuntimeReaderNames = [
   'readPublicUiConfigCached',
   'readAuthUiRuntimeSettingsCached',
   'readBillingRuntimeSettingsCached',
+  'readAdsRuntimeSettingsCached',
   'readSettingsCached',
   'readSettingsFresh',
 ] as const;
@@ -116,9 +127,9 @@ test('settings runtime contracts stay DB-free for build-safe imports', () => {
   );
 });
 
-test('pricing layout no longer imports runtime settings readers', () => {
+test('pricing route resolver no longer imports runtime settings readers', () => {
   const content = readRepoFile(
-    ...'src/app/[locale]/(landing)/pricing/layout.tsx'.split('/')
+    ...'src/server/pricing/pricing-route-resolver.ts'.split('/')
   );
 
   assert.equal(content.includes('settings-runtime.query'), false);
@@ -128,21 +139,26 @@ test('pricing layout no longer imports runtime settings readers', () => {
   assert.equal(content.includes('readSettingsCached'), false);
 });
 
-test('public landing shells use build-safe public UI config for AI navigation filtering', () => {
+test('public landing route resolvers use build-safe shell data', () => {
   const files = [
-    'src/app/[locale]/(landing)/page.tsx',
-    'src/app/[locale]/(landing)/blog/layout.tsx',
-    'src/app/[locale]/(landing)/[slug]/layout.tsx',
+    'src/server/landing/home-route-resolver.ts',
+    'src/server/landing/blog-index-route-resolver.ts',
+    'src/server/landing/blog-category-route-resolver.ts',
+    'src/server/landing/blog-post-route-resolver.ts',
+    'src/server/landing/slug-route-resolver.ts',
   ];
 
   for (const file of files) {
     const content = readRepoFile(...file.split('/'));
+    const allowsRuntimeSettings =
+      file === 'src/server/landing/blog-post-route-resolver.ts';
 
-    assert.equal(content.includes('settings-runtime.query'), false, file);
+    assert.equal(
+      content.includes('settings-runtime.query'),
+      allowsRuntimeSettings,
+      file
+    );
     assert.equal(content.includes('readPublicUiConfigCached'), false, file);
-    assert.equal(content.includes('readBuildPublicUiConfig'), true, file);
-    assert.equal(content.includes('readBuildAuthUiSettings'), true, file);
-    assert.equal(content.includes('readBuildBillingUiSettings'), true, file);
     assert.equal(
       content.includes('readAuthUiRuntimeSettingsCached'),
       false,
@@ -155,19 +171,31 @@ test('public landing shells use build-safe public UI config for AI navigation fi
     );
     assert.equal(content.includes('readSettingsCached'), false, file);
   }
+
+  const homeResolver = readRepoFile(
+    ...'src/server/landing/home-route-resolver.ts'.split('/')
+  );
+  assert.equal(homeResolver.includes('readBuildPublicUiConfig'), true);
+  assert.equal(homeResolver.includes('readBuildAuthUiSettings'), true);
+  assert.equal(homeResolver.includes('readBuildBillingUiSettings'), true);
+
+  const shellData = readRepoFile(
+    ...'src/server/landing/landing-shell-data.ts'.split('/')
+  );
+  assert.equal(shellData.includes('filterLandingNavItems'), true);
+  assert.equal(shellData.includes('buildPublicUiConfig()'), true);
+  assert.equal(shellData.includes('buildAuthSettings()'), true);
+  assert.equal(shellData.includes('buildBillingSettings()'), true);
 });
 
-test('AI landing shell keeps build-safe AI availability gate', () => {
+test('landing visibility keeps build-safe AI availability gate', () => {
   const content = readRepoFile(
-    ...'src/app/[locale]/(landing)/(ai)/layout.tsx'.split('/')
+    ...'src/surfaces/public/navigation/landing-visibility.ts'.split('/')
   );
 
   assert.equal(content.includes('settings-runtime.query'), false);
   assert.equal(content.includes('readPublicUiConfigCached'), false);
-  assert.equal(content.includes('isAiEnabled(publicUiConfig)'), true);
-  assert.equal(content.includes('readBuildAuthUiSettings'), true);
-  assert.equal(content.includes('readBuildBillingUiSettings'), true);
-  assert.equal(content.includes('readBuildPublicUiConfig'), true);
+  assert.equal(content.includes('isAiEnabled(publicConfig)'), true);
   assert.equal(content.includes('readAuthUiRuntimeSettingsCached'), false);
   assert.equal(content.includes('readBillingRuntimeSettingsCached'), false);
   assert.equal(content.includes('readSettingsCached'), false);
@@ -232,32 +260,33 @@ test('build auth settings are conservative and do not synthesize Google client i
 test('pricing checkout auth fallback uses the full sign-in page', () => {
   const content = readRepoFile(
     'src',
-    'themes',
-    'default',
-    'blocks',
-    'pricing.tsx'
+    'domains',
+    'pricing',
+    'ui',
+    'pricing-slice-view.tsx'
   );
 
   assert.equal(content.includes('usePublicAppContext'), false);
   assert.equal(content.includes('setIsShowSignModal'), false);
   assert.equal(content.includes('buildPricingSignInUrl'), true);
-  assert.equal(content.includes('redirectToPricingSignIn(locale)'), true);
+  assert.equal(content.includes("withCallbackUrl('/sign-in'"), true);
+  assert.equal(content.includes('resolvePricingCheckoutReadiness'), true);
   assert.equal(content.includes('window.location.assign'), true);
 });
 
-test('sign user does not open inline modal without known auth methods', () => {
+test('auth route view uses full auth pages instead of inline sign modal', () => {
   const content = readRepoFile(
     'src',
-    'domains',
-    'account',
-    'ui',
+    'surfaces',
     'auth',
-    'sign-user.tsx'
+    'auth-route',
+    'auth-route.view.tsx'
   );
 
-  assert.equal(content.includes('canOpenInlineSignModal'), true);
-  assert.equal(content.includes('!canOpenInlineSignModal'), true);
-  assert.equal(content.includes('{canOpenInlineSignModal && <SignModal'), true);
+  assert.equal(content.includes('SignInForm'), true);
+  assert.equal(content.includes('SignUpForm'), true);
+  assert.equal(content.includes('SignModal'), false);
+  assert.equal(content.includes('setIsShowSignModal'), false);
 });
 
 test('build billing settings do not evaluate secrets or provider product mapping readiness', () => {
