@@ -46,7 +46,31 @@ function searchLastUnescapedDollar(value) {
   return matches.length > 0 ? matches.at(-1).index : -1;
 }
 
-function interpolateValue(value, env, parsed) {
+function resolveInterpolationReplacement(name, defaultValue, env, parsed, stack) {
+  if (Object.prototype.hasOwnProperty.call(env, name)) {
+    return String(env[name] ?? '');
+  }
+
+  if (stack.has(name)) {
+    return defaultValue ?? '';
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(parsed, name)) {
+    return defaultValue ?? '';
+  }
+
+  stack.add(name);
+  const replacement = interpolateValue(
+    String(parsed[name] ?? ''),
+    env,
+    parsed,
+    stack
+  );
+  stack.delete(name);
+  return replacement;
+}
+
+function interpolateValue(value, env, parsed, stack = new Set()) {
   const dollarIndex = searchLastUnescapedDollar(value);
   if (dollarIndex === -1) return value;
 
@@ -55,8 +79,19 @@ function interpolateValue(value, env, parsed) {
   if (!match) return value;
 
   const [fullMatch, , name, defaultValue] = match;
-  const replacement = env[name] || defaultValue || parsed[name] || '';
-  return interpolateValue(value.replace(fullMatch, replacement), env, parsed);
+  const replacement = resolveInterpolationReplacement(
+    name,
+    defaultValue,
+    env,
+    parsed,
+    stack
+  );
+  return interpolateValue(
+    value.replace(fullMatch, replacement),
+    env,
+    parsed,
+    stack
+  );
 }
 
 function expandParsedValues(entries, env) {

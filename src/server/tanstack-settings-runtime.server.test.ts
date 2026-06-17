@@ -135,6 +135,31 @@ test('readTanStackPublicUiConfigCached keeps cached-mode public settings cached'
   assert.equal(calls, 1);
 });
 
+
+
+test('readTanStackPublicUiConfigCached expires after default short ttl', async () => {
+  let calls = 0;
+  let now = 0;
+  const deps = buildDeps({
+    cacheKey: 'public-ui-default-ttl-test',
+    now: () => now,
+    readConfigRows: async () => {
+      calls += 1;
+      return [
+        {
+          name: PUBLIC_UI_SETTING_KEYS.aiEnabled,
+          value: calls === 1 ? 'true' : 'false',
+        },
+      ];
+    },
+  });
+
+  assert.equal((await readTanStackPublicUiConfigCached(deps)).aiEnabled, true);
+  now = 60_001;
+  assert.equal((await readTanStackPublicUiConfigCached(deps)).aiEnabled, false);
+  assert.equal(calls, 2);
+});
+
 test('readTanStackAiRuntimeSettings defaults to cached and preserves fresh mode', async () => {
   let calls = 0;
   const deps = buildDeps({

@@ -9,7 +9,7 @@ import {
 
 type ReadTanStackPublicUiConfigDeps = ReadTanStackSettingsCachedDeps;
 
-const PUBLIC_UI_CONFIG_CACHE_TTL_MS = 60 * 60 * 1000;
+const PUBLIC_UI_CONFIG_CACHE_TTL_MS = 60 * 1000;
 
 export async function readTanStackPublicUiConfigFresh(
   deps: ReadTanStackPublicUiConfigDeps = {}

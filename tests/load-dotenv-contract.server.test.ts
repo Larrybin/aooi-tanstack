@@ -111,6 +111,37 @@ test(
   })
 );
 
+
+
+test(
+  'loadRootDotenv handles self-referential and cyclic expansion without recursion overflow',
+  withTempProject((rootDir) => {
+    write(
+      rootDir,
+      '.env',
+      [
+        'SELF=$SELF',
+        'SELF_WITH_DEFAULT=${SELF_WITH_DEFAULT:-fallback}',
+        'A=$B',
+        'B=$A',
+        'AFTER=ok',
+        '',
+      ].join('\n')
+    );
+    const env = {} as NodeJS.ProcessEnv;
+
+    assert.doesNotThrow(() => {
+      loadRootDotenv(env, { rootDir, nodeEnv: 'development' });
+    });
+
+    assert.equal(env.SELF, '');
+    assert.equal(env.SELF_WITH_DEFAULT, 'fallback');
+    assert.equal(env.A, '');
+    assert.equal(env.B, '');
+    assert.equal(env.AFTER, 'ok');
+  })
+);
+
 test(
   'loadRootDotenv preserves quoted multiline values',
   withTempProject((rootDir) => {
