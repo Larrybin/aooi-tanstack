@@ -2,10 +2,9 @@
 
 import { Fragment } from 'react';
 import { signOut } from '@/infra/platform/auth/client';
-import { Link, useRouter } from '@/infra/platform/i18n/navigation';
 import { ChevronsUpDown, LogOut, User } from 'lucide-react';
-import { useTranslations } from '@/shared/lib/i18n/native';
 
+import { Link, useRouter } from '@/shared/blocks/common/navigation';
 import { SmartIcon } from '@/shared/blocks/common/smart-icon';
 import {
   Avatar,
@@ -30,6 +29,7 @@ import {
 } from '@/shared/components/ui/sidebar';
 import { usePublicAppContext } from '@/shared/contexts/app';
 import { useAuthSnapshot } from '@/shared/contexts/auth-snapshot';
+import { useTranslations } from '@/shared/lib/i18n/native';
 import type { AuthSessionUserSnapshot } from '@/shared/types/auth-session';
 import type { NavItem } from '@/shared/types/blocks/common';
 import type { SidebarUser as SidebarUserType } from '@/shared/types/blocks/workspace';
@@ -48,8 +48,7 @@ export function SidebarUser({ user, initialUser }: SidebarUserProps) {
 
   const handleSignOut = async () => {
     await signOut();
-    router.refresh();
-    router.push(user.signout_callback || '/sign-in');
+    router.replace(user.signout_callback || '/sign-in');
   };
 
   const authUser: AuthSessionUserSnapshot | null =
