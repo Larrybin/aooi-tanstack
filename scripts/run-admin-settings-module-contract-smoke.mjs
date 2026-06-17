@@ -67,41 +67,7 @@ async function findAvailablePort(startPort) {
   throw new Error(`No available local port found from ${startPort}`);
 }
 
-async function readLockedNodeInfo() {
-  const lockPath = path.resolve(rootDir, '.next/dev/lock');
-
-  try {
-    const content = await readFile(lockPath, 'utf8');
-    const parsed = JSON.parse(content);
-    const appUrl =
-      typeof parsed?.appUrl === 'string' ? parsed.appUrl.trim() : '';
-    const pid =
-      typeof parsed?.pid === 'number'
-        ? parsed.pid
-        : Number.parseInt(String(parsed?.pid || ''), 10);
-
-    if (!appUrl || !Number.isInteger(pid) || pid <= 0) {
-      return null;
-    }
-
-    return { appUrl, pid };
-  } catch {
-    return null;
-  }
-}
-
-function isProcessAlive(pid) {
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export async function main() {
-  const lockedNodeInfo = await readLockedNodeInfo();
-  const lockedNodeBaseUrl = lockedNodeInfo?.appUrl ?? null;
   const wranglerConfigPath =
     process.env.CF_LOCAL_SMOKE_WRANGLER_CONFIG_PATH?.trim() ||
     path.resolve(
@@ -116,7 +82,6 @@ export async function main() {
     );
   const preferredBaseUrl =
     process.env.ADMIN_SETTINGS_MODULE_CONTRACT_BASE_URL?.trim() ||
-    lockedNodeBaseUrl ||
     DEFAULT_BASE_URL;
   const authSecret =
     process.env.BETTER_AUTH_SECRET?.trim() ||
@@ -128,11 +93,10 @@ export async function main() {
   );
   const reuseServer =
     process.env.ADMIN_SETTINGS_MODULE_CONTRACT_REUSE_SERVER !== 'false' &&
-    ((lockedNodeInfo && isProcessAlive(lockedNodeInfo.pid)) ||
-      (await detectReusableNodeServer({
-        baseUrl: preferredBaseUrl,
-        logger: { log: () => undefined },
-      })));
+    (await detectReusableNodeServer({
+      baseUrl: preferredBaseUrl,
+      logger: { log: () => undefined },
+    }));
   const baseUrl = reuseServer
     ? preferredBaseUrl
     : `http://127.0.0.1:${await findAvailablePort(preferredPort)}`;

@@ -1,7 +1,7 @@
 import '@/config/load-dotenv';
 
 import { spawn } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -56,24 +56,6 @@ export function readWranglerLocalConnectionString(content) {
   return match[1].trim();
 }
 
-export function readNextDevLockBaseUrl(content) {
-  const parsed = JSON.parse(content);
-  const appUrl = typeof parsed?.appUrl === 'string' ? parsed.appUrl.trim() : '';
-  if (appUrl) {
-    return appUrl;
-  }
-
-  const port =
-    typeof parsed?.port === 'number'
-      ? parsed.port
-      : Number.parseInt(String(parsed?.port || ''), 10);
-  if (Number.isFinite(port) && port > 0) {
-    return `http://127.0.0.1:${port}`;
-  }
-
-  return null;
-}
-
 export function buildNodeAuthSpikeEnv(baseEnv, options) {
   const appUrl = options.appUrl || DEFAULT_NODE_BASE_URL;
   const authSecret = options.authSecret || DEFAULT_AUTH_SPIKE_SECRET;
@@ -89,6 +71,26 @@ export function buildNodeAuthSpikeEnv(baseEnv, options) {
     AUTH_URL: appUrl,
     BETTER_AUTH_SECRET: authSecret,
     AUTH_SECRET: authSecret,
+  };
+}
+
+export function buildNodeDevCommand(port) {
+  return {
+    command: process.execPath,
+    args: [
+      'scripts/run-with-site.mjs',
+      'pnpm',
+      'exec',
+      'vite',
+      'dev',
+      '--config',
+      'vite.config.mts',
+      '--host',
+      '127.0.0.1',
+      '--port',
+      String(port),
+      '--strictPort',
+    ],
   };
 }
 
@@ -152,16 +154,13 @@ export function createNodeDevManager({
   port = 3000,
   logger = console,
 }) {
-  const child = spawn(
-    'pnpm',
-    ['exec', 'next', 'dev', '--turbopack', '--port', String(port)],
-    {
-      cwd,
-      env,
-      detached: process.platform !== 'win32',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    }
-  );
+  const { command, args } = buildNodeDevCommand(port);
+  const child = spawn(command, args, {
+    cwd,
+    env,
+    detached: process.platform !== 'win32',
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
 
   const recentLogs = [];
   let stopping = false;
@@ -227,16 +226,6 @@ export async function prepareLocalAuthSpikeDevVars({
   };
 }
 
-async function readLockedNodeBaseUrl() {
-  const lockPath = path.resolve(rootDir, '.next/dev/lock');
-  try {
-    const content = await readFile(lockPath, 'utf8');
-    return readNextDevLockBaseUrl(content);
-  } catch {
-    return null;
-  }
-}
-
 async function main() {
   const wranglerConfigPath =
     process.env.CF_LOCAL_WRANGLER_CONFIG_PATH?.trim() ||
@@ -254,11 +243,7 @@ async function main() {
     DEFAULT_AUTH_SPIKE_SECRET;
   const explicitNodeBaseUrl =
     process.env.AUTH_SPIKE_LOCAL_VERCEL_URL?.trim() || null;
-  const lockedNodeBaseUrl = explicitNodeBaseUrl
-    ? null
-    : await readLockedNodeBaseUrl();
-  const preferredNodeBaseUrl =
-    explicitNodeBaseUrl || lockedNodeBaseUrl || DEFAULT_NODE_BASE_URL;
+  const preferredNodeBaseUrl = explicitNodeBaseUrl || DEFAULT_NODE_BASE_URL;
   const cloudflareBaseUrl =
     process.env.AUTH_SPIKE_LOCAL_CF_URL?.trim() || DEFAULT_CF_BASE_URL;
 

@@ -6,9 +6,9 @@ import test from 'node:test';
 
 import {
   buildNodeAuthSpikeEnv,
+  buildNodeDevCommand,
   detectReusableNodeServer,
   prepareLocalAuthSpikeDevVars,
-  readNextDevLockBaseUrl,
   readWranglerLocalConnectionString,
   waitForNodeReady,
 } from '../../scripts/run-local-auth-spike.mjs';
@@ -66,29 +66,24 @@ test('buildNodeAuthSpikeEnv 默认使用满足 Better Auth 长度要求的 secre
   assert.ok((env.AUTH_SECRET || '').length >= 32);
 });
 
-test('readNextDevLockBaseUrl 优先读取 lock 中的 appUrl', () => {
-  const baseUrl = readNextDevLockBaseUrl(
-    JSON.stringify({
-      pid: 388,
-      port: 3100,
-      hostname: 'localhost',
-      appUrl: 'http://localhost:3100',
-    })
-  );
+test('buildNodeDevCommand 通过 Vite 启动本地 Node 面', () => {
+  const command = buildNodeDevCommand(3100);
 
-  assert.equal(baseUrl, 'http://localhost:3100');
-});
-
-test('readNextDevLockBaseUrl 在缺少 appUrl 时回退端口', () => {
-  const baseUrl = readNextDevLockBaseUrl(
-    JSON.stringify({
-      pid: 388,
-      port: 3100,
-      hostname: 'localhost',
-    })
-  );
-
-  assert.equal(baseUrl, 'http://127.0.0.1:3100');
+  assert.equal(command.command, process.execPath);
+  assert.deepEqual(command.args, [
+    'scripts/run-with-site.mjs',
+    'pnpm',
+    'exec',
+    'vite',
+    'dev',
+    '--config',
+    'vite.config.mts',
+    '--host',
+    '127.0.0.1',
+    '--port',
+    '3100',
+    '--strictPort',
+  ]);
 });
 
 test('waitForNodeReady 在 sign-in 页面可达时完成', async () => {
