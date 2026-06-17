@@ -25,10 +25,7 @@ export type CloudflareBindings = {
   };
   AI?: CloudflareAIBinding;
   IMAGES?: ImagesBinding;
-  NEXT_INC_CACHE_R2_BUCKET?: R2Bucket;
   APP_STORAGE_R2_BUCKET?: R2Bucket;
-  NEXT_CACHE_DO_QUEUE?: unknown;
-  NEXT_TAG_CACHE_DO_SHARDED?: unknown;
   STATEFUL_LIMITERS?: unknown;
   NEXT_PUBLIC_TURNSTILE_SITE_KEY?: string;
   PUBLIC_WEB_WORKER?: Fetcher;

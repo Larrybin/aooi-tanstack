@@ -27,7 +27,6 @@
     "admin": "aooi-dev-local-admin"
   },
   "resources": {
-    "incrementalCacheBucket": "aooi-dev-local-opennext-cache",
     "appStorageBucket": "aooi-dev-local-storage",
     "hyperdriveId": "d208cd72765b46a7b0849fc687e2fb61"
   },

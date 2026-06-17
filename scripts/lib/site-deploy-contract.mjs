@@ -190,7 +190,6 @@ function buildPreviewDeploySettings({
       ])
     ),
     resources: {
-      incrementalCacheBucket: buildPreviewBucketName(siteKey, 'opennext-cache'),
       appStorageBucket: buildPreviewBucketName(siteKey, 'storage'),
       hyperdriveId,
     },
@@ -484,7 +483,6 @@ export function createCanonicalTypegenContract(contract) {
         ])
       ),
       resources: {
-        incrementalCacheBucket: 'cloudflare-typegen-opennext-cache',
         appStorageBucket: 'cloudflare-typegen-storage',
         hyperdriveId: '00000000000000000000000000000001',
       },

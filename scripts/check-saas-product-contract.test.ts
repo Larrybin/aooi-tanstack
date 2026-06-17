@@ -618,7 +618,6 @@ async function createFixtureRoot(pricing: unknown) {
         admin: 'aooi-ai-remover-admin',
       },
       resources: {
-        incrementalCacheBucket: 'aooi-ai-remover-opennext-cache',
         appStorageBucket: 'aooi-ai-remover-storage',
         hyperdriveId: '00000000000000000000000000000002',
       },
@@ -728,7 +727,6 @@ async function createBackgroundRemoverFixtureRoot() {
         admin: 'aooi-background-remover-admin',
       },
       resources: {
-        incrementalCacheBucket: 'aooi-background-remover-opennext-cache',
         appStorageBucket: 'aooi-background-remover-storage',
         hyperdriveId: '00000000000000000000000000000003',
       },

@@ -82,7 +82,6 @@ export function buildProductionWorkerName(siteKey, slot) {
 export function buildProductionResourceNames(siteKey) {
   return {
     appStorageBucket: `aooi-${siteKey}-storage`,
-    incrementalCacheBucket: `aooi-${siteKey}-opennext-cache`,
   };
 }
 
@@ -422,25 +421,20 @@ async function runDoctor() {
     hyperdriveRequired: context.hyperdriveRequired,
   });
 
-  for (const bucketName of [
-    resources.incrementalCacheBucket,
-    resources.appStorageBucket,
-  ]) {
-    try {
-      if (await checkR2Bucket(bucketName, env)) {
-        printStatus('ok', 'R2 bucket', bucketName);
-      } else {
-        failures += 1;
-        printStatus('missing', 'R2 bucket', bucketName);
-      }
-    } catch (error) {
+  try {
+    if (await checkR2Bucket(resources.appStorageBucket, env)) {
+      printStatus('ok', 'R2 bucket', resources.appStorageBucket);
+    } else {
       failures += 1;
-      printStatus(
-        'error',
-        'R2 bucket check',
-        error instanceof Error ? error.message : String(error)
-      );
+      printStatus('missing', 'R2 bucket', resources.appStorageBucket);
     }
+  } catch (error) {
+    failures += 1;
+    printStatus(
+      'error',
+      'R2 bucket check',
+      error instanceof Error ? error.message : String(error)
+    );
   }
 
   if (!context.hyperdriveRequired) {
@@ -523,7 +517,6 @@ async function runProvision() {
   const env = createProductionCommandEnv(context);
   const resources = context.deploySettings.resources;
 
-  await ensureR2Bucket(resources.incrementalCacheBucket, env);
   await ensureR2Bucket(resources.appStorageBucket, env);
   if (context.hyperdriveRequired) {
     await ensureProductionHyperdrive(context, env);

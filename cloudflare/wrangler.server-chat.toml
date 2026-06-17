@@ -10,10 +10,6 @@ binding = "ASSETS"
 directory = "../dist/client"
 
 [[r2_buckets]]
-binding = "NEXT_INC_CACHE_R2_BUCKET"
-bucket_name = "roller-rabbit-opennext-cache"
-
-[[r2_buckets]]
 binding = "APP_STORAGE_R2_BUCKET"
 bucket_name = "roller-rabbit-storage"
 
@@ -21,16 +17,6 @@ bucket_name = "roller-rabbit-storage"
 binding = "HYPERDRIVE"
 id = "d208cd72765b46a7b0849fc687e2fb61"
 localConnectionString = ""
-
-[[durable_objects.bindings]]
-name = "NEXT_CACHE_DO_QUEUE"
-class_name = "DOQueueHandler"
-script_name = "roller-rabbit-state"
-
-[[durable_objects.bindings]]
-name = "NEXT_TAG_CACHE_DO_SHARDED"
-class_name = "DOShardedTagCache"
-script_name = "roller-rabbit-state"
 
 [[durable_objects.bindings]]
 name = "STATEFUL_LIMITERS"

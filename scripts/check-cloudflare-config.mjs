@@ -201,7 +201,6 @@ function assertSharedSettings(content, label, options = {}) {
     expectedWorkersDev = false,
     expectedPreviewUrls = false,
     expectedAppOrigin,
-    expectedIncrementalCacheBucket,
     expectedAppStorageBucket,
   } = options;
 
@@ -269,25 +268,6 @@ function assertSharedSettings(content, label, options = {}) {
 
   const r2BucketTables = readArrayTable(content, 'r2_buckets');
   if (requiresR2Buckets) {
-    const incrementalCacheBucket = r2BucketTables.find((table) =>
-      /^\s*binding\s*=\s*"NEXT_INC_CACHE_R2_BUCKET"/m.test(table)
-    );
-    if (!incrementalCacheBucket) {
-      fail(
-        `${label} missing [[r2_buckets]] binding = "NEXT_INC_CACHE_R2_BUCKET"`
-      );
-    }
-    const incrementalBucketName = readQuotedValue(
-      incrementalCacheBucket,
-      `${label}.r2_buckets.NEXT_INC_CACHE_R2_BUCKET.bucket_name`,
-      /^\s*bucket_name\s*=\s*"([^"\n]+)"/m
-    );
-    if (incrementalBucketName !== expectedIncrementalCacheBucket) {
-      fail(
-        `${label}.NEXT_INC_CACHE_R2_BUCKET bucket_name must equal ${expectedIncrementalCacheBucket}`
-      );
-    }
-
     const appStorageBucket = r2BucketTables.find((table) =>
       /^\s*binding\s*=\s*"APP_STORAGE_R2_BUCKET"/m.test(table)
     );
@@ -433,7 +413,6 @@ function assertRouterConfig(content, contract, requiredBindingsByWorker) {
     expectedWorkersDev: contract.route.mode === 'workers-dev',
     expectedPreviewUrls: contract.route.mode === 'workers-dev',
     expectedAppOrigin: contract.appOrigin,
-    expectedIncrementalCacheBucket: contract.resources.incrementalCacheBucket,
     expectedAppStorageBucket: contract.resources.appStorageBucket,
   });
   assertRequiredRuntimeBindings('router', 'router', requiredBindingsByWorker);
@@ -682,7 +661,6 @@ function assertServerConfig(
     requiresHyperdrive:
       contract.bindingRequirements.bindings?.hyperdrive === true,
     expectedAppOrigin: contract.appOrigin,
-    expectedIncrementalCacheBucket: contract.resources.incrementalCacheBucket,
     expectedAppStorageBucket: contract.resources.appStorageBucket,
     requiresWorkersAi:
       target === 'public-web' &&

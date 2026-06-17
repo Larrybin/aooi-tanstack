@@ -26,7 +26,6 @@
     "admin": "aooi-text-to-speech-generator-admin"
   },
   "resources": {
-    "incrementalCacheBucket": "aooi-text-to-speech-generator-cache",
     "appStorageBucket": "aooi-text-to-speech-generator-storage",
     "hyperdriveId": "00000000000000000000000000000004"
   },

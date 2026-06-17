@@ -11,7 +11,6 @@ const CLOUDFLARE_EXACT_PATHS = new Set([
   '.github/workflows/cloudflare-acceptance.yaml',
   'docs/architecture/cloudflare-deployment-governance.md',
   'next.config.mjs',
-  'open-next.config.ts',
   'package.json',
   'pnpm-lock.yaml',
   'scripts/check-cloudflare-config.mjs',

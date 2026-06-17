@@ -136,9 +136,9 @@ export async function deployCloudflareState({
       processEnv: process.env,
       artifactPaths: getRequiredCloudflareStateBuildArtifactPaths(),
       contextMessage:
-        'Cloudflare state deploy requires built Durable Object artifacts.',
+        'Cloudflare state deploy requires native state worker entrypoints.',
       nextStepMessage:
-        'Run `pnpm cf:build` if the state Durable Object artifacts are missing.',
+        'Restore the missing state worker source files before deploying.',
     }),
 } = {}) {
   await assertBuildArtifactsReadyImpl();

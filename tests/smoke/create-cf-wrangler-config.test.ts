@@ -40,14 +40,10 @@ name = "router-template"
 main = "cloudflare/workers/router.ts"
 
 [assets]
-directory = ".open-next/assets"
+directory = "dist/client"
 
 [images]
 binding = "IMAGES"
-
-[[r2_buckets]]
-binding = "NEXT_INC_CACHE_R2_BUCKET"
-bucket_name = "placeholder-cache"
 
 [[r2_buckets]]
 binding = "APP_STORAGE_R2_BUCKET"
@@ -112,7 +108,7 @@ ADMIN_WORKER_NAME = ""
   assert.match(
     config,
     new RegExp(
-      `directory = "${escapeRegExp(path.relative(path.dirname(outputPath), '/repo/.open-next/assets'))}"`
+      `directory = "${escapeRegExp(path.relative(path.dirname(outputPath), '/repo/dist/client'))}"`
     )
   );
   assert.match(
@@ -150,7 +146,7 @@ workers_dev = false
 preview_urls = false
 
 [assets]
-directory = ".open-next/assets"
+directory = "dist/client"
 
 [images]
 binding = "IMAGES"
@@ -158,10 +154,6 @@ binding = "IMAGES"
 [[routes]]
 pattern = "old.example.com"
 custom_domain = true
-
-[[r2_buckets]]
-binding = "NEXT_INC_CACHE_R2_BUCKET"
-bucket_name = "placeholder-cache"
 
 [[r2_buckets]]
 binding = "APP_STORAGE_R2_BUCKET"
@@ -231,11 +223,7 @@ workers_dev = true
 preview_urls = true
 
 [assets]
-directory = "../.open-next/assets"
-
-[[r2_buckets]]
-binding = "NEXT_INC_CACHE_R2_BUCKET"
-bucket_name = "placeholder-cache"
+directory = "../dist/client"
 
 [[r2_buckets]]
 binding = "APP_STORAGE_R2_BUCKET"
@@ -287,11 +275,7 @@ workers_dev = true
 preview_urls = true
 
 [assets]
-directory = "../.open-next/assets"
-
-[[r2_buckets]]
-binding = "NEXT_INC_CACHE_R2_BUCKET"
-bucket_name = "placeholder-cache"
+directory = "../dist/client"
 
 [[r2_buckets]]
 binding = "APP_STORAGE_R2_BUCKET"
@@ -347,11 +331,7 @@ name = "public-web-template"
 main = "workers/server-public-web.ts"
 
 [assets]
-directory = "../.open-next/assets"
-
-[[r2_buckets]]
-binding = "NEXT_INC_CACHE_R2_BUCKET"
-bucket_name = "placeholder-cache"
+directory = "../dist/client"
 
 [[r2_buckets]]
 binding = "APP_STORAGE_R2_BUCKET"
@@ -394,7 +374,7 @@ STORAGE_PUBLIC_BASE_URL = ""
   assert.match(
     config,
     new RegExp(
-      `directory = "${escapeRegExp(path.relative(path.dirname(outputPath), '/repo/.open-next/assets'))}"`
+      `directory = "${escapeRegExp(path.relative(path.dirname(outputPath), '/repo/dist/client'))}"`
     )
   );
   assert.match(config, /localConnectionString = ""/);
@@ -414,11 +394,7 @@ name = "public-web-template"
 main = "workers/server-public-web.ts"
 
 [assets]
-directory = "../.open-next/assets"
-
-[[r2_buckets]]
-binding = "NEXT_INC_CACHE_R2_BUCKET"
-bucket_name = "placeholder-cache"
+directory = "../dist/client"
 
 [[r2_buckets]]
 binding = "APP_STORAGE_R2_BUCKET"
@@ -474,11 +450,7 @@ name = "public-web-template"
 main = "workers/server-public-web.ts"
 
 [assets]
-directory = "../.open-next/assets"
-
-[[r2_buckets]]
-binding = "NEXT_INC_CACHE_R2_BUCKET"
-bucket_name = "placeholder-cache"
+directory = "../dist/client"
 
 [[r2_buckets]]
 binding = "APP_STORAGE_R2_BUCKET"
@@ -542,11 +514,7 @@ name = "public-web-template"
 main = "workers/server-public-web.ts"
 
 [assets]
-directory = "../.open-next/assets"
-
-[[r2_buckets]]
-binding = "NEXT_INC_CACHE_R2_BUCKET"
-bucket_name = "placeholder-cache"
+directory = "../dist/client"
 
 [[r2_buckets]]
 binding = "APP_STORAGE_R2_BUCKET"
@@ -599,14 +567,10 @@ name = "router-template"
 main = "cloudflare/workers/router.ts"
 
 [assets]
-directory = ".open-next/assets"
+directory = "dist/client"
 
 [images]
 binding = "IMAGES"
-
-[[r2_buckets]]
-binding = "NEXT_INC_CACHE_R2_BUCKET"
-bucket_name = "placeholder-cache"
 
 [[r2_buckets]]
 binding = "APP_STORAGE_R2_BUCKET"
@@ -703,11 +667,7 @@ name = "public-web-template"
 main = "workers/server-public-web.ts"
 
 [assets]
-directory = "../.open-next/assets"
-
-[[r2_buckets]]
-binding = "NEXT_INC_CACHE_R2_BUCKET"
-bucket_name = "placeholder-cache"
+directory = "../dist/client"
 
 [[r2_buckets]]
 binding = "APP_STORAGE_R2_BUCKET"

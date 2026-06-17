@@ -43,7 +43,7 @@ test('findAvailablePort 会跳过仅占用 127.0.0.1 的端口', async () => {
   }
 });
 
-test('assertCloudflareLocalBuildArtifactsReady 缺少 .open-next 构建产物时给出明确 cf:build 提示', async () => {
+test('assertCloudflareLocalBuildArtifactsReady 缺少 TanStack 构建产物时给出明确 cf:build 提示', async () => {
   const tempDir = await fs.mkdtemp(
     path.join(os.tmpdir(), 'cf-local-build-artifacts-')
   );
@@ -56,7 +56,7 @@ test('assertCloudflareLocalBuildArtifactsReady 缺少 .open-next 构建产物时
           SITE: 'mamamiya',
         },
       }),
-      /Run `pnpm cf:build` before starting Cloudflare local smoke or spikes/i
+      /TanStack artifacts[\s\S]*Run `pnpm cf:build` before starting Cloudflare local smoke or spikes/i
     );
   } finally {
     await fs.rm(tempDir, { recursive: true, force: true });

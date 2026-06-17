@@ -172,10 +172,6 @@ test('deploy contract resolver 为 preview 派生 workers.dev 资源', () => {
     'https://aooi-ai-remover-preview-router.aooi-preview.workers.dev'
   );
   assert.equal(
-    contract.resources.incrementalCacheBucket,
-    'aooi-ai-remover-preview-opennext-cache'
-  );
-  assert.equal(
     contract.resources.appStorageBucket,
     'aooi-ai-remover-preview-storage'
   );

@@ -22,7 +22,6 @@
     "public-web": "aooi-mp4-compressor-public-web"
   },
   "resources": {
-    "incrementalCacheBucket": "aooi-mp4-compressor-opennext-cache",
     "appStorageBucket": "aooi-mp4-compressor-storage",
     "hyperdriveId": "00000000000000000000000000000005"
   },

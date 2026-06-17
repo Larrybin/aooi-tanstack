@@ -271,11 +271,8 @@ function collectPositiveContractFailures() {
     );
     pushFailureIfMissing(
       failures,
-      !workerSource.includes('NEXT_CACHE_DO_QUEUE') &&
-        !workerSource.includes('NEXT_TAG_CACHE_DO_SHARDED') &&
-        !workerSource.includes('DOQueueHandler') &&
-        !workerSource.includes('DOShardedTagCache'),
-      `${workerPath} must not import or call next/cache Durable Object bindings`
+      !workerSource.includes('StatefulLimitersDurableObject'),
+      `${workerPath} must not import or call state Durable Object classes`
     );
   }
 
@@ -309,9 +306,7 @@ function collectPositiveContractFailures() {
   );
   pushFailureIfMissing(
     failures,
-    stateWorker.includes('DOQueueHandler') &&
-      stateWorker.includes('DOShardedTagCache') &&
-      stateWorker.includes('StatefulLimitersDurableObject'),
+    stateWorker.includes('StatefulLimitersDurableObject'),
     'state.ts must keep state Durable Object exports isolated in state worker'
   );
 

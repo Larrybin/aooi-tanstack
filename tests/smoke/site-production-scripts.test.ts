@@ -52,7 +52,6 @@ const baseDeploySettings = {
   resources: {
     appStorageBucket: 'aooi-background-remover-storage',
     hyperdriveId: '00000000000000000000000000000003',
-    incrementalCacheBucket: 'aooi-background-remover-opennext-cache',
   },
   state: {
     schemaVersion: 1,
@@ -97,7 +96,6 @@ test('site production init derives explicit worker and bucket names', () => {
   );
   assert.deepEqual(buildProductionResourceNames('background-remover'), {
     appStorageBucket: 'aooi-background-remover-storage',
-    incrementalCacheBucket: 'aooi-background-remover-opennext-cache',
   });
 });
 
@@ -107,7 +105,6 @@ test('site production init rewrites names but preserves active slots and Hyperdr
     resources: {
       ...baseDeploySettings.resources,
       appStorageBucket: 'legacy-storage',
-      incrementalCacheBucket: 'legacy-cache',
     },
     workers: {
       router: 'legacy-router',
@@ -125,10 +122,6 @@ test('site production init rewrites names but preserves active slots and Hyperdr
     state: 'aooi-background-remover-state',
     'public-web': 'aooi-background-remover-public-web',
   });
-  assert.equal(
-    updated.resources.incrementalCacheBucket,
-    'aooi-background-remover-opennext-cache'
-  );
   assert.equal(
     updated.resources.appStorageBucket,
     'aooi-background-remover-storage'

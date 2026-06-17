@@ -111,7 +111,7 @@ export async function assertCloudflareLocalBuildArtifactsReady({
     rootPath,
     processEnv,
     contextMessage:
-      'Cloudflare local topology requires built OpenNext artifacts.',
+      'Cloudflare local topology requires built TanStack artifacts.',
     nextStepMessage:
       'Run `pnpm cf:build` before starting Cloudflare local smoke or spikes.',
   });

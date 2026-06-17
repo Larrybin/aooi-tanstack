@@ -50,24 +50,22 @@ test('buildStateDeployWranglerArgs 固定使用 wrangler deploy 与 keep-vars', 
   assert.equal(args.includes('versions'), false);
 });
 
-test('state deploy artifact guard 只检查 state worker 直接依赖的 Durable Object 产物', () => {
+test('state deploy artifact guard 只检查 state worker 直接依赖的 native worker 产物', () => {
   const stateArtifacts = getRequiredCloudflareStateBuildArtifactPaths();
   const appArtifacts = getRequiredCloudflareBuildArtifactPaths({
     SITE: 'mamamiya',
   });
 
   assert.deepEqual(stateArtifacts, [
-    '.open-next/.build/durable-objects/queue.js',
-    '.open-next/.build/durable-objects/sharded-tag-cache.js',
+    'cloudflare/workers/state.ts',
+    'cloudflare/workers/stateful-limiters.ts',
   ]);
-  assert.ok(
-    appArtifacts.some((artifact) => artifact.includes('server-functions'))
-  );
+  assert.ok(appArtifacts.includes('dist/server/server.mjs'));
+  assert.ok(appArtifacts.includes('dist/client'));
   assert.equal(
-    stateArtifacts.some((artifact) => artifact.includes('server-functions')),
+    stateArtifacts.some((artifact) => artifact.startsWith('dist/')),
     false
   );
-  assert.equal(stateArtifacts.includes('.open-next/worker.js'), false);
 });
 
 test('buildStateDeployWranglerArgs 在无 secrets 时不传 secrets-file', () => {

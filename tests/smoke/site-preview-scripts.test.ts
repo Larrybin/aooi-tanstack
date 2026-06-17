@@ -22,7 +22,6 @@ test('site preview resource names are derived from site key and workers.dev subd
       CF_WORKERS_DEV_SUBDOMAIN: 'aooi-preview',
     }),
     {
-      cacheBucket: 'aooi-background-remover-preview-opennext-cache',
       routerOrigin:
         'https://aooi-background-remover-preview-router.aooi-preview.workers.dev',
       routerWorker: 'aooi-background-remover-preview-router',
@@ -34,7 +33,7 @@ test('site preview resource names are derived from site key and workers.dev subd
 test('site preview bucket detection matches exact R2 bucket names', () => {
   const output = `
 [
-  { name: 'aooi-background-remover-preview-opennext-cache' },
+  { name: 'aooi-background-remover-preview-storage' },
   { name: 'aooi-background-remover-preview-storage-extra' }
 ]
 `;
@@ -42,12 +41,12 @@ test('site preview bucket detection matches exact R2 bucket names', () => {
   assert.equal(
     r2BucketListHasName(
       output,
-      'aooi-background-remover-preview-opennext-cache'
+      'aooi-background-remover-preview-storage'
     ),
     true
   );
   assert.equal(
-    r2BucketListHasName(output, 'aooi-background-remover-preview-storage'),
+    r2BucketListHasName(output, 'aooi-background-remover-preview'),
     false
   );
 });

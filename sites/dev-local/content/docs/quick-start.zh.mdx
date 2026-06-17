@@ -161,7 +161,7 @@ pnpm rbac:assign -- --email="admin@your-domain.com" --role="super_admin"
 
 上线前务必完成：
 
-- 仅支持 Cloudflare Workers：配置受版本控制的 Wrangler 模板、`HYPERDRIVE`、`NEXT_PUBLIC_APP_URL`、`AUTH_SECRET`/`BETTER_AUTH_SECRET`、共享的 `NEXT_INC_CACHE_R2_BUCKET`、业务上传 `APP_STORAGE_R2_BUCKET`、router `IMAGES`，以及 runtime binding `STORAGE_PUBLIC_BASE_URL`；本地 runtime smoke 需要生成临时 Wrangler 配置并注入 `localConnectionString`，deploy 仍要求真实的 `hyperdrive.id`
+- 仅支持 Cloudflare Workers：配置受版本控制的 Wrangler 模板、`HYPERDRIVE`、`NEXT_PUBLIC_APP_URL`、`AUTH_SECRET`/`BETTER_AUTH_SECRET`、业务上传 `APP_STORAGE_R2_BUCKET`、router `IMAGES`，以及 runtime binding `STORAGE_PUBLIC_BASE_URL`；本地 runtime smoke 需要生成临时 Wrangler 配置并注入 `localConnectionString`，deploy 仍要求真实的 `hyperdrive.id`
 
 部署流程：
 

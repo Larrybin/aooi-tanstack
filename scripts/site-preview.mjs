@@ -53,7 +53,6 @@ function relativePath(rootDir, targetPath) {
 
 export function buildPreviewResourceNames(siteKey, processEnv = process.env) {
   return {
-    cacheBucket: buildPreviewBucketName(siteKey, 'opennext-cache'),
     routerOrigin: buildPreviewRouterOrigin(siteKey, processEnv),
     routerWorker: buildPreviewWorkerName(siteKey, 'router'),
     storageBucket: buildPreviewBucketName(siteKey, 'storage'),
@@ -178,7 +177,6 @@ function createPreviewContext({
   const resourceNames = workersDevSubdomain
     ? buildPreviewResourceNames(siteKey, resourceEnv)
     : {
-        cacheBucket: buildPreviewBucketName(siteKey, 'opennext-cache'),
         routerOrigin: '',
         routerWorker: buildPreviewWorkerName(siteKey, 'router'),
         storageBucket: buildPreviewBucketName(siteKey, 'storage'),

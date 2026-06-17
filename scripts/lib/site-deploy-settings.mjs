@@ -42,7 +42,6 @@ const CLOUDFLARE_SERVER_WORKER_SLOT_SET = new Set(
 );
 
 export const CLOUDFLARE_RESOURCE_SLOT_KEYS = Object.freeze([
-  'incrementalCacheBucket',
   'appStorageBucket',
   'hyperdriveId',
 ]);
@@ -276,10 +275,6 @@ function assertResources(resources) {
     CLOUDFLARE_RESOURCE_SLOT_KEYS
   );
 
-  assertBucketName(
-    resources.incrementalCacheBucket,
-    'site deploy settings.resources.incrementalCacheBucket'
-  );
   assertBucketName(
     resources.appStorageBucket,
     'site deploy settings.resources.appStorageBucket'

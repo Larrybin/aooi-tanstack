@@ -26,7 +26,6 @@
     "admin": "aooi-background-remover-admin"
   },
   "resources": {
-    "incrementalCacheBucket": "aooi-background-remover-opennext-cache",
     "appStorageBucket": "aooi-background-remover-storage",
     "hyperdriveId": "00000000000000000000000000000003"
   },

@@ -138,8 +138,6 @@ test(
   })
 );
 
-
-
 test(
   'Gate 5.4 checker blocks use client files from importing protected modules',
   withTempProject((rootDir) => {
@@ -172,10 +170,13 @@ export function LeakyWidget() { return String(protectedServerModule); }
 );
 
 test(
-  'Gate 5.4 checker requires the server-only package until Gate 5.6',
+  'Gate 5.4 checker allows missing server-only package after Gate 5.6',
   withTempProject((rootDir) => {
     write(rootDir, 'package.json', { dependencies: {} });
 
-    assertCheckerFails(rootDir, /server-only package dependency is missing/);
+    const output = runChecker(rootDir);
+
+    assert.match(output, /server-only package dependency: missing/);
+    assert.match(output, /Gate 5\.4 server-only marker check passed/);
   })
 );

@@ -9,7 +9,14 @@ for (const arg of args) {
 }
 
 const IGNORED_DIRS = new Set(['.git', 'node_modules', 'dist', '.next', '.open-next', 'out']);
-const SCAN_ROOTS = ['apps', 'src', 'cloudflare', 'scripts', 'package.json'];
+const SCAN_ROOTS = [
+  'apps',
+  'src',
+  'cloudflare',
+  'scripts',
+  'package.json',
+  'wrangler.cloudflare.toml',
+];
 const ROOT_DELETE_TARGETS = ['next.config.mjs', 'next-env.d.ts'];
 const CHECKER_PATH = 'scripts/check-gate-5-6-no-next.mjs';
 const PACKAGE_NAMES = new Set([
@@ -45,7 +52,7 @@ function isIgnored(repoPath) {
 function shouldScanFile(filePath) {
   const repoPath = toRepoPath(filePath);
   if (isIgnored(repoPath)) return false;
-  return /\.(ts|tsx|mts|mjs|js|jsx|cjs|json|d\.ts)$/.test(repoPath);
+  return /\.(ts|tsx|mts|mjs|js|jsx|cjs|json|toml|d\.ts)$/.test(repoPath);
 }
 
 function walk(currentPath, out) {
@@ -143,6 +150,26 @@ function collectHits() {
         hits.push({ repoPath, line: 1, token: specifier, classification: 'active_blocker', reason: 'active source still imports Next/OpenNext/server-only residue' });
       }
     }
+    source.split('\n').forEach((line, index) => {
+      for (const token of [
+        'NEXT_INC_CACHE_R2_BUCKET',
+        'NEXT_CACHE_DO_QUEUE',
+        'NEXT_TAG_CACHE_DO_SHARDED',
+        'DOQueueHandler',
+        'DOShardedTagCache',
+        'opennext-cache',
+      ]) {
+        if (line.includes(token)) {
+          hits.push({
+            repoPath,
+            line: index + 1,
+            token,
+            classification: 'active_blocker',
+            reason: 'active Cloudflare config still exposes legacy Next/OpenNext cache residue',
+          });
+        }
+      }
+    });
   }
   return hits;
 }

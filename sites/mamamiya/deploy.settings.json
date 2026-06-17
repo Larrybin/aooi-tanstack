@@ -27,7 +27,6 @@
     "admin": "roller-rabbit-admin"
   },
   "resources": {
-    "incrementalCacheBucket": "roller-rabbit-opennext-cache",
     "appStorageBucket": "roller-rabbit-storage",
     "hyperdriveId": "d208cd72765b46a7b0849fc687e2fb61"
   },

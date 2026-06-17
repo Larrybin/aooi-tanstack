@@ -1,6 +1,4 @@
 export const CLOUDFLARE_DURABLE_OBJECT_BINDINGS = {
-  NEXT_CACHE_DO_QUEUE: 'DOQueueHandler',
-  NEXT_TAG_CACHE_DO_SHARDED: 'DOShardedTagCache',
   STATEFUL_LIMITERS: 'StatefulLimitersDurableObject',
 } as const;
 

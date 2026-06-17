@@ -76,7 +76,7 @@ test('buildRouterDeployConfigContent 将 router 入口、assets 与 version ids 
   assert.match(
     config,
     new RegExp(
-      `directory = "${escapeRegExp(path.relative(path.resolve(process.cwd(), '.tmp'), path.resolve(process.cwd(), '.open-next/assets')))}"`
+      `directory = "${escapeRegExp(path.relative(path.resolve(process.cwd(), '.tmp'), path.resolve(process.cwd(), 'dist/client')))}"`
     )
   );
   assert.match(

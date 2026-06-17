@@ -10,7 +10,6 @@ import { resolveSiteDeployContract } from './lib/site-deploy-contract.mjs';
 const { CLOUDFLARE_ALL_SERVER_WORKER_TARGETS, CLOUDFLARE_VERSION_ID_VARS } =
   topology;
 const rootDir = process.cwd();
-const REQUIRED_INCREMENTAL_CACHE_BINDING = 'NEXT_INC_CACHE_R2_BUCKET';
 const REQUIRED_APP_STORAGE_BINDING = 'APP_STORAGE_R2_BUCKET';
 const REQUIRED_STATEFUL_LIMITERS_BINDING = 'STATEFUL_LIMITERS';
 const REQUIRED_WORKERS_AI_BINDING = 'AI';
@@ -289,20 +288,6 @@ function assertTemplateContract(content, templatePath) {
         hasQuotedValue(
           table,
           /^\s*binding\s*=\s*"([^"\n]+)"/m,
-          REQUIRED_INCREMENTAL_CACHE_BINDING
-        )
-      )
-    ) {
-      throw new Error(
-        `${label} must declare [[r2_buckets]] binding = "${REQUIRED_INCREMENTAL_CACHE_BINDING}"`
-      );
-    }
-
-    if (
-      !r2Buckets.some((table) =>
-        hasQuotedValue(
-          table,
-          /^\s*binding\s*=\s*"([^"\n]+)"/m,
           REQUIRED_APP_STORAGE_BINDING
         )
       )
@@ -455,10 +440,6 @@ function applyWorkerSpecificBindings(content, contract, workerSlot) {
 
   if (workerSlot !== 'state') {
     nextContent = replaceOrInsertArrayTable(nextContent, 'r2_buckets', [
-      {
-        binding: REQUIRED_INCREMENTAL_CACHE_BINDING,
-        bucket_name: contract.resources.incrementalCacheBucket,
-      },
       {
         binding: REQUIRED_APP_STORAGE_BINDING,
         bucket_name: contract.resources.appStorageBucket,

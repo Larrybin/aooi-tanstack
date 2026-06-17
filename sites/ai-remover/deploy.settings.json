@@ -26,7 +26,6 @@
     "admin": "aooi-ai-remover-admin"
   },
   "resources": {
-    "incrementalCacheBucket": "aooi-ai-remover-opennext-cache",
     "appStorageBucket": "aooi-ai-remover-storage",
     "hyperdriveId": "00000000000000000000000000000002"
   },

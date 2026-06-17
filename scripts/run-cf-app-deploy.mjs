@@ -660,7 +660,7 @@ export async function deployCloudflareApp({
       rootPath: rootDir,
       processEnv: process.env,
       contextMessage:
-        'Cloudflare app deploy requires built OpenNext artifacts.',
+        'Cloudflare app deploy requires built TanStack artifacts.',
       nextStepMessage:
         'Run `pnpm cf:build` before `pnpm cf:preview:deploy`, `pnpm cf:preview:bootstrap`, `pnpm cf:deploy`, or `pnpm cf:deploy:app`.',
     }),
