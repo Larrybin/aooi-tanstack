@@ -48,9 +48,20 @@ function toRepoPath(filePath) {
   return path.relative(root, filePath).split(path.sep).join('/');
 }
 
+function isMigrationCheckerText(repoPath) {
+  return (
+    repoPath.includes('check-gate-') ||
+    repoPath.includes('tanstack-native-inventory') ||
+    repoPath.includes('validate-tanstack-native-migration') ||
+    repoPath.includes('tanstack-gate-4-plan') ||
+    repoPath.includes('conventions-index')
+  );
+}
+
 function isIgnored(repoPath) {
   if (repoPath === CHECKER_PATH) return true;
   if (repoPath.startsWith('docs/')) return true;
+  if (isMigrationCheckerText(repoPath)) return true;
   return repoPath.split('/').some((part) => IGNORED_DIRS.has(part));
 }
 

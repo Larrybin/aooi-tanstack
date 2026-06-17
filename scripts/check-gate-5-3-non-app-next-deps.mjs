@@ -23,6 +23,12 @@ const SCAN_ROOTS = [
 const CHECKER_PATHS = new Set([
   'scripts/check-gate-5-3-non-app-next-deps.mjs',
   'scripts/check-gate-5-4-server-only-markers.mjs',
+  'scripts/check-gate-5-5-native-cloudflare-topology.mjs',
+  'scripts/check-gate-5-6-no-next.mjs',
+  'scripts/conventions-index.mjs',
+  'scripts/tanstack-gate-4-plan.mjs',
+  'scripts/tanstack-native-inventory.mjs',
+  'scripts/validate-tanstack-native-migration.mjs',
 ]);
 const VALID_CLASSIFICATIONS = new Set([
   'migrated',
