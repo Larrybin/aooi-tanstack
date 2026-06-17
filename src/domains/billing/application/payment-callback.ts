@@ -4,11 +4,10 @@ import {
   type PaymentSession,
 } from '@/domains/billing/domain/payment';
 import type { findOrderByOrderNo, Order } from '@/domains/billing/infra/order';
-import type { PaymentRuntimeBindings } from '@/domains/settings/application/settings-runtime.contracts';
 import type {
-  readBillingRuntimeSettingsCached,
-  readBillingRuntimeSettingsFresh,
-} from '@/domains/settings/application/settings-runtime.query';
+  BillingRuntimeSettings,
+  PaymentRuntimeBindings,
+} from '@/domains/settings/application/settings-runtime.contracts';
 import type { getPaymentService } from '@/infra/adapters/payment/service';
 import { getRuntimeEnvString } from '@/infra/runtime/env.server';
 
@@ -27,9 +26,11 @@ type BillingCallbackLog = {
   error(message: string, meta?: unknown): void;
 };
 
+type ReadBillingRuntimeSettings = () => Promise<BillingRuntimeSettings>;
+
 type PaymentCallbackDeps = {
-  readBillingRuntimeSettingsCached: typeof readBillingRuntimeSettingsCached;
-  readBillingRuntimeSettingsFresh: typeof readBillingRuntimeSettingsFresh;
+  readBillingRuntimeSettingsCached: ReadBillingRuntimeSettings;
+  readBillingRuntimeSettingsFresh: ReadBillingRuntimeSettings;
   readPaymentRuntimeBindings: () => PaymentRuntimeBindings;
   findOrderByOrderNo: typeof findOrderByOrderNo;
   getPaymentService: typeof getPaymentService;
@@ -47,7 +48,8 @@ export async function resolvePaymentCallbackRedirectQuery(
     'readBillingRuntimeSettingsCached' | 'findOrderByOrderNo'
   >
 ) {
-  const resolvedDeps = deps ?? (await getPaymentCallbackReadDeps());
+  if (!deps) throw new Error('payment callback read deps are required');
+  const resolvedDeps = deps;
   const appUrl = await resolveAppUrl(resolvedDeps);
 
   try {
@@ -71,42 +73,13 @@ export async function resolvePaymentCallbackPricingFallbackUrl(
   deps?: Pick<PaymentCallbackDeps, 'readBillingRuntimeSettingsCached'>
 ) {
   try {
-    const resolvedDeps = deps ?? (await getPaymentCallbackPricingDeps());
+    if (!deps) throw new Error('payment callback pricing deps are required');
+    const resolvedDeps = deps;
     const appUrl = await resolveAppUrl(resolvedDeps);
     return toPricingFallbackUrl(appUrl);
   } catch {
     return '/pricing';
   }
-}
-
-async function getPaymentCallbackReadDeps(): Promise<
-  Pick<
-    PaymentCallbackDeps,
-    'readBillingRuntimeSettingsCached' | 'findOrderByOrderNo'
-  >
-> {
-  const [settingsModule, orderModule] = await Promise.all([
-    import('@/domains/settings/application/settings-runtime.query'),
-    import('@/domains/billing/infra/order'),
-  ]);
-
-  return {
-    readBillingRuntimeSettingsCached:
-      settingsModule.readBillingRuntimeSettingsCached,
-    findOrderByOrderNo: orderModule.findOrderByOrderNo,
-  };
-}
-
-async function getPaymentCallbackPricingDeps(): Promise<
-  Pick<PaymentCallbackDeps, 'readBillingRuntimeSettingsCached'>
-> {
-  const settingsModule =
-    await import('@/domains/settings/application/settings-runtime.query');
-
-  return {
-    readBillingRuntimeSettingsCached:
-      settingsModule.readBillingRuntimeSettingsCached,
-  };
 }
 
 export async function confirmPaymentCallbackUseCase(
@@ -119,7 +92,8 @@ export async function confirmPaymentCallbackUseCase(
   },
   deps?: PaymentCallbackDeps
 ) {
-  const resolvedDeps = deps ?? (await getPaymentCallbackDeps());
+  if (!deps) throw new Error('payment callback deps are required');
+  const resolvedDeps = deps;
   if (!input.actorUserEmail) {
     throw new UnauthorizedError('no auth, please sign in');
   }
@@ -205,27 +179,4 @@ function assertOrderVisibleToActor(
   if (order.userId !== actorUserId) {
     throw new ForbiddenError(forbiddenMessage);
   }
-}
-
-async function getPaymentCallbackDeps(): Promise<PaymentCallbackDeps> {
-  const [settingsModule, orderModule, paymentServiceModule, flowsModule] =
-    await Promise.all([
-      import('@/domains/settings/application/settings-runtime.query'),
-      import('@/domains/billing/infra/order'),
-      import('@/infra/adapters/payment/service'),
-      import('@/domains/billing/application/flows'),
-    ]);
-  const { getPaymentRuntimeBindings } =
-    await import('@/infra/adapters/payment/runtime-bindings');
-
-  return {
-    readBillingRuntimeSettingsCached:
-      settingsModule.readBillingRuntimeSettingsCached,
-    readBillingRuntimeSettingsFresh:
-      settingsModule.readBillingRuntimeSettingsFresh,
-    readPaymentRuntimeBindings: getPaymentRuntimeBindings,
-    findOrderByOrderNo: orderModule.findOrderByOrderNo,
-    getPaymentService: paymentServiceModule.getPaymentService,
-    handleCheckoutSuccess: flowsModule.handleCheckoutSuccess,
-  };
 }
