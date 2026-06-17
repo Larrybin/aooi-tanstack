@@ -9,14 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SettingsRouteImport } from './routes/settings_'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as NoPermissionRouteImport } from './routes/no-permission'
+import { Route as MyImagesRouteImport } from './routes/my-images'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as DocsRouteImport } from './routes/docs_'
+import { Route as ChatRouteImport } from './routes/chat_'
 import { Route as BlogRouteImport } from './routes/blog_'
+import { Route as AdsDottxtRouteImport } from './routes/ads[.]txt'
+import { Route as AdminRouteImport } from './routes/admin_'
 import { Route as ActivityRouteImport } from './routes/activity_'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
@@ -26,9 +33,12 @@ import { Route as SettingsPaymentsRouteImport } from './routes/settings/payments
 import { Route as SettingsCreditsRouteImport } from './routes/settings/credits'
 import { Route as SettingsBillingRouteImport } from './routes/settings/billing'
 import { Route as SettingsApikeysRouteImport } from './routes/settings/apikeys'
+import { Route as DocsSplatRouteImport } from './routes/docs/$'
+import { Route as ChatSplatRouteImport } from './routes/chat/$'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiAuthRouteImport } from './routes/api/auth'
+import { Route as AdminSplatRouteImport } from './routes/admin/$'
 import { Route as ActivityFeedbacksRouteImport } from './routes/activity/feedbacks'
 import { Route as ActivityChatsRouteImport } from './routes/activity/chats'
 import { Route as ActivityAiTasksRouteImport } from './routes/activity/ai-tasks'
@@ -38,8 +48,12 @@ import { Route as LocaleSettingsRouteImport } from './routes/$locale/settings_'
 import { Route as LocaleResetPasswordRouteImport } from './routes/$locale/reset-password'
 import { Route as LocalePricingRouteImport } from './routes/$locale/pricing'
 import { Route as LocaleNoPermissionRouteImport } from './routes/$locale/no-permission'
+import { Route as LocaleMyImagesRouteImport } from './routes/$locale/my-images'
 import { Route as LocaleForgotPasswordRouteImport } from './routes/$locale/forgot-password'
+import { Route as LocaleDocsRouteImport } from './routes/$locale/docs_'
+import { Route as LocaleChatRouteImport } from './routes/$locale/chat_'
 import { Route as LocaleBlogRouteImport } from './routes/$locale/blog_'
+import { Route as LocaleAdminRouteImport } from './routes/$locale/admin_'
 import { Route as LocaleActivityRouteImport } from './routes/$locale/activity_'
 import { Route as LocaleSlugRouteImport } from './routes/$locale/$slug'
 import { Route as SettingsInvoicesRetrieveRouteImport } from './routes/settings/invoices/retrieve'
@@ -80,7 +94,10 @@ import { Route as LocaleSettingsPaymentsRouteImport } from './routes/$locale/set
 import { Route as LocaleSettingsCreditsRouteImport } from './routes/$locale/settings/credits'
 import { Route as LocaleSettingsBillingRouteImport } from './routes/$locale/settings/billing'
 import { Route as LocaleSettingsApikeysRouteImport } from './routes/$locale/settings/apikeys'
+import { Route as LocaleDocsSplatRouteImport } from './routes/$locale/docs/$'
+import { Route as LocaleChatSplatRouteImport } from './routes/$locale/chat/$'
 import { Route as LocaleBlogSlugRouteImport } from './routes/$locale/blog/$slug'
+import { Route as LocaleAdminSplatRouteImport } from './routes/$locale/admin/$'
 import { Route as LocaleActivityFeedbacksRouteImport } from './routes/$locale/activity/feedbacks'
 import { Route as LocaleActivityChatsRouteImport } from './routes/$locale/activity/chats'
 import { Route as LocaleActivityAiTasksRouteImport } from './routes/$locale/activity/ai-tasks'
@@ -103,6 +120,11 @@ import { Route as LocaleSettingsApikeysIdEditRouteImport } from './routes/$local
 import { Route as LocaleSettingsApikeysIdDeleteRouteImport } from './routes/$locale/settings/apikeys_/$id/delete'
 import { Route as LocaleActivityAiTasksIdRefreshRouteImport } from './routes/$locale/activity/ai-tasks_/$id/refresh'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignUpRoute = SignUpRouteImport.update({
   id: '/sign-up',
   path: '/sign-up',
@@ -116,6 +138,11 @@ const SignInRoute = SignInRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings_',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -133,14 +160,39 @@ const NoPermissionRoute = NoPermissionRouteImport.update({
   path: '/no-permission',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MyImagesRoute = MyImagesRouteImport.update({
+  id: '/my-images',
+  path: '/my-images',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs_',
+  path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChatRoute = ChatRouteImport.update({
+  id: '/chat_',
+  path: '/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogRoute = BlogRouteImport.update({
   id: '/blog_',
   path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdsDottxtRoute = AdsDottxtRouteImport.update({
+  id: '/ads.txt',
+  path: '/ads.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin_',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ActivityRoute = ActivityRouteImport.update({
@@ -188,6 +240,16 @@ const SettingsApikeysRoute = SettingsApikeysRouteImport.update({
   path: '/settings/apikeys',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsSplatRoute = DocsSplatRouteImport.update({
+  id: '/docs/$',
+  path: '/docs/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChatSplatRoute = ChatSplatRouteImport.update({
+  id: '/chat/$',
+  path: '/chat/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/blog/$slug',
   path: '/blog/$slug',
@@ -201,6 +263,11 @@ const ApiChatRoute = ApiChatRouteImport.update({
 const ApiAuthRoute = ApiAuthRouteImport.update({
   id: '/api/auth',
   path: '/api/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSplatRoute = AdminSplatRouteImport.update({
+  id: '/admin/$',
+  path: '/admin/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ActivityFeedbacksRoute = ActivityFeedbacksRouteImport.update({
@@ -248,14 +315,34 @@ const LocaleNoPermissionRoute = LocaleNoPermissionRouteImport.update({
   path: '/$locale/no-permission',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocaleMyImagesRoute = LocaleMyImagesRouteImport.update({
+  id: '/$locale/my-images',
+  path: '/$locale/my-images',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LocaleForgotPasswordRoute = LocaleForgotPasswordRouteImport.update({
   id: '/$locale/forgot-password',
   path: '/$locale/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocaleDocsRoute = LocaleDocsRouteImport.update({
+  id: '/$locale/docs_',
+  path: '/$locale/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocaleChatRoute = LocaleChatRouteImport.update({
+  id: '/$locale/chat_',
+  path: '/$locale/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LocaleBlogRoute = LocaleBlogRouteImport.update({
   id: '/$locale/blog_',
   path: '/$locale/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocaleAdminRoute = LocaleAdminRouteImport.update({
+  id: '/$locale/admin_',
+  path: '/$locale/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LocaleActivityRoute = LocaleActivityRouteImport.update({
@@ -461,9 +548,24 @@ const LocaleSettingsApikeysRoute = LocaleSettingsApikeysRouteImport.update({
   path: '/$locale/settings/apikeys',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocaleDocsSplatRoute = LocaleDocsSplatRouteImport.update({
+  id: '/$locale/docs/$',
+  path: '/$locale/docs/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocaleChatSplatRoute = LocaleChatSplatRouteImport.update({
+  id: '/$locale/chat/$',
+  path: '/$locale/chat/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LocaleBlogSlugRoute = LocaleBlogSlugRouteImport.update({
   id: '/$locale/blog/$slug',
   path: '/$locale/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocaleAdminSplatRoute = LocaleAdminSplatRouteImport.update({
+  id: '/$locale/admin/$',
+  path: '/$locale/admin/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LocaleActivityFeedbacksRoute = LocaleActivityFeedbacksRouteImport.update({
@@ -588,18 +690,29 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/activity': typeof ActivityRoute
+  '/admin': typeof AdminRoute
+  '/ads.txt': typeof AdsDottxtRoute
   '/blog': typeof BlogRoute
+  '/chat': typeof ChatRoute
+  '/docs': typeof DocsRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/my-images': typeof MyImagesRoute
   '/no-permission': typeof NoPermissionRoute
   '/pricing': typeof PricingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/activity': typeof LocaleActivityRoute
+  '/$locale/admin': typeof LocaleAdminRoute
   '/$locale/blog': typeof LocaleBlogRoute
+  '/$locale/chat': typeof LocaleChatRoute
+  '/$locale/docs': typeof LocaleDocsRoute
   '/$locale/forgot-password': typeof LocaleForgotPasswordRoute
+  '/$locale/my-images': typeof LocaleMyImagesRoute
   '/$locale/no-permission': typeof LocaleNoPermissionRoute
   '/$locale/pricing': typeof LocalePricingRoute
   '/$locale/reset-password': typeof LocaleResetPasswordRoute
@@ -609,9 +722,12 @@ export interface FileRoutesByFullPath {
   '/activity/ai-tasks': typeof ActivityAiTasksRoute
   '/activity/chats': typeof ActivityChatsRoute
   '/activity/feedbacks': typeof ActivityFeedbacksRoute
+  '/admin/$': typeof AdminSplatRoute
   '/api/auth': typeof ApiAuthRouteWithChildren
   '/api/chat': typeof ApiChatRouteWithChildren
   '/blog/$slug': typeof BlogSlugRoute
+  '/chat/$': typeof ChatSplatRoute
+  '/docs/$': typeof DocsSplatRoute
   '/settings/apikeys': typeof SettingsApikeysRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/credits': typeof SettingsCreditsRoute
@@ -621,7 +737,10 @@ export interface FileRoutesByFullPath {
   '/$locale/activity/ai-tasks': typeof LocaleActivityAiTasksRoute
   '/$locale/activity/chats': typeof LocaleActivityChatsRoute
   '/$locale/activity/feedbacks': typeof LocaleActivityFeedbacksRoute
+  '/$locale/admin/$': typeof LocaleAdminSplatRoute
   '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
+  '/$locale/chat/$': typeof LocaleChatSplatRoute
+  '/$locale/docs/$': typeof LocaleDocsSplatRoute
   '/$locale/settings/apikeys': typeof LocaleSettingsApikeysRoute
   '/$locale/settings/billing': typeof LocaleSettingsBillingRoute
   '/$locale/settings/credits': typeof LocaleSettingsCreditsRoute
@@ -683,18 +802,29 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/activity': typeof ActivityRoute
+  '/admin': typeof AdminRoute
+  '/ads.txt': typeof AdsDottxtRoute
   '/blog': typeof BlogRoute
+  '/chat': typeof ChatRoute
+  '/docs': typeof DocsRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/my-images': typeof MyImagesRoute
   '/no-permission': typeof NoPermissionRoute
   '/pricing': typeof PricingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/settings': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/activity': typeof LocaleActivityRoute
+  '/$locale/admin': typeof LocaleAdminRoute
   '/$locale/blog': typeof LocaleBlogRoute
+  '/$locale/chat': typeof LocaleChatRoute
+  '/$locale/docs': typeof LocaleDocsRoute
   '/$locale/forgot-password': typeof LocaleForgotPasswordRoute
+  '/$locale/my-images': typeof LocaleMyImagesRoute
   '/$locale/no-permission': typeof LocaleNoPermissionRoute
   '/$locale/pricing': typeof LocalePricingRoute
   '/$locale/reset-password': typeof LocaleResetPasswordRoute
@@ -704,9 +834,12 @@ export interface FileRoutesByTo {
   '/activity/ai-tasks': typeof ActivityAiTasksRoute
   '/activity/chats': typeof ActivityChatsRoute
   '/activity/feedbacks': typeof ActivityFeedbacksRoute
+  '/admin/$': typeof AdminSplatRoute
   '/api/auth': typeof ApiAuthRouteWithChildren
   '/api/chat': typeof ApiChatRouteWithChildren
   '/blog/$slug': typeof BlogSlugRoute
+  '/chat/$': typeof ChatSplatRoute
+  '/docs/$': typeof DocsSplatRoute
   '/settings/apikeys': typeof SettingsApikeysRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/credits': typeof SettingsCreditsRoute
@@ -716,7 +849,10 @@ export interface FileRoutesByTo {
   '/$locale/activity/ai-tasks': typeof LocaleActivityAiTasksRoute
   '/$locale/activity/chats': typeof LocaleActivityChatsRoute
   '/$locale/activity/feedbacks': typeof LocaleActivityFeedbacksRoute
+  '/$locale/admin/$': typeof LocaleAdminSplatRoute
   '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
+  '/$locale/chat/$': typeof LocaleChatSplatRoute
+  '/$locale/docs/$': typeof LocaleDocsSplatRoute
   '/$locale/settings/apikeys': typeof LocaleSettingsApikeysRoute
   '/$locale/settings/billing': typeof LocaleSettingsBillingRoute
   '/$locale/settings/credits': typeof LocaleSettingsCreditsRoute
@@ -779,18 +915,29 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/activity_': typeof ActivityRoute
+  '/admin_': typeof AdminRoute
+  '/ads.txt': typeof AdsDottxtRoute
   '/blog_': typeof BlogRoute
+  '/chat_': typeof ChatRoute
+  '/docs_': typeof DocsRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/my-images': typeof MyImagesRoute
   '/no-permission': typeof NoPermissionRoute
   '/pricing': typeof PricingRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/settings_': typeof SettingsRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/activity_': typeof LocaleActivityRoute
+  '/$locale/admin_': typeof LocaleAdminRoute
   '/$locale/blog_': typeof LocaleBlogRoute
+  '/$locale/chat_': typeof LocaleChatRoute
+  '/$locale/docs_': typeof LocaleDocsRoute
   '/$locale/forgot-password': typeof LocaleForgotPasswordRoute
+  '/$locale/my-images': typeof LocaleMyImagesRoute
   '/$locale/no-permission': typeof LocaleNoPermissionRoute
   '/$locale/pricing': typeof LocalePricingRoute
   '/$locale/reset-password': typeof LocaleResetPasswordRoute
@@ -800,9 +947,12 @@ export interface FileRoutesById {
   '/activity/ai-tasks': typeof ActivityAiTasksRoute
   '/activity/chats': typeof ActivityChatsRoute
   '/activity/feedbacks': typeof ActivityFeedbacksRoute
+  '/admin/$': typeof AdminSplatRoute
   '/api/auth': typeof ApiAuthRouteWithChildren
   '/api/chat': typeof ApiChatRouteWithChildren
   '/blog/$slug': typeof BlogSlugRoute
+  '/chat/$': typeof ChatSplatRoute
+  '/docs/$': typeof DocsSplatRoute
   '/settings/apikeys': typeof SettingsApikeysRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/credits': typeof SettingsCreditsRoute
@@ -812,7 +962,10 @@ export interface FileRoutesById {
   '/$locale/activity/ai-tasks': typeof LocaleActivityAiTasksRoute
   '/$locale/activity/chats': typeof LocaleActivityChatsRoute
   '/$locale/activity/feedbacks': typeof LocaleActivityFeedbacksRoute
+  '/$locale/admin/$': typeof LocaleAdminSplatRoute
   '/$locale/blog/$slug': typeof LocaleBlogSlugRoute
+  '/$locale/chat/$': typeof LocaleChatSplatRoute
+  '/$locale/docs/$': typeof LocaleDocsSplatRoute
   '/$locale/settings/apikeys': typeof LocaleSettingsApikeysRoute
   '/$locale/settings/billing': typeof LocaleSettingsBillingRoute
   '/$locale/settings/credits': typeof LocaleSettingsCreditsRoute
@@ -876,18 +1029,29 @@ export interface FileRouteTypes {
     | '/'
     | '/$slug'
     | '/activity'
+    | '/admin'
+    | '/ads.txt'
     | '/blog'
+    | '/chat'
+    | '/docs'
     | '/forgot-password'
+    | '/my-images'
     | '/no-permission'
     | '/pricing'
     | '/reset-password'
+    | '/robots.txt'
     | '/settings'
     | '/sign-in'
     | '/sign-up'
+    | '/sitemap.xml'
     | '/$locale/$slug'
     | '/$locale/activity'
+    | '/$locale/admin'
     | '/$locale/blog'
+    | '/$locale/chat'
+    | '/$locale/docs'
     | '/$locale/forgot-password'
+    | '/$locale/my-images'
     | '/$locale/no-permission'
     | '/$locale/pricing'
     | '/$locale/reset-password'
@@ -897,9 +1061,12 @@ export interface FileRouteTypes {
     | '/activity/ai-tasks'
     | '/activity/chats'
     | '/activity/feedbacks'
+    | '/admin/$'
     | '/api/auth'
     | '/api/chat'
     | '/blog/$slug'
+    | '/chat/$'
+    | '/docs/$'
     | '/settings/apikeys'
     | '/settings/billing'
     | '/settings/credits'
@@ -909,7 +1076,10 @@ export interface FileRouteTypes {
     | '/$locale/activity/ai-tasks'
     | '/$locale/activity/chats'
     | '/$locale/activity/feedbacks'
+    | '/$locale/admin/$'
     | '/$locale/blog/$slug'
+    | '/$locale/chat/$'
+    | '/$locale/docs/$'
     | '/$locale/settings/apikeys'
     | '/$locale/settings/billing'
     | '/$locale/settings/credits'
@@ -971,18 +1141,29 @@ export interface FileRouteTypes {
     | '/'
     | '/$slug'
     | '/activity'
+    | '/admin'
+    | '/ads.txt'
     | '/blog'
+    | '/chat'
+    | '/docs'
     | '/forgot-password'
+    | '/my-images'
     | '/no-permission'
     | '/pricing'
     | '/reset-password'
+    | '/robots.txt'
     | '/settings'
     | '/sign-in'
     | '/sign-up'
+    | '/sitemap.xml'
     | '/$locale/$slug'
     | '/$locale/activity'
+    | '/$locale/admin'
     | '/$locale/blog'
+    | '/$locale/chat'
+    | '/$locale/docs'
     | '/$locale/forgot-password'
+    | '/$locale/my-images'
     | '/$locale/no-permission'
     | '/$locale/pricing'
     | '/$locale/reset-password'
@@ -992,9 +1173,12 @@ export interface FileRouteTypes {
     | '/activity/ai-tasks'
     | '/activity/chats'
     | '/activity/feedbacks'
+    | '/admin/$'
     | '/api/auth'
     | '/api/chat'
     | '/blog/$slug'
+    | '/chat/$'
+    | '/docs/$'
     | '/settings/apikeys'
     | '/settings/billing'
     | '/settings/credits'
@@ -1004,7 +1188,10 @@ export interface FileRouteTypes {
     | '/$locale/activity/ai-tasks'
     | '/$locale/activity/chats'
     | '/$locale/activity/feedbacks'
+    | '/$locale/admin/$'
     | '/$locale/blog/$slug'
+    | '/$locale/chat/$'
+    | '/$locale/docs/$'
     | '/$locale/settings/apikeys'
     | '/$locale/settings/billing'
     | '/$locale/settings/credits'
@@ -1066,18 +1253,29 @@ export interface FileRouteTypes {
     | '/'
     | '/$slug'
     | '/activity_'
+    | '/admin_'
+    | '/ads.txt'
     | '/blog_'
+    | '/chat_'
+    | '/docs_'
     | '/forgot-password'
+    | '/my-images'
     | '/no-permission'
     | '/pricing'
     | '/reset-password'
+    | '/robots.txt'
     | '/settings_'
     | '/sign-in'
     | '/sign-up'
+    | '/sitemap.xml'
     | '/$locale/$slug'
     | '/$locale/activity_'
+    | '/$locale/admin_'
     | '/$locale/blog_'
+    | '/$locale/chat_'
+    | '/$locale/docs_'
     | '/$locale/forgot-password'
+    | '/$locale/my-images'
     | '/$locale/no-permission'
     | '/$locale/pricing'
     | '/$locale/reset-password'
@@ -1087,9 +1285,12 @@ export interface FileRouteTypes {
     | '/activity/ai-tasks'
     | '/activity/chats'
     | '/activity/feedbacks'
+    | '/admin/$'
     | '/api/auth'
     | '/api/chat'
     | '/blog/$slug'
+    | '/chat/$'
+    | '/docs/$'
     | '/settings/apikeys'
     | '/settings/billing'
     | '/settings/credits'
@@ -1099,7 +1300,10 @@ export interface FileRouteTypes {
     | '/$locale/activity/ai-tasks'
     | '/$locale/activity/chats'
     | '/$locale/activity/feedbacks'
+    | '/$locale/admin/$'
     | '/$locale/blog/$slug'
+    | '/$locale/chat/$'
+    | '/$locale/docs/$'
     | '/$locale/settings/apikeys'
     | '/$locale/settings/billing'
     | '/$locale/settings/credits'
@@ -1162,18 +1366,29 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SlugRoute: typeof SlugRoute
   ActivityRoute: typeof ActivityRoute
+  AdminRoute: typeof AdminRoute
+  AdsDottxtRoute: typeof AdsDottxtRoute
   BlogRoute: typeof BlogRoute
+  ChatRoute: typeof ChatRoute
+  DocsRoute: typeof DocsRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  MyImagesRoute: typeof MyImagesRoute
   NoPermissionRoute: typeof NoPermissionRoute
   PricingRoute: typeof PricingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
   SettingsRoute: typeof SettingsRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   LocaleSlugRoute: typeof LocaleSlugRoute
   LocaleActivityRoute: typeof LocaleActivityRoute
+  LocaleAdminRoute: typeof LocaleAdminRoute
   LocaleBlogRoute: typeof LocaleBlogRoute
+  LocaleChatRoute: typeof LocaleChatRoute
+  LocaleDocsRoute: typeof LocaleDocsRoute
   LocaleForgotPasswordRoute: typeof LocaleForgotPasswordRoute
+  LocaleMyImagesRoute: typeof LocaleMyImagesRoute
   LocaleNoPermissionRoute: typeof LocaleNoPermissionRoute
   LocalePricingRoute: typeof LocalePricingRoute
   LocaleResetPasswordRoute: typeof LocaleResetPasswordRoute
@@ -1183,9 +1398,12 @@ export interface RootRouteChildren {
   ActivityAiTasksRoute: typeof ActivityAiTasksRoute
   ActivityChatsRoute: typeof ActivityChatsRoute
   ActivityFeedbacksRoute: typeof ActivityFeedbacksRoute
+  AdminSplatRoute: typeof AdminSplatRoute
   ApiAuthRoute: typeof ApiAuthRouteWithChildren
   ApiChatRoute: typeof ApiChatRouteWithChildren
   BlogSlugRoute: typeof BlogSlugRoute
+  ChatSplatRoute: typeof ChatSplatRoute
+  DocsSplatRoute: typeof DocsSplatRoute
   SettingsApikeysRoute: typeof SettingsApikeysRoute
   SettingsBillingRoute: typeof SettingsBillingRoute
   SettingsCreditsRoute: typeof SettingsCreditsRoute
@@ -1195,7 +1413,10 @@ export interface RootRouteChildren {
   LocaleActivityAiTasksRoute: typeof LocaleActivityAiTasksRoute
   LocaleActivityChatsRoute: typeof LocaleActivityChatsRoute
   LocaleActivityFeedbacksRoute: typeof LocaleActivityFeedbacksRoute
+  LocaleAdminSplatRoute: typeof LocaleAdminSplatRoute
   LocaleBlogSlugRoute: typeof LocaleBlogSlugRoute
+  LocaleChatSplatRoute: typeof LocaleChatSplatRoute
+  LocaleDocsSplatRoute: typeof LocaleDocsSplatRoute
   LocaleSettingsApikeysRoute: typeof LocaleSettingsApikeysRoute
   LocaleSettingsBillingRoute: typeof LocaleSettingsBillingRoute
   LocaleSettingsCreditsRoute: typeof LocaleSettingsCreditsRoute
@@ -1250,6 +1471,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sign-up': {
       id: '/sign-up'
       path: '/sign-up'
@@ -1269,6 +1497,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -1292,6 +1527,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NoPermissionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/my-images': {
+      id: '/my-images'
+      path: '/my-images'
+      fullPath: '/my-images'
+      preLoaderRoute: typeof MyImagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/forgot-password': {
       id: '/forgot-password'
       path: '/forgot-password'
@@ -1299,11 +1541,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/docs_': {
+      id: '/docs_'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chat_': {
+      id: '/chat_'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof ChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog_': {
       id: '/blog_'
       path: '/blog'
       fullPath: '/blog'
       preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ads.txt': {
+      id: '/ads.txt'
+      path: '/ads.txt'
+      fullPath: '/ads.txt'
+      preLoaderRoute: typeof AdsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin_': {
+      id: '/admin_'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/activity_': {
@@ -1369,6 +1639,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsApikeysRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/docs/$': {
+      id: '/docs/$'
+      path: '/docs/$'
+      fullPath: '/docs/$'
+      preLoaderRoute: typeof DocsSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chat/$': {
+      id: '/chat/$'
+      path: '/chat/$'
+      fullPath: '/chat/$'
+      preLoaderRoute: typeof ChatSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog/$slug': {
       id: '/blog/$slug'
       path: '/blog/$slug'
@@ -1388,6 +1672,13 @@ declare module '@tanstack/react-router' {
       path: '/api/auth'
       fullPath: '/api/auth'
       preLoaderRoute: typeof ApiAuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/$': {
+      id: '/admin/$'
+      path: '/admin/$'
+      fullPath: '/admin/$'
+      preLoaderRoute: typeof AdminSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/activity/feedbacks': {
@@ -1453,6 +1744,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleNoPermissionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$locale/my-images': {
+      id: '/$locale/my-images'
+      path: '/$locale/my-images'
+      fullPath: '/$locale/my-images'
+      preLoaderRoute: typeof LocaleMyImagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$locale/forgot-password': {
       id: '/$locale/forgot-password'
       path: '/$locale/forgot-password'
@@ -1460,11 +1758,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$locale/docs_': {
+      id: '/$locale/docs_'
+      path: '/$locale/docs'
+      fullPath: '/$locale/docs'
+      preLoaderRoute: typeof LocaleDocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/chat_': {
+      id: '/$locale/chat_'
+      path: '/$locale/chat'
+      fullPath: '/$locale/chat'
+      preLoaderRoute: typeof LocaleChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$locale/blog_': {
       id: '/$locale/blog_'
       path: '/$locale/blog'
       fullPath: '/$locale/blog'
       preLoaderRoute: typeof LocaleBlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/admin_': {
+      id: '/$locale/admin_'
+      path: '/$locale/admin'
+      fullPath: '/$locale/admin'
+      preLoaderRoute: typeof LocaleAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$locale/activity_': {
@@ -1747,11 +2066,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleSettingsApikeysRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$locale/docs/$': {
+      id: '/$locale/docs/$'
+      path: '/$locale/docs/$'
+      fullPath: '/$locale/docs/$'
+      preLoaderRoute: typeof LocaleDocsSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/chat/$': {
+      id: '/$locale/chat/$'
+      path: '/$locale/chat/$'
+      fullPath: '/$locale/chat/$'
+      preLoaderRoute: typeof LocaleChatSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$locale/blog/$slug': {
       id: '/$locale/blog/$slug'
       path: '/$locale/blog/$slug'
       fullPath: '/$locale/blog/$slug'
       preLoaderRoute: typeof LocaleBlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/admin/$': {
+      id: '/$locale/admin/$'
+      path: '/$locale/admin/$'
+      fullPath: '/$locale/admin/$'
+      preLoaderRoute: typeof LocaleAdminSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$locale/activity/feedbacks': {
@@ -1948,18 +2288,29 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRoute,
   ActivityRoute: ActivityRoute,
+  AdminRoute: AdminRoute,
+  AdsDottxtRoute: AdsDottxtRoute,
   BlogRoute: BlogRoute,
+  ChatRoute: ChatRoute,
+  DocsRoute: DocsRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  MyImagesRoute: MyImagesRoute,
   NoPermissionRoute: NoPermissionRoute,
   PricingRoute: PricingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
   SettingsRoute: SettingsRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   LocaleSlugRoute: LocaleSlugRoute,
   LocaleActivityRoute: LocaleActivityRoute,
+  LocaleAdminRoute: LocaleAdminRoute,
   LocaleBlogRoute: LocaleBlogRoute,
+  LocaleChatRoute: LocaleChatRoute,
+  LocaleDocsRoute: LocaleDocsRoute,
   LocaleForgotPasswordRoute: LocaleForgotPasswordRoute,
+  LocaleMyImagesRoute: LocaleMyImagesRoute,
   LocaleNoPermissionRoute: LocaleNoPermissionRoute,
   LocalePricingRoute: LocalePricingRoute,
   LocaleResetPasswordRoute: LocaleResetPasswordRoute,
@@ -1969,9 +2320,12 @@ const rootRouteChildren: RootRouteChildren = {
   ActivityAiTasksRoute: ActivityAiTasksRoute,
   ActivityChatsRoute: ActivityChatsRoute,
   ActivityFeedbacksRoute: ActivityFeedbacksRoute,
+  AdminSplatRoute: AdminSplatRoute,
   ApiAuthRoute: ApiAuthRouteWithChildren,
   ApiChatRoute: ApiChatRouteWithChildren,
   BlogSlugRoute: BlogSlugRoute,
+  ChatSplatRoute: ChatSplatRoute,
+  DocsSplatRoute: DocsSplatRoute,
   SettingsApikeysRoute: SettingsApikeysRoute,
   SettingsBillingRoute: SettingsBillingRoute,
   SettingsCreditsRoute: SettingsCreditsRoute,
@@ -1981,7 +2335,10 @@ const rootRouteChildren: RootRouteChildren = {
   LocaleActivityAiTasksRoute: LocaleActivityAiTasksRoute,
   LocaleActivityChatsRoute: LocaleActivityChatsRoute,
   LocaleActivityFeedbacksRoute: LocaleActivityFeedbacksRoute,
+  LocaleAdminSplatRoute: LocaleAdminSplatRoute,
   LocaleBlogSlugRoute: LocaleBlogSlugRoute,
+  LocaleChatSplatRoute: LocaleChatSplatRoute,
+  LocaleDocsSplatRoute: LocaleDocsSplatRoute,
   LocaleSettingsApikeysRoute: LocaleSettingsApikeysRoute,
   LocaleSettingsBillingRoute: LocaleSettingsBillingRoute,
   LocaleSettingsCreditsRoute: LocaleSettingsCreditsRoute,

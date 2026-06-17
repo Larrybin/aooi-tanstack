@@ -120,7 +120,7 @@ test('router rewrites docs index while preserving original request headers', asy
 
   assert.equal(await response.text(), 'public');
   assert.equal(captured.length, 1);
-  assert.equal(captured[0]?.url, 'https://example.test/en/docs/index');
+  assert.equal(captured[0]?.url, 'https://example.test/en/docs');
   assert.equal(captured[0]?.headers.get('x-pathname'), '/docs');
   assert.equal(captured[0]?.headers.get('x-url'), 'https://example.test/docs');
 });

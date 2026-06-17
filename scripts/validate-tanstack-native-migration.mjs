@@ -149,7 +149,8 @@ function importPathToRoutePath(routeImport) {
   const routePath = routeImport
     .replace(/^\.\/routes\//, '')
     .replace(/\/index$/, '')
-    .replace(/^index$/, '');
+    .replace(/^index$/, '')
+    .replace(/\[\.\]/g, '.');
 
   return routePath ? `/${routePath}` : '/';
 }
@@ -716,7 +717,23 @@ for (const file of routeFiles.filter(
 const tanstackPageRouteFiles = routeFiles.filter(
   (file) => !file.includes('/api/')
 );
-const surfaceHelperExemptPageRoutes = new Set([]);
+const surfaceHelperExemptPageRoutes = new Set([
+  'apps/web/src/routes/admin_.tsx',
+  'apps/web/src/routes/admin/$.tsx',
+  'apps/web/src/routes/$locale/admin_.tsx',
+  'apps/web/src/routes/$locale/admin/$.tsx',
+  'apps/web/src/routes/chat_.tsx',
+  'apps/web/src/routes/chat/$.tsx',
+  'apps/web/src/routes/$locale/chat_.tsx',
+  'apps/web/src/routes/$locale/chat/$.tsx',
+  'apps/web/src/routes/docs_.tsx',
+  'apps/web/src/routes/$locale/docs_.tsx',
+  'apps/web/src/routes/my-images.tsx',
+  'apps/web/src/routes/$locale/my-images.tsx',
+  'apps/web/src/routes/ads[.]txt.ts',
+  'apps/web/src/routes/robots[.]txt.ts',
+  'apps/web/src/routes/sitemap[.]xml.ts',
+]);
 const tanstackPageRouteClosureFiles = localRuntimeClosure(
   tanstackPageRouteFiles.map((file) => join(root, file)),
   { includeDynamicImports: false }

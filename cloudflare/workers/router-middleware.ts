@@ -65,8 +65,8 @@ export function applyNativeRouterMiddleware(
   if (pathWithoutLocale === '/docs' || pathWithoutLocale === '/docs/') {
     const rewriteUrl = new URL(request.url);
     rewriteUrl.pathname = isValidLocale
-      ? `/${localeSegment}/docs/index`
-      : `/${defaultLocale}/docs/index`;
+      ? `/${localeSegment}/docs`
+      : `/${defaultLocale}/docs`;
     return new Request(rewriteUrl, request);
   }
 

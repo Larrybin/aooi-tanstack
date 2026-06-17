@@ -91,8 +91,21 @@ function isClientFile(source) {
   return lines.some((line) => line === "'use client';" || line === '"use client";' || line === "'use client'" || line === '"use client"');
 }
 
+function isTanStackServerOnlyRoute(repoPath, source) {
+  return (
+    repoPath.startsWith('apps/web/src/routes/') &&
+    !repoPath.startsWith('apps/web/src/routes/api/') &&
+    /\bserver\s*:/.test(source) &&
+    /\bhandlers\s*:/.test(source) &&
+    !/\bcomponent\s*:/.test(source) &&
+    !/\bloader\s*:/.test(source) &&
+    !/\bhead\s*:/.test(source)
+  );
+}
+
 function isEntryRoot(repoPath, source) {
   if (isClientFile(source)) return true;
+  if (isTanStackServerOnlyRoute(repoPath, source)) return false;
   if (repoPath.startsWith('apps/web/src/routes/') && !repoPath.startsWith('apps/web/src/routes/api/')) return true;
   if (repoPath.startsWith('src/surfaces/') && /\.(view|shell)\.(ts|tsx)$/.test(repoPath)) return true;
   if (repoPath.startsWith('src/shared/blocks/')) return true;
