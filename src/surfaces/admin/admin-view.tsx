@@ -8,46 +8,119 @@ export function NativeAdminView({ data }: { data: Ok }) {
       <h1 className="text-3xl font-semibold tracking-tight">{data.title}</h1>
       <nav className="mt-6 flex flex-wrap gap-2">
         {data.nav.map((item) => (
-          <a key={item.href} href={item.href} className="rounded-md border px-3 py-2 text-sm">
+          <a
+            key={item.href}
+            href={item.href}
+            className="rounded-md border px-3 py-2 text-sm"
+          >
             {item.title}
           </a>
         ))}
       </nav>
       <section className="mt-8 rounded-lg border bg-white p-6 shadow-sm">
         {data.page.kind === 'overview' ? <p>{data.page.description}</p> : null}
-        {data.page.kind === 'settings' ? <SettingsView page={data.page} /> : null}
+        {data.page.kind === 'settings' ? (
+          <SettingsView page={data.page} />
+        ) : null}
         {data.page.kind === 'users' ? <UsersView page={data.page} /> : null}
+        {data.page.kind === 'table' ? <TableView page={data.page} /> : null}
       </section>
     </main>
   );
 }
 
-function SettingsView({ page }: { page: Extract<Ok['page'], { kind: 'settings' }> }) {
+function SettingsView({
+  page,
+}: {
+  page: Extract<Ok['page'], { kind: 'settings' }>;
+}) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
         {page.tabs.map((tab) => (
-          <a key={tab.href} href={tab.href} className="rounded-md border px-3 py-2 text-sm">
+          <a
+            key={tab.href}
+            href={tab.href}
+            className="rounded-md border px-3 py-2 text-sm"
+          >
             {tab.title}
           </a>
         ))}
       </div>
       <table className="w-full text-left text-sm">
-        <thead><tr><th>Setting</th><th>Group</th><th>Type</th><th>Value</th></tr></thead>
-        <tbody>{page.fields.map((field) => <tr key={field.name}><td>{field.title}</td><td>{field.group}</td><td>{field.type}</td><td>{field.value || '-'}</td></tr>)}</tbody>
+        <thead>
+          <tr>
+            <th>Setting</th>
+            <th>Group</th>
+            <th>Type</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {page.fields.map((field) => (
+            <tr key={field.name}>
+              <td>{field.title}</td>
+              <td>{field.group}</td>
+              <td>{field.type}</td>
+              <td>{field.value || '-'}</td>
+            </tr>
+          ))}
+        </tbody>
       </table>
     </div>
   );
 }
 
 function UsersView({ page }: { page: Extract<Ok['page'], { kind: 'users' }> }) {
-  const columns = Array.from(new Set(page.rows.flatMap((row) => Object.keys(row))));
+  const columns = Array.from(
+    new Set(page.rows.flatMap((row) => Object.keys(row)))
+  );
   return (
     <div className="space-y-4">
       <p>Total users: {page.total}</p>
       <table className="w-full text-left text-sm">
-        <thead><tr>{columns.map((column) => <th key={column}>{column}</th>)}</tr></thead>
-        <tbody>{page.rows.map((row) => <tr key={row.id}>{columns.map((column) => <td key={column}>{row[column] || '-'}</td>)}</tr>)}</tbody>
+        <thead>
+          <tr>
+            {columns.map((column) => (
+              <th key={column}>{column}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {page.rows.map((row) => (
+            <tr key={row.id}>
+              {columns.map((column) => (
+                <td key={column}>{row[column] || '-'}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function TableView({ page }: { page: Extract<Ok['page'], { kind: 'table' }> }) {
+  return (
+    <div className="space-y-4">
+      <p>Total rows: {page.total}</p>
+      <table className="w-full text-left text-sm">
+        <thead>
+          <tr>
+            {page.columns.map((column) => (
+              <th key={column.key}>{column.title}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {page.rows.map((row, index) => (
+            <tr key={row.id || row.orderNo || row.code || row.name || index}>
+              {page.columns.map((column) => (
+                <td key={column.key}>{row[column.key] || '-'}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
       </table>
     </div>
   );
