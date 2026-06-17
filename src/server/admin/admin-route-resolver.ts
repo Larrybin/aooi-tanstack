@@ -12,6 +12,7 @@ import {
   isSettingTabName,
   type SettingTabName,
 } from '@/domains/settings/tab-names';
+import { getSettingTabs } from '@/domains/settings/tabs';
 import {
   listPermissions,
   listRoles,
@@ -26,7 +27,7 @@ import {
 } from '@/surfaces/admin/schemas/list';
 import { getSettingsModuleContractRows } from '@/surfaces/admin/settings/module-contract';
 
-import { defaultLocale } from '@/config/locale';
+import { defaultLocale, type Locale } from '@/config/locale';
 import { PERMISSIONS } from '@/shared/constants/rbac-permissions';
 import { localePath, normalizeLocale } from '@/shared/i18n/locale';
 
@@ -119,7 +120,7 @@ const adminNav = [
   { title: 'AI Tasks', path: '/admin/ai-tasks' },
 ];
 
-function normalizeAdminLocale(value: string) {
+function normalizeAdminLocale(value: string): Locale {
   return normalizeLocale(value) ?? defaultLocale;
 }
 
@@ -311,7 +312,7 @@ export async function resolveAdminRouteData(
 }
 
 async function buildSettingsPage(
-  locale: string,
+  locale: Locale,
   currentPath: string
 ): Promise<AdminRouteData> {
   const requestedTab = currentPath.split('/').filter(Boolean)[2] ?? 'auth';
@@ -322,9 +323,14 @@ async function buildSettingsPage(
       : (availableTabs[0] ?? 'general');
   const [settings, groups, configsResult] = await Promise.all([
     getSettings(),
-    getSettingGroups(),
+    getSettingGroups(locale),
     readAdminSettingsSafe(),
   ]);
+  const tabs = await getSettingTabs({
+    activeTab: tab,
+    availableTabs,
+    locale,
+  });
 
   const visibleGroups = new Set(
     groups.filter((group) => group.tab === tab).map((group) => group.name)
@@ -352,10 +358,13 @@ async function buildSettingsPage(
     page: {
       kind: 'settings',
       tab,
-      tabs: availableTabs.map((entry) => ({
-        title: entry,
-        href: localizeAdminHref(locale, `/admin/settings/${entry}`),
-        active: entry === tab,
+      tabs: tabs.map((entry) => ({
+        title: entry.title ?? entry.name ?? '',
+        href: localizeAdminHref(
+          locale,
+          entry.url ?? `/admin/settings/${entry.name ?? tab}`
+        ),
+        active: Boolean(entry.is_active),
       })),
       fields,
       moduleContracts: getSettingsModuleContractRows(tab),

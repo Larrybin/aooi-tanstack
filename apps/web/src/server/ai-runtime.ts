@@ -19,12 +19,7 @@ type ReadTanStackAiRuntimeDeps = ReadTanStackSettingsCachedDeps;
 export async function readTanStackAiRuntimeSettingsCached(
   deps: ReadTanStackAiRuntimeDeps = {}
 ): Promise<AiRuntimeSettings> {
-  return buildAiRuntimeSettings(
-    await readTanStackSettingsCached({
-      ...deps,
-      cacheKey: deps.cacheKey ?? 'ai-runtime',
-    })
-  );
+  return buildAiRuntimeSettings(await readTanStackSettingsCached(deps));
 }
 
 export async function readTanStackAiRuntimeSettingsFresh(

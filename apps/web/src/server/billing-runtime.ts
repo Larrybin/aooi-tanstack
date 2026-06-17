@@ -1,4 +1,3 @@
-import { getRuntimeSettingsCacheVersion } from '@/domains/settings/application/settings-cache-version';
 import { buildBillingRuntimeSettings } from '@/domains/settings/application/settings-runtime.builders';
 import type {
   BillingRuntimeSettings,
@@ -28,25 +27,11 @@ export type ReadTanStackSettingsFreshDeps = {
   isWorkersRuntime?: typeof isCloudflareWorkersRuntime;
   readConfigRows?: (databaseUrl?: string) => Promise<ConfigRow[]>;
 };
-export type ReadTanStackSettingsCachedDeps = ReadTanStackSettingsFreshDeps & {
-  cacheKey?: string;
-  cacheTtlMs?: number;
-  now?: () => number;
-};
+export type ReadTanStackSettingsCachedDeps = ReadTanStackSettingsFreshDeps;
 type ReadTanStackPaymentRuntimeBindingsDeps = Pick<
   ReadTanStackSettingsFreshDeps,
   'getTanStackCloudflareBindings' | 'isWorkersRuntime'
 >;
-
-const TANSTACK_SETTINGS_CACHE_TTL_MS = 60 * 1000;
-const settingsCache = new Map<
-  string,
-  {
-    expiresAt: number;
-    version: number;
-    value: Configs;
-  }
->();
 
 async function readConfigRowsWithDatabaseUrl(databaseUrl: string) {
   const client = postgres(databaseUrl, {
@@ -71,6 +56,12 @@ async function readConfigRows(databaseUrl?: string) {
   return await db().select().from(config);
 }
 
+function mergeRuntimeSeedConfigs(configs: Configs) {
+  return mergeCloudflareLocalSmokeConfigSeedConfigs(
+    mergeAuthSpikeOAuthConfigSeedConfigs(configs)
+  );
+}
+
 export async function readTanStackSettingsFresh(
   deps: ReadTanStackSettingsFreshDeps = {}
 ): Promise<Configs> {
@@ -84,11 +75,15 @@ export async function readTanStackSettingsFresh(
     : getServerRuntimeEnv({ bindings: tanStackBindings ?? undefined });
 
   if (!runtimeEnv.databaseUrl && !isWorkersRuntime()) {
-    return mergeAuthSpikeOAuthConfigSeedConfigs(configs);
+    return mergeRuntimeSeedConfigs(configs);
   }
 
   const bindingDatabaseUrl =
     runtimeEnv.databaseUrl || tanStackBindings?.HYPERDRIVE?.connectionString;
+  if (!bindingDatabaseUrl) {
+    return mergeRuntimeSeedConfigs(configs);
+  }
+
   const rows = await (deps.readConfigRows ?? readConfigRows)(
     tanStackBindings ? bindingDatabaseUrl : undefined
   );
@@ -96,30 +91,13 @@ export async function readTanStackSettingsFresh(
     configs[row.name] = row.value ?? '';
   }
 
-  return mergeCloudflareLocalSmokeConfigSeedConfigs(
-    mergeAuthSpikeOAuthConfigSeedConfigs(configs)
-  );
+  return mergeRuntimeSeedConfigs(configs);
 }
 
 export async function readTanStackSettingsCached(
   deps: ReadTanStackSettingsCachedDeps = {}
 ): Promise<Configs> {
-  const now = deps.now?.() ?? Date.now();
-  const cacheKey = deps.cacheKey ?? 'default';
-  const version = getRuntimeSettingsCacheVersion();
-  const cached = settingsCache.get(cacheKey);
-  if (cached && cached.version === version && cached.expiresAt > now) {
-    return structuredClone(cached.value);
-  }
-
-  const value = await readTanStackSettingsFresh(deps);
-  settingsCache.set(cacheKey, {
-    expiresAt: now + (deps.cacheTtlMs ?? TANSTACK_SETTINGS_CACHE_TTL_MS),
-    version,
-    value: structuredClone(value),
-  });
-
-  return structuredClone(value);
+  return readTanStackSettingsFresh(deps);
 }
 
 export async function readTanStackBillingRuntimeSettings(

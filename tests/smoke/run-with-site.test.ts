@@ -58,6 +58,19 @@ test('run-with-site 对 production 语义命令要求显式 SITE', async () => {
   assert.match(result.stderr, /SITE=mamamiya/);
 });
 
+test('run-with-site 对 Vite production build/preview 要求显式 SITE', async () => {
+  for (const command of [
+    ['pnpm', 'exec', 'vite', 'build', '--config', 'vite.config.mts'],
+    ['pnpm', 'exec', 'vite', 'preview', '--config', 'vite.config.mts'],
+  ]) {
+    const result = await runWithSite(command, { SITE: '' });
+
+    assert.equal(result.ok, false);
+    assert.match(result.stderr, /SITE is required for this command/);
+    assert.match(result.stderr, /pnpm exec vite/);
+  }
+});
+
 test('run-with-site 对 Cloudflare smoke 命令要求显式 SITE', async () => {
   const result = await runWithSite(
     ['node', '--import', 'tsx', 'scripts/smoke.mjs', 'cf-local'],

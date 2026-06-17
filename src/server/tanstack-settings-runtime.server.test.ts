@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { invalidateRuntimeSettingsCacheVersion } from '@/domains/settings/application/settings-cache-version';
 import {
   AI_RUNTIME_SETTING_KEYS,
   EMAIL_RUNTIME_SETTING_KEYS,
@@ -31,15 +30,9 @@ const TEST_RUNTIME_ENV: ServerRuntimeEnv = {
 };
 
 function buildDeps(input: {
-  cacheKey: string;
-  now: () => number;
-  cacheTtlMs?: number;
   readConfigRows: ReadTanStackSettingsCachedDeps['readConfigRows'];
 }): ReadTanStackSettingsCachedDeps {
   return {
-    cacheKey: input.cacheKey,
-    cacheTtlMs: input.cacheTtlMs,
-    now: input.now,
     getTanStackCloudflareBindings: async () => null,
     getRuntimeEnv: () => TEST_RUNTIME_ENV,
     isWorkersRuntime: () => false,
@@ -47,13 +40,9 @@ function buildDeps(input: {
   };
 }
 
-test('readTanStackSettingsCached reuses rows until its ttl expires', async () => {
+test('readTanStackSettingsCached reads fresh rows on each call', async () => {
   let calls = 0;
-  let now = 0;
   const deps = buildDeps({
-    cacheKey: 'settings-cache-test',
-    cacheTtlMs: 1000,
-    now: () => now,
     readConfigRows: async () => {
       calls += 1;
       return [
@@ -69,14 +58,6 @@ test('readTanStackSettingsCached reuses rows until its ttl expires', async () =>
     (await readTanStackSettingsCached(deps))[PUBLIC_UI_SETTING_KEYS.aiEnabled],
     'true'
   );
-  assert.equal(
-    (await readTanStackSettingsCached(deps))[PUBLIC_UI_SETTING_KEYS.aiEnabled],
-    'true'
-  );
-  assert.equal(calls, 1);
-
-  now = 1001;
-
   assert.equal(
     (await readTanStackSettingsCached(deps))[PUBLIC_UI_SETTING_KEYS.aiEnabled],
     'false'
@@ -84,11 +65,9 @@ test('readTanStackSettingsCached reuses rows until its ttl expires', async () =>
   assert.equal(calls, 2);
 });
 
-test('readTanStackSettingsCached observes settings invalidation', async () => {
+test('readTanStackSettingsCached returns independent row objects', async () => {
   let calls = 0;
   const deps = buildDeps({
-    cacheKey: 'settings-cache-invalidation-test',
-    now: () => 0,
     readConfigRows: async () => {
       calls += 1;
       return [
@@ -100,25 +79,17 @@ test('readTanStackSettingsCached observes settings invalidation', async () => {
     },
   });
 
-  assert.equal(
-    (await readTanStackSettingsCached(deps))[PUBLIC_UI_SETTING_KEYS.aiEnabled],
-    'true'
-  );
+  const first = await readTanStackSettingsCached(deps);
+  first[PUBLIC_UI_SETTING_KEYS.aiEnabled] = 'mutated';
+  const second = await readTanStackSettingsCached(deps);
 
-  invalidateRuntimeSettingsCacheVersion();
-
-  assert.equal(
-    (await readTanStackSettingsCached(deps))[PUBLIC_UI_SETTING_KEYS.aiEnabled],
-    'false'
-  );
+  assert.equal(second[PUBLIC_UI_SETTING_KEYS.aiEnabled], 'false');
   assert.equal(calls, 2);
 });
 
-test('readTanStackPublicUiConfigCached keeps cached-mode public settings cached', async () => {
+test('readTanStackPublicUiConfigCached reads fresh public settings', async () => {
   let calls = 0;
   const deps = buildDeps({
-    cacheKey: 'public-ui-cache-test',
-    now: () => 0,
     readConfigRows: async () => {
       calls += 1;
       return [
@@ -131,31 +102,6 @@ test('readTanStackPublicUiConfigCached keeps cached-mode public settings cached'
   });
 
   assert.equal((await readTanStackPublicUiConfigCached(deps)).aiEnabled, true);
-  assert.equal((await readTanStackPublicUiConfigCached(deps)).aiEnabled, true);
-  assert.equal(calls, 1);
-});
-
-
-
-test('readTanStackPublicUiConfigCached expires after default short ttl', async () => {
-  let calls = 0;
-  let now = 0;
-  const deps = buildDeps({
-    cacheKey: 'public-ui-default-ttl-test',
-    now: () => now,
-    readConfigRows: async () => {
-      calls += 1;
-      return [
-        {
-          name: PUBLIC_UI_SETTING_KEYS.aiEnabled,
-          value: calls === 1 ? 'true' : 'false',
-        },
-      ];
-    },
-  });
-
-  assert.equal((await readTanStackPublicUiConfigCached(deps)).aiEnabled, true);
-  now = 60_001;
   assert.equal((await readTanStackPublicUiConfigCached(deps)).aiEnabled, false);
   assert.equal(calls, 2);
 });
@@ -163,8 +109,6 @@ test('readTanStackPublicUiConfigCached expires after default short ttl', async (
 test('readTanStackAiRuntimeSettings defaults to cached and preserves fresh mode', async () => {
   let calls = 0;
   const deps = buildDeps({
-    cacheKey: 'ai-runtime-cache-test',
-    now: () => 0,
     readConfigRows: async () => {
       calls += 1;
       return [
@@ -182,22 +126,20 @@ test('readTanStackAiRuntimeSettings defaults to cached and preserves fresh mode'
   );
   assert.equal(
     (await readTanStackAiRuntimeSettings('cached', deps)).aiEnabled,
-    true
+    false
   );
-  assert.equal(calls, 1);
+  assert.equal(calls, 2);
 
   assert.equal(
     (await readTanStackAiRuntimeSettings('fresh', deps)).aiEnabled,
     false
   );
-  assert.equal(calls, 2);
+  assert.equal(calls, 3);
 });
 
 test('readTanStackEmailRuntimeSettings defaults to cached and preserves fresh mode', async () => {
   let calls = 0;
   const deps = buildDeps({
-    cacheKey: 'email-runtime-cache-test',
-    now: () => 0,
     readConfigRows: async () => {
       calls += 1;
       return [
@@ -215,15 +157,15 @@ test('readTanStackEmailRuntimeSettings defaults to cached and preserves fresh mo
   );
   assert.equal(
     (await readTanStackEmailRuntimeSettings(deps)).resendSenderEmail,
-    'ops@example.com'
+    'ops-next@example.com'
   );
-  assert.equal(calls, 1);
+  assert.equal(calls, 2);
 
   assert.equal(
     (await readTanStackEmailRuntimeSettingsFresh(deps)).resendSenderEmail,
     'ops-next@example.com'
   );
-  assert.equal(calls, 2);
+  assert.equal(calls, 3);
 });
 
 test('createRuntimeRandomInt retries rejected values to avoid modulo bias', () => {

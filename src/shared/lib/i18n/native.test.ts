@@ -23,3 +23,9 @@ test('native i18n resolves admin settings namespaces', async () => {
 
   assert.equal(t('edit.tabs.general'), 'General');
 });
+
+test('native i18n resolves server translations for an explicit locale', async () => {
+  const t = await getTranslations('admin.settings', 'zh');
+
+  assert.equal(t('edit.tabs.auth'), '认证');
+});

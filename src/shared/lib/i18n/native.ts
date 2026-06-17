@@ -133,6 +133,9 @@ export function useTranslations(namespace?: string) {
   return createNativeTranslator(namespace, useLocale());
 }
 
-export async function getTranslations(namespace?: string) {
-  return createNativeTranslator(namespace, getRequestLocaleFallback());
+export async function getTranslations(
+  namespace?: string,
+  locale: Locale = getRequestLocaleFallback()
+) {
+  return createNativeTranslator(namespace, locale);
 }

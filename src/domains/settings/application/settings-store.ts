@@ -1,4 +1,3 @@
-
 import { type KnownSettingKey } from '@/domains/settings/registry';
 import { db } from '@/infra/adapters/db';
 import { mergeAuthSpikeOAuthConfigSeedConfigs } from '@/infra/platform/auth/oauth-spike-config';
@@ -11,11 +10,6 @@ import { sql } from 'drizzle-orm';
 
 import { config } from '@/config/db/schema';
 import { mergeCloudflareLocalSmokeConfigSeedConfigs } from '@/shared/lib/cloudflare-local-smoke-config';
-import {
-  cacheSettingsReader,
-  revalidateSettingsCacheTag,
-} from './settings-cache';
-import { invalidateRuntimeSettingsCacheVersion } from './settings-cache-version';
 
 export type Config = typeof config.$inferSelect;
 export type NewConfig = typeof config.$inferInsert;
@@ -41,9 +35,6 @@ export function getBool(configs: Configs, key: KnownConfigKey): boolean {
   return configs[key] === 'true';
 }
 
-export const CONFIGS_CACHE_TAG = 'db-configs';
-export const PUBLIC_CONFIGS_CACHE_TAG = 'public-configs';
-const CONFIGS_CACHE_REVALIDATE_SECONDS = 60;
 const log = createUseCaseLogger({
   domain: 'settings',
   useCase: 'settings-store',
@@ -78,9 +69,7 @@ export async function addConfig(newConfig: NewConfig) {
 }
 
 export function invalidateSettingsCache() {
-  invalidateRuntimeSettingsCacheVersion();
-  revalidateSettingsCacheTag(CONFIGS_CACHE_TAG);
-  revalidateSettingsCacheTag(PUBLIC_CONFIGS_CACHE_TAG);
+  // Settings reads stay uncached so Cloudflare Worker isolates cannot serve stale config.
 }
 
 async function getConfigsFromDb(): Promise<Configs> {
@@ -107,16 +96,8 @@ export async function readSettingsFresh(): Promise<Configs> {
   return { ...configs };
 }
 
-const getConfigsCached = cacheSettingsReader(
-  async (): Promise<Configs> => await getConfigsFromDb(),
-  {
-    revalidateSeconds: CONFIGS_CACHE_REVALIDATE_SECONDS,
-  }
-);
-
 export async function readSettingsCached(): Promise<Configs> {
-  const configs = await getConfigsCached();
-  return { ...configs };
+  return readSettingsFresh();
 }
 
 export async function readSettingsSafe(): Promise<{

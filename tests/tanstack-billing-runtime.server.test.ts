@@ -32,6 +32,33 @@ test('readTanStackBillingRuntimeSettings reads config through TanStack Hyperdriv
   assert.equal(settings.defaultLocale, 'en');
 });
 
+test('readTanStackBillingRuntimeSettings falls back when worker runtime has no database binding', async () => {
+  let readRows = false;
+
+  const settings = await readTanStackBillingRuntimeSettings({
+    isWorkersRuntime: () => true,
+    getTanStackCloudflareBindings: async () => ({}) as never,
+    getRuntimeEnv: () =>
+      ({
+        databaseProvider: 'postgres',
+        databaseUrl: '',
+        dbSingletonEnabled: false,
+        appEnvironment: 'test',
+        internalEntitlementGrantsEnabled: false,
+        authSecret: '',
+        authBaseUrl: '',
+      }) as never,
+    readConfigRows: async () => {
+      readRows = true;
+      throw new Error('readConfigRows should not be called without a database');
+    },
+  });
+
+  assert.equal(readRows, false);
+  assert.equal(settings.locale, '');
+  assert.equal(settings.defaultLocale, '');
+});
+
 test('readTanStackPaymentRuntimeBindings reads TanStack worker bindings in worker runtime', async () => {
   let readBindings = false;
 

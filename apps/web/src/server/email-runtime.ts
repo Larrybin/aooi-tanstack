@@ -30,12 +30,7 @@ export async function readTanStackEmailRuntimeSettingsFresh(
 export async function readTanStackEmailRuntimeSettingsCached(
   deps: ReadTanStackEmailRuntimeDeps = {}
 ): Promise<EmailRuntimeSettings> {
-  return buildEmailRuntimeSettings(
-    await readTanStackSettingsCached({
-      ...deps,
-      cacheKey: deps.cacheKey ?? 'email-runtime',
-    })
-  );
+  return buildEmailRuntimeSettings(await readTanStackSettingsCached(deps));
 }
 
 export async function readTanStackEmailRuntimeSettings(

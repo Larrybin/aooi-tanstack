@@ -192,3 +192,18 @@ test('resolveAdminRouteData reads URLSearchParams values for payments', async ()
     status: 'paid',
   });
 });
+
+test('resolveAdminRouteData localizes admin settings tabs from the route locale', async () => {
+  const data = await resolveAdminRouteData(
+    { locale: 'zh', splat: 'settings/auth' },
+    buildDeps()
+  );
+
+  assert.equal(data.status, 'ok');
+  assert.equal(data.page.kind, 'settings');
+  assert.equal(data.page.tabs.find((tab) => tab.active)?.title, '认证');
+  assert.equal(
+    data.page.tabs.find((tab) => tab.active)?.href,
+    '/zh/admin/settings/auth'
+  );
+});

@@ -1,4 +1,3 @@
-
 import { getRuntimeEnvString } from '@/infra/runtime/env.server';
 
 import {
@@ -25,13 +24,7 @@ import type {
   EmailRuntimeSettings,
   PublicUiConfig,
 } from './settings-runtime.contracts';
-import { cacheSettingsReader } from './settings-cache';
-import {
-  CONFIGS_CACHE_TAG,
-  PUBLIC_CONFIGS_CACHE_TAG,
-  readSettingsCached,
-  readSettingsFresh,
-} from './settings-store';
+import { readSettingsCached, readSettingsFresh } from './settings-store';
 
 function readAuthServerBindingsFromRuntime(): AuthServerBindings {
   return {
@@ -44,67 +37,8 @@ function readAuthServerBindingsFromRuntime(): AuthServerBindings {
   };
 }
 
-const PUBLIC_UI_CONFIG_CACHE_REVALIDATE_SECONDS = 60 * 60;
-
-const readPublicUiConfigCachedValue = cacheSettingsReader(
-  async (): Promise<PublicUiConfig> =>
-    buildPublicUiConfig(await readSettingsCached()),
-  { revalidateSeconds: PUBLIC_UI_CONFIG_CACHE_REVALIDATE_SECONDS }
-);
-
-const readAuthUiRuntimeSettingsCachedValue = cacheSettingsReader(
-  async (): Promise<AuthUiRuntimeSettings> =>
-    buildAuthUiRuntimeSettings(
-      await readSettingsCached(),
-      readAuthServerBindingsFromRuntime()
-    ),
-  { revalidateSeconds: 60 }
-);
-
-const readBillingRuntimeSettingsCachedValue = cacheSettingsReader(
-  async (): Promise<BillingRuntimeSettings> =>
-    buildBillingRuntimeSettings(await readSettingsCached()),
-  { revalidateSeconds: 60 }
-);
-
-const readAiRuntimeSettingsCachedValue = cacheSettingsReader(
-  async (): Promise<AiRuntimeSettings> =>
-    buildAiRuntimeSettings(await readSettingsCached()),
-  { revalidateSeconds: 60 }
-);
-
-const readEmailRuntimeSettingsCachedValue = cacheSettingsReader(
-  async (): Promise<EmailRuntimeSettings> =>
-    buildEmailRuntimeSettings(await readSettingsCached()),
-  { revalidateSeconds: 60 }
-);
-
-const readAnalyticsRuntimeSettingsCachedValue = cacheSettingsReader(
-  async (): Promise<AnalyticsRuntimeSettings> =>
-    buildAnalyticsRuntimeSettings(await readSettingsCached()),
-  { revalidateSeconds: 60 }
-);
-
-const readAffiliateRuntimeSettingsCachedValue = cacheSettingsReader(
-  async (): Promise<AffiliateRuntimeSettings> =>
-    buildAffiliateRuntimeSettings(await readSettingsCached()),
-  { revalidateSeconds: 60 }
-);
-
-const readCustomerServiceRuntimeSettingsCachedValue = cacheSettingsReader(
-  async (): Promise<CustomerServiceRuntimeSettings> =>
-    buildCustomerServiceRuntimeSettings(await readSettingsCached()),
-  { revalidateSeconds: 60 }
-);
-
-const readAdsRuntimeSettingsCachedValue = cacheSettingsReader(
-  async (): Promise<AdsRuntimeSettings> =>
-    buildAdsRuntimeSettings(await readSettingsCached()),
-  { revalidateSeconds: 60 }
-);
-
 export async function readPublicUiConfigCached(): Promise<PublicUiConfig> {
-  return structuredClone(await readPublicUiConfigCachedValue());
+  return buildPublicUiConfig(await readSettingsCached());
 }
 
 export async function readPublicUiConfigFresh(): Promise<PublicUiConfig> {
@@ -112,7 +46,10 @@ export async function readPublicUiConfigFresh(): Promise<PublicUiConfig> {
 }
 
 export async function readAuthUiRuntimeSettingsCached(): Promise<AuthUiRuntimeSettings> {
-  return structuredClone(await readAuthUiRuntimeSettingsCachedValue());
+  return buildAuthUiRuntimeSettings(
+    await readSettingsCached(),
+    readAuthServerBindingsFromRuntime()
+  );
 }
 
 export async function readAuthUiRuntimeSettingsFresh(): Promise<AuthUiRuntimeSettings> {
@@ -123,7 +60,7 @@ export async function readAuthUiRuntimeSettingsFresh(): Promise<AuthUiRuntimeSet
 }
 
 export async function readBillingRuntimeSettingsCached(): Promise<BillingRuntimeSettings> {
-  return structuredClone(await readBillingRuntimeSettingsCachedValue());
+  return buildBillingRuntimeSettings(await readSettingsCached());
 }
 
 export async function readBillingRuntimeSettingsFresh(): Promise<BillingRuntimeSettings> {
@@ -131,7 +68,7 @@ export async function readBillingRuntimeSettingsFresh(): Promise<BillingRuntimeS
 }
 
 export async function readAiRuntimeSettingsCached(): Promise<AiRuntimeSettings> {
-  return structuredClone(await readAiRuntimeSettingsCachedValue());
+  return buildAiRuntimeSettings(await readSettingsCached());
 }
 
 export async function readAiRuntimeSettingsFresh(): Promise<AiRuntimeSettings> {
@@ -139,23 +76,23 @@ export async function readAiRuntimeSettingsFresh(): Promise<AiRuntimeSettings> {
 }
 
 export async function readEmailRuntimeSettingsCached(): Promise<EmailRuntimeSettings> {
-  return structuredClone(await readEmailRuntimeSettingsCachedValue());
+  return buildEmailRuntimeSettings(await readSettingsCached());
 }
 
 export async function readAnalyticsRuntimeSettingsCached(): Promise<AnalyticsRuntimeSettings> {
-  return structuredClone(await readAnalyticsRuntimeSettingsCachedValue());
+  return buildAnalyticsRuntimeSettings(await readSettingsCached());
 }
 
 export async function readAffiliateRuntimeSettingsCached(): Promise<AffiliateRuntimeSettings> {
-  return structuredClone(await readAffiliateRuntimeSettingsCachedValue());
+  return buildAffiliateRuntimeSettings(await readSettingsCached());
 }
 
 export async function readCustomerServiceRuntimeSettingsCached(): Promise<CustomerServiceRuntimeSettings> {
-  return structuredClone(await readCustomerServiceRuntimeSettingsCachedValue());
+  return buildCustomerServiceRuntimeSettings(await readSettingsCached());
 }
 
 export async function readAdsRuntimeSettingsCached(): Promise<AdsRuntimeSettings> {
-  return structuredClone(await readAdsRuntimeSettingsCachedValue());
+  return buildAdsRuntimeSettings(await readSettingsCached());
 }
 
 export async function readAdsRuntimeSettingsFresh(): Promise<AdsRuntimeSettings> {

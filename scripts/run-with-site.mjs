@@ -17,6 +17,8 @@ const ACTIVE_SPLIT_WORKERS_ENV = 'CLOUDFLARE_ACTIVE_SPLIT_WORKERS';
 const { applySiteLocalEnvOverlay } = siteEnvModule;
 const SITE_REQUIRED_COMMANDS = [
   'pnpm exec next',
+  'pnpm exec vite build',
+  'pnpm exec vite preview',
   'node scripts/next-build.mjs',
   'pnpm exec @better-auth/cli generate',
   'node --import tsx scripts/check-cloudflare-config.mjs',
