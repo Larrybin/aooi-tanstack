@@ -1,22 +1,25 @@
 import { defaultLocale, locales, type Locale } from '@/config/locale';
-import enAiChatMessages from '@/config/locale/messages/en/ai/chat.json';
-import zhTwAiChatMessages from '@/config/locale/messages/zh-TW/ai/chat.json';
-import zhAiChatMessages from '@/config/locale/messages/zh/ai/chat.json';
 import enAdminSettingsMessages from '@/config/locale/messages/en/admin/settings.json';
+import enAiChatMessages from '@/config/locale/messages/en/ai/chat.json';
 import enCommonMessages from '@/config/locale/messages/en/common.json';
 import jaAdminSettingsMessages from '@/config/locale/messages/ja/admin/settings.json';
 import jaCommonMessages from '@/config/locale/messages/ja/common.json';
 import zhTwAdminSettingsMessages from '@/config/locale/messages/zh-TW/admin/settings.json';
+import zhTwAiChatMessages from '@/config/locale/messages/zh-TW/ai/chat.json';
 import zhTwCommonMessages from '@/config/locale/messages/zh-TW/common.json';
 import zhAdminSettingsMessages from '@/config/locale/messages/zh/admin/settings.json';
+import zhAiChatMessages from '@/config/locale/messages/zh/ai/chat.json';
 import zhCommonMessages from '@/config/locale/messages/zh/common.json';
 
 type MessageLeafValue = string | number | boolean | null | undefined;
 type MessageValues = Record<string, MessageLeafValue>;
-type MessageNode = MessageLeafValue | readonly MessageNode[] | { readonly [key: string]: MessageNode };
+type MessageNode =
+  | MessageLeafValue
+  | readonly MessageNode[]
+  | { readonly [key: string]: MessageNode };
 type MessageBundle = Record<string, MessageNode>;
 
-const messageBundles = {
+const messageBundles: Partial<Record<Locale, MessageBundle>> = {
   en: {
     common: enCommonMessages,
     'admin.settings': enAdminSettingsMessages,
@@ -37,7 +40,7 @@ const messageBundles = {
     'admin.settings': zhTwAdminSettingsMessages,
     'ai.chat': zhTwAiChatMessages,
   },
-} as unknown as Partial<Record<Locale, MessageBundle>>;
+};
 
 const namespaceRoots = ['admin.settings', 'ai.chat', 'common'] as const;
 
@@ -55,10 +58,14 @@ export function useLocale(): Locale {
     : defaultLocale;
 }
 
-function readMessagePath(root: MessageNode | undefined, path: readonly string[]) {
+function readMessagePath(
+  root: MessageNode | undefined,
+  path: readonly string[]
+) {
   let current = root;
   for (const part of path) {
-    if (!current || typeof current !== 'object' || Array.isArray(current)) return undefined;
+    if (!current || typeof current !== 'object' || Array.isArray(current))
+      return undefined;
     current = (current as Record<string, MessageNode>)[part];
   }
   return typeof current === 'string' ? current : undefined;
@@ -80,7 +87,10 @@ function resolveNamespace(namespace = '') {
     if (namespace.startsWith(`${root}.`)) {
       return {
         root,
-        prefix: namespace.slice(root.length + 1).split('.').filter(Boolean),
+        prefix: namespace
+          .slice(root.length + 1)
+          .split('.')
+          .filter(Boolean),
       };
     }
   }
@@ -91,10 +101,15 @@ function resolveNamespace(namespace = '') {
   };
 }
 
-function resolveMessage(locale: Locale, namespace: string | undefined, key: string) {
+function resolveMessage(
+  locale: Locale,
+  namespace: string | undefined,
+  key: string
+) {
   const { root, prefix } = resolveNamespace(namespace);
   const path = [...prefix, ...key.split('.').filter(Boolean)];
-  const localeMessages = messageBundles[locale] ?? messageBundles[defaultLocale];
+  const localeMessages =
+    messageBundles[locale] ?? messageBundles[defaultLocale];
   const defaultMessages = messageBundles[defaultLocale];
 
   return (
@@ -103,7 +118,10 @@ function resolveMessage(locale: Locale, namespace: string | undefined, key: stri
   );
 }
 
-export function createNativeTranslator(namespace?: string, locale: Locale = defaultLocale) {
+export function createNativeTranslator(
+  namespace?: string,
+  locale: Locale = defaultLocale
+) {
   return (key: string, values?: MessageValues) => {
     const message = resolveMessage(locale, namespace, key);
     if (message) return interpolateMessage(message, values);

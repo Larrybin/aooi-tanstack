@@ -16,6 +16,21 @@ test('localized TanStack routes pass locale through notFound data', async () => 
   );
 });
 
+test('My Images TanStack routes stay scoped to ai-remover', async () => {
+  const rootRoute = await readRepoFile('apps/web/src/routes/my-images.tsx');
+  const localizedRoute = await readRepoFile(
+    'apps/web/src/routes/$locale/my-images.tsx'
+  );
+
+  assert.match(rootRoute, /site\.key[\s\S]*!==\s*'ai-remover'/);
+  assert.match(rootRoute, /throw\s+notFound\(\)/);
+  assert.match(localizedRoute, /site\.key[\s\S]*!==\s*'ai-remover'/);
+  assert.match(
+    localizedRoute,
+    /throw\s+notFound\(\{[\s\S]*data:\s*\{[\s\S]*locale:\s*params\.locale[\s\S]*\}[\s\S]*\}\)/
+  );
+});
+
 test('not-found locale resolution prefers data and falls back to URL prefix', () => {
   assert.equal(
     resolveNotFoundLocale({ locale: 'zh-TW' }, '/zh/does-not-exist'),

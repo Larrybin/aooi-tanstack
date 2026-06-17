@@ -135,3 +135,60 @@ test('resolveAdminRouteData passes payment filters to the admin payments query',
     status: 'paid',
   });
 });
+
+test('resolveAdminRouteData reads TanStack search object values for users', async () => {
+  let listInput: Parameters<AdminRouteDeps['listUsers']>[0] | undefined;
+  let countInput: Parameters<AdminRouteDeps['countUsers']>[0] | undefined;
+
+  await resolveAdminRouteData(
+    {
+      locale: 'en',
+      splat: 'users',
+      search: { page: 2, limit: 10, email: 'buyer@example.com' },
+    },
+    buildDeps({
+      listUsers: async (input) => {
+        listInput = input;
+        return [];
+      },
+      countUsers: async (input) => {
+        countInput = input;
+        return 0;
+      },
+    })
+  );
+
+  assert.deepEqual(listInput, {
+    page: 2,
+    limit: 10,
+    email: 'buyer@example.com',
+  });
+  assert.deepEqual(countInput, { email: 'buyer@example.com' });
+});
+
+test('resolveAdminRouteData reads URLSearchParams values for payments', async () => {
+  let captured: Parameters<AdminRouteDeps['listPayments']>[0] | undefined;
+
+  await resolveAdminRouteData(
+    {
+      locale: 'en',
+      splat: 'payments',
+      search: new URLSearchParams('page=3&pageSize=20&status=paid'),
+    },
+    buildDeps({
+      listPayments: async (input) => {
+        captured = input;
+        return { rows: [], total: 0 };
+      },
+    })
+  );
+
+  assert.deepEqual(captured, {
+    page: 3,
+    limit: 20,
+    orderNo: undefined,
+    paymentType: undefined,
+    paymentProvider: undefined,
+    status: 'paid',
+  });
+});

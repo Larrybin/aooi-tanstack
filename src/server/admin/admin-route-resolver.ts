@@ -141,12 +141,51 @@ async function getDefaultAdminRouteDeps(): Promise<AdminRouteDeps> {
 }
 
 function parseSearchParams(search: unknown) {
-  const raw = typeof search === 'string' ? search : '';
-  return new URLSearchParams(raw.startsWith('?') ? raw.slice(1) : raw);
+  if (typeof search === 'string') {
+    return new URLSearchParams(
+      search.startsWith('?') ? search.slice(1) : search
+    );
+  }
+
+  if (search instanceof URLSearchParams) {
+    return new URLSearchParams(search);
+  }
+
+  if (search && typeof search === 'object' && !Array.isArray(search)) {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(
+      search as Record<string, unknown>
+    )) {
+      appendSearchValue(params, key, value);
+    }
+    return params;
+  }
+
+  return new URLSearchParams();
+}
+
+function appendSearchValue(
+  params: URLSearchParams,
+  key: string,
+  value: unknown
+) {
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      appendSearchValue(params, key, item);
+    }
+    return;
+  }
+
+  if (value == null) return;
+  params.append(key, String(value));
 }
 
 function parseSearchObject(search: unknown) {
-  return Object.fromEntries(parseSearchParams(search));
+  const values: Record<string, string> = {};
+  for (const [key, value] of parseSearchParams(search)) {
+    values[key] ??= value;
+  }
+  return values;
 }
 
 function localizeAdminHref(locale: string, path: string) {

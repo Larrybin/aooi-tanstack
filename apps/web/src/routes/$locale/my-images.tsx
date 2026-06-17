@@ -1,10 +1,16 @@
 import { loadMyImagesRouteData } from '@/server/remover/my-images-route-data';
+import { site } from '@/site';
 import { MyImagesRouteView } from '@/surfaces/remover/my-images-route.view';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, notFound } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/$locale/my-images')({
-  loader: async ({ params }) =>
-    loadMyImagesRouteData({ data: { locale: params.locale } }),
+  loader: async ({ params }) => {
+    if ((site.key as string) !== 'ai-remover') {
+      throw notFound({ data: { locale: params.locale } });
+    }
+
+    return loadMyImagesRouteData({ data: { locale: params.locale } });
+  },
   component: MyImagesRoute,
 });
 
