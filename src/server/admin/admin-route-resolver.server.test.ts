@@ -20,10 +20,19 @@ function buildDeps(overrides: Partial<AdminRouteDeps> = {}): AdminRouteDeps {
     listUsers: async () => [],
     countUsers: async () => 0,
     listPayments: async () => ({ rows: [], total: 0 }),
+    listSubscriptions: async () => ({ rows: [], total: 0 }),
     listAiTasks: async () => ({ rows: [], total: 0 }),
+    listApikeys: async () => ({ rows: [], total: 0 }),
+    listChats: async () => ({ rows: [], total: 0 }),
+    listCredits: async () => ({ rows: [], total: 0 }),
+    listCategories: async () => [],
+    countCategories: async () => 0,
+    listPosts: async () => [],
+    countPosts: async () => 0,
     listRoles: async () => [],
     listRolesIncludingDeleted: async () => [],
     listPermissions: async () => [],
+    readPublicUiConfig: async () => ({ aiEnabled: true }) as never,
     ...overrides,
   } as AdminRouteDeps;
 }
@@ -67,6 +76,24 @@ test('resolveAdminRouteData renders migrated admin table sections instead of pla
       }),
     },
     {
+      splat: 'apikeys',
+      title: 'Admin API Keys',
+      deps: buildDeps({
+        listApikeys: async () => ({
+          rows: [
+            {
+              title: 'Production key',
+              key: 'key_1',
+              user: { email: 'owner@example.com' },
+              status: 'active',
+              createdAt: new Date('2026-01-01T00:00:00.000Z'),
+            },
+          ],
+          total: 1,
+        }),
+      }),
+    },
+    {
       splat: 'roles',
       title: 'Admin Roles',
       deps: buildDeps({
@@ -93,6 +120,101 @@ test('resolveAdminRouteData renders migrated admin table sections instead of pla
             createdAt: new Date('2026-01-01T00:00:00.000Z'),
           },
         ],
+      }),
+    },
+    {
+      splat: 'subscriptions',
+      title: 'Admin Subscriptions',
+      deps: buildDeps({
+        listSubscriptions: async () => ({
+          rows: [
+            {
+              subscriptionNo: 'sub_1',
+              user: { email: 'subscriber@example.com' },
+              amount: 1000,
+              interval: 'month',
+              paymentProvider: 'stripe',
+              status: 'active',
+              createdAt: new Date('2026-01-01T00:00:00.000Z'),
+              currentPeriodEnd: new Date('2026-02-01T00:00:00.000Z'),
+            },
+          ],
+          total: 1,
+        }),
+      }),
+    },
+    {
+      splat: 'credits',
+      title: 'Admin Credits',
+      deps: buildDeps({
+        listCredits: async () => ({
+          rows: [
+            {
+              transactionNo: 'credit_1',
+              user: { email: 'credit@example.com' },
+              credits: 10,
+              remainingCredits: 20,
+              transactionType: 'grant',
+              transactionScene: 'admin',
+              createdAt: new Date('2026-01-01T00:00:00.000Z'),
+              expiresAt: new Date('2027-01-01T00:00:00.000Z'),
+            },
+          ],
+          total: 1,
+        }),
+      }),
+    },
+    {
+      splat: 'categories',
+      title: 'Admin Categories',
+      deps: buildDeps({
+        listCategories: async () =>
+          [
+            {
+              slug: 'news',
+              title: 'News',
+              status: 'published',
+              createdAt: new Date('2026-01-01T00:00:00.000Z'),
+              updatedAt: new Date('2026-01-02T00:00:00.000Z'),
+            },
+          ] as never,
+        countCategories: async () => 1,
+      }),
+    },
+    {
+      splat: 'posts',
+      title: 'Admin Posts',
+      deps: buildDeps({
+        listPosts: async () =>
+          [
+            {
+              title: 'Post',
+              authorName: 'Editor',
+              image: '/post.png',
+              categories: 'cat_1',
+              createdAt: new Date('2026-01-01T00:00:00.000Z'),
+            },
+          ] as never,
+        countPosts: async () => 1,
+      }),
+    },
+    {
+      splat: 'chats',
+      title: 'Admin Chats',
+      deps: buildDeps({
+        listChats: async () => ({
+          rows: [
+            {
+              title: 'Chat',
+              user: { email: 'chatter@example.com' },
+              status: 'active',
+              model: 'gpt-test',
+              provider: 'openai',
+              createdAt: new Date('2026-01-01T00:00:00.000Z'),
+            },
+          ],
+          total: 1,
+        }),
       }),
     },
     {
@@ -255,9 +377,15 @@ test('resolveAdminRouteData checks section permissions before loading native adm
       codes: ['admin.settings.read', 'admin.settings.write'],
     },
     { splat: 'users', codes: ['admin.users.read'] },
+    { splat: 'apikeys', codes: ['admin.apikeys.read'] },
     { splat: 'payments', codes: ['admin.payments.read'] },
+    { splat: 'subscriptions', codes: ['admin.subscriptions.read'] },
+    { splat: 'credits', codes: ['admin.credits.read'] },
     { splat: 'roles', codes: ['admin.roles.read'] },
     { splat: 'permissions', codes: ['admin.permissions.read'] },
+    { splat: 'categories', codes: ['admin.categories.read'] },
+    { splat: 'posts', codes: ['admin.posts.read'] },
+    { splat: 'chats', codes: ['admin.ai-tasks.read'] },
     { splat: 'ai-tasks', codes: ['admin.ai-tasks.read'] },
   ];
 
@@ -279,6 +407,30 @@ test('resolveAdminRouteData checks section permissions before loading native adm
         listPayments: async () => {
           throw new Error('listPayments should not be called');
         },
+        listSubscriptions: async () => {
+          throw new Error('listSubscriptions should not be called');
+        },
+        listCredits: async () => {
+          throw new Error('listCredits should not be called');
+        },
+        listApikeys: async () => {
+          throw new Error('listApikeys should not be called');
+        },
+        listChats: async () => {
+          throw new Error('listChats should not be called');
+        },
+        listCategories: async () => {
+          throw new Error('listCategories should not be called');
+        },
+        countCategories: async () => {
+          throw new Error('countCategories should not be called');
+        },
+        listPosts: async () => {
+          throw new Error('listPosts should not be called');
+        },
+        countPosts: async () => {
+          throw new Error('countPosts should not be called');
+        },
         listRoles: async () => {
           throw new Error('listRoles should not be called');
         },
@@ -297,6 +449,47 @@ test('resolveAdminRouteData checks section permissions before loading native adm
     assert.equal(data.status, 'forbidden');
     assert.deepEqual(capturedCodes, entry.codes);
   }
+});
+
+test('resolveAdminRouteData returns not_found for unmigrated admin action routes', async () => {
+  const splats = [
+    'users/user_1/edit',
+    'users/user_1/edit-roles',
+    'roles/role_1/edit',
+    'roles/role_1/edit-permissions',
+    'roles/role_1/delete',
+    'roles/role_1/restore',
+    'payments/replay',
+    'categories/add',
+    'categories/cat_1/edit',
+    'posts/add',
+    'posts/post_1/edit',
+    'settings/auth/extra',
+    'unknown',
+  ];
+
+  for (const splat of splats) {
+    const data = await resolveAdminRouteData(
+      { locale: 'en', splat },
+      buildDeps()
+    );
+
+    assert.deepEqual(data, { status: 'not_found' });
+  }
+});
+
+test('resolveAdminRouteData hides native admin chats when AI is disabled', async () => {
+  const data = await resolveAdminRouteData(
+    { locale: 'en', splat: 'chats' },
+    buildDeps({
+      readPublicUiConfig: async () => ({ aiEnabled: false }) as never,
+      listChats: async () => {
+        throw new Error('listChats should not be called');
+      },
+    })
+  );
+
+  assert.deepEqual(data, { status: 'not_found' });
 });
 
 test('resolveAdminRouteData returns editable settings forms without server handlers', async () => {

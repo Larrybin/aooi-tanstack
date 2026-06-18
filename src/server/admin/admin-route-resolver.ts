@@ -2,10 +2,29 @@ import {
   checkUserHasAllPermissions,
   checkUserPermission,
 } from '@/domains/access-control/application/checker';
+import { listAdminApikeysQuery } from '@/domains/account/application/admin-apikeys.query';
+import { listAdminCreditsQuery } from '@/domains/account/application/admin-credits.query';
 import { getUsers, getUsersCount } from '@/domains/account/infra/user';
 import { listAdminAiTasksQuery } from '@/domains/ai/application/admin-ai-tasks.query';
-import { listAdminPaymentsQuery } from '@/domains/billing/application/member-billing.query';
+import { isAiEnabled } from '@/domains/ai/domain/enablement';
+import {
+  listAdminPaymentsQuery,
+  listAdminSubscriptionsQuery,
+} from '@/domains/billing/application/member-billing.query';
+import { listAdminChatsQuery } from '@/domains/chat/application/admin-chats.query';
+import {
+  getPosts,
+  getPostsCount,
+} from '@/domains/content/application/post.query';
+import {
+  getTaxonomies,
+  getTaxonomiesCount,
+} from '@/domains/content/application/taxonomy.query';
+import { PostType } from '@/domains/content/domain/post-types';
+import { TaxonomyType } from '@/domains/content/domain/taxonomy-types';
 import { readAdminSettingsSafe } from '@/domains/settings/application/admin-settings.query';
+import type { PublicUiConfig } from '@/domains/settings/application/settings-runtime.contracts';
+import { readPublicUiConfigCached } from '@/domains/settings/application/settings-runtime.query';
 import {
   readSettingsSafe,
   saveSettings,
@@ -32,8 +51,14 @@ import {
 import { getSignedInUserIdentityFromRequest } from '@/infra/platform/auth/session-by-request';
 import {
   AdminAiTasksListQuerySchema,
+  AdminApikeysListQuerySchema,
+  AdminCategoriesListQuerySchema,
+  AdminChatsListQuerySchema,
+  AdminCreditsListQuerySchema,
   AdminPaymentsListQuerySchema,
+  AdminPostsListQuerySchema,
   AdminRolesListQuerySchema,
+  AdminSubscriptionsListQuerySchema,
 } from '@/surfaces/admin/schemas/list';
 import { getSettingsModuleContractRows } from '@/surfaces/admin/settings/module-contract';
 
@@ -123,10 +148,19 @@ type AdminRouteDeps = {
   listUsers: typeof getUsers;
   countUsers: typeof getUsersCount;
   listPayments: typeof listAdminPaymentsQuery;
+  listSubscriptions: typeof listAdminSubscriptionsQuery;
   listAiTasks: typeof listAdminAiTasksQuery;
+  listApikeys: typeof listAdminApikeysQuery;
+  listChats: typeof listAdminChatsQuery;
+  listCredits: typeof listAdminCreditsQuery;
+  listCategories: typeof getTaxonomies;
+  countCategories: typeof getTaxonomiesCount;
+  listPosts: typeof getPosts;
+  countPosts: typeof getPostsCount;
   listRoles: typeof listRoles;
   listRolesIncludingDeleted: typeof listRolesIncludingDeleted;
   listPermissions: typeof listPermissions;
+  readPublicUiConfig: () => Promise<PublicUiConfig>;
 };
 
 type AdminSettingsUpdateDeps = Pick<
@@ -182,9 +216,15 @@ export type AdminRouteData =
 const adminNav = [
   { title: 'Settings', path: '/admin/settings/auth' },
   { title: 'Users', path: '/admin/users' },
+  { title: 'API Keys', path: '/admin/apikeys' },
   { title: 'Payments', path: '/admin/payments' },
+  { title: 'Subscriptions', path: '/admin/subscriptions' },
+  { title: 'Credits', path: '/admin/credits' },
   { title: 'Roles', path: '/admin/roles' },
   { title: 'Permissions', path: '/admin/permissions' },
+  { title: 'Categories', path: '/admin/categories' },
+  { title: 'Posts', path: '/admin/posts' },
+  { title: 'Chats', path: '/admin/chats' },
   { title: 'AI Tasks', path: '/admin/ai-tasks' },
 ];
 
@@ -203,10 +243,19 @@ async function getDefaultAdminRouteDeps(): Promise<AdminRouteDeps> {
     listUsers: getUsers,
     countUsers: getUsersCount,
     listPayments: listAdminPaymentsQuery,
+    listSubscriptions: listAdminSubscriptionsQuery,
     listAiTasks: listAdminAiTasksQuery,
+    listApikeys: listAdminApikeysQuery,
+    listChats: listAdminChatsQuery,
+    listCredits: listAdminCreditsQuery,
+    listCategories: getTaxonomies,
+    countCategories: getTaxonomiesCount,
+    listPosts: getPosts,
+    countPosts: getPostsCount,
     listRoles,
     listRolesIncludingDeleted,
     listPermissions,
+    readPublicUiConfig: readPublicUiConfigCached,
   };
 }
 
@@ -273,6 +322,10 @@ function routePathFromSplat(splat: string | undefined) {
   return normalized ? `/admin/${normalized}` : '/admin';
 }
 
+function getAdminPathSegments(currentPath: string) {
+  return currentPath.split('/').filter(Boolean).slice(1);
+}
+
 function buildAdminNav(locale: string, currentPath: string) {
   return adminNav.map((item) => ({
     title: item.title,
@@ -321,6 +374,10 @@ export async function resolveAdminRouteData(
     };
   }
 
+  const segments = getAdminPathSegments(currentPath);
+  const section = segments[0];
+  const isTopLevelSection = segments.length === 1;
+
   if (currentPath === '/admin' || currentPath === '/admin/') {
     return {
       status: 'ok',
@@ -336,7 +393,10 @@ export async function resolveAdminRouteData(
     };
   }
 
-  if (currentPath.startsWith('/admin/settings')) {
+  if (section === 'settings') {
+    if (segments.length > 2) {
+      return { status: 'not_found' };
+    }
     const denied = await requireAdminSectionPermissions(
       user.id,
       [PERMISSIONS.SETTINGS_READ, PERMISSIONS.SETTINGS_WRITE],
@@ -347,10 +407,8 @@ export async function resolveAdminRouteData(
     return buildSettingsPage(locale, currentPath);
   }
 
-  if (
-    currentPath === '/admin/users' ||
-    currentPath.startsWith('/admin/users/')
-  ) {
+  if (section === 'users') {
+    if (!isTopLevelSection) return { status: 'not_found' };
     const denied = await requireAdminSectionPermissions(
       user.id,
       [PERMISSIONS.USERS_READ],
@@ -361,10 +419,20 @@ export async function resolveAdminRouteData(
     return buildUsersPage(locale, currentPath, input.search, resolvedDeps);
   }
 
-  if (
-    currentPath === '/admin/payments' ||
-    currentPath.startsWith('/admin/payments/')
-  ) {
+  if (section === 'apikeys') {
+    if (!isTopLevelSection) return { status: 'not_found' };
+    const denied = await requireAdminSectionPermissions(
+      user.id,
+      [PERMISSIONS.APIKEYS_READ],
+      locale,
+      resolvedDeps
+    );
+    if (denied) return denied;
+    return buildApikeysPage(locale, currentPath, input.search, resolvedDeps);
+  }
+
+  if (section === 'payments') {
+    if (!isTopLevelSection) return { status: 'not_found' };
     const denied = await requireAdminSectionPermissions(
       user.id,
       [PERMISSIONS.PAYMENTS_READ],
@@ -375,10 +443,37 @@ export async function resolveAdminRouteData(
     return buildPaymentsPage(locale, currentPath, input.search, resolvedDeps);
   }
 
-  if (
-    currentPath === '/admin/roles' ||
-    currentPath.startsWith('/admin/roles/')
-  ) {
+  if (section === 'subscriptions') {
+    if (!isTopLevelSection) return { status: 'not_found' };
+    const denied = await requireAdminSectionPermissions(
+      user.id,
+      [PERMISSIONS.SUBSCRIPTIONS_READ],
+      locale,
+      resolvedDeps
+    );
+    if (denied) return denied;
+    return buildSubscriptionsPage(
+      locale,
+      currentPath,
+      input.search,
+      resolvedDeps
+    );
+  }
+
+  if (section === 'credits') {
+    if (!isTopLevelSection) return { status: 'not_found' };
+    const denied = await requireAdminSectionPermissions(
+      user.id,
+      [PERMISSIONS.CREDITS_READ],
+      locale,
+      resolvedDeps
+    );
+    if (denied) return denied;
+    return buildCreditsPage(locale, currentPath, input.search, resolvedDeps);
+  }
+
+  if (section === 'roles') {
+    if (!isTopLevelSection) return { status: 'not_found' };
     const denied = await requireAdminSectionPermissions(
       user.id,
       [PERMISSIONS.ROLES_READ],
@@ -389,10 +484,8 @@ export async function resolveAdminRouteData(
     return buildRolesPage(locale, currentPath, input.search, resolvedDeps);
   }
 
-  if (
-    currentPath === '/admin/permissions' ||
-    currentPath.startsWith('/admin/permissions/')
-  ) {
+  if (section === 'permissions') {
+    if (!isTopLevelSection) return { status: 'not_found' };
     const denied = await requireAdminSectionPermissions(
       user.id,
       [PERMISSIONS.PERMISSIONS_READ],
@@ -403,10 +496,47 @@ export async function resolveAdminRouteData(
     return buildPermissionsPage(locale, currentPath, resolvedDeps);
   }
 
-  if (
-    currentPath === '/admin/ai-tasks' ||
-    currentPath.startsWith('/admin/ai-tasks/')
-  ) {
+  if (section === 'categories') {
+    if (!isTopLevelSection) return { status: 'not_found' };
+    const denied = await requireAdminSectionPermissions(
+      user.id,
+      [PERMISSIONS.CATEGORIES_READ],
+      locale,
+      resolvedDeps
+    );
+    if (denied) return denied;
+    return buildCategoriesPage(locale, currentPath, input.search, resolvedDeps);
+  }
+
+  if (section === 'posts') {
+    if (!isTopLevelSection) return { status: 'not_found' };
+    const denied = await requireAdminSectionPermissions(
+      user.id,
+      [PERMISSIONS.POSTS_READ],
+      locale,
+      resolvedDeps
+    );
+    if (denied) return denied;
+    return buildPostsPage(locale, currentPath, input.search, resolvedDeps);
+  }
+
+  if (section === 'chats') {
+    if (!isTopLevelSection) return { status: 'not_found' };
+    if (!isAiEnabled(await resolvedDeps.readPublicUiConfig())) {
+      return { status: 'not_found' };
+    }
+    const denied = await requireAdminSectionPermissions(
+      user.id,
+      [PERMISSIONS.AITASKS_READ],
+      locale,
+      resolvedDeps
+    );
+    if (denied) return denied;
+    return buildChatsPage(locale, currentPath, input.search, resolvedDeps);
+  }
+
+  if (section === 'ai-tasks') {
+    if (!isTopLevelSection) return { status: 'not_found' };
     const denied = await requireAdminSectionPermissions(
       user.id,
       [PERMISSIONS.AITASKS_READ],
@@ -417,18 +547,7 @@ export async function resolveAdminRouteData(
     return buildAiTasksPage(locale, currentPath, input.search, resolvedDeps);
   }
 
-  return {
-    status: 'ok',
-    locale,
-    path: currentPath,
-    title: `Admin · ${currentPath.replace(/^\/admin\/?/, '') || 'Overview'}`,
-    nav: buildAdminNav(locale, currentPath),
-    page: {
-      kind: 'overview',
-      description:
-        'This admin section is available in the native TanStack admin worker route. Detailed table actions continue to use the domain APIs and server routes as they are migrated.',
-    },
-  };
+  return { status: 'not_found' };
 }
 
 async function requireAdminSectionPermissions(
@@ -702,6 +821,42 @@ async function buildUsersPage(
   };
 }
 
+async function buildApikeysPage(
+  locale: string,
+  currentPath: string,
+  search: unknown,
+  deps: Pick<AdminRouteDeps, 'listApikeys'>
+): Promise<AdminRouteData> {
+  const query = AdminApikeysListQuerySchema.parse(parseSearchObject(search));
+  const { rows, total } = await deps.listApikeys({
+    page: query.page,
+    limit: query.pageSize,
+  });
+
+  return buildTableRouteData(locale, currentPath, 'Admin API Keys', {
+    columns: [
+      { key: 'title', title: 'Title' },
+      { key: 'key', title: 'Key' },
+      { key: 'user', title: 'User' },
+      { key: 'status', title: 'Status' },
+      { key: 'createdAt', title: 'Created' },
+    ],
+    rows: rows.map((row) => {
+      const record = asRecord(row);
+      return {
+        title: toAdminCell(record.title),
+        key: toAdminCell(record.key),
+        user: readUserLabel(record),
+        status: toAdminCell(record.status),
+        createdAt: toAdminCell(record.createdAt),
+      };
+    }),
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
+  });
+}
+
 async function buildPaymentsPage(
   locale: string,
   currentPath: string,
@@ -740,6 +895,94 @@ async function buildPaymentsPage(
         amount: toAdminCell(record.paymentAmount ?? record.amount),
         currency: toAdminCell(record.paymentCurrency ?? record.currency),
         createdAt: toAdminCell(record.createdAt),
+      };
+    }),
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
+  });
+}
+
+async function buildSubscriptionsPage(
+  locale: string,
+  currentPath: string,
+  search: unknown,
+  deps: Pick<AdminRouteDeps, 'listSubscriptions'>
+): Promise<AdminRouteData> {
+  const query = AdminSubscriptionsListQuerySchema.parse(
+    parseSearchObject(search)
+  );
+  const { rows, total } = await deps.listSubscriptions({
+    page: query.page,
+    limit: query.pageSize,
+    interval: query.interval,
+  });
+
+  return buildTableRouteData(locale, currentPath, 'Admin Subscriptions', {
+    columns: [
+      { key: 'subscriptionNo', title: 'Subscription' },
+      { key: 'user', title: 'User' },
+      { key: 'amount', title: 'Amount' },
+      { key: 'interval', title: 'Interval' },
+      { key: 'paymentProvider', title: 'Provider' },
+      { key: 'status', title: 'Status' },
+      { key: 'createdAt', title: 'Created' },
+      { key: 'currentPeriodEnd', title: 'Period End' },
+    ],
+    rows: rows.map((row) => {
+      const record = asRecord(row);
+      return {
+        subscriptionNo: toAdminCell(record.subscriptionNo),
+        user: readUserLabel(record),
+        amount: toAdminCell(record.amount),
+        interval: toAdminCell(record.interval),
+        paymentProvider: toAdminCell(record.paymentProvider),
+        status: toAdminCell(record.status),
+        createdAt: toAdminCell(record.createdAt),
+        currentPeriodEnd: toAdminCell(record.currentPeriodEnd),
+      };
+    }),
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
+  });
+}
+
+async function buildCreditsPage(
+  locale: string,
+  currentPath: string,
+  search: unknown,
+  deps: Pick<AdminRouteDeps, 'listCredits'>
+): Promise<AdminRouteData> {
+  const query = AdminCreditsListQuerySchema.parse(parseSearchObject(search));
+  const { rows, total } = await deps.listCredits({
+    page: query.page,
+    limit: query.pageSize,
+    transactionType: query.type,
+  });
+
+  return buildTableRouteData(locale, currentPath, 'Admin Credits', {
+    columns: [
+      { key: 'transactionNo', title: 'Transaction' },
+      { key: 'user', title: 'User' },
+      { key: 'credits', title: 'Credits' },
+      { key: 'remainingCredits', title: 'Remaining' },
+      { key: 'transactionType', title: 'Type' },
+      { key: 'transactionScene', title: 'Scene' },
+      { key: 'createdAt', title: 'Created' },
+      { key: 'expiresAt', title: 'Expires' },
+    ],
+    rows: rows.map((row) => {
+      const record = asRecord(row);
+      return {
+        transactionNo: toAdminCell(record.transactionNo),
+        user: readUserLabel(record),
+        credits: toAdminCell(record.credits),
+        remainingCredits: toAdminCell(record.remainingCredits),
+        transactionType: toAdminCell(record.transactionType),
+        transactionScene: toAdminCell(record.transactionScene),
+        createdAt: toAdminCell(record.createdAt),
+        expiresAt: toAdminCell(record.expiresAt),
       };
     }),
     total,
@@ -807,6 +1050,124 @@ async function buildPermissionsPage(
       };
     }),
     total: rows.length,
+  });
+}
+
+async function buildCategoriesPage(
+  locale: string,
+  currentPath: string,
+  search: unknown,
+  deps: Pick<AdminRouteDeps, 'listCategories' | 'countCategories'>
+): Promise<AdminRouteData> {
+  const query = AdminCategoriesListQuerySchema.parse(parseSearchObject(search));
+  const [rows, total] = await Promise.all([
+    deps.listCategories({
+      type: TaxonomyType.CATEGORY,
+      page: query.page,
+      limit: query.pageSize,
+    }),
+    deps.countCategories({ type: TaxonomyType.CATEGORY }),
+  ]);
+
+  return buildTableRouteData(locale, currentPath, 'Admin Categories', {
+    columns: [
+      { key: 'slug', title: 'Slug' },
+      { key: 'title', title: 'Title' },
+      { key: 'status', title: 'Status' },
+      { key: 'createdAt', title: 'Created' },
+      { key: 'updatedAt', title: 'Updated' },
+    ],
+    rows: rows.map((row) => {
+      const record = asRecord(row);
+      return {
+        slug: toAdminCell(record.slug),
+        title: toAdminCell(record.title),
+        status: toAdminCell(record.status),
+        createdAt: toAdminCell(record.createdAt),
+        updatedAt: toAdminCell(record.updatedAt),
+      };
+    }),
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
+  });
+}
+
+async function buildPostsPage(
+  locale: string,
+  currentPath: string,
+  search: unknown,
+  deps: Pick<AdminRouteDeps, 'listPosts' | 'countPosts'>
+): Promise<AdminRouteData> {
+  const query = AdminPostsListQuerySchema.parse(parseSearchObject(search));
+  const [rows, total] = await Promise.all([
+    deps.listPosts({
+      type: PostType.ARTICLE,
+      page: query.page,
+      limit: query.pageSize,
+    }),
+    deps.countPosts({ type: PostType.ARTICLE }),
+  ]);
+
+  return buildTableRouteData(locale, currentPath, 'Admin Posts', {
+    columns: [
+      { key: 'title', title: 'Title' },
+      { key: 'authorName', title: 'Author' },
+      { key: 'image', title: 'Image' },
+      { key: 'categories', title: 'Categories' },
+      { key: 'createdAt', title: 'Created' },
+    ],
+    rows: rows.map((row) => {
+      const record = asRecord(row);
+      return {
+        title: toAdminCell(record.title),
+        authorName: toAdminCell(record.authorName),
+        image: toAdminCell(record.image),
+        categories: toAdminCell(record.categories),
+        createdAt: toAdminCell(record.createdAt),
+      };
+    }),
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
+  });
+}
+
+async function buildChatsPage(
+  locale: string,
+  currentPath: string,
+  search: unknown,
+  deps: Pick<AdminRouteDeps, 'listChats'>
+): Promise<AdminRouteData> {
+  const query = AdminChatsListQuerySchema.parse(parseSearchObject(search));
+  const { rows, total } = await deps.listChats({
+    page: query.page,
+    limit: query.pageSize,
+  });
+
+  return buildTableRouteData(locale, currentPath, 'Admin Chats', {
+    columns: [
+      { key: 'title', title: 'Title' },
+      { key: 'user', title: 'User' },
+      { key: 'status', title: 'Status' },
+      { key: 'model', title: 'Model' },
+      { key: 'provider', title: 'Provider' },
+      { key: 'createdAt', title: 'Created' },
+    ],
+    rows: rows.map((row) => {
+      const record = asRecord(row);
+      return {
+        title: toAdminCell(record.title),
+        user: readUserLabel(record),
+        status: toAdminCell(record.status),
+        model: toAdminCell(record.model),
+        provider: toAdminCell(record.provider),
+        createdAt: toAdminCell(record.createdAt),
+      };
+    }),
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
   });
 }
 
