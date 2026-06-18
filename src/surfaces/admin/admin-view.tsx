@@ -1,6 +1,14 @@
+import { useState } from 'react';
+import { submitAdminSettingsRouteData } from '@/server/admin/admin-route-data';
 import type { AdminRouteData } from '@/server/admin/admin-route-resolver';
 
+import { FormCard } from '@/shared/blocks/form';
+import type { Form as FormType } from '@/shared/types/blocks/form';
+
 type Ok = Extract<AdminRouteData, { status: 'ok' }>;
+type SettingsPage = Extract<Ok['page'], { kind: 'settings' }>;
+type SettingsForm = SettingsPage['forms'][number];
+type SubmitHandler = NonNullable<NonNullable<FormType['submit']>['handler']>;
 
 export function NativeAdminView({ data }: { data: Ok }) {
   return (
@@ -20,7 +28,7 @@ export function NativeAdminView({ data }: { data: Ok }) {
       <section className="mt-8 rounded-lg border bg-white p-6 shadow-sm">
         {data.page.kind === 'overview' ? <p>{data.page.description}</p> : null}
         {data.page.kind === 'settings' ? (
-          <SettingsView page={data.page} />
+          <SettingsView locale={data.locale} page={data.page} />
         ) : null}
         {data.page.kind === 'users' ? <UsersView page={data.page} /> : null}
         {data.page.kind === 'table' ? <TableView page={data.page} /> : null}
@@ -30,10 +38,25 @@ export function NativeAdminView({ data }: { data: Ok }) {
 }
 
 function SettingsView({
+  locale,
   page,
 }: {
-  page: Extract<Ok['page'], { kind: 'settings' }>;
+  locale: string;
+  page: SettingsPage;
 }) {
+  const [message, setMessage] = useState<{
+    status: 'success' | 'error';
+    text: string;
+  } | null>(null);
+
+  const handleSubmit: SubmitHandler = async (formData) => {
+    const result = await submitAdminSettingsRouteData({
+      data: { locale, values: formDataToValues(formData) },
+    });
+    setMessage({ status: result.status, text: result.message });
+    return result;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
@@ -47,27 +70,111 @@ function SettingsView({
           </a>
         ))}
       </div>
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr>
-            <th>Setting</th>
-            <th>Group</th>
-            <th>Type</th>
-            <th>Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          {page.fields.map((field) => (
-            <tr key={field.name}>
-              <td>{field.title}</td>
-              <td>{field.group}</td>
-              <td>{field.type}</td>
-              <td>{field.value || '-'}</td>
-            </tr>
+
+      {page.loadError ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          Settings could not be loaded: {page.loadError}
+        </div>
+      ) : null}
+
+      {message ? (
+        <p
+          className="rounded-md border p-3 text-sm"
+          data-status={message.status}
+        >
+          {message.text}
+        </p>
+      ) : null}
+
+      {page.moduleContracts.length > 0 ? (
+        <div
+          className="space-y-3 rounded-lg border p-4"
+          data-testid="admin-settings-module-contract"
+        >
+          {page.moduleContracts.map((moduleContract) => (
+            <div
+              key={`${moduleContract.relationship}-${moduleContract.moduleId}`}
+              className="flex flex-wrap gap-3 rounded-md border p-3 text-sm"
+              data-testid="admin-settings-module-contract-row"
+              data-module-id={moduleContract.moduleId}
+              data-relationship={moduleContract.relationship}
+              data-tier={moduleContract.tier}
+              data-verification={moduleContract.verification}
+            >
+              <span>{moduleContract.title}</span>
+              <span>{moduleContract.relationship}</span>
+              <span>{moduleContract.tier}</span>
+              <span>{moduleContract.verification}</span>
+              <a href={moduleContract.guideHref}>Guide</a>
+            </div>
           ))}
-        </tbody>
-      </table>
+        </div>
+      ) : null}
+
+      {page.forms.length > 0 ? (
+        page.forms.map((form, index) => (
+          <div key={getSettingsFormKey(form, index)}>
+            <FormCard
+              title={form.title}
+              description={form.description}
+              form={withSettingsSubmitHandler(form, handleSubmit)}
+              className="mb-8 md:max-w-xl"
+            />
+          </div>
+        ))
+      ) : (
+        <SettingsReadOnlyTable page={page} />
+      )}
     </div>
+  );
+}
+
+function formDataToValues(formData: FormData) {
+  const values: Record<string, string> = {};
+  for (const [key, value] of formData.entries()) {
+    values[key] = typeof value === 'string' ? value : value.name;
+  }
+  return values;
+}
+
+function getSettingsFormKey(form: SettingsForm, index: number) {
+  return (
+    form.title ?? form.fields.map((field) => field.name).join('|') ?? index
+  );
+}
+
+function withSettingsSubmitHandler(
+  form: SettingsForm,
+  handler: SubmitHandler
+): FormType {
+  return {
+    ...form,
+    submit: form.submit ? { ...form.submit, handler } : undefined,
+  };
+}
+
+function SettingsReadOnlyTable({ page }: { page: SettingsPage }) {
+  return (
+    <table className="w-full text-left text-sm">
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Group</th>
+          <th>Type</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        {page.fields.map((field) => (
+          <tr key={field.name}>
+            <td>{field.title}</td>
+            <td>{field.group}</td>
+            <td>{field.type}</td>
+            <td>{field.value || '-'}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 

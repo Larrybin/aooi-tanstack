@@ -15,7 +15,7 @@ export function mapSettingsToForms({
   settings: readonly SettingDefinition[];
   configs: Record<string, unknown>;
   submitLabel: string;
-  onSubmit: NonNullable<FormType['submit']>['handler'];
+  onSubmit?: NonNullable<FormType['submit']>['handler'];
 }): FormType[] {
   return groups
     .filter((group) => group.tab === tab)

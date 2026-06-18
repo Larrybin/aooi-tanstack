@@ -1,8 +1,18 @@
-import { checkUserPermission } from '@/domains/access-control/application/checker';
+import {
+  checkUserHasAllPermissions,
+  checkUserPermission,
+} from '@/domains/access-control/application/checker';
 import { getUsers, getUsersCount } from '@/domains/account/infra/user';
 import { listAdminAiTasksQuery } from '@/domains/ai/application/admin-ai-tasks.query';
 import { listAdminPaymentsQuery } from '@/domains/billing/application/member-billing.query';
 import { readAdminSettingsSafe } from '@/domains/settings/application/admin-settings.query';
+import {
+  readSettingsSafe,
+  saveSettings,
+} from '@/domains/settings/application/settings-store';
+import { mapSettingsToForms } from '@/domains/settings/settings-form-mapper';
+import { normalizeSettingOverrides } from '@/domains/settings/settings-normalizers';
+import { mergeRegisteredSettingValues } from '@/domains/settings/settings-submit-merge';
 import {
   getAvailableSettingTabs,
   getSettingGroups,
@@ -30,11 +40,50 @@ import { getSettingsModuleContractRows } from '@/surfaces/admin/settings/module-
 import { defaultLocale, type Locale } from '@/config/locale';
 import { PERMISSIONS } from '@/shared/constants/rbac-permissions';
 import { localePath, normalizeLocale } from '@/shared/i18n/locale';
+import {
+  actionErr,
+  actionOk,
+  type ActionResult,
+} from '@/shared/lib/action/result';
+import type { FormField, Form as FormType } from '@/shared/types/blocks/form';
 
 type AdminRouteInput = {
   locale: string;
   splat?: string;
   search?: unknown;
+};
+
+type AdminSerializableValue =
+  | string
+  | number
+  | boolean
+  | null
+  | AdminSerializableValue[]
+  | { [key: string]: AdminSerializableValue };
+
+type AdminSettingsFormField = Omit<FormField, 'attributes' | 'metadata'> & {
+  attributes?: Record<string, AdminSerializableValue>;
+  metadata?: Record<string, AdminSerializableValue>;
+};
+
+type AdminSettingsButton = {
+  title?: string;
+  icon?: string;
+  variant?: 'default' | 'outline' | 'ghost' | 'link' | 'destructive';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
+};
+
+type AdminSettingsForm = {
+  title?: string;
+  description?: string;
+  fields: AdminSettingsFormField[];
+  data?: Record<string, AdminSerializableValue>;
+  passby?: AdminSerializableValue;
+  submit?: {
+    input?: AdminSettingsFormField;
+    button?: AdminSettingsButton;
+    action?: string;
+  };
 };
 
 type AdminField = {
@@ -61,10 +110,16 @@ type AdminTablePage = {
   pageSize?: number;
 };
 
+type AdminSettingsUpdateInput = {
+  locale: string;
+  values: Record<string, string>;
+};
+
 type AdminRouteDeps = {
   getCurrentRequest: () => Request;
   readSignedInUser: (request: Request) => Promise<{ id: string } | null>;
   hasAdminAccess: (userId: string) => Promise<boolean>;
+  hasAllPermissions: (userId: string, codes: string[]) => Promise<boolean>;
   listUsers: typeof getUsers;
   countUsers: typeof getUsersCount;
   listPayments: typeof listAdminPaymentsQuery;
@@ -74,7 +129,19 @@ type AdminRouteDeps = {
   listPermissions: typeof listPermissions;
 };
 
+type AdminSettingsUpdateDeps = Pick<
+  AdminRouteDeps,
+  | 'getCurrentRequest'
+  | 'readSignedInUser'
+  | 'hasAdminAccess'
+  | 'hasAllPermissions'
+> & {
+  readSettings: typeof readSettingsSafe;
+  saveSettings: typeof saveSettings;
+};
+
 export type AdminRouteData =
+  | { status: 'not_found' }
   | { status: 'unauthenticated'; redirectTo: string }
   | { status: 'forbidden'; redirectTo: string }
   | {
@@ -89,6 +156,7 @@ export type AdminRouteData =
             tab: string;
             tabs: Array<{ title: string; href: string; active: boolean }>;
             fields: AdminField[];
+            forms: AdminSettingsForm[];
             moduleContracts: Array<{
               moduleId: string;
               title: string;
@@ -120,8 +188,8 @@ const adminNav = [
   { title: 'AI Tasks', path: '/admin/ai-tasks' },
 ];
 
-function normalizeAdminLocale(value: string): Locale {
-  return normalizeLocale(value) ?? defaultLocale;
+function normalizeAdminLocale(value: string): Locale | null {
+  return normalizeLocale(value);
 }
 
 async function getDefaultAdminRouteDeps(): Promise<AdminRouteDeps> {
@@ -131,6 +199,7 @@ async function getDefaultAdminRouteDeps(): Promise<AdminRouteDeps> {
     getCurrentRequest: getRequest,
     readSignedInUser: getSignedInUserIdentityFromRequest,
     hasAdminAccess: assertAdminAccess,
+    hasAllPermissions: assertAdminPermissions,
     listUsers: getUsers,
     countUsers: getUsersCount,
     listPayments: listAdminPaymentsQuery,
@@ -219,12 +288,21 @@ async function assertAdminAccess(userId: string) {
   });
 }
 
+async function assertAdminPermissions(userId: string, codes: string[]) {
+  return checkUserHasAllPermissions(userId, codes, {
+    readUserPermissionCodes,
+  });
+}
+
 export async function resolveAdminRouteData(
   input: AdminRouteInput,
   deps?: AdminRouteDeps
 ): Promise<AdminRouteData> {
   const resolvedDeps = deps ?? (await getDefaultAdminRouteDeps());
   const locale = normalizeAdminLocale(input.locale);
+  if (!locale) {
+    return { status: 'not_found' };
+  }
   const currentPath = routePathFromSplat(input.splat);
   const request = resolvedDeps.getCurrentRequest();
   const user = await resolvedDeps.readSignedInUser(request);
@@ -259,6 +337,13 @@ export async function resolveAdminRouteData(
   }
 
   if (currentPath.startsWith('/admin/settings')) {
+    const denied = await requireAdminSectionPermissions(
+      user.id,
+      [PERMISSIONS.SETTINGS_READ, PERMISSIONS.SETTINGS_WRITE],
+      locale,
+      resolvedDeps
+    );
+    if (denied) return denied;
     return buildSettingsPage(locale, currentPath);
   }
 
@@ -266,6 +351,13 @@ export async function resolveAdminRouteData(
     currentPath === '/admin/users' ||
     currentPath.startsWith('/admin/users/')
   ) {
+    const denied = await requireAdminSectionPermissions(
+      user.id,
+      [PERMISSIONS.USERS_READ],
+      locale,
+      resolvedDeps
+    );
+    if (denied) return denied;
     return buildUsersPage(locale, currentPath, input.search, resolvedDeps);
   }
 
@@ -273,6 +365,13 @@ export async function resolveAdminRouteData(
     currentPath === '/admin/payments' ||
     currentPath.startsWith('/admin/payments/')
   ) {
+    const denied = await requireAdminSectionPermissions(
+      user.id,
+      [PERMISSIONS.PAYMENTS_READ],
+      locale,
+      resolvedDeps
+    );
+    if (denied) return denied;
     return buildPaymentsPage(locale, currentPath, input.search, resolvedDeps);
   }
 
@@ -280,6 +379,13 @@ export async function resolveAdminRouteData(
     currentPath === '/admin/roles' ||
     currentPath.startsWith('/admin/roles/')
   ) {
+    const denied = await requireAdminSectionPermissions(
+      user.id,
+      [PERMISSIONS.ROLES_READ],
+      locale,
+      resolvedDeps
+    );
+    if (denied) return denied;
     return buildRolesPage(locale, currentPath, input.search, resolvedDeps);
   }
 
@@ -287,6 +393,13 @@ export async function resolveAdminRouteData(
     currentPath === '/admin/permissions' ||
     currentPath.startsWith('/admin/permissions/')
   ) {
+    const denied = await requireAdminSectionPermissions(
+      user.id,
+      [PERMISSIONS.PERMISSIONS_READ],
+      locale,
+      resolvedDeps
+    );
+    if (denied) return denied;
     return buildPermissionsPage(locale, currentPath, resolvedDeps);
   }
 
@@ -294,6 +407,13 @@ export async function resolveAdminRouteData(
     currentPath === '/admin/ai-tasks' ||
     currentPath.startsWith('/admin/ai-tasks/')
   ) {
+    const denied = await requireAdminSectionPermissions(
+      user.id,
+      [PERMISSIONS.AITASKS_READ],
+      locale,
+      resolvedDeps
+    );
+    if (denied) return denied;
     return buildAiTasksPage(locale, currentPath, input.search, resolvedDeps);
   }
 
@@ -309,6 +429,77 @@ export async function resolveAdminRouteData(
         'This admin section is available in the native TanStack admin worker route. Detailed table actions continue to use the domain APIs and server routes as they are migrated.',
     },
   };
+}
+
+async function requireAdminSectionPermissions(
+  userId: string,
+  codes: string[],
+  locale: Locale,
+  deps: Pick<AdminRouteDeps, 'hasAllPermissions'>
+): Promise<Extract<AdminRouteData, { status: 'forbidden' }> | null> {
+  if (await deps.hasAllPermissions(userId, codes)) {
+    return null;
+  }
+
+  return {
+    status: 'forbidden',
+    redirectTo: localizeAdminHref(locale, '/no-permission'),
+  };
+}
+
+export async function resolveAdminSettingsUpdate(
+  input: AdminSettingsUpdateInput,
+  deps?: AdminSettingsUpdateDeps
+): Promise<ActionResult> {
+  const routeDeps = deps ?? {
+    ...(await getDefaultAdminRouteDeps()),
+    readSettings: readSettingsSafe,
+    saveSettings,
+  };
+  const locale = normalizeAdminLocale(input.locale);
+  if (!locale) {
+    return actionErr('Admin locale not found');
+  }
+
+  const request = routeDeps.getCurrentRequest();
+  const user = await routeDeps.readSignedInUser(request);
+  if (!user) {
+    return actionErr('Sign in required');
+  }
+
+  if (!(await routeDeps.hasAdminAccess(user.id))) {
+    return actionErr('Admin access required');
+  }
+
+  if (
+    !(await routeDeps.hasAllPermissions(user.id, [
+      PERMISSIONS.SETTINGS_READ,
+      PERMISSIONS.SETTINGS_WRITE,
+    ]))
+  ) {
+    return actionErr('Settings permission required');
+  }
+
+  const settingsResult = await routeDeps.readSettings();
+  if (settingsResult.error) {
+    return actionErr(
+      'Settings could not be saved because configuration values failed to load. Please try again later.'
+    );
+  }
+
+  const normalizedOverrides = normalizeSettingOverrides(input.values);
+  if (!normalizedOverrides.ok) {
+    return actionErr(normalizedOverrides.error);
+  }
+
+  const nextConfigs = mergeRegisteredSettingValues({
+    initialConfigs: settingsResult.configs,
+    values: input.values,
+    normalizedOverrides: normalizedOverrides.value,
+  });
+
+  await routeDeps.saveSettings(nextConfigs);
+  return actionOk('Settings updated');
 }
 
 async function buildSettingsPage(
@@ -348,6 +539,13 @@ async function buildSettingsPage(
         String('value' in setting ? (setting.value ?? '') : ''),
       type: setting.type,
     }));
+  const forms = mapSettingsToForms({
+    tab,
+    groups,
+    settings,
+    configs: configsResult.configs,
+    submitLabel: 'Save',
+  }).map(stripSettingsFormHandler);
 
   return {
     status: 'ok',
@@ -367,10 +565,93 @@ async function buildSettingsPage(
         active: Boolean(entry.is_active),
       })),
       fields,
+      forms,
       moduleContracts: getSettingsModuleContractRows(tab),
       loadError: configsResult.error?.message,
     },
   };
+}
+
+function stripSettingsFormHandler(form: FormType): AdminSettingsForm {
+  return {
+    title: form.title,
+    description: form.description,
+    fields: form.fields.map(toAdminSettingsFormField),
+    data: toSerializableRecord(form.data),
+    passby: toSerializableValue(form.passby),
+    submit: form.submit
+      ? {
+          input: form.submit.input
+            ? toAdminSettingsFormField(form.submit.input)
+            : undefined,
+          button: toAdminSettingsButton(form.submit.button),
+          action: form.submit.action,
+        }
+      : undefined,
+  };
+}
+
+function toAdminSettingsFormField(field: FormField): AdminSettingsFormField {
+  const { attributes, metadata, ...rest } = field;
+  return {
+    ...rest,
+    attributes: toSerializableRecord(attributes),
+    metadata: toSerializableRecord(metadata),
+  };
+}
+
+function toAdminSettingsButton(
+  button: NonNullable<FormType['submit']>['button']
+): AdminSettingsButton | undefined {
+  if (!button) return undefined;
+
+  return {
+    title: button.title,
+    icon: typeof button.icon === 'string' ? button.icon : undefined,
+    variant: button.variant,
+    size: button.size,
+  };
+}
+
+function toSerializableRecord(
+  value: unknown
+): Record<string, AdminSerializableValue> | undefined {
+  const serialized = toSerializableValue(value);
+  return serialized &&
+    !Array.isArray(serialized) &&
+    typeof serialized === 'object'
+    ? (serialized as Record<string, AdminSerializableValue>)
+    : undefined;
+}
+
+function toSerializableValue(
+  value: unknown
+): AdminSerializableValue | undefined {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => toSerializableValue(item))
+      .filter((item): item is AdminSerializableValue => item !== undefined);
+  }
+  if (typeof value === 'object') {
+    const record: Record<string, AdminSerializableValue> = {};
+    for (const [key, item] of Object.entries(value)) {
+      const serialized = toSerializableValue(item);
+      if (serialized !== undefined) {
+        record[key] = serialized;
+      }
+    }
+    return record;
+  }
+  return String(value);
 }
 
 async function buildUsersPage(
