@@ -3,6 +3,10 @@ import type {
   BillingRuntimeSettings,
   PaymentRuntimeBindings,
 } from '@/domains/settings/application/settings-runtime.contracts';
+import {
+  readSettingsWithPlatformCache,
+  type SettingsPlatformCache,
+} from '@/domains/settings/application/settings-store';
 import { db } from '@/infra/adapters/db';
 import { getPaymentRuntimeBindings } from '@/infra/adapters/payment/runtime-bindings';
 import { mergeAuthSpikeOAuthConfigSeedConfigs } from '@/infra/platform/auth/oauth-spike-config';
@@ -27,7 +31,10 @@ export type ReadTanStackSettingsFreshDeps = {
   isWorkersRuntime?: typeof isCloudflareWorkersRuntime;
   readConfigRows?: (databaseUrl?: string) => Promise<ConfigRow[]>;
 };
-export type ReadTanStackSettingsCachedDeps = ReadTanStackSettingsFreshDeps;
+export type ReadTanStackSettingsCachedDeps = ReadTanStackSettingsFreshDeps & {
+  settingsCache?: SettingsPlatformCache | null;
+  settingsCacheSiteKey?: string;
+};
 type ReadTanStackPaymentRuntimeBindingsDeps = Pick<
   ReadTanStackSettingsFreshDeps,
   'getTanStackCloudflareBindings' | 'isWorkersRuntime'
@@ -97,7 +104,11 @@ export async function readTanStackSettingsFresh(
 export async function readTanStackSettingsCached(
   deps: ReadTanStackSettingsCachedDeps = {}
 ): Promise<Configs> {
-  return readTanStackSettingsFresh(deps);
+  return readSettingsWithPlatformCache({
+    readFresh: () => readTanStackSettingsFresh(deps),
+    cache: deps.settingsCache,
+    siteKey: deps.settingsCacheSiteKey,
+  });
 }
 
 export async function readTanStackBillingRuntimeSettings(

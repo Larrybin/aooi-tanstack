@@ -6,6 +6,7 @@ import {
   getServerRuntimeEnv,
   isCloudflareWorkersRuntime,
 } from '@/infra/runtime/env.server';
+import { site } from '@/site';
 import { sql } from 'drizzle-orm';
 
 import { config } from '@/config/db/schema';
@@ -16,6 +17,17 @@ export type NewConfig = typeof config.$inferInsert;
 export type UpdateConfig = Partial<Omit<NewConfig, 'name'>>;
 
 export type Configs = Record<string, string>;
+export type SettingsPlatformCache = {
+  match: (
+    request: Request
+  ) => Promise<Response | undefined> | Response | undefined;
+  put: (request: Request, response: Response) => Promise<void> | void;
+  delete: (request: Request) => Promise<boolean> | boolean;
+};
+export type SettingsCacheOptions = {
+  cache?: SettingsPlatformCache | null;
+  siteKey?: string;
+};
 
 export type RuntimeConfigKey = 'theme' | 'locale' | 'default_locale';
 
@@ -39,6 +51,8 @@ const log = createUseCaseLogger({
   domain: 'settings',
   useCase: 'settings-store',
 });
+const CONFIGS_CACHE_REVALIDATE_SECONDS = 60;
+const SETTINGS_CACHE_URL = 'https://aooi.local/__settings-cache/configs';
 
 export async function saveSettings(configs: Record<string, string>) {
   const entries = Object.entries(configs);
@@ -55,7 +69,7 @@ export async function saveSettings(configs: Record<string, string>) {
     })
     .returning();
 
-  invalidateSettingsCache();
+  await invalidateSettingsCache();
 
   return result;
 }
@@ -63,13 +77,25 @@ export async function saveSettings(configs: Record<string, string>) {
 export async function addConfig(newConfig: NewConfig) {
   const [result] = await db().insert(config).values(newConfig).returning();
 
-  invalidateSettingsCache();
+  await invalidateSettingsCache();
 
   return result;
 }
 
-export function invalidateSettingsCache() {
-  // Settings reads stay uncached so Cloudflare Worker isolates cannot serve stale config.
+export async function invalidateSettingsCache(
+  options: SettingsCacheOptions = {}
+) {
+  const cache = resolveSettingsPlatformCache(options);
+  if (!cache) return;
+
+  try {
+    await cache.delete(buildSettingsCacheRequest(options.siteKey));
+  } catch (error) {
+    log.warn('[settings-store] settings cache invalidation failed', {
+      operation: 'invalidate-settings-cache',
+      error,
+    });
+  }
 }
 
 async function getConfigsFromDb(): Promise<Configs> {
@@ -97,7 +123,80 @@ export async function readSettingsFresh(): Promise<Configs> {
 }
 
 export async function readSettingsCached(): Promise<Configs> {
-  return readSettingsFresh();
+  return readSettingsWithPlatformCache({
+    readFresh: readSettingsFresh,
+  });
+}
+
+export async function readSettingsWithPlatformCache({
+  readFresh,
+  ...options
+}: SettingsCacheOptions & {
+  readFresh: () => Promise<Configs>;
+}): Promise<Configs> {
+  const cache = resolveSettingsPlatformCache(options);
+  if (!cache) return { ...(await readFresh()) };
+
+  const request = buildSettingsCacheRequest(options.siteKey);
+  try {
+    const cached = await cache.match(request);
+    if (cached?.ok) {
+      const configs = await cached.clone().json();
+      if (isConfigs(configs)) {
+        return { ...configs };
+      }
+    }
+  } catch (error) {
+    log.warn('[settings-store] settings cache read failed', {
+      operation: 'read-settings-cache',
+      error,
+    });
+  }
+
+  const configs = await readFresh();
+  try {
+    await cache.put(
+      request,
+      new Response(JSON.stringify(configs), {
+        headers: {
+          'cache-control': `public, max-age=${CONFIGS_CACHE_REVALIDATE_SECONDS}`,
+          'content-type': 'application/json; charset=utf-8',
+        },
+      })
+    );
+  } catch (error) {
+    log.warn('[settings-store] settings cache write failed', {
+      operation: 'write-settings-cache',
+      error,
+    });
+  }
+
+  return { ...configs };
+}
+
+function resolveSettingsPlatformCache(options: SettingsCacheOptions) {
+  if ('cache' in options) {
+    return options.cache ?? null;
+  }
+
+  return typeof globalThis.caches === 'undefined'
+    ? null
+    : (((globalThis.caches as unknown as { default?: SettingsPlatformCache })
+        .default ?? null) as SettingsPlatformCache | null);
+}
+
+function buildSettingsCacheRequest(siteKey: string = site.key as string) {
+  const url = new URL(SETTINGS_CACHE_URL);
+  url.searchParams.set('site', siteKey);
+  return new Request(url);
+}
+
+function isConfigs(value: unknown): value is Configs {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+
+  return Object.values(value).every((item) => typeof item === 'string');
 }
 
 export async function readSettingsSafe(): Promise<{

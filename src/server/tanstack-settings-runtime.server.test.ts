@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { invalidateSettingsCache } from '@/domains/settings/application/settings-store';
 import {
   AI_RUNTIME_SETTING_KEYS,
   EMAIL_RUNTIME_SETTING_KEYS,
@@ -31,18 +32,40 @@ const TEST_RUNTIME_ENV: ServerRuntimeEnv = {
 
 function buildDeps(input: {
   readConfigRows: ReadTanStackSettingsCachedDeps['readConfigRows'];
+  settingsCache?: ReadTanStackSettingsCachedDeps['settingsCache'];
+  settingsCacheSiteKey?: string;
 }): ReadTanStackSettingsCachedDeps {
   return {
     getTanStackCloudflareBindings: async () => null,
     getRuntimeEnv: () => TEST_RUNTIME_ENV,
     isWorkersRuntime: () => false,
     readConfigRows: input.readConfigRows,
+    settingsCache: input.settingsCache,
+    settingsCacheSiteKey: input.settingsCacheSiteKey ?? 'test-site',
   };
 }
 
-test('readTanStackSettingsCached reads fresh rows on each call', async () => {
+class TestSettingsCache {
+  private readonly store = new Map<string, Response>();
+
+  async match(request: Request) {
+    return this.store.get(request.url)?.clone();
+  }
+
+  async put(request: Request, response: Response) {
+    this.store.set(request.url, response.clone());
+  }
+
+  async delete(request: Request) {
+    return this.store.delete(request.url);
+  }
+}
+
+test('readTanStackSettingsCached reuses platform cached rows', async () => {
   let calls = 0;
+  const settingsCache = new TestSettingsCache();
   const deps = buildDeps({
+    settingsCache,
     readConfigRows: async () => {
       calls += 1;
       return [
@@ -60,14 +83,16 @@ test('readTanStackSettingsCached reads fresh rows on each call', async () => {
   );
   assert.equal(
     (await readTanStackSettingsCached(deps))[PUBLIC_UI_SETTING_KEYS.aiEnabled],
-    'false'
+    'true'
   );
-  assert.equal(calls, 2);
+  assert.equal(calls, 1);
 });
 
 test('readTanStackSettingsCached returns independent row objects', async () => {
   let calls = 0;
+  const settingsCache = new TestSettingsCache();
   const deps = buildDeps({
+    settingsCache,
     readConfigRows: async () => {
       calls += 1;
       return [
@@ -83,13 +108,46 @@ test('readTanStackSettingsCached returns independent row objects', async () => {
   first[PUBLIC_UI_SETTING_KEYS.aiEnabled] = 'mutated';
   const second = await readTanStackSettingsCached(deps);
 
-  assert.equal(second[PUBLIC_UI_SETTING_KEYS.aiEnabled], 'false');
+  assert.equal(second[PUBLIC_UI_SETTING_KEYS.aiEnabled], 'true');
+  assert.equal(calls, 1);
+});
+
+test('readTanStackSettingsCached rereads after cache invalidation', async () => {
+  let calls = 0;
+  const settingsCache = new TestSettingsCache();
+  const deps = buildDeps({
+    settingsCache,
+    readConfigRows: async () => {
+      calls += 1;
+      return [
+        {
+          name: PUBLIC_UI_SETTING_KEYS.aiEnabled,
+          value: calls === 1 ? 'true' : 'false',
+        },
+      ];
+    },
+  });
+
+  assert.equal(
+    (await readTanStackSettingsCached(deps))[PUBLIC_UI_SETTING_KEYS.aiEnabled],
+    'true'
+  );
+  await invalidateSettingsCache({
+    cache: settingsCache,
+    siteKey: 'test-site',
+  });
+  assert.equal(
+    (await readTanStackSettingsCached(deps))[PUBLIC_UI_SETTING_KEYS.aiEnabled],
+    'false'
+  );
   assert.equal(calls, 2);
 });
 
-test('readTanStackPublicUiConfigCached reads fresh public settings', async () => {
+test('readTanStackPublicUiConfigCached reuses platform cached public settings', async () => {
   let calls = 0;
+  const settingsCache = new TestSettingsCache();
   const deps = buildDeps({
+    settingsCache,
     readConfigRows: async () => {
       calls += 1;
       return [
@@ -102,13 +160,15 @@ test('readTanStackPublicUiConfigCached reads fresh public settings', async () =>
   });
 
   assert.equal((await readTanStackPublicUiConfigCached(deps)).aiEnabled, true);
-  assert.equal((await readTanStackPublicUiConfigCached(deps)).aiEnabled, false);
-  assert.equal(calls, 2);
+  assert.equal((await readTanStackPublicUiConfigCached(deps)).aiEnabled, true);
+  assert.equal(calls, 1);
 });
 
 test('readTanStackAiRuntimeSettings defaults to cached and preserves fresh mode', async () => {
   let calls = 0;
+  const settingsCache = new TestSettingsCache();
   const deps = buildDeps({
+    settingsCache,
     readConfigRows: async () => {
       calls += 1;
       return [
@@ -126,20 +186,22 @@ test('readTanStackAiRuntimeSettings defaults to cached and preserves fresh mode'
   );
   assert.equal(
     (await readTanStackAiRuntimeSettings('cached', deps)).aiEnabled,
-    false
+    true
   );
-  assert.equal(calls, 2);
+  assert.equal(calls, 1);
 
   assert.equal(
     (await readTanStackAiRuntimeSettings('fresh', deps)).aiEnabled,
     false
   );
-  assert.equal(calls, 3);
+  assert.equal(calls, 2);
 });
 
 test('readTanStackEmailRuntimeSettings defaults to cached and preserves fresh mode', async () => {
   let calls = 0;
+  const settingsCache = new TestSettingsCache();
   const deps = buildDeps({
+    settingsCache,
     readConfigRows: async () => {
       calls += 1;
       return [
@@ -157,15 +219,15 @@ test('readTanStackEmailRuntimeSettings defaults to cached and preserves fresh mo
   );
   assert.equal(
     (await readTanStackEmailRuntimeSettings(deps)).resendSenderEmail,
-    'ops-next@example.com'
+    'ops@example.com'
   );
-  assert.equal(calls, 2);
+  assert.equal(calls, 1);
 
   assert.equal(
     (await readTanStackEmailRuntimeSettingsFresh(deps)).resendSenderEmail,
     'ops-next@example.com'
   );
-  assert.equal(calls, 3);
+  assert.equal(calls, 2);
 });
 
 test('createRuntimeRandomInt retries rejected values to avoid modulo bias', () => {
