@@ -239,6 +239,15 @@ test('resolveAdminRouteData rejects unsupported localized admin locale segments'
   assert.deepEqual(data, { status: 'not_found' });
 });
 
+test('resolveAdminRouteData rejects unknown admin settings tabs', async () => {
+  const data = await resolveAdminRouteData(
+    { locale: 'en', splat: 'settings/not-a-tab' },
+    buildDeps()
+  );
+
+  assert.deepEqual(data, { status: 'not_found' });
+});
+
 test('resolveAdminRouteData checks section permissions before loading native admin rows', async () => {
   const cases: Array<{ splat: string; codes: string[] }> = [
     {

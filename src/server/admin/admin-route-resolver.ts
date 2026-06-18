@@ -506,12 +506,19 @@ async function buildSettingsPage(
   locale: Locale,
   currentPath: string
 ): Promise<AdminRouteData> {
-  const requestedTab = currentPath.split('/').filter(Boolean)[2] ?? 'auth';
+  const requestedTab = currentPath.split('/').filter(Boolean)[2];
   const availableTabs = await getAvailableSettingTabs();
-  const tab: SettingTabName =
-    isSettingTabName(requestedTab) && availableTabs.includes(requestedTab)
-      ? requestedTab
-      : (availableTabs[0] ?? 'general');
+  const tab: SettingTabName | null =
+    requestedTab === undefined
+      ? (availableTabs[0] ?? 'general')
+      : isSettingTabName(requestedTab) && availableTabs.includes(requestedTab)
+        ? requestedTab
+        : null;
+
+  if (!tab) {
+    return { status: 'not_found' };
+  }
+
   const [settings, groups, configsResult] = await Promise.all([
     getSettings(),
     getSettingGroups(locale),

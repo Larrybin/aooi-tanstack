@@ -1,3 +1,4 @@
+import { loadRootRuntimeInjections } from '@/server/root/root-runtime-injections-data';
 import { NotFoundSurfaceView } from '@/surfaces/system/not-found/not-found.view';
 import {
   createRootRoute,
@@ -14,13 +15,23 @@ import { NativeLocaleProvider } from '@/shared/lib/i18n/native';
 import appCss from '../styles/app.css?url';
 
 export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-    ],
-    links: [{ rel: 'stylesheet', href: appCss }],
-  }),
+  head: async () => {
+    const injections = await loadRootRuntimeInjections({ data: {} });
+
+    return {
+      meta: [
+        { charSet: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        ...injections.meta,
+      ],
+      links: [{ rel: 'stylesheet', href: appCss }],
+      scripts: injections.headScripts,
+    };
+  },
+  scripts: async () => {
+    const injections = await loadRootRuntimeInjections({ data: {} });
+    return injections.bodyScripts;
+  },
   notFoundComponent: NotFoundSurfaceView,
   component: RootDocument,
 });
