@@ -8,7 +8,7 @@ import type { SlugShellData } from '@/surfaces/landing/slug/slug.types';
 import { defaultLocale } from '@/config/locale';
 import { localePath, normalizeLocale } from '@/shared/i18n/locale';
 
-type AiGeneratorKind = 'image' | 'music';
+type AiGeneratorKind = 'image' | 'music' | 'chatbot';
 type Messages = Record<string, unknown>;
 
 export type AiGeneratorRouteInput = {
@@ -52,8 +52,13 @@ export async function resolveAiGeneratorRouteData(
 
   const messages = await loadAiGeneratorMessages(locale, input.kind);
   const pageTitle =
-    getMessage(messages, 'page.title') ?? getFallbackTitle(input.kind);
-  const pageDescription = getMessage(messages, 'page.description') ?? '';
+    getMessage(messages, 'page.title') ??
+    getMessage(messages, 'title') ??
+    getFallbackTitle(input.kind);
+  const pageDescription =
+    getMessage(messages, 'page.description') ??
+    getMessage(messages, 'description') ??
+    '';
   const generatorTitle =
     getMessage(messages, 'generator.title') ?? getFallbackTitle(input.kind);
   const canonicalPath = localizePath(`/${getRouteSlug(input.kind)}`, locale);
@@ -69,9 +74,11 @@ export async function resolveAiGeneratorRouteData(
     },
     generatorTitle,
     generatorMessages:
-      input.kind === 'image'
-        ? getMessagesObject(messages, 'generator')
-        : (messages as AiUiMessages),
+      input.kind === 'chatbot'
+        ? {}
+        : input.kind === 'image'
+          ? getMessagesObject(messages, 'generator')
+          : (messages as AiUiMessages),
     head: {
       meta: [
         { title: getMessage(messages, 'metadata.title') ?? pageTitle },
@@ -87,7 +94,7 @@ export async function resolveAiGeneratorRouteData(
 }
 
 async function loadAiGeneratorMessages(locale: string, kind: AiGeneratorKind) {
-  const path = `ai/${kind}`;
+  const path = kind === 'chatbot' ? 'demo/ai-chatbot' : `ai/${kind}`;
   const baseMessages = await importMessages(path, defaultLocale);
   if (locale === defaultLocale) return baseMessages;
 
@@ -115,11 +122,15 @@ async function importMessagesOptional(path: string, locale: string) {
 }
 
 function getRouteSlug(kind: AiGeneratorKind) {
-  return kind === 'image' ? 'ai-image-generator' : 'ai-music-generator';
+  if (kind === 'image') return 'ai-image-generator';
+  if (kind === 'music') return 'ai-music-generator';
+  return 'ai-chatbot';
 }
 
 function getFallbackTitle(kind: AiGeneratorKind) {
-  return kind === 'image' ? 'AI Image Generator' : 'AI Music Generator';
+  if (kind === 'image') return 'AI Image Generator';
+  if (kind === 'music') return 'AI Music Generator';
+  return 'AI Chatbot';
 }
 
 function localizePath(path: string, locale: string) {

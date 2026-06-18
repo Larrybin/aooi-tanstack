@@ -6,7 +6,12 @@ export const loadAiGeneratorRouteData = createServerFn({ method: 'GET' })
   .validator((data: unknown): AiGeneratorRouteInput => {
     const input =
       data && typeof data === 'object' ? (data as Record<string, unknown>) : {};
-    const kind = input.kind === 'music' ? 'music' : 'image';
+    const kind =
+      input.kind === 'music'
+        ? 'music'
+        : input.kind === 'chatbot'
+          ? 'chatbot'
+          : 'image';
 
     return {
       locale: typeof input.locale === 'string' ? input.locale : '',
@@ -14,8 +19,7 @@ export const loadAiGeneratorRouteData = createServerFn({ method: 'GET' })
     };
   })
   .handler(async ({ data }) => {
-    const { resolveAiGeneratorRouteData } = await import(
-      './ai-generator-route-resolver'
-    );
+    const { resolveAiGeneratorRouteData } =
+      await import('./ai-generator-route-resolver');
     return resolveAiGeneratorRouteData(data);
   });

@@ -24,6 +24,7 @@ import { Route as ChatRouteImport } from './routes/chat_'
 import { Route as BlogRouteImport } from './routes/blog_'
 import { Route as AiMusicGeneratorRouteImport } from './routes/ai-music-generator'
 import { Route as AiImageGeneratorRouteImport } from './routes/ai-image-generator'
+import { Route as AiChatbotRouteImport } from './routes/ai-chatbot'
 import { Route as AdsDottxtRouteImport } from './routes/ads[.]txt'
 import { Route as AdminRouteImport } from './routes/admin_'
 import { Route as ActivityRouteImport } from './routes/activity_'
@@ -57,6 +58,7 @@ import { Route as LocaleChatRouteImport } from './routes/$locale/chat_'
 import { Route as LocaleBlogRouteImport } from './routes/$locale/blog_'
 import { Route as LocaleAiMusicGeneratorRouteImport } from './routes/$locale/ai-music-generator'
 import { Route as LocaleAiImageGeneratorRouteImport } from './routes/$locale/ai-image-generator'
+import { Route as LocaleAiChatbotRouteImport } from './routes/$locale/ai-chatbot'
 import { Route as LocaleAdminRouteImport } from './routes/$locale/admin_'
 import { Route as LocaleActivityRouteImport } from './routes/$locale/activity_'
 import { Route as LocaleSlugRouteImport } from './routes/$locale/$slug'
@@ -197,6 +199,11 @@ const AiMusicGeneratorRoute = AiMusicGeneratorRouteImport.update({
 const AiImageGeneratorRoute = AiImageGeneratorRouteImport.update({
   id: '/ai-image-generator',
   path: '/ai-image-generator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiChatbotRoute = AiChatbotRouteImport.update({
+  id: '/ai-chatbot',
+  path: '/ai-chatbot',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdsDottxtRoute = AdsDottxtRouteImport.update({
@@ -362,6 +369,11 @@ const LocaleAiMusicGeneratorRoute = LocaleAiMusicGeneratorRouteImport.update({
 const LocaleAiImageGeneratorRoute = LocaleAiImageGeneratorRouteImport.update({
   id: '/$locale/ai-image-generator',
   path: '/$locale/ai-image-generator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocaleAiChatbotRoute = LocaleAiChatbotRouteImport.update({
+  id: '/$locale/ai-chatbot',
+  path: '/$locale/ai-chatbot',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LocaleAdminRoute = LocaleAdminRouteImport.update({
@@ -716,6 +728,7 @@ export interface FileRoutesByFullPath {
   '/activity': typeof ActivityRoute
   '/admin': typeof AdminRoute
   '/ads.txt': typeof AdsDottxtRoute
+  '/ai-chatbot': typeof AiChatbotRoute
   '/ai-image-generator': typeof AiImageGeneratorRoute
   '/ai-music-generator': typeof AiMusicGeneratorRoute
   '/blog': typeof BlogRoute
@@ -734,6 +747,7 @@ export interface FileRoutesByFullPath {
   '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/activity': typeof LocaleActivityRoute
   '/$locale/admin': typeof LocaleAdminRoute
+  '/$locale/ai-chatbot': typeof LocaleAiChatbotRoute
   '/$locale/ai-image-generator': typeof LocaleAiImageGeneratorRoute
   '/$locale/ai-music-generator': typeof LocaleAiMusicGeneratorRoute
   '/$locale/blog': typeof LocaleBlogRoute
@@ -832,6 +846,7 @@ export interface FileRoutesByTo {
   '/activity': typeof ActivityRoute
   '/admin': typeof AdminRoute
   '/ads.txt': typeof AdsDottxtRoute
+  '/ai-chatbot': typeof AiChatbotRoute
   '/ai-image-generator': typeof AiImageGeneratorRoute
   '/ai-music-generator': typeof AiMusicGeneratorRoute
   '/blog': typeof BlogRoute
@@ -850,6 +865,7 @@ export interface FileRoutesByTo {
   '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/activity': typeof LocaleActivityRoute
   '/$locale/admin': typeof LocaleAdminRoute
+  '/$locale/ai-chatbot': typeof LocaleAiChatbotRoute
   '/$locale/ai-image-generator': typeof LocaleAiImageGeneratorRoute
   '/$locale/ai-music-generator': typeof LocaleAiMusicGeneratorRoute
   '/$locale/blog': typeof LocaleBlogRoute
@@ -949,6 +965,7 @@ export interface FileRoutesById {
   '/activity_': typeof ActivityRoute
   '/admin_': typeof AdminRoute
   '/ads.txt': typeof AdsDottxtRoute
+  '/ai-chatbot': typeof AiChatbotRoute
   '/ai-image-generator': typeof AiImageGeneratorRoute
   '/ai-music-generator': typeof AiMusicGeneratorRoute
   '/blog_': typeof BlogRoute
@@ -967,6 +984,7 @@ export interface FileRoutesById {
   '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/activity_': typeof LocaleActivityRoute
   '/$locale/admin_': typeof LocaleAdminRoute
+  '/$locale/ai-chatbot': typeof LocaleAiChatbotRoute
   '/$locale/ai-image-generator': typeof LocaleAiImageGeneratorRoute
   '/$locale/ai-music-generator': typeof LocaleAiMusicGeneratorRoute
   '/$locale/blog_': typeof LocaleBlogRoute
@@ -1067,6 +1085,7 @@ export interface FileRouteTypes {
     | '/activity'
     | '/admin'
     | '/ads.txt'
+    | '/ai-chatbot'
     | '/ai-image-generator'
     | '/ai-music-generator'
     | '/blog'
@@ -1085,6 +1104,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug'
     | '/$locale/activity'
     | '/$locale/admin'
+    | '/$locale/ai-chatbot'
     | '/$locale/ai-image-generator'
     | '/$locale/ai-music-generator'
     | '/$locale/blog'
@@ -1183,6 +1203,7 @@ export interface FileRouteTypes {
     | '/activity'
     | '/admin'
     | '/ads.txt'
+    | '/ai-chatbot'
     | '/ai-image-generator'
     | '/ai-music-generator'
     | '/blog'
@@ -1201,6 +1222,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug'
     | '/$locale/activity'
     | '/$locale/admin'
+    | '/$locale/ai-chatbot'
     | '/$locale/ai-image-generator'
     | '/$locale/ai-music-generator'
     | '/$locale/blog'
@@ -1299,6 +1321,7 @@ export interface FileRouteTypes {
     | '/activity_'
     | '/admin_'
     | '/ads.txt'
+    | '/ai-chatbot'
     | '/ai-image-generator'
     | '/ai-music-generator'
     | '/blog_'
@@ -1317,6 +1340,7 @@ export interface FileRouteTypes {
     | '/$locale/$slug'
     | '/$locale/activity_'
     | '/$locale/admin_'
+    | '/$locale/ai-chatbot'
     | '/$locale/ai-image-generator'
     | '/$locale/ai-music-generator'
     | '/$locale/blog_'
@@ -1416,6 +1440,7 @@ export interface RootRouteChildren {
   ActivityRoute: typeof ActivityRoute
   AdminRoute: typeof AdminRoute
   AdsDottxtRoute: typeof AdsDottxtRoute
+  AiChatbotRoute: typeof AiChatbotRoute
   AiImageGeneratorRoute: typeof AiImageGeneratorRoute
   AiMusicGeneratorRoute: typeof AiMusicGeneratorRoute
   BlogRoute: typeof BlogRoute
@@ -1434,6 +1459,7 @@ export interface RootRouteChildren {
   LocaleSlugRoute: typeof LocaleSlugRoute
   LocaleActivityRoute: typeof LocaleActivityRoute
   LocaleAdminRoute: typeof LocaleAdminRoute
+  LocaleAiChatbotRoute: typeof LocaleAiChatbotRoute
   LocaleAiImageGeneratorRoute: typeof LocaleAiImageGeneratorRoute
   LocaleAiMusicGeneratorRoute: typeof LocaleAiMusicGeneratorRoute
   LocaleBlogRoute: typeof LocaleBlogRoute
@@ -1626,6 +1652,13 @@ declare module '@tanstack/react-router' {
       path: '/ai-image-generator'
       fullPath: '/ai-image-generator'
       preLoaderRoute: typeof AiImageGeneratorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-chatbot': {
+      id: '/ai-chatbot'
+      path: '/ai-chatbot'
+      fullPath: '/ai-chatbot'
+      preLoaderRoute: typeof AiChatbotRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ads.txt': {
@@ -1857,6 +1890,13 @@ declare module '@tanstack/react-router' {
       path: '/$locale/ai-image-generator'
       fullPath: '/$locale/ai-image-generator'
       preLoaderRoute: typeof LocaleAiImageGeneratorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/ai-chatbot': {
+      id: '/$locale/ai-chatbot'
+      path: '/$locale/ai-chatbot'
+      fullPath: '/$locale/ai-chatbot'
+      preLoaderRoute: typeof LocaleAiChatbotRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$locale/admin_': {
@@ -2370,6 +2410,7 @@ const rootRouteChildren: RootRouteChildren = {
   ActivityRoute: ActivityRoute,
   AdminRoute: AdminRoute,
   AdsDottxtRoute: AdsDottxtRoute,
+  AiChatbotRoute: AiChatbotRoute,
   AiImageGeneratorRoute: AiImageGeneratorRoute,
   AiMusicGeneratorRoute: AiMusicGeneratorRoute,
   BlogRoute: BlogRoute,
@@ -2388,6 +2429,7 @@ const rootRouteChildren: RootRouteChildren = {
   LocaleSlugRoute: LocaleSlugRoute,
   LocaleActivityRoute: LocaleActivityRoute,
   LocaleAdminRoute: LocaleAdminRoute,
+  LocaleAiChatbotRoute: LocaleAiChatbotRoute,
   LocaleAiImageGeneratorRoute: LocaleAiImageGeneratorRoute,
   LocaleAiMusicGeneratorRoute: LocaleAiMusicGeneratorRoute,
   LocaleBlogRoute: LocaleBlogRoute,

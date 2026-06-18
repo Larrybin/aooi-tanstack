@@ -65,3 +65,16 @@ test('resolveAiGeneratorRouteData loads music generator route copy', async () =>
     'Music Generator'
   );
 });
+
+test('resolveAiGeneratorRouteData loads chatbot demo route copy', async () => {
+  const data = await resolveAiGeneratorRouteData(
+    { locale: 'zh', kind: 'chatbot' },
+    buildDeps(true)
+  );
+
+  assert.ok(data);
+  assert.equal(data.kind, 'chatbot');
+  assert.equal(data.canonicalPath, '/zh/ai-chatbot');
+  assert.equal(data.page.title, 'AI 聊天机器人');
+  assert.equal(data.page.description, '与 AI 助手对话，体验演示功能。');
+});
