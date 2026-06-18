@@ -12,6 +12,7 @@
     "apps/web/src/**/*.tsx",
     "types/tanstack-cloudflare.d.ts",
     "src/shared/types/blocks/**/*.d.ts",
+    "src/shared/types/overtype.d.ts",
     "src/shared/seo/**/*.ts",
     "src/shared/i18n/**/*.ts",
     "src/shared/brand/**/*.ts",
