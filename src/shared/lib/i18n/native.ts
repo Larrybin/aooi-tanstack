@@ -1,3 +1,10 @@
+import {
+  createContext,
+  createElement,
+  useContext,
+  type ReactNode,
+} from 'react';
+
 import { defaultLocale, locales, type Locale } from '@/config/locale';
 import enAdminSettingsMessages from '@/config/locale/messages/en/admin/settings.json';
 import enAiChatMessages from '@/config/locale/messages/en/ai/chat.json';
@@ -43,12 +50,29 @@ const messageBundles: Partial<Record<Locale, MessageBundle>> = {
 };
 
 const namespaceRoots = ['admin.settings', 'ai.chat', 'common'] as const;
+const NativeLocaleContext = createContext<Locale | null>(null);
 
 export function getRequestLocaleFallback(): Locale {
   return defaultLocale;
 }
 
+export function NativeLocaleProvider({
+  children,
+  locale,
+}: {
+  children: ReactNode;
+  locale: Locale;
+}) {
+  return createElement(
+    NativeLocaleContext.Provider,
+    { value: locale },
+    children
+  );
+}
+
 export function useLocale(): Locale {
+  const contextLocale = useContext(NativeLocaleContext);
+  if (contextLocale) return contextLocale;
   if (typeof globalThis.location === 'undefined') return defaultLocale;
   const firstSegment = globalThis.location.pathname
     .split('/')

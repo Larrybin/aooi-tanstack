@@ -9,6 +9,7 @@ import {
 
 import { defaultLocale, isRtlLocale } from '@/config/locale';
 import { getLocaleFromPathname } from '@/shared/i18n/locale';
+import { NativeLocaleProvider } from '@/shared/lib/i18n/native';
 
 import appCss from '../styles/app.css?url';
 
@@ -35,7 +36,9 @@ function RootDocument() {
         <HeadContent />
       </head>
       <body>
-        <Outlet />
+        <NativeLocaleProvider locale={locale}>
+          <Outlet />
+        </NativeLocaleProvider>
         <Scripts />
       </body>
     </html>
