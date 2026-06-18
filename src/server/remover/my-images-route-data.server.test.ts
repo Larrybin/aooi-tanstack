@@ -47,6 +47,19 @@ test('loadMyImagesRouteCopy returns localized My Images labels', async () => {
   assert.equal(copy.statuses.succeeded, '已完成');
 });
 
+test('TanStack My Images localized route rejects invalid locale data', async () => {
+  const routeSource = await readRepoFile(
+    'apps/web/src/routes/$locale/my-images.tsx'
+  );
+  const loaderSource = await readRepoFile(
+    'src/server/remover/my-images-route-data.ts'
+  );
+
+  assert.match(loaderSource, /const locale = normalizeLocale\(data\.locale\);/);
+  assert.match(loaderSource, /if \(!locale\) return null;/);
+  assert.match(routeSource, /if \(!data\) \{\s*throw notFound/);
+});
+
 async function readRepoFile(repoPath: string) {
   return await readFile(path.resolve(rootDir, repoPath), 'utf8');
 }

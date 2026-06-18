@@ -11,7 +11,14 @@ export const Route = createFileRoute('/my-images')({
       throw notFound();
     }
 
-    return loadMyImagesRouteData({ data: { locale: defaultLocale } });
+    const data = await loadMyImagesRouteData({
+      data: { locale: defaultLocale },
+    });
+    if (!data) {
+      throw notFound();
+    }
+
+    return data;
   },
   component: MyImagesRoute,
 });

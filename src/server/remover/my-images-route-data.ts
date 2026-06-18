@@ -57,10 +57,11 @@ export const loadMyImagesRouteData = createServerFn({ method: 'GET' })
       locale: typeof input.locale === 'string' ? input.locale : defaultLocale,
     };
   })
-  .handler(async ({ data }): Promise<MyImagesRouteData> => {
+  .handler(async ({ data }): Promise<MyImagesRouteData | null> => {
     const request = getRequest();
     const user = await getSignedInUserIdentityFromRequest(request);
-    const locale = normalizeLocale(data.locale) ?? defaultLocale;
+    const locale = normalizeLocale(data.locale);
+    if (!locale) return null;
     const copy = await loadMyImagesRouteCopy(locale);
     if (!user) return { locale, signedIn: false, jobs: [], copy };
     const anonymousSessionId = await resolveAnonymousSessionId(request);
