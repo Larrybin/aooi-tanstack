@@ -24,3 +24,27 @@ test('resolveDocsRouteData returns null for unknown docs slug', () => {
     null
   );
 });
+
+test('resolveDocsRouteData replaces brand placeholders in docs content', () => {
+  const index = resolveDocsRouteData({ locale: 'en', slug: [] });
+  const quickStart = resolveDocsRouteData({
+    locale: 'en',
+    slug: ['quick-start'],
+  });
+
+  assert.ok(index);
+  assert.ok(quickStart);
+
+  for (const data of [index, quickStart]) {
+    assert.doesNotMatch(data.title, /YourAppName|your-domain\.com/);
+    assert.doesNotMatch(data.description, /YourAppName|your-domain\.com/);
+    assert.doesNotMatch(data.content, /YourAppName|your-domain\.com/);
+  }
+});
+
+test('resolveDocsRouteData returns null for unsupported locale', () => {
+  assert.equal(
+    resolveDocsRouteData({ locale: 'foo', slug: ['quick-start'] }),
+    null
+  );
+});

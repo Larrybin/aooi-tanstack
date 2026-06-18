@@ -1,6 +1,9 @@
 import { getLocalPublicContentDocument } from '@/domains/content/application/public-content-manifest';
+import {
+  buildBrandPlaceholderValues,
+  replaceBrandPlaceholders,
+} from '@/infra/platform/brand/placeholders.server';
 
-import { defaultLocale } from '@/config/locale';
 import { normalizeLocale } from '@/shared/i18n/locale';
 
 export type DocsRouteInput = {
@@ -27,7 +30,8 @@ export function normalizeDocsSlug(slug: unknown): string[] {
 export function resolveDocsRouteData(
   input: DocsRouteInput
 ): DocsRouteData | null {
-  const locale = normalizeLocale(input.locale) ?? defaultLocale;
+  const locale = normalizeLocale(input.locale);
+  if (!locale) return null;
   const slug = normalizeDocsSlug(input.slug);
   const document = getLocalPublicContentDocument({
     collection: 'docs',
@@ -36,10 +40,12 @@ export function resolveDocsRouteData(
   });
   if (!document) return null;
 
+  const brand = buildBrandPlaceholderValues();
+
   return {
-    title: document.title || 'Documentation',
-    description: document.description || '',
-    content: document.content,
+    title: replaceBrandPlaceholders(document.title || 'Documentation', brand),
+    description: replaceBrandPlaceholders(document.description || '', brand),
+    content: replaceBrandPlaceholders(document.content, brand),
     slug,
     locale,
   };
