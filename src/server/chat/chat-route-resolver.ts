@@ -1,9 +1,11 @@
 import { checkUserPermission } from '@/domains/access-control/application/checker';
+import { isAiEnabled } from '@/domains/ai/domain/enablement';
 import { readMemberChatThreadQuery } from '@/domains/chat/application/member-chats.query';
+import { readPublicUiConfigCached } from '@/domains/settings/application/settings-runtime.query';
+import type { PublicUiConfig } from '@/domains/settings/application/settings-runtime.contracts';
 import { readUserPermissionCodes } from '@/infra/adapters/access-control/repository';
 import { getSignedInUserIdentityFromRequest } from '@/infra/platform/auth/session-by-request';
 import { createUseCaseLogger } from '@/infra/platform/logging/logger.server';
-import { getRequest } from '@tanstack/react-start/server';
 
 import { defaultLocale } from '@/config/locale';
 import { localePath, normalizeLocale } from '@/shared/i18n/locale';
@@ -13,15 +15,27 @@ import type { Chat } from '@/shared/types/chat';
 
 type ChatRouteInput = { locale: string; chatId?: string };
 
-export type ChatShellRouteData = {
-  status: 'ok';
-  locale: string;
-  initialUser: AuthSessionUserSnapshot | null;
+type ChatRouteDeps = {
+  readPublicUiConfig: () => Promise<PublicUiConfig>;
+  getCurrentRequest: () => Request | Promise<Request>;
+  readSignedInUser: (
+    request: Request
+  ) => Promise<AuthSessionUserIdentity | null>;
+  userHasAdminAccess: (userId: string) => Promise<boolean>;
+  readChatThread: typeof readMemberChatThreadQuery;
 };
+
+export type ChatShellRouteData =
+  | { status: 'hidden' }
+  | {
+      status: 'ok';
+      locale: string;
+      initialUser: AuthSessionUserSnapshot | null;
+    };
 
 export type ChatThreadRouteData =
   | { status: 'unauthenticated'; redirectTo: string }
-  | { status: 'hidden'; redirectTo: string }
+  | { status: 'hidden'; redirectTo?: string }
   | {
       status: 'ok';
       locale: string;
@@ -43,20 +57,44 @@ function toSnapshot(user: AuthSessionUserIdentity | null): AuthSessionUserSnapsh
   return { name: user.name, email: user.email, image: user.image };
 }
 
+const defaultChatRouteDeps: ChatRouteDeps = {
+  readPublicUiConfig: readPublicUiConfigCached,
+  getCurrentRequest: async () => {
+    const { getRequest } = await import('@tanstack/react-start/server');
+    return getRequest();
+  },
+  readSignedInUser: getSignedInUserIdentityFromRequest,
+  userHasAdminAccess: (userId) =>
+    checkUserPermission(userId, PERMISSIONS.ADMIN_ACCESS, {
+      readUserPermissionCodes,
+    }),
+  readChatThread: readMemberChatThreadQuery,
+};
+
 export async function resolveChatShellRouteData(
-  input: ChatRouteInput
+  input: ChatRouteInput,
+  deps: ChatRouteDeps = defaultChatRouteDeps
 ): Promise<ChatShellRouteData> {
   const locale = resolveLocale(input.locale);
-  const user = await getSignedInUserIdentityFromRequest(getRequest());
+  if (!isAiEnabled(await deps.readPublicUiConfig())) {
+    return { status: 'hidden' };
+  }
+
+  const user = await deps.readSignedInUser(await deps.getCurrentRequest());
   return { status: 'ok' as const, locale, initialUser: toSnapshot(user) };
 }
 
 export async function resolveChatThreadRouteData(
-  input: ChatRouteInput
+  input: ChatRouteInput,
+  deps: ChatRouteDeps = defaultChatRouteDeps
 ): Promise<ChatThreadRouteData> {
   const locale = resolveLocale(input.locale);
+  if (!isAiEnabled(await deps.readPublicUiConfig())) {
+    return { status: 'hidden' };
+  }
+
   const chatId = input.chatId?.trim() ?? '';
-  const user = await getSignedInUserIdentityFromRequest(getRequest());
+  const user = await deps.readSignedInUser(await deps.getCurrentRequest());
   if (!user) {
     return {
       status: 'unauthenticated' as const,
@@ -64,8 +102,8 @@ export async function resolveChatThreadRouteData(
     };
   }
 
-  const viewerHasAdminAccess = await checkUserPermission(user.id, PERMISSIONS.ADMIN_ACCESS, { readUserPermissionCodes });
-  const result = await readMemberChatThreadQuery({
+  const viewerHasAdminAccess = await deps.userHasAdminAccess(user.id);
+  const result = await deps.readChatThread({
     chatId,
     viewerUserId: user.id,
     viewerHasAdminAccess,

@@ -7,7 +7,7 @@ import {
   ChatThreadRouteView,
 } from '@/surfaces/chat/chat-route.view';
 import type { ChatShellRouteData, ChatThreadRouteData } from '@/server/chat/chat-route-resolver';
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
 import type { UIMessage } from 'ai';
 
 import { defaultLocale } from '@/config/locale';
@@ -16,14 +16,22 @@ export const Route = createFileRoute('/chat/$')({
   loader: async ({ params }) => {
     const splat = (params as { _splat?: string })._splat ?? '';
     if (splat === 'history') {
+      const data = (await loadChatShellRouteData({
+        data: { locale: defaultLocale },
+      })) as ChatShellRouteData;
+      if (data.status === 'hidden') throw notFound();
       return {
         kind: 'history' as const,
-        data: (await loadChatShellRouteData({ data: { locale: defaultLocale } }) as ChatShellRouteData),
+        data,
       };
     }
     const data = (await loadChatThreadRouteData({
       data: { locale: defaultLocale, chatId: splat },
     })) as ChatThreadRouteData;
+    if (data.status === 'hidden') {
+      if (data.redirectTo) throw redirect({ href: data.redirectTo });
+      throw notFound();
+    }
     if (data.status !== 'ok') throw redirect({ href: data.redirectTo });
     return { kind: 'thread' as const, data };
   },
