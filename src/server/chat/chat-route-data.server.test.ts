@@ -55,6 +55,23 @@ test('resolveChatShellRouteData hides chat when AI is disabled', async () => {
   assert.equal(readUser, false);
 });
 
+test('resolveChatShellRouteData rejects unsupported locales before reading settings', async () => {
+  let readConfig = false;
+
+  const data = await resolveChatShellRouteData(
+    { locale: 'foo' },
+    buildDeps({
+      readPublicUiConfig: async () => {
+        readConfig = true;
+        return publicConfig(true);
+      },
+    })
+  );
+
+  assert.deepEqual(data, { status: 'hidden' });
+  assert.equal(readConfig, false);
+});
+
 test('resolveChatThreadRouteData hides chat thread when AI is disabled', async () => {
   let readUser = false;
 
@@ -71,4 +88,21 @@ test('resolveChatThreadRouteData hides chat thread when AI is disabled', async (
 
   assert.deepEqual(data, { status: 'hidden' });
   assert.equal(readUser, false);
+});
+
+test('resolveChatThreadRouteData rejects unsupported locales before reading settings', async () => {
+  let readConfig = false;
+
+  const data = await resolveChatThreadRouteData(
+    { locale: 'foo', chatId: 'thread_1' },
+    buildDeps({
+      readPublicUiConfig: async () => {
+        readConfig = true;
+        return publicConfig(true);
+      },
+    })
+  );
+
+  assert.deepEqual(data, { status: 'hidden' });
+  assert.equal(readConfig, false);
 });

@@ -15,6 +15,10 @@ import { claimRemoverQuotaReservationById } from '@/domains/remover/infra/quota-
 import { getStorageService } from '@/infra/adapters/storage/service';
 import { getSignedInUserIdentityFromRequest } from '@/infra/platform/auth/session-by-request';
 import { getRuntimeEnvString } from '@/infra/runtime/env.server';
+import {
+  loadMyImagesRouteCopy,
+  type MyImagesRouteCopy,
+} from '@/server/remover/my-images-route-copy';
 import { createServerFn } from '@tanstack/react-start';
 import { getRequest } from '@tanstack/react-start/server';
 
@@ -34,6 +38,7 @@ export type MyImagesRouteData = {
   locale: string;
   signedIn: boolean;
   jobs: MyImagesJob[];
+  copy: MyImagesRouteCopy;
 };
 
 async function resolveAnonymousSessionId(request: Request) {
@@ -56,7 +61,8 @@ export const loadMyImagesRouteData = createServerFn({ method: 'GET' })
     const request = getRequest();
     const user = await getSignedInUserIdentityFromRequest(request);
     const locale = normalizeLocale(data.locale) ?? defaultLocale;
-    if (!user) return { locale, signedIn: false, jobs: [] };
+    const copy = await loadMyImagesRouteCopy(locale);
+    if (!user) return { locale, signedIn: false, jobs: [], copy };
     const anonymousSessionId = await resolveAnonymousSessionId(request);
     const jobs = await listMyRemoverJobsForActor({
       actor: {
@@ -76,6 +82,7 @@ export const loadMyImagesRouteData = createServerFn({ method: 'GET' })
     return {
       locale,
       signedIn: true,
+      copy,
       jobs: jobs.map((job) => ({
         id: job.id,
         status: job.status ?? '',

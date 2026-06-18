@@ -1,6 +1,6 @@
 import { isAiEnabled } from '@/domains/ai/domain/enablement';
 import type { AiUiMessages } from '@/domains/ai/ui/i18n';
-import { readPublicUiConfigCached } from '@/domains/settings/application/settings-runtime.query';
+import { readBuildPublicUiConfig } from '@/domains/settings/application/settings-build.query';
 import type { PublicUiConfig } from '@/domains/settings/application/settings-runtime.contracts';
 import { resolveLandingShellData } from '@/server/landing/landing-shell-data';
 import type { SlugShellData } from '@/surfaces/landing/slug/slug.types';
@@ -34,11 +34,11 @@ export type AiGeneratorRouteData = {
 };
 
 type AiGeneratorRouteDeps = {
-  readPublicUiConfig: () => Promise<PublicUiConfig>;
+  readBuildPublicUiConfig: () => PublicUiConfig;
 };
 
 const defaultDeps: AiGeneratorRouteDeps = {
-  readPublicUiConfig: readPublicUiConfigCached,
+  readBuildPublicUiConfig,
 };
 
 export async function resolveAiGeneratorRouteData(
@@ -46,12 +46,13 @@ export async function resolveAiGeneratorRouteData(
   deps: AiGeneratorRouteDeps = defaultDeps
 ): Promise<AiGeneratorRouteData | null> {
   const locale = normalizeLocale(input.locale);
-  if (!locale || !isAiEnabled(await deps.readPublicUiConfig())) {
+  if (!locale || !isAiEnabled(deps.readBuildPublicUiConfig())) {
     return null;
   }
 
   const messages = await loadAiGeneratorMessages(locale, input.kind);
-  const pageTitle = getMessage(messages, 'page.title') ?? getFallbackTitle(input.kind);
+  const pageTitle =
+    getMessage(messages, 'page.title') ?? getFallbackTitle(input.kind);
   const pageDescription = getMessage(messages, 'page.description') ?? '';
   const generatorTitle =
     getMessage(messages, 'generator.title') ?? getFallbackTitle(input.kind);

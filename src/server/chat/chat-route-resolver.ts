@@ -1,16 +1,19 @@
 import { checkUserPermission } from '@/domains/access-control/application/checker';
 import { isAiEnabled } from '@/domains/ai/domain/enablement';
 import { readMemberChatThreadQuery } from '@/domains/chat/application/member-chats.query';
-import { readPublicUiConfigCached } from '@/domains/settings/application/settings-runtime.query';
 import type { PublicUiConfig } from '@/domains/settings/application/settings-runtime.contracts';
+import { readPublicUiConfigCached } from '@/domains/settings/application/settings-runtime.query';
 import { readUserPermissionCodes } from '@/infra/adapters/access-control/repository';
 import { getSignedInUserIdentityFromRequest } from '@/infra/platform/auth/session-by-request';
 import { createUseCaseLogger } from '@/infra/platform/logging/logger.server';
 
 import { defaultLocale } from '@/config/locale';
-import { localePath, normalizeLocale } from '@/shared/i18n/locale';
 import { PERMISSIONS } from '@/shared/constants/rbac-permissions';
-import type { AuthSessionUserIdentity, AuthSessionUserSnapshot } from '@/shared/types/auth-session';
+import { localePath, normalizeLocale } from '@/shared/i18n/locale';
+import type {
+  AuthSessionUserIdentity,
+  AuthSessionUserSnapshot,
+} from '@/shared/types/auth-session';
 import type { Chat } from '@/shared/types/chat';
 
 type ChatRouteInput = { locale: string; chatId?: string };
@@ -45,14 +48,16 @@ export type ChatThreadRouteData =
     };
 
 function resolveLocale(value: string) {
-  return normalizeLocale(value) ?? defaultLocale;
+  return normalizeLocale(value);
 }
 
 function localizeHref(locale: string, path: string) {
   return locale === defaultLocale ? path : localePath(path, locale);
 }
 
-function toSnapshot(user: AuthSessionUserIdentity | null): AuthSessionUserSnapshot | null {
+function toSnapshot(
+  user: AuthSessionUserIdentity | null
+): AuthSessionUserSnapshot | null {
   if (!user) return null;
   return { name: user.name, email: user.email, image: user.image };
 }
@@ -76,6 +81,10 @@ export async function resolveChatShellRouteData(
   deps: ChatRouteDeps = defaultChatRouteDeps
 ): Promise<ChatShellRouteData> {
   const locale = resolveLocale(input.locale);
+  if (!locale) {
+    return { status: 'hidden' };
+  }
+
   if (!isAiEnabled(await deps.readPublicUiConfig())) {
     return { status: 'hidden' };
   }
@@ -89,6 +98,10 @@ export async function resolveChatThreadRouteData(
   deps: ChatRouteDeps = defaultChatRouteDeps
 ): Promise<ChatThreadRouteData> {
   const locale = resolveLocale(input.locale);
+  if (!locale) {
+    return { status: 'hidden' };
+  }
+
   if (!isAiEnabled(await deps.readPublicUiConfig())) {
     return { status: 'hidden' };
   }
@@ -107,17 +120,27 @@ export async function resolveChatThreadRouteData(
     chatId,
     viewerUserId: user.id,
     viewerHasAdminAccess,
-    log: createUseCaseLogger({ domain: 'chat', useCase: 'member-chat-thread', operation: 'page-load' }),
+    log: createUseCaseLogger({
+      domain: 'chat',
+      useCase: 'member-chat-thread',
+      operation: 'page-load',
+    }),
   });
   if (result.status !== 'ok') {
-    return { status: 'hidden' as const, redirectTo: localizeHref(locale, '/no-permission') };
+    return {
+      status: 'hidden' as const,
+      redirectTo: localizeHref(locale, '/no-permission'),
+    };
   }
 
   const { chat, messages } = result.thread;
   const initialChat: Chat = {
     id: chat.id,
     title: chat.title ?? '',
-    createdAt: chat.createdAt instanceof Date ? chat.createdAt.toISOString() : String(chat.createdAt),
+    createdAt:
+      chat.createdAt instanceof Date
+        ? chat.createdAt.toISOString()
+        : String(chat.createdAt),
     model: chat.model ?? '',
     provider: chat.provider ?? '',
     parts: chat.parts ?? '[]',

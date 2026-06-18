@@ -23,7 +23,7 @@ function publicConfig(aiEnabled: boolean) {
 
 function buildDeps(aiEnabled: boolean): AiGeneratorRouteDeps {
   return {
-    readPublicUiConfig: async () => publicConfig(aiEnabled),
+    readBuildPublicUiConfig: () => publicConfig(aiEnabled),
   };
 }
 

@@ -4,6 +4,7 @@ import path from 'node:path';
 import test from 'node:test';
 
 import { buildRemoveMyImagesJobRequest } from './my-images-job-request';
+import { loadMyImagesRouteCopy } from './my-images-route-copy';
 
 const rootDir = process.cwd();
 
@@ -36,6 +37,14 @@ test('TanStack remover job DELETE path applies the remover API guard', async () 
     source,
     /requireRemoverSite\(\);[\s\S]*return\s+removeMyImagesJob\(request\)/
   );
+});
+
+test('loadMyImagesRouteCopy returns localized My Images labels', async () => {
+  const copy = await loadMyImagesRouteCopy('zh');
+
+  assert.equal(copy.title, '我的图片');
+  assert.equal(copy.signInButton, '登录');
+  assert.equal(copy.statuses.succeeded, '已完成');
 });
 
 async function readRepoFile(repoPath: string) {
