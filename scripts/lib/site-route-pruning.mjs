@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { mkdir, readdir, rename, rm, stat } from 'node:fs/promises';
+import { copyFile, mkdir, readdir, rename, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 const FREE_TOOL_ROUTE_PRUNE_PATHS = Object.freeze([
@@ -26,6 +26,62 @@ const FREE_TOOL_ROUTE_PRUNE_PATHS = Object.freeze([
   'src/app/api/storage',
   'src/app/api/tts',
   'src/app/api/user',
+  'apps/web/src/routes/admin_.tsx',
+  'apps/web/src/routes/admin',
+  'apps/web/src/routes/$locale/admin_.tsx',
+  'apps/web/src/routes/$locale/admin',
+  'apps/web/src/routes/sign-in.tsx',
+  'apps/web/src/routes/sign-up.tsx',
+  'apps/web/src/routes/forgot-password.tsx',
+  'apps/web/src/routes/reset-password.tsx',
+  'apps/web/src/routes/no-permission.tsx',
+  'apps/web/src/routes/$locale/sign-in.tsx',
+  'apps/web/src/routes/$locale/sign-up.tsx',
+  'apps/web/src/routes/$locale/forgot-password.tsx',
+  'apps/web/src/routes/$locale/reset-password.tsx',
+  'apps/web/src/routes/$locale/no-permission.tsx',
+  'apps/web/src/routes/chat_.tsx',
+  'apps/web/src/routes/chat',
+  'apps/web/src/routes/$locale/chat_.tsx',
+  'apps/web/src/routes/$locale/chat',
+  'apps/web/src/routes/docs_.tsx',
+  'apps/web/src/routes/docs',
+  'apps/web/src/routes/$locale/docs_.tsx',
+  'apps/web/src/routes/$locale/docs',
+  'apps/web/src/routes/ai-image-generator.tsx',
+  'apps/web/src/routes/ai-music-generator.tsx',
+  'apps/web/src/routes/$locale/ai-image-generator.tsx',
+  'apps/web/src/routes/$locale/ai-music-generator.tsx',
+  'apps/web/src/routes/activity_.tsx',
+  'apps/web/src/routes/activity',
+  'apps/web/src/routes/$locale/activity_.tsx',
+  'apps/web/src/routes/$locale/activity',
+  'apps/web/src/routes/blog_.tsx',
+  'apps/web/src/routes/blog',
+  'apps/web/src/routes/$locale/blog_.tsx',
+  'apps/web/src/routes/$locale/blog',
+  'apps/web/src/routes/my-images.tsx',
+  'apps/web/src/routes/$locale/my-images.tsx',
+  'apps/web/src/routes/pricing.tsx',
+  'apps/web/src/routes/$locale/pricing.tsx',
+  'apps/web/src/routes/settings_.tsx',
+  'apps/web/src/routes/settings',
+  'apps/web/src/routes/$locale/settings_.tsx',
+  'apps/web/src/routes/$locale/settings',
+  'apps/web/src/routes/api/ai',
+  'apps/web/src/routes/api/auth.ts',
+  'apps/web/src/routes/api/auth',
+  'apps/web/src/routes/api/background-remover',
+  'apps/web/src/routes/api/chat.ts',
+  'apps/web/src/routes/api/chat',
+  'apps/web/src/routes/api/config',
+  'apps/web/src/routes/api/docs',
+  'apps/web/src/routes/api/email',
+  'apps/web/src/routes/api/payment',
+  'apps/web/src/routes/api/remover',
+  'apps/web/src/routes/api/storage',
+  'apps/web/src/routes/api/tts',
+  'apps/web/src/routes/api/user',
 ]);
 const NEXT_ROUTE_ENTRY_FILENAMES = new Set([
   'default.tsx',
@@ -43,6 +99,20 @@ const NEXT_ROUTE_ENTRY_FILENAMES = new Set([
   'template.tsx',
   'unauthorized.tsx',
 ]);
+const TANSTACK_ROUTE_EXTENSIONS = new Set(['.ts', '.tsx']);
+const GENERATED_ROUTE_FILES = Object.freeze(['apps/web/src/routeTree.gen.ts']);
+
+function isRouteEntryFile(relativePath) {
+  if (relativePath.startsWith('src/app/')) {
+    return NEXT_ROUTE_ENTRY_FILENAMES.has(path.basename(relativePath));
+  }
+
+  if (relativePath.startsWith('apps/web/src/routes/')) {
+    return TANSTACK_ROUTE_EXTENSIONS.has(path.extname(relativePath));
+  }
+
+  return false;
+}
 
 function hasHyperdriveBinding(contract) {
   return contract.bindingRequirements?.bindings?.hyperdrive === true;
@@ -80,9 +150,7 @@ async function collectRouteEntryFiles(rootDir, relativePath) {
 
   const sourceStats = await stat(sourcePath);
   if (sourceStats.isFile()) {
-    return NEXT_ROUTE_ENTRY_FILENAMES.has(path.basename(sourcePath))
-      ? [relativePath]
-      : [];
+    return isRouteEntryFile(relativePath) ? [relativePath] : [];
   }
 
   if (!sourceStats.isDirectory()) {
@@ -119,6 +187,36 @@ async function restorePrunedRoutes(entries) {
   }
 }
 
+async function backupGeneratedRouteFiles(rootDir, pruneRoot) {
+  const backups = [];
+  for (const relativePath of GENERATED_ROUTE_FILES) {
+    const sourcePath = path.resolve(rootDir, relativePath);
+    const backupPath = path.join(pruneRoot, encodePrunedPath(relativePath));
+    const existed = existsSync(sourcePath);
+
+    if (existed) {
+      await mkdir(path.dirname(backupPath), { recursive: true });
+      await copyFile(sourcePath, backupPath);
+    }
+
+    backups.push({ sourcePath, backupPath, existed });
+  }
+
+  return backups;
+}
+
+async function restoreGeneratedRouteFiles(backups) {
+  for (const backup of backups) {
+    if (!backup.existed) {
+      await rm(backup.sourcePath, { force: true });
+      continue;
+    }
+
+    await mkdir(path.dirname(backup.sourcePath), { recursive: true });
+    await copyFile(backup.backupPath, backup.sourcePath);
+  }
+}
+
 export async function withSiteRoutePruning({
   rootDir = process.cwd(),
   contract,
@@ -140,6 +238,10 @@ export async function withSiteRoutePruning({
   await mkdir(pruneRoot, { recursive: true });
 
   const entries = [];
+  const generatedRouteBackups = await backupGeneratedRouteFiles(
+    rootDir,
+    pruneRoot
+  );
   try {
     const routeFiles = await collectSiteRouteEntryFiles(rootDir, prunePaths);
     for (const relativePath of routeFiles) {
@@ -159,6 +261,7 @@ export async function withSiteRoutePruning({
     return await task();
   } finally {
     await restorePrunedRoutes(entries);
+    await restoreGeneratedRouteFiles(generatedRouteBackups);
     await rm(pruneRoot, { recursive: true, force: true });
   }
 }
