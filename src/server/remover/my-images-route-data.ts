@@ -12,18 +12,10 @@ import {
   markRemoverJobDeletedById,
 } from '@/domains/remover/infra/job';
 import { claimRemoverQuotaReservationById } from '@/domains/remover/infra/quota-reservation';
-import {
-  readAuthUiRuntimeSettingsCached,
-  readBillingRuntimeSettingsCached,
-  readPublicUiConfigCached,
-} from '@/domains/settings/application/settings-runtime.query';
 import { getStorageService } from '@/infra/adapters/storage/service';
 import { getSignedInUserIdentityFromRequest } from '@/infra/platform/auth/session-by-request';
 import { getRuntimeEnvString } from '@/infra/runtime/env.server';
-import {
-  buildLandingShellData,
-  resolveProductHeaderFooter,
-} from '@/server/landing/landing-shell-data';
+import { resolveLandingShellData } from '@/server/landing/landing-shell-data';
 import {
   loadMyImagesRouteCopy,
   type MyImagesRouteCopy,
@@ -74,8 +66,7 @@ export const loadMyImagesRouteData = createServerFn({ method: 'GET' })
     const locale = normalizeLocale(data.locale);
     if (!locale) return null;
     const copy = await loadMyImagesRouteCopy(locale);
-    const shell = await loadMyImagesShellData(locale);
-    if (!shell) return null;
+    const shell = resolveLandingShellData(locale);
     if (!user) return { locale, signedIn: false, jobs: [], copy, shell };
     const anonymousSessionId = await resolveAnonymousSessionId(request);
     const jobs = await listMyRemoverJobsForActor({
@@ -136,25 +127,4 @@ export async function removeMyImagesJob(request: Request) {
     },
   });
   return new Response(null, { status: 204 });
-}
-
-async function loadMyImagesShellData(
-  locale: string
-): Promise<SlugShellData | null> {
-  const productShell = resolveProductHeaderFooter(locale);
-  if (!productShell) return null;
-
-  const [publicUiConfig, authSettings, billingSettings] = await Promise.all([
-    readPublicUiConfigCached(),
-    readAuthUiRuntimeSettingsCached(),
-    readBillingRuntimeSettingsCached(),
-  ]);
-
-  return buildLandingShellData({
-    ...productShell,
-    locale,
-    publicUiConfig,
-    authSettings,
-    billingSettings,
-  });
 }

@@ -22,9 +22,11 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DocsRouteImport } from './routes/docs_'
 import { Route as ChatRouteImport } from './routes/chat_'
 import { Route as BlogRouteImport } from './routes/blog_'
+import { Route as AiVideoGeneratorRouteImport } from './routes/ai-video-generator'
 import { Route as AiMusicGeneratorRouteImport } from './routes/ai-music-generator'
 import { Route as AiImageGeneratorRouteImport } from './routes/ai-image-generator'
 import { Route as AiChatbotRouteImport } from './routes/ai-chatbot'
+import { Route as AiAudioGeneratorRouteImport } from './routes/ai-audio-generator'
 import { Route as AdsDottxtRouteImport } from './routes/ads[.]txt'
 import { Route as AdminRouteImport } from './routes/admin_'
 import { Route as ActivityRouteImport } from './routes/activity_'
@@ -56,9 +58,11 @@ import { Route as LocaleForgotPasswordRouteImport } from './routes/$locale/forgo
 import { Route as LocaleDocsRouteImport } from './routes/$locale/docs_'
 import { Route as LocaleChatRouteImport } from './routes/$locale/chat_'
 import { Route as LocaleBlogRouteImport } from './routes/$locale/blog_'
+import { Route as LocaleAiVideoGeneratorRouteImport } from './routes/$locale/ai-video-generator'
 import { Route as LocaleAiMusicGeneratorRouteImport } from './routes/$locale/ai-music-generator'
 import { Route as LocaleAiImageGeneratorRouteImport } from './routes/$locale/ai-image-generator'
 import { Route as LocaleAiChatbotRouteImport } from './routes/$locale/ai-chatbot'
+import { Route as LocaleAiAudioGeneratorRouteImport } from './routes/$locale/ai-audio-generator'
 import { Route as LocaleAdminRouteImport } from './routes/$locale/admin_'
 import { Route as LocaleActivityRouteImport } from './routes/$locale/activity_'
 import { Route as LocaleSlugRouteImport } from './routes/$locale/$slug'
@@ -191,6 +195,11 @@ const BlogRoute = BlogRouteImport.update({
   path: '/blog',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AiVideoGeneratorRoute = AiVideoGeneratorRouteImport.update({
+  id: '/ai-video-generator',
+  path: '/ai-video-generator',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AiMusicGeneratorRoute = AiMusicGeneratorRouteImport.update({
   id: '/ai-music-generator',
   path: '/ai-music-generator',
@@ -204,6 +213,11 @@ const AiImageGeneratorRoute = AiImageGeneratorRouteImport.update({
 const AiChatbotRoute = AiChatbotRouteImport.update({
   id: '/ai-chatbot',
   path: '/ai-chatbot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiAudioGeneratorRoute = AiAudioGeneratorRouteImport.update({
+  id: '/ai-audio-generator',
+  path: '/ai-audio-generator',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdsDottxtRoute = AdsDottxtRouteImport.update({
@@ -361,6 +375,11 @@ const LocaleBlogRoute = LocaleBlogRouteImport.update({
   path: '/$locale/blog',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocaleAiVideoGeneratorRoute = LocaleAiVideoGeneratorRouteImport.update({
+  id: '/$locale/ai-video-generator',
+  path: '/$locale/ai-video-generator',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LocaleAiMusicGeneratorRoute = LocaleAiMusicGeneratorRouteImport.update({
   id: '/$locale/ai-music-generator',
   path: '/$locale/ai-music-generator',
@@ -374,6 +393,11 @@ const LocaleAiImageGeneratorRoute = LocaleAiImageGeneratorRouteImport.update({
 const LocaleAiChatbotRoute = LocaleAiChatbotRouteImport.update({
   id: '/$locale/ai-chatbot',
   path: '/$locale/ai-chatbot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocaleAiAudioGeneratorRoute = LocaleAiAudioGeneratorRouteImport.update({
+  id: '/$locale/ai-audio-generator',
+  path: '/$locale/ai-audio-generator',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LocaleAdminRoute = LocaleAdminRouteImport.update({
@@ -728,9 +752,11 @@ export interface FileRoutesByFullPath {
   '/activity': typeof ActivityRoute
   '/admin': typeof AdminRoute
   '/ads.txt': typeof AdsDottxtRoute
+  '/ai-audio-generator': typeof AiAudioGeneratorRoute
   '/ai-chatbot': typeof AiChatbotRoute
   '/ai-image-generator': typeof AiImageGeneratorRoute
   '/ai-music-generator': typeof AiMusicGeneratorRoute
+  '/ai-video-generator': typeof AiVideoGeneratorRoute
   '/blog': typeof BlogRoute
   '/chat': typeof ChatRoute
   '/docs': typeof DocsRoute
@@ -747,9 +773,11 @@ export interface FileRoutesByFullPath {
   '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/activity': typeof LocaleActivityRoute
   '/$locale/admin': typeof LocaleAdminRoute
+  '/$locale/ai-audio-generator': typeof LocaleAiAudioGeneratorRoute
   '/$locale/ai-chatbot': typeof LocaleAiChatbotRoute
   '/$locale/ai-image-generator': typeof LocaleAiImageGeneratorRoute
   '/$locale/ai-music-generator': typeof LocaleAiMusicGeneratorRoute
+  '/$locale/ai-video-generator': typeof LocaleAiVideoGeneratorRoute
   '/$locale/blog': typeof LocaleBlogRoute
   '/$locale/chat': typeof LocaleChatRoute
   '/$locale/docs': typeof LocaleDocsRoute
@@ -846,9 +874,11 @@ export interface FileRoutesByTo {
   '/activity': typeof ActivityRoute
   '/admin': typeof AdminRoute
   '/ads.txt': typeof AdsDottxtRoute
+  '/ai-audio-generator': typeof AiAudioGeneratorRoute
   '/ai-chatbot': typeof AiChatbotRoute
   '/ai-image-generator': typeof AiImageGeneratorRoute
   '/ai-music-generator': typeof AiMusicGeneratorRoute
+  '/ai-video-generator': typeof AiVideoGeneratorRoute
   '/blog': typeof BlogRoute
   '/chat': typeof ChatRoute
   '/docs': typeof DocsRoute
@@ -865,9 +895,11 @@ export interface FileRoutesByTo {
   '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/activity': typeof LocaleActivityRoute
   '/$locale/admin': typeof LocaleAdminRoute
+  '/$locale/ai-audio-generator': typeof LocaleAiAudioGeneratorRoute
   '/$locale/ai-chatbot': typeof LocaleAiChatbotRoute
   '/$locale/ai-image-generator': typeof LocaleAiImageGeneratorRoute
   '/$locale/ai-music-generator': typeof LocaleAiMusicGeneratorRoute
+  '/$locale/ai-video-generator': typeof LocaleAiVideoGeneratorRoute
   '/$locale/blog': typeof LocaleBlogRoute
   '/$locale/chat': typeof LocaleChatRoute
   '/$locale/docs': typeof LocaleDocsRoute
@@ -965,9 +997,11 @@ export interface FileRoutesById {
   '/activity_': typeof ActivityRoute
   '/admin_': typeof AdminRoute
   '/ads.txt': typeof AdsDottxtRoute
+  '/ai-audio-generator': typeof AiAudioGeneratorRoute
   '/ai-chatbot': typeof AiChatbotRoute
   '/ai-image-generator': typeof AiImageGeneratorRoute
   '/ai-music-generator': typeof AiMusicGeneratorRoute
+  '/ai-video-generator': typeof AiVideoGeneratorRoute
   '/blog_': typeof BlogRoute
   '/chat_': typeof ChatRoute
   '/docs_': typeof DocsRoute
@@ -984,9 +1018,11 @@ export interface FileRoutesById {
   '/$locale/$slug': typeof LocaleSlugRoute
   '/$locale/activity_': typeof LocaleActivityRoute
   '/$locale/admin_': typeof LocaleAdminRoute
+  '/$locale/ai-audio-generator': typeof LocaleAiAudioGeneratorRoute
   '/$locale/ai-chatbot': typeof LocaleAiChatbotRoute
   '/$locale/ai-image-generator': typeof LocaleAiImageGeneratorRoute
   '/$locale/ai-music-generator': typeof LocaleAiMusicGeneratorRoute
+  '/$locale/ai-video-generator': typeof LocaleAiVideoGeneratorRoute
   '/$locale/blog_': typeof LocaleBlogRoute
   '/$locale/chat_': typeof LocaleChatRoute
   '/$locale/docs_': typeof LocaleDocsRoute
@@ -1085,9 +1121,11 @@ export interface FileRouteTypes {
     | '/activity'
     | '/admin'
     | '/ads.txt'
+    | '/ai-audio-generator'
     | '/ai-chatbot'
     | '/ai-image-generator'
     | '/ai-music-generator'
+    | '/ai-video-generator'
     | '/blog'
     | '/chat'
     | '/docs'
@@ -1104,9 +1142,11 @@ export interface FileRouteTypes {
     | '/$locale/$slug'
     | '/$locale/activity'
     | '/$locale/admin'
+    | '/$locale/ai-audio-generator'
     | '/$locale/ai-chatbot'
     | '/$locale/ai-image-generator'
     | '/$locale/ai-music-generator'
+    | '/$locale/ai-video-generator'
     | '/$locale/blog'
     | '/$locale/chat'
     | '/$locale/docs'
@@ -1203,9 +1243,11 @@ export interface FileRouteTypes {
     | '/activity'
     | '/admin'
     | '/ads.txt'
+    | '/ai-audio-generator'
     | '/ai-chatbot'
     | '/ai-image-generator'
     | '/ai-music-generator'
+    | '/ai-video-generator'
     | '/blog'
     | '/chat'
     | '/docs'
@@ -1222,9 +1264,11 @@ export interface FileRouteTypes {
     | '/$locale/$slug'
     | '/$locale/activity'
     | '/$locale/admin'
+    | '/$locale/ai-audio-generator'
     | '/$locale/ai-chatbot'
     | '/$locale/ai-image-generator'
     | '/$locale/ai-music-generator'
+    | '/$locale/ai-video-generator'
     | '/$locale/blog'
     | '/$locale/chat'
     | '/$locale/docs'
@@ -1321,9 +1365,11 @@ export interface FileRouteTypes {
     | '/activity_'
     | '/admin_'
     | '/ads.txt'
+    | '/ai-audio-generator'
     | '/ai-chatbot'
     | '/ai-image-generator'
     | '/ai-music-generator'
+    | '/ai-video-generator'
     | '/blog_'
     | '/chat_'
     | '/docs_'
@@ -1340,9 +1386,11 @@ export interface FileRouteTypes {
     | '/$locale/$slug'
     | '/$locale/activity_'
     | '/$locale/admin_'
+    | '/$locale/ai-audio-generator'
     | '/$locale/ai-chatbot'
     | '/$locale/ai-image-generator'
     | '/$locale/ai-music-generator'
+    | '/$locale/ai-video-generator'
     | '/$locale/blog_'
     | '/$locale/chat_'
     | '/$locale/docs_'
@@ -1440,9 +1488,11 @@ export interface RootRouteChildren {
   ActivityRoute: typeof ActivityRoute
   AdminRoute: typeof AdminRoute
   AdsDottxtRoute: typeof AdsDottxtRoute
+  AiAudioGeneratorRoute: typeof AiAudioGeneratorRoute
   AiChatbotRoute: typeof AiChatbotRoute
   AiImageGeneratorRoute: typeof AiImageGeneratorRoute
   AiMusicGeneratorRoute: typeof AiMusicGeneratorRoute
+  AiVideoGeneratorRoute: typeof AiVideoGeneratorRoute
   BlogRoute: typeof BlogRoute
   ChatRoute: typeof ChatRoute
   DocsRoute: typeof DocsRoute
@@ -1459,9 +1509,11 @@ export interface RootRouteChildren {
   LocaleSlugRoute: typeof LocaleSlugRoute
   LocaleActivityRoute: typeof LocaleActivityRoute
   LocaleAdminRoute: typeof LocaleAdminRoute
+  LocaleAiAudioGeneratorRoute: typeof LocaleAiAudioGeneratorRoute
   LocaleAiChatbotRoute: typeof LocaleAiChatbotRoute
   LocaleAiImageGeneratorRoute: typeof LocaleAiImageGeneratorRoute
   LocaleAiMusicGeneratorRoute: typeof LocaleAiMusicGeneratorRoute
+  LocaleAiVideoGeneratorRoute: typeof LocaleAiVideoGeneratorRoute
   LocaleBlogRoute: typeof LocaleBlogRoute
   LocaleChatRoute: typeof LocaleChatRoute
   LocaleDocsRoute: typeof LocaleDocsRoute
@@ -1640,6 +1692,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ai-video-generator': {
+      id: '/ai-video-generator'
+      path: '/ai-video-generator'
+      fullPath: '/ai-video-generator'
+      preLoaderRoute: typeof AiVideoGeneratorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ai-music-generator': {
       id: '/ai-music-generator'
       path: '/ai-music-generator'
@@ -1659,6 +1718,13 @@ declare module '@tanstack/react-router' {
       path: '/ai-chatbot'
       fullPath: '/ai-chatbot'
       preLoaderRoute: typeof AiChatbotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-audio-generator': {
+      id: '/ai-audio-generator'
+      path: '/ai-audio-generator'
+      fullPath: '/ai-audio-generator'
+      preLoaderRoute: typeof AiAudioGeneratorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ads.txt': {
@@ -1878,6 +1944,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleBlogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$locale/ai-video-generator': {
+      id: '/$locale/ai-video-generator'
+      path: '/$locale/ai-video-generator'
+      fullPath: '/$locale/ai-video-generator'
+      preLoaderRoute: typeof LocaleAiVideoGeneratorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$locale/ai-music-generator': {
       id: '/$locale/ai-music-generator'
       path: '/$locale/ai-music-generator'
@@ -1897,6 +1970,13 @@ declare module '@tanstack/react-router' {
       path: '/$locale/ai-chatbot'
       fullPath: '/$locale/ai-chatbot'
       preLoaderRoute: typeof LocaleAiChatbotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/ai-audio-generator': {
+      id: '/$locale/ai-audio-generator'
+      path: '/$locale/ai-audio-generator'
+      fullPath: '/$locale/ai-audio-generator'
+      preLoaderRoute: typeof LocaleAiAudioGeneratorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$locale/admin_': {
@@ -2410,9 +2490,11 @@ const rootRouteChildren: RootRouteChildren = {
   ActivityRoute: ActivityRoute,
   AdminRoute: AdminRoute,
   AdsDottxtRoute: AdsDottxtRoute,
+  AiAudioGeneratorRoute: AiAudioGeneratorRoute,
   AiChatbotRoute: AiChatbotRoute,
   AiImageGeneratorRoute: AiImageGeneratorRoute,
   AiMusicGeneratorRoute: AiMusicGeneratorRoute,
+  AiVideoGeneratorRoute: AiVideoGeneratorRoute,
   BlogRoute: BlogRoute,
   ChatRoute: ChatRoute,
   DocsRoute: DocsRoute,
@@ -2429,9 +2511,11 @@ const rootRouteChildren: RootRouteChildren = {
   LocaleSlugRoute: LocaleSlugRoute,
   LocaleActivityRoute: LocaleActivityRoute,
   LocaleAdminRoute: LocaleAdminRoute,
+  LocaleAiAudioGeneratorRoute: LocaleAiAudioGeneratorRoute,
   LocaleAiChatbotRoute: LocaleAiChatbotRoute,
   LocaleAiImageGeneratorRoute: LocaleAiImageGeneratorRoute,
   LocaleAiMusicGeneratorRoute: LocaleAiMusicGeneratorRoute,
+  LocaleAiVideoGeneratorRoute: LocaleAiVideoGeneratorRoute,
   LocaleBlogRoute: LocaleBlogRoute,
   LocaleChatRoute: LocaleChatRoute,
   LocaleDocsRoute: LocaleDocsRoute,

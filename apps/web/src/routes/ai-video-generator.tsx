@@ -5,19 +5,19 @@ import { createFileRoute, notFound } from '@tanstack/react-router';
 
 import { defaultLocale } from '@/config/locale';
 
-export const Route = createFileRoute('/ai-chatbot')({
+export const Route = createFileRoute('/ai-video-generator')({
   loader: async () => {
     const data = await loadAiGeneratorRouteData({
-      data: { locale: defaultLocale, kind: 'chatbot' },
+      data: { locale: defaultLocale, kind: 'video' },
     });
     if (!data) throw notFound();
     return data as AiGeneratorRouteData;
   },
   head: ({ loaderData }) => loaderData?.head ?? {},
-  component: AiChatbotRoute,
+  component: AiVideoGeneratorRoute,
 });
 
-function AiChatbotRoute() {
+function AiVideoGeneratorRoute() {
   const data = Route.useLoaderData();
   return <AiDemoRouteView data={data} />;
 }

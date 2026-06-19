@@ -3,21 +3,21 @@ import type { AiGeneratorRouteData } from '@/server/ai/ai-generator-route-resolv
 import { AiDemoRouteView } from '@/surfaces/landing/ai-generator/ai-generator.view';
 import { createFileRoute, notFound } from '@tanstack/react-router';
 
-import { defaultLocale } from '@/config/locale';
-
-export const Route = createFileRoute('/ai-chatbot')({
-  loader: async () => {
+export const Route = createFileRoute('/$locale/ai-audio-generator')({
+  loader: async ({ params }) => {
     const data = await loadAiGeneratorRouteData({
-      data: { locale: defaultLocale, kind: 'chatbot' },
+      data: { locale: params.locale, kind: 'audio' },
     });
-    if (!data) throw notFound();
+    if (!data) {
+      throw notFound({ data: { locale: params.locale } });
+    }
     return data as AiGeneratorRouteData;
   },
   head: ({ loaderData }) => loaderData?.head ?? {},
-  component: AiChatbotRoute,
+  component: LocalizedAiAudioGeneratorRoute,
 });
 
-function AiChatbotRoute() {
+function LocalizedAiAudioGeneratorRoute() {
   const data = Route.useLoaderData();
   return <AiDemoRouteView data={data} />;
 }

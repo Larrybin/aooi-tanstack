@@ -8,7 +8,7 @@ import type { SlugShellData } from '@/surfaces/landing/slug/slug.types';
 import { defaultLocale } from '@/config/locale';
 import { localePath, normalizeLocale } from '@/shared/i18n/locale';
 
-type AiGeneratorKind = 'image' | 'music' | 'chatbot';
+type AiGeneratorKind = 'image' | 'music' | 'chatbot' | 'audio' | 'video';
 type Messages = Record<string, unknown>;
 
 export type AiGeneratorRouteInput = {
@@ -74,11 +74,11 @@ export async function resolveAiGeneratorRouteData(
     },
     generatorTitle,
     generatorMessages:
-      input.kind === 'chatbot'
-        ? {}
-        : input.kind === 'image'
-          ? getMessagesObject(messages, 'generator')
-          : (messages as AiUiMessages),
+      input.kind === 'image'
+        ? getMessagesObject(messages, 'generator')
+        : input.kind === 'music'
+          ? (messages as AiUiMessages)
+          : {},
     head: {
       meta: [
         { title: getMessage(messages, 'metadata.title') ?? pageTitle },
@@ -94,7 +94,12 @@ export async function resolveAiGeneratorRouteData(
 }
 
 async function loadAiGeneratorMessages(locale: string, kind: AiGeneratorKind) {
-  const path = kind === 'chatbot' ? 'demo/ai-chatbot' : `ai/${kind}`;
+  const path =
+    kind === 'image' || kind === 'music'
+      ? `ai/${kind}`
+      : kind === 'chatbot'
+        ? 'demo/ai-chatbot'
+        : `demo/ai-${kind}-generator`;
   const baseMessages = await importMessages(path, defaultLocale);
   if (locale === defaultLocale) return baseMessages;
 
@@ -124,12 +129,16 @@ async function importMessagesOptional(path: string, locale: string) {
 function getRouteSlug(kind: AiGeneratorKind) {
   if (kind === 'image') return 'ai-image-generator';
   if (kind === 'music') return 'ai-music-generator';
+  if (kind === 'audio') return 'ai-audio-generator';
+  if (kind === 'video') return 'ai-video-generator';
   return 'ai-chatbot';
 }
 
 function getFallbackTitle(kind: AiGeneratorKind) {
   if (kind === 'image') return 'AI Image Generator';
   if (kind === 'music') return 'AI Music Generator';
+  if (kind === 'audio') return 'AI Audio Generator';
+  if (kind === 'video') return 'AI Video Generator';
   return 'AI Chatbot';
 }
 

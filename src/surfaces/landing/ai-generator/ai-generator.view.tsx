@@ -30,7 +30,7 @@ export function AiGeneratorRouteView({ data }: { data: AiGeneratorRouteData }) {
   );
 }
 
-export function AiChatbotRouteView({ data }: { data: AiGeneratorRouteData }) {
+export function AiDemoRouteView({ data }: { data: AiGeneratorRouteData }) {
   return (
     <LandingShellView shell={data.shell}>
       <PageHeader

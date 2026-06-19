@@ -78,3 +78,27 @@ test('resolveAiGeneratorRouteData loads chatbot demo route copy', async () => {
   assert.equal(data.page.title, 'AI 聊天机器人');
   assert.equal(data.page.description, '与 AI 助手对话，体验演示功能。');
 });
+
+test('resolveAiGeneratorRouteData loads audio demo route copy', async () => {
+  const data = await resolveAiGeneratorRouteData(
+    { locale: 'zh', kind: 'audio' },
+    buildDeps(true)
+  );
+
+  assert.ok(data);
+  assert.equal(data.kind, 'audio');
+  assert.equal(data.canonicalPath, '/zh/ai-audio-generator');
+  assert.equal(data.page.title, 'AI 音频生成');
+});
+
+test('resolveAiGeneratorRouteData loads video demo route copy', async () => {
+  const data = await resolveAiGeneratorRouteData(
+    { locale: 'en', kind: 'video' },
+    buildDeps(true)
+  );
+
+  assert.ok(data);
+  assert.equal(data.kind, 'video');
+  assert.equal(data.canonicalPath, '/ai-video-generator');
+  assert.equal(data.page.title, 'AI Video Generator');
+});

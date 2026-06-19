@@ -32,8 +32,16 @@ test('free-tool route pruning includes native TanStack routes', () => {
 
   assert.ok(prunePaths.includes('apps/web/src/routes/sign-in.tsx'));
   assert.ok(prunePaths.includes('apps/web/src/routes/admin_.tsx'));
+  assert.ok(prunePaths.includes('apps/web/src/routes/ai-audio-generator.tsx'));
   assert.ok(prunePaths.includes('apps/web/src/routes/ai-chatbot.tsx'));
+  assert.ok(prunePaths.includes('apps/web/src/routes/ai-video-generator.tsx'));
+  assert.ok(
+    prunePaths.includes('apps/web/src/routes/$locale/ai-audio-generator.tsx')
+  );
   assert.ok(prunePaths.includes('apps/web/src/routes/$locale/ai-chatbot.tsx'));
+  assert.ok(
+    prunePaths.includes('apps/web/src/routes/$locale/ai-video-generator.tsx')
+  );
   assert.ok(prunePaths.includes('apps/web/src/routes/settings'));
   assert.ok(prunePaths.includes('apps/web/src/routes/api/auth.ts'));
 });

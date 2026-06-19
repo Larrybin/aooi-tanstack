@@ -11,7 +11,11 @@ export const loadAiGeneratorRouteData = createServerFn({ method: 'GET' })
         ? 'music'
         : input.kind === 'chatbot'
           ? 'chatbot'
-          : 'image';
+          : input.kind === 'audio'
+            ? 'audio'
+            : input.kind === 'video'
+              ? 'video'
+              : 'image';
 
     return {
       locale: typeof input.locale === 'string' ? input.locale : '',

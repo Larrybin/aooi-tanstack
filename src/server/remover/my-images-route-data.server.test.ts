@@ -69,10 +69,8 @@ test('TanStack My Images route data and view restore the landing shell', async (
   );
 
   assert.match(loaderSource, /shell:\s*SlugShellData/);
-  assert.match(loaderSource, /readPublicUiConfigCached/);
-  assert.match(loaderSource, /readAuthUiRuntimeSettingsCached/);
-  assert.match(loaderSource, /readBillingRuntimeSettingsCached/);
-  assert.match(loaderSource, /buildLandingShellData/);
+  assert.match(loaderSource, /resolveLandingShellData\(locale\)/);
+  assert.doesNotMatch(loaderSource, /settings-runtime\.query/);
   assert.match(viewSource, /LandingShellView/);
   assert.doesNotMatch(viewSource, /return\s*\(\s*<main/);
 });

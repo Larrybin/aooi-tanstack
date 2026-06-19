@@ -1,6 +1,6 @@
 import { loadAiGeneratorRouteData } from '@/server/ai/ai-generator-route-data';
 import type { AiGeneratorRouteData } from '@/server/ai/ai-generator-route-resolver';
-import { AiChatbotRouteView } from '@/surfaces/landing/ai-generator/ai-generator.view';
+import { AiDemoRouteView } from '@/surfaces/landing/ai-generator/ai-generator.view';
 import { createFileRoute, notFound } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/$locale/ai-chatbot')({
@@ -19,5 +19,5 @@ export const Route = createFileRoute('/$locale/ai-chatbot')({
 
 function LocalizedAiChatbotRoute() {
   const data = Route.useLoaderData();
-  return <AiChatbotRouteView data={data} />;
+  return <AiDemoRouteView data={data} />;
 }
