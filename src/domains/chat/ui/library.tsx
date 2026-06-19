@@ -1,10 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Link } from '@/shared/blocks/common/navigation';
 import { IconDots, IconMessageCircle } from '@tabler/icons-react';
-import { useTranslations } from '@/shared/lib/i18n/native';
 
+import { Link } from '@/shared/blocks/common/navigation';
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -16,6 +15,7 @@ import { useAuthSnapshot } from '@/shared/contexts/auth-snapshot';
 import { useChatContext } from '@/shared/contexts/chat';
 import { fetchApiData } from '@/shared/lib/api/client';
 import { toastFetchError } from '@/shared/lib/api/fetch-json';
+import { useTranslations } from '@/shared/lib/i18n/native-react';
 import type { Chat } from '@/shared/types/chat';
 
 export function ChatLibrary() {

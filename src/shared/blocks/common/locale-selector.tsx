@@ -18,7 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu';
-import { useLocale, useTranslations } from '@/shared/lib/i18n/native';
+import { useLocale, useTranslations } from '@/shared/lib/i18n/native-react';
 
 type SiteI18nManifestLocales = Record<
   string,

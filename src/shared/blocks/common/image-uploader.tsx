@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useReducer, useRef } from 'react';
 import { IconUpload, IconX } from '@tabler/icons-react';
 import { ImageIcon } from 'lucide-react';
-import { useTranslations } from '@/shared/lib/i18n/native';
 import { toast } from 'sonner';
 
 import { Button } from '@/shared/components/ui/button';
 import { fetchApiData, isPlainObject } from '@/shared/lib/api/client';
 import { toastFetchError } from '@/shared/lib/api/fetch-json';
+import { useTranslations } from '@/shared/lib/i18n/native-react';
 import { cn } from '@/shared/lib/utils';
 
 import { AppImage } from './app-image';

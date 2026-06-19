@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { invalidateSettingsCache } from '@/domains/settings/application/settings-store';
 import {
   AI_RUNTIME_SETTING_KEYS,
   EMAIL_RUNTIME_SETTING_KEYS,
@@ -58,6 +57,10 @@ class TestSettingsCache {
 
   async delete(request: Request) {
     return this.store.delete(request.url);
+  }
+
+  clear() {
+    this.store.clear();
   }
 }
 
@@ -132,10 +135,7 @@ test('readTanStackSettingsCached rereads after cache invalidation', async () => 
     (await readTanStackSettingsCached(deps))[PUBLIC_UI_SETTING_KEYS.aiEnabled],
     'true'
   );
-  await invalidateSettingsCache({
-    cache: settingsCache,
-    siteKey: 'test-site',
-  });
+  settingsCache.clear();
   assert.equal(
     (await readTanStackSettingsCached(deps))[PUBLIC_UI_SETTING_KEYS.aiEnabled],
     'false'

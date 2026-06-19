@@ -1,9 +1,8 @@
-import { useLocale } from '@/shared/lib/i18n/native';
-
 import {
   formatDatePattern,
   formatRelativeTime,
 } from '@/shared/lib/date/format';
+import { useLocale } from '@/shared/lib/i18n/native-react';
 
 export function Time({
   value,

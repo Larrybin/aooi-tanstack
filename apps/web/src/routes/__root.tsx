@@ -10,7 +10,7 @@ import {
 
 import { defaultLocale, isRtlLocale } from '@/config/locale';
 import { getLocaleFromPathname } from '@/shared/i18n/locale';
-import { NativeLocaleProvider } from '@/shared/lib/i18n/native';
+import { NativeLocaleProvider } from '@/shared/lib/i18n/native-react';
 
 import appCss from '../styles/app.css?url';
 

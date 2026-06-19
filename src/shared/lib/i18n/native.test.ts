@@ -3,11 +3,8 @@ import test from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
-import {
-  getTranslations,
-  NativeLocaleProvider,
-  useTranslations,
-} from './native';
+import { getTranslations } from './native';
+import { NativeLocaleProvider, useTranslations } from './native-react';
 
 test('native i18n resolves default-locale common messages', () => {
   const html = renderToStaticMarkup(createElement(SignOutTitle));

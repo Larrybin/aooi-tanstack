@@ -63,16 +63,13 @@ import {
   TaxonomyStatus,
   TaxonomyType,
 } from '@/domains/content/domain/taxonomy-types';
-import { readAdminSettingsSafe } from '@/domains/settings/application/admin-settings.query';
+import {
+  readAdminSettingsSafe,
+  saveAdminSettingsValues,
+} from '@/domains/settings/application/admin-settings.query';
 import type { PublicUiConfig } from '@/domains/settings/application/settings-runtime.contracts';
 import { readPublicUiConfigCached } from '@/domains/settings/application/settings-runtime.query';
-import {
-  readSettingsSafe,
-  saveSettings,
-} from '@/domains/settings/application/settings-store';
 import { mapSettingsToForms } from '@/domains/settings/settings-form-mapper';
-import { normalizeSettingOverrides } from '@/domains/settings/settings-normalizers';
-import { mergeRegisteredSettingValues } from '@/domains/settings/settings-submit-merge';
 import {
   getAvailableSettingTabs,
   getSettingGroups,
@@ -300,8 +297,7 @@ type AdminSettingsUpdateDeps = Pick<
   | 'hasAdminAccess'
   | 'hasAllPermissions'
 > & {
-  readSettings: typeof readSettingsSafe;
-  saveSettings: typeof saveSettings;
+  saveSettingsValues: typeof saveAdminSettingsValues;
 };
 
 type AdminActionDeps = Pick<
@@ -935,8 +931,7 @@ export async function resolveAdminSettingsUpdate(
 ): Promise<ActionResult> {
   const routeDeps = deps ?? {
     ...(await getDefaultAdminRouteDeps()),
-    readSettings: readSettingsSafe,
-    saveSettings,
+    saveSettingsValues: saveAdminSettingsValues,
   };
   const locale = normalizeAdminLocale(input.locale);
   if (!locale) {
@@ -962,25 +957,9 @@ export async function resolveAdminSettingsUpdate(
     return actionErr('Settings permission required');
   }
 
-  const settingsResult = await routeDeps.readSettings();
-  if (settingsResult.error) {
-    return actionErr(
-      'Settings could not be saved because configuration values failed to load. Please try again later.'
-    );
-  }
+  const saveResult = await routeDeps.saveSettingsValues(input.values);
+  if (!saveResult.ok) return actionErr(saveResult.message);
 
-  const normalizedOverrides = normalizeSettingOverrides(input.values);
-  if (!normalizedOverrides.ok) {
-    return actionErr(normalizedOverrides.error);
-  }
-
-  const nextConfigs = mergeRegisteredSettingValues({
-    initialConfigs: settingsResult.configs,
-    values: input.values,
-    normalizedOverrides: normalizedOverrides.value,
-  });
-
-  await routeDeps.saveSettings(nextConfigs);
   return actionOk('Settings updated');
 }
 

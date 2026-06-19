@@ -1,11 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, usePathname, useRouter } from '@/shared/blocks/common/navigation';
-import { useLocale, useTranslations } from '@/shared/lib/i18n/native';
 
 import { Empty } from '@/shared/blocks/common/empty';
 import { LocaleSelector } from '@/shared/blocks/common/locale-selector';
+import {
+  Link,
+  usePathname,
+  useRouter,
+} from '@/shared/blocks/common/navigation';
 import { Pagination } from '@/shared/blocks/common/pagination';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
@@ -19,6 +22,7 @@ import {
   getRequestIdFromError,
 } from '@/shared/lib/api/request-id';
 import { formatRelativeTime } from '@/shared/lib/date/format';
+import { useLocale, useTranslations } from '@/shared/lib/i18n/native-react';
 
 type ChatListItem = {
   id: string;

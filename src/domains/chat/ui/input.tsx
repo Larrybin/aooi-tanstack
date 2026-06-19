@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import type { UIMessage, UseChatHelpers } from '@ai-sdk/react';
 import { BrainCircuitIcon } from 'lucide-react';
-import { useTranslations } from '@/shared/lib/i18n/native';
 
 import {
   PromptInput,
@@ -26,6 +25,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/shared/components/ui/tooltip';
+import { useTranslations } from '@/shared/lib/i18n/native-react';
 import type { ChatModel } from '@/shared/types/chat';
 
 export function ChatInput({

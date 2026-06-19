@@ -1,12 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from '@/shared/blocks/common/navigation';
 import type { UIMessage, UseChatHelpers } from '@ai-sdk/react';
-import { useLocale, useTranslations } from '@/shared/lib/i18n/native';
 import { toast } from 'sonner';
 
 import { LocaleSelector } from '@/shared/blocks/common/locale-selector';
+import { useRouter } from '@/shared/blocks/common/navigation';
 import type { PromptInputMessage } from '@/shared/components/ai-elements/prompt-input';
 import { SidebarTrigger } from '@/shared/components/ui/sidebar';
 import { usePublicAppContext } from '@/shared/contexts/app';
@@ -18,6 +17,7 @@ import {
   formatMessageWithRequestId,
   getRequestIdFromError,
 } from '@/shared/lib/api/request-id';
+import { useLocale, useTranslations } from '@/shared/lib/i18n/native-react';
 import type { Chat } from '@/shared/types/chat';
 
 import { ChatInput } from './input';

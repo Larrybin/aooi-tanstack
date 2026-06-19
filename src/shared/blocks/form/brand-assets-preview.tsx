@@ -1,9 +1,8 @@
 'use client';
 
-import { useTranslations } from '@/shared/lib/i18n/native';
-
 import { AppImage } from '@/shared/blocks/common/app-image';
 import { getBrandPreviewHost } from '@/shared/lib/brand-url';
+import { useTranslations } from '@/shared/lib/i18n/native-react';
 import { resolveStoredAssetUrl } from '@/shared/lib/storage-public-url';
 import { cn } from '@/shared/lib/utils';
 

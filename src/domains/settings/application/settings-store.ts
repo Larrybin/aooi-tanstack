@@ -179,10 +179,10 @@ function resolveSettingsPlatformCache(options: SettingsCacheOptions) {
     return options.cache ?? null;
   }
 
-  return typeof globalThis.caches === 'undefined'
-    ? null
-    : (((globalThis.caches as unknown as { default?: SettingsPlatformCache })
-        .default ?? null) as SettingsPlatformCache | null);
+  if (typeof globalThis.caches === 'undefined') return null;
+  const caches = asRecord(globalThis.caches);
+  const cache = caches?.default;
+  return isSettingsPlatformCache(cache) ? cache : null;
 }
 
 function buildSettingsCacheRequest(siteKey: string = site.key as string) {
@@ -197,6 +197,24 @@ function isConfigs(value: unknown): value is Configs {
   }
 
   return Object.values(value).every((item) => typeof item === 'string');
+}
+
+function isSettingsPlatformCache(
+  value: unknown
+): value is SettingsPlatformCache {
+  const cache = asRecord(value);
+  return Boolean(
+    cache &&
+    typeof cache.match === 'function' &&
+    typeof cache.put === 'function' &&
+    typeof cache.delete === 'function'
+  );
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
 }
 
 export async function readSettingsSafe(): Promise<{

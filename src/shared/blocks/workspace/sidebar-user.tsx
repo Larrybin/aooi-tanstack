@@ -29,7 +29,7 @@ import {
 } from '@/shared/components/ui/sidebar';
 import { usePublicAppContext } from '@/shared/contexts/app';
 import { useAuthSnapshot } from '@/shared/contexts/auth-snapshot';
-import { useTranslations } from '@/shared/lib/i18n/native';
+import { useTranslations } from '@/shared/lib/i18n/native-react';
 import type { AuthSessionUserSnapshot } from '@/shared/types/auth-session';
 import type { NavItem } from '@/shared/types/blocks/common';
 import type { SidebarUser as SidebarUserType } from '@/shared/types/blocks/workspace';

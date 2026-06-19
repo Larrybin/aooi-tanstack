@@ -79,8 +79,7 @@ function buildSettingsUpdateDeps(
     readSignedInUser: async () => ({ id: 'admin_user' }),
     hasAdminAccess: async () => true,
     hasAllPermissions: async () => true,
-    readSettings: async () => ({ configs: {} }),
-    saveSettings: async () => [],
+    saveSettingsValues: async () => ({ ok: true }),
     ...overrides,
   } as AdminSettingsUpdateDeps;
 }
@@ -795,9 +794,9 @@ test('resolveAdminSettingsUpdate requires settings write permissions', async () 
     { locale: 'en', values: { google_auth_enabled: 'true' } },
     buildSettingsUpdateDeps({
       hasAllPermissions: async () => false,
-      saveSettings: async () => {
+      saveSettingsValues: async () => {
         saved = true;
-        return [];
+        return { ok: true };
       },
     })
   );
@@ -807,24 +806,20 @@ test('resolveAdminSettingsUpdate requires settings write permissions', async () 
   assert.equal(saved, false);
 });
 
-test('resolveAdminSettingsUpdate normalizes and saves registered settings', async () => {
-  let savedConfigs: Record<string, string> | undefined;
+test('resolveAdminSettingsUpdate delegates authorized settings values', async () => {
+  let savedValues: Record<string, string> | undefined;
 
   const result = await resolveAdminSettingsUpdate(
     { locale: 'en', values: { google_auth_enabled: 'true' } },
     buildSettingsUpdateDeps({
-      readSettings: async () => ({
-        configs: { google_auth_enabled: 'false', unrelated: 'kept' },
-      }),
-      saveSettings: async (configs) => {
-        savedConfigs = configs;
-        return [];
+      saveSettingsValues: async (values) => {
+        savedValues = values;
+        return { ok: true };
       },
     })
   );
 
   assert.equal(result.status, 'success');
   assert.equal(result.message, 'Settings updated');
-  assert.equal(savedConfigs?.google_auth_enabled, 'true');
-  assert.equal(savedConfigs?.unrelated, 'kept');
+  assert.deepEqual(savedValues, { google_auth_enabled: 'true' });
 });
