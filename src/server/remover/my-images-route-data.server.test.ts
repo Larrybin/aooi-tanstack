@@ -60,6 +60,23 @@ test('TanStack My Images localized route rejects invalid locale data', async () 
   assert.match(routeSource, /if \(!data\) \{\s*throw notFound/);
 });
 
+test('TanStack My Images route data and view restore the landing shell', async () => {
+  const loaderSource = await readRepoFile(
+    'src/server/remover/my-images-route-data.ts'
+  );
+  const viewSource = await readRepoFile(
+    'src/surfaces/remover/my-images-route.view.tsx'
+  );
+
+  assert.match(loaderSource, /shell:\s*SlugShellData/);
+  assert.match(loaderSource, /readPublicUiConfigCached/);
+  assert.match(loaderSource, /readAuthUiRuntimeSettingsCached/);
+  assert.match(loaderSource, /readBillingRuntimeSettingsCached/);
+  assert.match(loaderSource, /buildLandingShellData/);
+  assert.match(viewSource, /LandingShellView/);
+  assert.doesNotMatch(viewSource, /return\s*\(\s*<main/);
+});
+
 async function readRepoFile(repoPath: string) {
   return await readFile(path.resolve(rootDir, repoPath), 'utf8');
 }

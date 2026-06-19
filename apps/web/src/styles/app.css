@@ -1249,6 +1249,206 @@ a {
   text-align: center;
 }
 
+.docs-shell {
+  --background: #fff;
+  --foreground: #151923;
+  --primary: #2463eb;
+  --border: #dfe5f2;
+  --radius: 10px;
+  min-height: 100vh;
+  background: #fff;
+  color: #151923;
+}
+
+.docs-shell-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid #e4e9f3;
+  padding: 14px max(24px, calc((100vw - 1180px) / 2));
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(14px);
+}
+
+.docs-shell-brand,
+.docs-shell-header-actions,
+.docs-shell-locales {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.docs-shell-brand {
+  color: #151923;
+  font-size: 18px;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.docs-shell-brand img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.docs-shell-locales a {
+  border: 1px solid #dfe5f2;
+  border-radius: 10px;
+  padding: 8px 11px;
+  color: #42506a;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.docs-shell-search {
+  position: relative;
+  display: flex;
+  min-width: 300px;
+  overflow: visible;
+}
+
+.docs-shell-search input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #dfe5f2;
+  border-radius: 10px 0 0 10px;
+  padding: 8px 11px;
+  background: #f7f8fb;
+  color: #151923;
+  font: inherit;
+  font-size: 14px;
+}
+
+.docs-shell-search button {
+  border: 1px solid #151923;
+  border-left: 0;
+  border-radius: 0 10px 10px 0;
+  padding: 8px 12px;
+  background: #151923;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.docs-shell-search button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.docs-shell-search-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  width: min(460px, calc(100vw - 40px));
+  max-height: 420px;
+  overflow: auto;
+  border: 1px solid #dfe5f2;
+  border-radius: 12px;
+  padding: 8px;
+  background: #fff;
+  box-shadow: 0 20px 60px rgba(22, 34, 64, 0.14);
+}
+
+.docs-shell-search-results a {
+  display: grid;
+  gap: 3px;
+  border-radius: 10px;
+  padding: 10px;
+  color: #151923;
+  text-decoration: none;
+}
+
+.docs-shell-search-results a:hover {
+  background: #f2f5fb;
+}
+
+.docs-shell-search-results small {
+  color: #667085;
+  font-size: 12px;
+}
+
+.docs-shell-locales a[aria-current='page'] {
+  border-color: #151923;
+  color: #151923;
+}
+
+.docs-shell-body {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 48px;
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+.docs-shell-sidebar {
+  position: sticky;
+  top: 73px;
+  align-self: start;
+  max-height: calc(100vh - 73px);
+  overflow: auto;
+  border-right: 1px solid #e4e9f3;
+  padding: 28px 18px 28px 0;
+}
+
+.docs-shell-sidebar nav {
+  display: grid;
+  gap: 6px;
+}
+
+.docs-shell-sidebar-link {
+  display: grid;
+  gap: 3px;
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #354054;
+  text-decoration: none;
+}
+
+.docs-shell-sidebar-link[aria-current='page'],
+.docs-shell-sidebar-link:hover {
+  background: #f2f5fb;
+  color: #151923;
+}
+
+.docs-shell-sidebar-link span {
+  font-weight: 650;
+}
+
+.docs-shell-sidebar-link small {
+  color: #667085;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.docs-shell-main {
+  max-width: 780px;
+  padding: 52px 0 80px;
+}
+
+.docs-shell-main h1 {
+  margin: 0;
+  font-size: 40px;
+  line-height: 1.12;
+}
+
+.docs-shell-description {
+  margin: 14px 0 0;
+  color: #5c667a;
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.docs-shell-article {
+  margin-top: 34px;
+}
+
 @media (max-width: 720px) {
   .landing-shell-header {
     align-items: flex-start;
@@ -1286,5 +1486,45 @@ a {
 
   .blog-category-posts {
     grid-template-columns: 1fr;
+  }
+
+  .docs-shell-header {
+    position: static;
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 16px 20px;
+  }
+
+  .docs-shell-header-actions {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .docs-shell-search {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .docs-shell-body {
+    grid-template-columns: 1fr;
+    gap: 0;
+    width: min(100% - 32px, 780px);
+  }
+
+  .docs-shell-sidebar {
+    position: static;
+    max-height: none;
+    border-right: 0;
+    border-bottom: 1px solid #e4e9f3;
+    padding: 18px 0;
+  }
+
+  .docs-shell-main {
+    padding: 32px 0 56px;
+  }
+
+  .docs-shell-main h1 {
+    font-size: 32px;
   }
 }

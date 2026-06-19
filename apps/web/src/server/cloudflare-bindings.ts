@@ -37,6 +37,7 @@ export async function runWithTanStackCloudflareBindings<T>(
   callback: () => Promise<T> | T
 ): Promise<T> {
   const bindings = await readTanStackCloudflareBindings();
+  if (!bindings) return await callback();
   return await runWithCloudflareBindings(bindings, callback);
 }
 

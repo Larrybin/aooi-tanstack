@@ -1,9 +1,13 @@
-import { getLocalPublicContentDocument } from '@/domains/content/application/public-content-manifest';
+import {
+  getLocalPublicContentDocument,
+  getLocalPublicContentDocuments,
+} from '@/domains/content/application/public-content-manifest';
 import {
   buildBrandPlaceholderValues,
   replaceBrandPlaceholders,
 } from '@/infra/platform/brand/placeholders.server';
 
+import { defaultLocale } from '@/config/locale';
 import { normalizeLocale } from '@/shared/i18n/locale';
 
 export type DocsRouteInput = {
@@ -17,6 +21,21 @@ export type DocsRouteData = {
   content: string;
   slug: string[];
   locale: string;
+  appName: string;
+  appLogo: string;
+  docsTree: SerializableDocsPageTree;
+};
+
+export type SerializableDocsPageTree = {
+  name: string;
+  children: SerializableDocsPageTreeItem[];
+};
+
+export type SerializableDocsPageTreeItem = {
+  type: 'page';
+  name: string;
+  url: string;
+  description?: string;
 };
 
 export function normalizeDocsSlug(slug: unknown): string[] {
@@ -48,5 +67,55 @@ export function resolveDocsRouteData(
     content: replaceBrandPlaceholders(document.content, brand),
     slug,
     locale,
+    appName: brand.appName,
+    appLogo: brand.appLogo,
+    docsTree: buildDocsPageTree(locale, brand),
   };
+}
+
+function buildDocsPageTree(
+  locale: string,
+  brand: ReturnType<typeof buildBrandPlaceholderValues>
+): SerializableDocsPageTree {
+  const documents = getLocalPublicContentDocuments({
+    collection: 'docs',
+    locale,
+  });
+  const treeDocuments =
+    documents.length > 0
+      ? documents
+      : getLocalPublicContentDocuments({
+          collection: 'docs',
+          locale: defaultLocale,
+        });
+
+  return {
+    name: 'Documentation',
+    children: treeDocuments
+      .slice()
+      .sort((left, right) => sortDocsSlugs(left.slug, right.slug))
+      .map((item) => ({
+        type: 'page' as const,
+        name: replaceBrandPlaceholders(
+          item.title || item.slug || 'Documentation',
+          brand
+        ),
+        url: localizeDocsPath(item.path, locale),
+        description: item.description
+          ? replaceBrandPlaceholders(item.description, brand)
+          : undefined,
+      })),
+  };
+}
+
+function sortDocsSlugs(left: string, right: string) {
+  if (left === right) return 0;
+  if (!left) return -1;
+  if (!right) return 1;
+  return left.localeCompare(right);
+}
+
+function localizeDocsPath(path: string, locale: string) {
+  if (locale === defaultLocale) return path;
+  return `/${locale}${path}`;
 }

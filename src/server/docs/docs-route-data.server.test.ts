@@ -10,6 +10,8 @@ test('resolveDocsRouteData reads docs from generated public content manifest', (
   assert.equal(data?.locale, 'zh');
   assert.equal(data?.slug.join('/'), 'quick-start');
   assert.match(data?.content ?? '', /本地开发/);
+  assert.ok(data?.docsTree.children.length);
+  assert.equal(typeof data?.appName, 'string');
 });
 
 test('docs route data stays Cloudflare-compatible and does not read the file system at runtime', async () => {
@@ -47,4 +49,16 @@ test('resolveDocsRouteData returns null for unsupported locale', () => {
     resolveDocsRouteData({ locale: 'foo', slug: ['quick-start'] }),
     null
   );
+});
+
+test('DocsRouteView restores the native docs shell', async () => {
+  const source = await readFile(
+    'src/surfaces/docs/docs-route.view.tsx',
+    'utf8'
+  );
+
+  assert.match(source, /docs-shell-header/);
+  assert.match(source, /docs-shell-sidebar/);
+  assert.match(source, /\/api\/docs\/search\?query=/);
+  assert.match(source, /docsLocales\.map/);
 });
