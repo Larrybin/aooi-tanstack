@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        # pinned from v6
+        # pinned from v7
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           fetch-depth: 0
@@ -56,7 +56,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        # pinned from v6
+        # pinned from v7
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Setup pnpm
@@ -97,7 +97,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        # pinned from v6
+        # pinned from v7
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Setup pnpm
@@ -127,7 +127,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        # pinned from v6
+        # pinned from v7
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           fetch-depth: 0
@@ -174,7 +174,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        # pinned from v6
+        # pinned from v7
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Setup pnpm
@@ -211,7 +211,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        # pinned from v6
+        # pinned from v7
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Setup pnpm
