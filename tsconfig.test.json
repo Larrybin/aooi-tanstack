@@ -2,10 +2,9 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "allowImportingTsExtensions": true,
-    "tsBuildInfoFile": ".next/cache/tsconfig.test.tsbuildinfo"
+    "tsBuildInfoFile": ".tanstack/tsconfig.test.tsbuildinfo"
   },
   "include": [
-    "next-env.d.ts",
     "src/shared/types/**/*.d.ts",
     "src/**/*.test.ts",
     "src/**/*.test.tsx",
@@ -15,11 +14,5 @@
     "tests/**/*.tsx",
     "scripts/**/*.test.ts"
   ],
-  "exclude": [
-    "node_modules",
-    ".next",
-    "out",
-    "dist",
-    "raphael-starterkit-v1-main"
-  ]
+  "exclude": ["node_modules", "out", "dist", "raphael-starterkit-v1-main"]
 }

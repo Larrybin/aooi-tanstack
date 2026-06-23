@@ -1,4 +1,3 @@
-import { loadMyImagesRouteData } from '@/server/remover/my-images-route-data';
 import { site } from '@/site';
 import { MyImagesRouteView } from '@/surfaces/remover/my-images-route.view';
 import { createFileRoute, notFound } from '@tanstack/react-router';
@@ -11,6 +10,8 @@ export const Route = createFileRoute('/my-images')({
       throw notFound();
     }
 
+    const { loadMyImagesRouteData } =
+      await import('@/server/remover/my-images-route-data');
     const data = await loadMyImagesRouteData({
       data: { locale: defaultLocale },
     });

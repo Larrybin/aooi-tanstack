@@ -3,33 +3,18 @@ import { cloudflare } from '@cloudflare/vite-plugin';
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import react from '@vitejs/plugin-react';
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig } from 'vite';
 
 const projectRoot = import.meta.dirname;
-const serverOnlyEmptyModule = resolve(
-  projectRoot,
-  'node_modules/server-only/empty.js'
-);
-
-function serverOnlyForSsr(): Plugin {
-  return {
-    name: 'aooi-server-only-for-tanstack-ssr',
-    enforce: 'pre',
-    resolveId(id) {
-      if (id !== 'server-only') {
-        return null;
-      }
-
-      const environmentName = this.environment?.name;
-      return environmentName === 'ssr' ? serverOnlyEmptyModule : null;
-    },
-  };
-}
 
 export default defineConfig({
   root: projectRoot,
   resolve: {
     alias: [
+      {
+        find: /^tailwindcss$/,
+        replacement: resolve(projectRoot, 'node_modules/tailwindcss/index.css'),
+      },
       {
         find: '@/site',
         replacement: resolve(projectRoot, '.generated/site.ts'),
@@ -46,7 +31,6 @@ export default defineConfig({
     ],
   },
   plugins: [
-    serverOnlyForSsr(),
     paraglideVitePlugin({
       project: './project.inlang',
       outdir: './src/paraglide',

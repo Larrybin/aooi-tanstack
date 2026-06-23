@@ -1,7 +1,7 @@
 import { requireRemoverSite } from '@/server/api/remover/guard';
 import { getRemoverJob } from '@/server/api/remover/routes';
 import { buildRemoveMyImagesJobRequest } from '@/server/remover/my-images-job-request';
-import { removeMyImagesJob } from '@/server/remover/my-images-route-data';
+import { removeMyImagesJob } from '@/server/remover/my-images-route-resolver';
 import { createFileRoute } from '@tanstack/react-router';
 
 import { withApi } from '@/shared/lib/api/route';

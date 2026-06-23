@@ -456,6 +456,7 @@ for (const scriptName of [
 for (const scriptName of [
   'tanstack:dev',
   'tanstack:build',
+  'tanstack:client-boundary',
   'tanstack:typecheck',
   'tanstack:inventory',
   'tanstack:validate',
@@ -477,6 +478,9 @@ if (!/tanstack:typecheck/.test(scripts.check || '')) {
 }
 if (!/tanstack:build/.test(scripts.ci || '')) {
   fail('ci must include tanstack:build');
+}
+if (!/tanstack:client-boundary/.test(scripts.ci || '')) {
+  fail('ci must include tanstack:client-boundary');
 }
 if (/\$\{SITE:-/.test(scripts['tanstack:cf:build'] || '')) {
   fail('tanstack:cf:build must not default SITE');

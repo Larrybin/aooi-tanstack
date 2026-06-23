@@ -32,6 +32,7 @@ test('TanStack remover job DELETE path applies the remover API guard', async () 
   );
 
   assert.match(source, /import\s+\{\s*requireRemoverSite\s*\}/);
+  assert.match(source, /@\/server\/remover\/my-images-route-resolver/);
   assert.match(source, /withApi\(\(request:\s*Request\)\s*=>\s*\{/);
   assert.match(
     source,
@@ -52,7 +53,7 @@ test('TanStack My Images localized route rejects invalid locale data', async () 
     'apps/web/src/routes/$locale/my-images.tsx'
   );
   const loaderSource = await readRepoFile(
-    'src/server/remover/my-images-route-data.ts'
+    'src/server/remover/my-images-route-resolver.ts'
   );
 
   assert.match(loaderSource, /const locale = normalizeLocale\(data\.locale\);/);
@@ -62,7 +63,7 @@ test('TanStack My Images localized route rejects invalid locale data', async () 
 
 test('TanStack My Images route data and view restore the landing shell', async () => {
   const loaderSource = await readRepoFile(
-    'src/server/remover/my-images-route-data.ts'
+    'src/server/remover/my-images-route-resolver.ts'
   );
   const viewSource = await readRepoFile(
     'src/surfaces/remover/my-images-route.view.tsx'

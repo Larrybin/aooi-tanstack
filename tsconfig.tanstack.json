@@ -34,5 +34,5 @@
     "src/shared/types/cloudflare-runtime.d.ts",
     "src/shared/types/cloudflare.d.ts"
   ],
-  "exclude": ["node_modules", ".next", ".open-next", "out", "dist"]
+  "exclude": ["node_modules", "out", "dist"]
 }
