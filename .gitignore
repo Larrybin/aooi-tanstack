@@ -14,8 +14,6 @@
 /coverage
 /.reports/
 
-# next.js
-/.next/
 /out/
 
 # production
@@ -41,12 +39,8 @@ yarn-error.log*
 .env.production
 sites/*/.env.local
 
-# vercel
-.vercel
-
 # typescript
 *.tsbuildinfo
-next-env.d.ts
 
 # Root-level scratch data (keep this scoped to repo root; avoid ignoring docs like docs/guides/database.md)
 /data*
@@ -54,7 +48,6 @@ next-env.d.ts
 
 *.db
 
-.open-next
 .wrangler
 
 .debug 
@@ -68,8 +61,6 @@ next-env.d.ts
 
 # nested starterkit (not part of main app)
 /raphael-starterkit-v1-main/
-
-.vercel
 
 # local agent notes / scratch
 /temp/

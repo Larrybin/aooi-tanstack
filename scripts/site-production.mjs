@@ -486,14 +486,14 @@ async function runDoctor() {
 
 async function runInitSettings() {
   const context = createProductionContext();
-  const nextJson = buildProductionDeploySettingsInitJson({
+  const updatedJson = buildProductionDeploySettingsInitJson({
     deploySettings: context.deploySettings,
     siteConfig: context.siteConfig,
     siteKey: context.siteKey,
   });
   const currentJson = readFileSync(context.deploySettingsPath, 'utf8');
 
-  if (currentJson === nextJson) {
+  if (currentJson === updatedJson) {
     printStatus(
       'ok',
       'production deploy settings',
@@ -502,7 +502,7 @@ async function runInitSettings() {
     return 0;
   }
 
-  writeFileSync(context.deploySettingsPath, nextJson, 'utf8');
+  writeFileSync(context.deploySettingsPath, updatedJson, 'utf8');
   printStatus(
     'ok',
     'production deploy settings',

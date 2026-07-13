@@ -1,84 +1,64 @@
-# Cloudflare-Only Deployment Governance
+# Cloudflare Deployment Governance
 
-## Contract
+Cloudflare Workers is the only supported production topology.
 
-- The template supports exactly one production deployment target: `DEPLOY_TARGET=cloudflare`.
-- Public routes, auth routes, and protected routes must execute on the same origin.
-- Cross-origin cookie auth topology is unsupported.
+## Topology
 
-## Canonical Origin Rules
+Each site selects an active router plus server Worker set from
+`sites/<site-key>/deploy.settings.json`. The router owns public routing,
+version affinity, image routing, and service binding dispatch. Active server
+Workers load the same native TanStack server artifact and expose only their
+assigned route families. State Workers remain independently deployable.
 
-- `site.brand.appUrl` is the canonical production app origin.
-- `NEXT_PUBLIC_APP_URL` is a generated deploy artifact derived from the resolved deploy contract app origin: production uses `site.brand.appUrl`; preview uses the workers.dev router origin.
-- `AUTH_URL` and `BETTER_AUTH_URL` may exist only as same-origin mirrors of the runtime app origin.
-- In production, any request-derived auth origin that differs from `site.brand.appUrl` is a hard failure.
-- In preview/local, request-derived auth origin may override the canonical origin only when it is `localhost` or `127.0.0.1`.
+Existing Worker names, service bindings, Durable Object names, R2 buckets, and
+Hyperdrive IDs are external contracts and must not be renamed during internal
+refactors.
 
-## Cloudflare Rules
+## Canonical commands
 
-- Cloudflare runs as one private `state` Worker, one public router Worker, one required `public-web` private server Worker, and any optional private server Workers present in the selected site's active `deploy.settings.json.workers` map.
-- `sites/<site>/site.config.json` is the semantic source of truth and `sites/<site>/deploy.settings.json` is the infra-only deploy manifest.
-- Tracked `wrangler.cloudflare.toml`, `cloudflare/wrangler.state.toml`, and `cloudflare/wrangler.server-*.toml` are static templates, not site-specific source of truth.
-- Resolver behavior is deterministic and side-effect free: it reads site identity + deploy manifest, derives contract IR, and feeds every `cf:*` command, smoke script, typegen, and release gate.
-- Router-to-server dispatch must use Cloudflare version affinity.
-- Production release authority belongs to the local operator session through `SITE=mamamiya pnpm release:cf`.
-- GitHub Actions is the acceptance gate only. It must not deploy production.
-- The local release command may deploy only the current `main` head whose `Cloudflare Deploy Acceptance` run succeeded.
-- Manual lower-level Wrangler deploy commands are diagnostics and emergency procedures; they must follow the same site-resolved contract and post-deploy smoke requirement.
-- Cloudflare preview is supported only as `CF_DEPLOY_PROFILE=preview` on the real product `SITE`; preview must not be modeled as a separate site.
-- `CF_FALLBACK_ORIGIN` is forbidden.
-- Any protected route redirecting to another origin is a failure.
-- `pnpm cf:build` is authoritative for app size governance: it must pass `wrangler versions upload --dry-run` for router and every app Worker, and every deployable app gzip bundle must stay below `3 MiB`.
-- Any accepted change to `src/config/db/schema.ts` must include committed files under `src/config/db/migrations/**`; otherwise release preparation must fail before deploy.
-- Only the state Worker may define `[[migrations]]`.
-- Router and active app workers must bind Durable Objects from the resolved `workers.state` in the current site deploy contract.
-- State/app releases use an additive compatibility window: state-first changes may add fields or actions, but must not rename or redefine existing semantics in the same release.
-- Release input checks enforce schema/migration pairing before deploy; they must not create a parallel release metadata authority.
-- `pnpm cf:deploy:app` and `pnpm cf:deploy` are pure production app release commands. They must not bootstrap a missing router/server topology.
-- For brand-new or partially initialized production environments, the only valid release order is `pnpm cf:deploy:state` first and `pnpm cf:deploy` second.
-- If app deploy detects a missing router/server deployment, it must fail fast and instruct the operator to run `pnpm cf:deploy:state` first.
-- Preview bootstrap is the only exception: `CF_DEPLOY_PROFILE=preview CF_DEPLOY_BOOTSTRAP_MISSING=true pnpm cf:deploy` may initialize missing preview app workers after preview state has been deployed.
-- `pnpm cf:deploy:state` runs a state-scoped preflight only. It may verify the Durable Object artifacts imported by the state worker, but it must not be blocked by app worker secrets or router/server worker bundles, and it must not run the full OpenNext app build.
+```bash
+RESEND_API_KEY=ci-resend-api-key-not-for-production SITE=dev-local pnpm cf:check
+SITE=dev-local pnpm cf:build
+pnpm cf:build:no-db --site=mp4-compressor
+RESEND_API_KEY=ci-resend-api-key-not-for-production SITE=dev-local pnpm cf:typegen:check
+SITE=dev-local pnpm test:cf-local-smoke
+```
 
-## Test Gates
+- `cf:check` validates the selected topology, vars, secrets, bindings, and
+  tracked Wrangler templates.
+- `cf:build` builds the native TanStack app and performs scoped Worker upload
+  dry-runs.
+- `cf:build:no-db` verifies no-database sites with database inputs cleared.
+- `cf:typegen:check` verifies generated Cloudflare declarations.
+- `test:cf-local-smoke` starts the generated multi-Worker topology through
+  Wrangler and exercises the router origin.
 
-- `pnpm cf:check` validates the multi-worker config contract.
-- `pnpm cf:check -- --workers=state|app|all|<comma-list>` scopes the same contract to explicit worker targets; the default remains `all`.
-- `pnpm cf:check` reads `sites/<site>/site.config.json` + `sites/<site>/deploy.settings.json` through the shared resolver; it does not infer deploy semantics from admin/live settings, local test flags, or static wrangler path bypasses.
-- `pnpm cf:build` validates OpenNext multi-bundle generation and hard-fails if any required router/server bundle is missing or if app dry-run upload checks report a deployable gzip bundle `>= 3 MiB`.
-- `pnpm cf:build:no-db` is the local no-database build probe for the explicit deployable site set: `mamamiya` and `ai-remover`. It clears direct database URLs, keeps `DATABASE_PROVIDER=postgresql`, supplies CI-only placeholder runtime bindings, and runs the sites sequentially because site generation writes `.generated/site.ts`.
-- `SITE=<site-key> pnpm test:cf-local-smoke` validates the canonical local Cloudflare runtime path through a generated temporary topology: the router and active server Workers start under one `wrangler dev` multi-config session, required `.open-next` artifacts are checked before boot, and the read-only smoke runs against the router origin.
-- `SITE=<site-key> pnpm test:cf-admin-settings-smoke` validates the smaller Cloudflare-only local acceptance chain for storage semantics: direct DB seeding, real `/api/storage/upload-image`, public config projection, and the explicit `STORAGE_PUBLIC_BASE_URL` missing-error path inside the same local Cloudflare runtime session.
-- `SITE=<site-key> pnpm test:cf-app-smoke` validates post-deploy production read-only smoke on the real app origin.
-- Before production deploy, `Cloudflare Deploy Acceptance` must pass its stable `cloudflare acceptance` summary check for the accepted `main` revision. The workflow splits static CI, tests, schema migration guarding, path-aware Cloudflare acceptance, and site-scoped contract checks into separate jobs.
-- Cloudflare acceptance is path-aware but the required `cloudflare acceptance` summary check must always produce a result. It may pass with the heavy Cloudflare matrix skipped when no Cloudflare-relevant paths changed.
-- The Cloudflare matrix is explicit: `mamamiya` and `ai-remover`. Each selected site runs `pnpm cf:check`, then runs `pnpm cf:build:no-db --site=<site>` with direct database URLs cleared, `DATABASE_PROVIDER=postgresql`, and CI-only placeholder runtime bindings where the site declares runtime-owned provider secrets.
-- Cloudflare acceptance no longer starts a CI Postgres service or runs `pnpm db:migrate`; DB schema governance stays in the schema migration guard, and production migrations stay in the local release command.
-- AI Remover contract checks are site-scoped and run as `SITE=ai-remover pnpm contract:check` only for AI Remover contract paths or manual workflow dispatch.
-- `SITE=mamamiya pnpm release:cf` must verify `HEAD == origin/main` and a successful `Cloudflare Deploy Acceptance` run for that exact commit before any production mutation.
-- If schema changes are present, the local release input guard must require committed files under `src/config/db/migrations/**` before deploy.
-- The local release command must run `pnpm db:migrate` before `pnpm cf:deploy:state` or app deploy work.
-- After app worker deploy, the local release command must run `pnpm test:cf-app-smoke` against the real app origin.
-- Compatibility-window safety is enforced by Cloudflare contract checks and state/app smoke coverage, not by changed-path allowlists in release metadata.
-- Public smoke package command names are stable, but they are explicit site-driven entrypoints. Internally, `run-with-site.mjs` feeds `scripts/smoke.mjs <scenario>` and dispatches `cf-local`, `cf-app`, and `cf-admin-settings` to their concrete runner scripts.
-- `BETTER_AUTH_SECRET` / `AUTH_SECRET` form one shared auth secret requirement for the Next server workers; satisfying either input key is enough, generated secrets files still write both keys, and router/state must not be blocked by auth secret generation when they are the only deploy targets.
-- Cloudflare secrets file generation must pass an explicit `--workers=state|app|all|<comma-list>` scope; named scopes expand through the selected site's active `deploy.settings.json.workers` topology, and explicitly requesting a disabled worker fails.
+## Deployment
 
-## Raw Conclusion Governance
+`cf:deploy:state` deploys only state infrastructure. `cf:deploy:app` deploys
+router/server Workers with version affinity. `cf:deploy` aliases the app
+deployment entry; `release:cf` is the explicit operator release workflow.
 
-- Automation exit codes only express `harnessStatus`.
-- Governance decisions must read `rawConclusion`.
-- A non-zero exit code does not tell you whether the next action is adapter work, replacement work, or simply rerunning after setup repair.
+Production release authority belongs to the local operator session. GitHub
+Actions validates acceptance requirements but never owns production deploys.
 
-| `rawConclusion` | Meaning                                                                                                         | Governance action                                                                       | Allowed / forbidden                                                                       |
-| --------------- | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `PASS`          | The path is trustworthy within the tested scope.                                                                | Treat the path as currently governed and first-class for the tested capability.         | Allowed: update product/docs language to reflect verified evidence.                       |
-| `需要 adapter`  | The path is viable, but the current contract still needs bounded normalization on the same implementation path. | Continue only with scoped contract-fix work on the current provider/runtime path.       | Forbidden: do not start provider replacement; do not describe the path as fully verified. |
-| `需要替代路线`  | The current implementation path should not remain the governed default for that capability.                     | Stop adapter work and move to replacement-path or capability-reduction decision making. | Forbidden: do not keep presenting the current path as governed/validated by default.      |
-| `BLOCKED`       | The run does not provide decision-quality evidence because setup or test trust is broken.                       | Fix environment, prerequisites, or harness trust first, then rerun.                     | Forbidden: do not make product or architecture conclusions from this run.                 |
+Validation never implies deployment. Production secrets are set through
+Cloudflare and must not be written to tracked site files.
 
-Current semantic sources:
+## Runtime spike decisions
 
-- `scripts/check-cloudflare-config.mjs`
-- `scripts/run-cf-multi-build-check.mjs`
-- `scripts/run-cf-admin-settings-smoke.mjs`
+Runtime spike reports use `rawConclusion` as the machine-readable decision:
+
+| Value          | Required action                                                   |
+| -------------- | ----------------------------------------------------------------- |
+| `PASS`         | Keep the canonical Cloudflare path.                               |
+| `需要 adapter` | Add the smallest runtime adapter at the affected boundary.        |
+| `需要替代路线` | Stop and select a different runtime route before implementation.  |
+| `BLOCKED`      | Record the external blocker; do not infer an architecture result. |
+
+## Change control
+
+Changes to Worker topology, deploy settings, runtime bindings, or env contracts
+require `cf:check`, build, and typegen evidence for an explicit site. Database
+schema changes also require a committed migration. GitHub acceptance is a gate,
+not the production deploy authority.

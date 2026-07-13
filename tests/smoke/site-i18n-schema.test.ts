@@ -18,7 +18,7 @@ const validPages = parseSiteI18nPages({
       required: true,
       source: {
         kind: 'app-route',
-        path: 'src/app/[locale]/(landing)/page.tsx',
+        path: 'apps/web/src/routes/index.tsx',
       },
       hashScope: 'seo',
     },

@@ -13,7 +13,6 @@ import test from 'node:test';
 import {
   loadDotenvForScripts,
   loadRootDotenv,
-  shouldLoadDotenvForScripts,
 } from '../src/config/load-dotenv-core.mjs';
 
 function withTempProject(fn: (rootDir: string) => void | Promise<void>) {
@@ -110,8 +109,6 @@ test(
     assert.equal(env.DOUBLE, 'line\ntext');
   })
 );
-
-
 
 test(
   'loadRootDotenv handles self-referential and cyclic expansion without recursion overflow',
@@ -256,25 +253,7 @@ test(
   })
 );
 
-test(
-  'NEXT_RUNTIME disables script dotenv loading',
-  withTempProject((rootDir) => {
-    write(rootDir, '.env', 'VALUE=root\n');
-    const env = { NEXT_RUNTIME: 'edge' } as NodeJS.ProcessEnv;
-
-    assert.equal(shouldLoadDotenvForScripts(env), false);
-    const result = loadDotenvForScripts({
-      env,
-      originalEnv: { ...env },
-      rootDir,
-    });
-
-    assert.equal(result.loaded, false);
-    assert.equal(env.VALUE, undefined);
-  })
-);
-
-test('run-with-site uses the shared dotenv core and does not import @next/env', () => {
+test('run-with-site uses the shared dotenv core', () => {
   const source = readFileSync('scripts/run-with-site.mjs', 'utf8');
 
   assert.match(source, /load-dotenv-core\.mjs/);

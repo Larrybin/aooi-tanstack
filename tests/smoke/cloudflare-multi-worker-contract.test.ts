@@ -77,24 +77,6 @@ test('server worker 公共入口使用 binding-only runtime env，不再同步 p
   assert.match(source, /bindings:\s*env as CloudflareBindings/);
 });
 
-test('共享 worker helper 不允许顶层静态 import OpenNext 构建产物', async () => {
-  const helperPaths = [
-    'cloudflare/workers/create-server-worker.ts',
-    'cloudflare/workers/router-forwarding.ts',
-    'cloudflare/workers/stateful-limiters.ts',
-  ];
-
-  for (const relativePath of helperPaths) {
-    const source = await fs.readFile(path.join(rootDir, relativePath), 'utf8');
-
-    assert.doesNotMatch(
-      source,
-      /^\s*import\s.+from\s+['"][^'"]*\.open-next\//m,
-      `${relativePath} 不应顶层静态 import .open-next 构建产物`
-    );
-  }
-});
-
 test('server workers 统一加载 native TanStack server artifact', async () => {
   assert.equal(NATIVE_TANSTACK_SERVER_ARTIFACT, 'dist/server/server.mjs');
 
@@ -104,7 +86,6 @@ test('server workers 统一加载 native TanStack server artifact', async () => 
       'utf8'
     );
     assert.match(source, /import\('\.\.\/\.\.\/dist\/server\/server\.mjs'\)/);
-    assert.doesNotMatch(source, /\.open-next/);
   }
 });
 

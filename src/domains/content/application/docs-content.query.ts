@@ -1,13 +1,12 @@
 import { createElement } from 'react';
-import { docs } from '@/content-source';
 import {
   normalizeDocsSlug,
   resolveDocsLocale,
 } from '@/domains/content/domain/docs-route';
 import {
   docsI18n,
+  docsLoaderSource,
   docsSource,
-  toLoaderSource,
 } from '@/domains/content/infra/source';
 import type { I18nConfig } from 'fumadocs-core/i18n';
 import { loader } from 'fumadocs-core/source';
@@ -46,7 +45,7 @@ export function createDocsSearchSource() {
 
   return loader({
     baseUrl: '/docs',
-    source: toLoaderSource(docs.toFumadocsSource()),
+    source: docsLoaderSource,
     i18n: searchI18n,
     icon: iconHelper,
   });

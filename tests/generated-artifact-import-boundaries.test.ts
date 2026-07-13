@@ -8,13 +8,7 @@ const SCAN_ROOTS = ['src', 'cloudflare', 'tests'].map((dir) =>
   resolve(REPO_ROOT, dir)
 );
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx']);
-const FORBIDDEN_GENERATED_DIRS = new Set([
-  '.open-next',
-  '.next',
-  'dist',
-  'build',
-  'output',
-]);
+const FORBIDDEN_GENERATED_DIRS = new Set(['dist', 'build', 'output']);
 const STATIC_IMPORT_ALLOWLIST = new Set([
   resolve(REPO_ROOT, 'cloudflare/workers/router.ts'),
   resolve(REPO_ROOT, 'cloudflare/workers/state.ts'),

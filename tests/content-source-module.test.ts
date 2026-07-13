@@ -46,28 +46,24 @@ async function readGeneratedPublicContent() {
   return await readFile(generatedPublicContentPath, 'utf8');
 }
 
-async function runTanStackValidate(siteKey: string) {
-  await execFileAsync('pnpm', ['tanstack:validate'], {
-    cwd: rootDir,
-    env: {
-      ...process.env,
-      SITE: siteKey,
-    },
-  });
-}
-
 async function readGeneratedArtifactIndex(siteKey: string) {
   const pointer = parseGeneratedPointer(await readGeneratedContentSource());
   assert.equal(pointer.siteKey, siteKey);
 
   return await readFile(
-    path.resolve(rootDir, '.source', siteKey, pointer.versionId, 'index.ts'),
+    path.resolve(
+      rootDir,
+      '.source',
+      siteKey,
+      pointer.versionId,
+      'source.generated.ts'
+    ),
     'utf8'
   );
 }
 
 function parseGeneratedPointer(source: string) {
-  const match = source.match(/\.source\/([^/]+)\/([^/]+)\/index/);
+  const match = source.match(/\.source\/([^/]+)\/([^/]+)\/source\.generated/);
   assert.ok(match, `expected generated source pointer, got: ${source}`);
 
   return {
@@ -123,13 +119,13 @@ test('@/public-content: manifest TOC heading ids match markdown renderer slugs',
   const publicContentSource = await readGeneratedPublicContent();
 
   assert.match(publicContentSource, /#8-性能next--tailwind--ts-交叉点/);
-  assert.match(publicContentSource, /"title": "Database",\n\s+"url": "#database"/);
+  assert.match(
+    publicContentSource,
+    /"title": "Database",\n\s+"url": "#database"/
+  );
   assert.doesNotMatch(publicContentSource, /"url": "#database-1"/);
   assert.doesNotMatch(publicContentSource, /"url": "#auth-secret"/);
-  assert.doesNotMatch(
-    publicContentSource,
-    /"url": "#openssl-rand--base64-32"/
-  );
+  assert.doesNotMatch(publicContentSource, /"url": "#openssl-rand--base64-32"/);
 });
 
 test('@/public-content: tanstack validation regenerates stale site manifest', async () => {
@@ -139,7 +135,7 @@ test('@/public-content: tanstack validation regenerates stale site manifest', as
     /publicContentSiteKey = "mamamiya"/
   );
 
-  await runTanStackValidate('dev-local');
+  await runGenerateContentSource('dev-local');
 
   assert.match(
     await readGeneratedPublicContent(),
@@ -163,36 +159,14 @@ test('@/public-content: SITE=mamamiya skips unsupported locale suffixes', async 
   assert.doesNotMatch(publicContentSource, /terms-of-service\.zh-TW/);
 });
 
-test('@/content-source: SITE=mamamiya includes grouped docs entrypoints', async () => {
+test('@/content-source: SITE=mamamiya emits native Vite collection entrypoints', async () => {
   await runGenerateContentSource('mamamiya');
 
   const artifactIndex = await readGeneratedArtifactIndex('mamamiya');
 
-  assert.match(artifactIndex, /docs\/quick-start\.mdx\?collection=docs/);
-  assert.match(artifactIndex, /docs\/quick-start\.zh\.mdx\?collection=docs/);
-  assert.match(artifactIndex, /docs\/customize\/index\.mdx\?collection=docs/);
-  assert.match(
-    artifactIndex,
-    /docs\/customize\/app-info\.zh\.mdx\?collection=docs/
-  );
-  assert.match(
-    artifactIndex,
-    /docs\/deploy\/local-development\.mdx\?collection=docs/
-  );
-  assert.match(
-    artifactIndex,
-    /docs\/deploy\/cloudflare-deployment\.zh\.mdx\?collection=docs/
-  );
-  assert.match(artifactIndex, /docs\/core\/auth\.mdx\?collection=docs/);
-  assert.match(artifactIndex, /docs\/core\/settings\.zh\.mdx\?collection=docs/);
-  assert.match(
-    artifactIndex,
-    /docs\/extensions\/logging\.mdx\?collection=docs/
-  );
-  assert.match(
-    artifactIndex,
-    /docs\/extensions\/code-review-checklist\.zh\.mdx\?collection=docs/
-  );
+  assert.match(artifactIndex, /fumadocs-mdx\/runtime\/vite/);
+  assert.match(artifactIndex, /collection["']?: ["']docs["']/);
+  assert.match(artifactIndex, /sites\/mamamiya\/content\/docs/);
 });
 
 test('@/content-source: generation failure keeps previous pointer', async () => {
@@ -315,15 +289,6 @@ test('@/content-source: pages directory remains required for every site', async 
     await rm(backupDir, { recursive: true, force: true });
     await runGenerateContentSource('dev-local');
   }
-});
-
-test('@/content-source: page i18n includes Japanese legal pages', async () => {
-  const source = await readFile(
-    path.resolve(rootDir, 'src/domains/content/infra/source.ts'),
-    'utf8'
-  );
-
-  assert.match(source, /languages:\s*\['en', 'zh', 'zh-TW', 'ja'\]/);
 });
 
 test('@/content-source: same-site publish keeps latest two versions and prunes older artifacts', async () => {

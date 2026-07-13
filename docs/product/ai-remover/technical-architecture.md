@@ -5,7 +5,7 @@
 AI Remover should be implemented as an aooi site/product workflow:
 
 - Site identity and capabilities live in `sites/ai-remover`.
-- Product routes live in `src/app/**`.
+- Product routes live in `apps/web/src/routes/**`.
 - Product composition lives in `src/surfaces/**` or focused domain UI.
 - Business semantics live in `src/domains/remover/**`.
 - Product actor, guest session, and ownership primitives live in

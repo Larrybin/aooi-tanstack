@@ -1,24 +1,10 @@
 import tseslint from 'typescript-eslint';
 
-import aooi from './eslint/aooi-eslint-plugin.mjs';
-
 const noDoubleUnknownTypeAssertion = {
   selector:
     "TSAsExpression[expression.type='TSAsExpression'][expression.typeAnnotation.type='TSUnknownKeyword']",
   message:
     '禁止使用 `as unknown as` 双重断言；请改为类型守卫/parse/DTO 映射，或将断言收敛到边界适配层。',
-};
-
-const noThrowVanillaError = {
-  selector: "ThrowStatement > NewExpression[callee.name='Error']",
-  message:
-    '禁止直接 `throw new Error(...)` 进入对外契约边界；请改为抛出 `ApiError/BusinessError/ExternalError/ActionError`（仅暴露安全的 publicMessage）。',
-};
-
-const noThrowVanillaErrorCall = {
-  selector: "ThrowStatement > CallExpression[callee.name='Error']",
-  message:
-    '禁止直接 `throw Error(...)` 进入对外契约边界；请改为抛出 `ApiError/BusinessError/ExternalError/ActionError`（仅暴露安全的 publicMessage）。',
 };
 
 const noDirectProcessEnvAccess = {
@@ -113,43 +99,9 @@ const clientSurfaceNoRestrictedImports = {
   ],
 };
 
-const serverEntryNoRestrictedClientOnlyImports = {
-  ...baseNoRestrictedImports,
-  paths: [
-    ...baseNoRestrictedImports.paths,
-    {
-      name: 'client-only',
-      message:
-        "Server 模块禁止导入 'client-only'（该包仅用于标记 client-only 模块）。",
-    },
-    {
-      name: '@/shared/lib/api/client',
-      message:
-        "Server 模块禁止导入 '@/shared/lib/api/client'（这是 client-side fetch 封装）。",
-    },
-  ],
-  patterns: [
-    ...(baseNoRestrictedImports.patterns || []),
-    {
-      regex: '\\.client(\\.|$)',
-      allowTypeImports: true,
-      message:
-        "Server 模块禁止导入 '*.client'（client-only 代码请通过组件边界或 props 传入）。",
-    },
-    {
-      group: ['@/**/client/**'],
-      allowTypeImports: true,
-      message:
-        "Server 模块禁止导入 '**/client/**'（client-only 代码请通过组件边界或 props 传入）。",
-    },
-  ],
-};
-
 const eslintConfig = [
   {
     ignores: [
-      '**/.next/**',
-      '**/.open-next/**',
       '**/.cache/**',
       '**/.tmp/**',
       '**/.wrangler/**',
@@ -173,7 +125,6 @@ const eslintConfig = [
     },
     plugins: {
       '@typescript-eslint': tseslint.plugin,
-      aooi,
     },
   },
   {
@@ -237,43 +188,9 @@ const eslintConfig = [
     },
   },
   {
-    files: ['src/app/api/**/route.ts'],
-    rules: {
-      'aooi/require-withapi-route-handlers': 'error',
-      'no-restricted-syntax': [
-        'error',
-        noDoubleUnknownTypeAssertion,
-        noThrowVanillaError,
-        noThrowVanillaErrorCall,
-      ],
-    },
-  },
-  {
-    files: [
-      'src/app/api/auth/**/route.ts',
-      'src/app/api/payment/callback/route.ts',
-    ],
-    rules: {
-      'aooi/require-withapi-route-handlers': 'off',
-    },
-  },
-  {
-    files: ['src/app/**/actions.ts', 'src/app/**/actions.tsx'],
-    rules: {
-      'aooi/require-withaction-server-actions': 'error',
-      'no-restricted-syntax': [
-        'error',
-        noDoubleUnknownTypeAssertion,
-        noThrowVanillaError,
-        noThrowVanillaErrorCall,
-      ],
-    },
-  },
-  {
     files: [
       'src/shared/lib/api/**/*.{ts,tsx}',
       'src/shared/lib/fetch/**/*.{ts,tsx}',
-      'src/app/api/**/route.ts',
     ],
     ignores: [
       'src/**/*.test.ts',
@@ -451,52 +368,11 @@ const eslintConfig = [
     files: [
       'src/**/*.client.{ts,tsx}',
       'src/**/client/**/*.{ts,tsx}',
-      'src/app/**/error.tsx',
-      'src/app/**/global-error.tsx',
       'src/shared/lib/api/client.ts',
       'src/infra/platform/theme/provider.tsx',
     ],
     rules: {
       'no-restricted-imports': ['error', clientSurfaceNoRestrictedImports],
-    },
-  },
-  {
-    files: ['src/app/**/*.{ts,tsx}'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        serverEntryNoRestrictedClientOnlyImports,
-      ],
-    },
-  },
-  {
-    files: ['src/app/**/route.ts'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          ...serverEntryNoRestrictedClientOnlyImports,
-          patterns: [
-            ...(serverEntryNoRestrictedClientOnlyImports.patterns || []),
-            {
-              group: [
-                '@/shared/blocks/**',
-                '@/shared/components/**',
-                '@/shared/contexts/**',
-                '@/themes/**',
-              ],
-              message:
-                'Route Handler 禁止依赖 UI 层（blocks/components/contexts/themes）；请将渲染/模板生成下沉到 shared/lib 或 shared/content。',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ['apps/web/**/*.{ts,tsx}'],
-    rules: {
-      '@next/next/no-head-element': 'off',
     },
   },
 ];

@@ -5,8 +5,8 @@
     "exitCode": 3,
     "useBuiltins": true,
     "validationScripts": ["format:check", "lint", "build"],
-    "highRiskFilePrefixes": ["src/app/api/", "src/pages/api/"],
-    "highRiskFileExact": ["src/middleware.ts"],
+    "highRiskFilePrefixes": ["apps/web/src/routes/api/", "src/server/api/"],
+    "highRiskFileExact": ["cloudflare/workers/router-middleware.ts"],
     "highRiskPathTokens": [
       "auth",
       "billing",

@@ -146,7 +146,7 @@ function handleBash(command) {
 }
 
 function isGeneratedPath(repoPath) {
-  return /^(?:\.\/)?(?:\.next|\.open-next|dist|build|output)\//.test(repoPath);
+  return /^(?:\.\/)?(?:dist|build|output)\//.test(repoPath);
 }
 
 function isProductionRuntimePath(repoPath) {

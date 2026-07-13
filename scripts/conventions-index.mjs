@@ -3,9 +3,7 @@ import path from 'node:path';
 
 const SKIP_DIRS = new Set([
   '.git',
-  '.next',
   '.turbo',
-  '.open-next',
   '.wrangler',
   'node_modules',
   'dist',
@@ -64,34 +62,22 @@ function discover(rootDir) {
     ? ['src/shared/lib/seo.ts']
     : [];
 
-  const appFiles = walkFiles(rootDir, 'src/app').filter(
+  const routeFiles = walkFiles(rootDir, 'apps/web/src/routes').filter(
     (p) => p.endsWith('.ts') || p.endsWith('.tsx')
   );
-  const pagesUsingGetMetadata = [];
-  const pagesUsingGenerateMetadata = [];
-  for (const rel of appFiles) {
+  const routesUsingHead = [];
+  for (const rel of routeFiles) {
     const abs = path.join(rootDir, rel);
     const content = readText(abs);
     if (!content) continue;
 
-    if (
-      containsAny(content, ['= getMetadata({', 'getMetadata({', 'getMetadata('])
-    ) {
-      pagesUsingGetMetadata.push(rel);
-    }
-    if (
-      containsAny(content, [
-        'export async function generateMetadata',
-        'export function generateMetadata',
-        'export const generateMetadata',
-      ])
-    ) {
-      pagesUsingGenerateMetadata.push(rel);
+    if (containsAny(content, ['head: (', 'head:({', 'head: {'])) {
+      routesUsingHead.push(rel);
     }
   }
 
-  const routeHandlers = walkFiles(rootDir, 'src/app').filter((p) =>
-    p.endsWith('/route.ts')
+  const routeHandlers = routeFiles.filter((p) =>
+    p.startsWith('apps/web/src/routes/api/')
   );
 
   const paymentProviders = walkFiles(
@@ -111,8 +97,7 @@ function discover(rootDir) {
 
   return {
     seoHelper,
-    pagesUsingGetMetadata: pagesUsingGetMetadata.sort(),
-    pagesUsingGenerateMetadata: pagesUsingGenerateMetadata.sort(),
+    routesUsingHead: routesUsingHead.sort(),
     routeHandlers: routeHandlers.sort(),
     paymentProviders: paymentProviders.sort(),
     singleSources,
@@ -136,7 +121,7 @@ function renderDraft(discovery) {
   lines.push('## 模式样本索引（草案，需人工 review）');
 
   lines.push('');
-  lines.push('### SEO / Metadata（Next.js App Router）');
+  lines.push('### SEO / Head（TanStack Router）');
   if (discovery.seoHelper.length) {
     lines.push(`- helper：\`${discovery.seoHelper[0]}\``);
   } else {
@@ -145,23 +130,14 @@ function renderDraft(discovery) {
     );
   }
 
-  const getMetadataSamples = discovery.pagesUsingGetMetadata.slice(0, 8);
-  if (getMetadataSamples.length) {
-    lines.push('- 使用 getMetadata 的页面（抽样）：');
-    for (const p of getMetadataSamples) lines.push(`  - \`${p}\``);
-  }
-
-  const generateMetadataSamples = discovery.pagesUsingGenerateMetadata.slice(
-    0,
-    8
-  );
-  if (generateMetadataSamples.length) {
-    lines.push('- 手写 generateMetadata 的页面（抽样）：');
-    for (const p of generateMetadataSamples) lines.push(`  - \`${p}\``);
+  const headSamples = discovery.routesUsingHead.slice(0, 8);
+  if (headSamples.length) {
+    lines.push('- 使用 route head 的页面（抽样）：');
+    for (const p of headSamples) lines.push(`  - \`${p}\``);
   }
 
   lines.push('');
-  lines.push('### Route Handlers（src/app/**/route.ts）');
+  lines.push('### API Routes（apps/web/src/routes/api/**）');
   const routeSamples = discovery.routeHandlers.slice(0, 10);
   if (routeSamples.length) {
     for (const p of routeSamples) lines.push(`- \`${p}\``);
@@ -251,8 +227,8 @@ function validateConventions(rootDir, discovery) {
   const warnings = [];
   const suggestSamples = [
     ...discovery.seoHelper,
-    ...discovery.pagesUsingGetMetadata.slice(0, 5),
-    ...discovery.pagesUsingGenerateMetadata.slice(0, 5),
+    ...discovery.routesUsingHead.slice(0, 5),
+    ...discovery.routeHandlers.slice(0, 5),
   ];
   for (const rel of suggestSamples) {
     if (!docText.includes(rel)) {

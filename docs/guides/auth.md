@@ -50,45 +50,18 @@ export async function getAuthOptions(request?: Request) {
 
 ### API Route Handler
 
-The auth API is exposed via a catch-all route at `/api/auth/[...all]`:
+The auth API is exposed by the TanStack route at `/api/auth/*`:
 
 Notes:
 
 - This endpoint is a contract exception: it bypasses `withApi()` and does not return the standard `{code,message,data}` envelope (Better Auth controls redirects/cookies/status codes).
-- The route is `force-dynamic`, and responses are marked `Cache-Control: no-store`.
+- Responses are dynamic and marked `Cache-Control: no-store` by the auth action.
 - This route is exercised by the Cloudflare smoke chain (`SITE=<site-key> pnpm test:cf-local-smoke` and `SITE=<site-key> pnpm test:cf-app-smoke`).
 - The local dual-runtime harness depends on a generated temporary Wrangler config whose `localConnectionString` points at a migrated Postgres instance. Every tracked Wrangler config must keep `localConnectionString = ""`.
 
-```typescript
-// src/app/api/auth/[...all]/route.ts
-import { getAuth } from '@/infra/platform/auth';
-import { toNextJsHandler } from 'better-auth/next-js';
-
-import { setResponseHeader } from '@/shared/lib/api/response-headers';
-
-export const dynamic = 'force-dynamic';
-
-function withNoStore(response: Response): Response {
-  return setResponseHeader(response, 'Cache-Control', 'no-store');
-}
-
-async function createHandler(request: Request) {
-  const auth = await getAuth(request);
-  return toNextJsHandler(auth.handler);
-}
-
-export async function POST(request: Request) {
-  const handler = await createHandler(request);
-  const response = await handler.POST(request);
-  return withNoStore(response);
-}
-
-export async function GET(request: Request) {
-  const handler = await createHandler(request);
-  const response = await handler.GET(request);
-  return withNoStore(response);
-}
-```
+The route entry is `apps/web/src/routes/api/auth.ts`; reusable request logic is
+in `src/server/api/auth/auth-action.ts`, and runtime composition is in
+`apps/web/src/server/auth-runtime.ts`.
 
 ### Getting Auth Instance
 
@@ -204,7 +177,7 @@ Notes:
 - 本地 Cloudflare smoke 默认要求显式 `DATABASE_URL` 来生成临时 Wrangler config；仓库根 `.dev.vars` 只允许非数据库的运行时键，Wrangler 模板本身也不存储本地数据库连接串。
 - CI 中的 `Cloudflare Deploy Acceptance` 已拆分为独立 jobs。`cloudflare-acceptance` matrix job 不再启动临时 Postgres service，也不执行 `pnpm db:migrate`；它在清空直接数据库 URL 后运行 Cloudflare 检查和 `pnpm cf:build:no-db --site=<site>`。schema/migration 配对仍由独立 guard 负责，生产 migration 仍由本地 release 命令负责。
 - `pnpm cf:check` 与 Cloudflare secrets 文件生成会基于 `sites/<site>/deploy.settings.json` 要求当前启用能力对应的 provider bindings。需要局部校验时使用 `pnpm cf:check -- --workers=state|app|all|<comma-list>`；secrets 文件生成必须显式传同样的 worker scope。
-- `BETTER_AUTH_SECRET` / `AUTH_SECRET` 不属于 provider secrets；它们是 Next server runtime secret，只对当前站点 active topology 里的 server workers 必填，`state` worker 不消费它。
+- `BETTER_AUTH_SECRET` / `AUTH_SECRET` 不属于 provider secrets；它们是 server runtime secret，只对当前站点 active topology 里的 server workers 必填，`state` worker 不消费它。
 
 ### Optional
 
@@ -271,9 +244,10 @@ The reset page accepts query params:
 - `token`: required (from email link)
 - `error`: may be `INVALID_TOKEN`
 
-## Session Helpers (Server Components)
+## Session Helpers (Server Runtime)
 
-Prefer `getSignedInUserIdentity()` / `getSignedInUserSnapshot()` in Server Components and server-only helpers:
+Prefer `getSignedInUserIdentity()` / `getSignedInUserSnapshot()` in server
+loaders, handlers, and request-scoped helpers:
 
 ```typescript
 import { getSignedInUserIdentity } from '@/infra/platform/auth/session.server';
@@ -348,7 +322,8 @@ OAuth callback error: redirect_uri_mismatch
 - `src/infra/platform/auth/index.ts` - Auth entry point
 - `src/infra/platform/auth/config.ts` - Configuration
 - `src/infra/platform/auth/client.ts` - Client utilities
-- `src/app/api/auth/[...all]/route.ts` - API route
+- `apps/web/src/routes/api/auth.ts` - API route
+- `src/server/api/auth/auth-action.ts` - Reusable auth request action
 - `src/shared/lib/api/guard.ts` - Auth guards for API routes
 - `src/shared/lib/auth-session.server.ts` - Session helpers (`getSignedInUserIdentity` / `getSignedInUserSnapshot`)
 - `src/infra/runtime/env.server.ts` - Server runtime env access (`authBaseUrl` / `authSecret`)

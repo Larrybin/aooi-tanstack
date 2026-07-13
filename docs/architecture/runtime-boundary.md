@@ -1,78 +1,42 @@
 # Runtime Boundary
 
-Cloudflare / Node platform branching is restricted to two narrow runtime
-boundaries:
+## Inputs
 
-- `src/infra/runtime/**` for platform/env detection and Cloudflare bindings.
-- `src/shared/lib/runtime/**` for pure request, crypto, and upload helpers.
+Runtime environment and secret names are defined by
+`src/config/env-contract.ts`. Production runtime code reads them through
+approved helpers, not direct `process.env` access. Existing
+`NEXT_PUBLIC_*` names are retained only as deployed external inputs.
 
-Allowed modules:
+The generated `@/site` module is the only runtime source for site identity and
+capabilities. Runtime code must not import `sites/**` directly.
 
-- `src/infra/runtime/env.server`
-  - `getRuntimePlatform()`
-  - `isCloudflareWorkersRuntime()`
-  - `getCloudflareBindings()`
-  - `getCloudflareAIBinding()`
-  - `getRuntimeEnvString()`
-  - `isRuntimeEnvEnabled()`
-- `src/shared/lib/runtime/request-body`
-  - `readRequestTextWithLimit()`
-  - `readRequestBodyByteCountUpTo()`
-  - `readRequestFormData()`
-- `src/shared/lib/runtime/crypto`
-  - `signHmacSha256Hex()`
-- `src/shared/lib/runtime/upload`
-  - `readUploadRequestInput()`
+## Web and server boundary
 
-## Rules
+- `apps/web/src/routes/**`: inbound route declarations.
+- `apps/web/src/server/**`: TanStack/Cloudflare composition.
+- `src/server/**`: reusable server logic.
+- `src/infra/runtime/**`: platform-neutral runtime readers.
+- `cloudflare/workers/**`: Worker entrypoints and binding projection.
 
-- Feature / route layers must not detect platform directly.
-- Shared business services must not fork on Node vs Workers.
-- Business runtime signing must not depend on `node:crypto`; use `runtime/crypto`.
-- Cloudflare bindings must be read only through `src/infra/runtime/env.server`.
-- Request body / multipart access that exists because of runtime differences must go through `src/shared/lib/runtime/request-body` or `src/shared/lib/runtime/upload`.
+Routes call already assembled handlers. Handler composition owns domain infra,
+provider adapters, runtime settings, and Cloudflare binding scope.
 
-## Allowed platform differences
+## Generated artifacts
 
-Only these capability classes may differ by runtime:
+- Site module: `.generated/site.ts`
+- Content pointers: `.generated/content-source.ts` and
+  `.generated/public-content.ts`
+- Client bundle: `dist/client/**`
+- Server bundle: `dist/server/server.mjs`
+- Cloudflare type declarations: `src/shared/types/cloudflare.d.ts`
 
-- `env`
-- `request-body`
-- `crypto`
-- `upload`
+Build artifacts must not become ordinary source dependencies. Worker entries
+load the native server artifact only at the explicit runtime boundary.
 
-Anything else stays runtime-agnostic until a new boundary is explicitly introduced.
+## Current examples
 
-## Runtime Environment Flags
-
-- `APP_ENVIRONMENT` identifies the deployed topology as `local`, `preview`,
-  `staging`, or `production`. Local Cloudflare topology injects `local`;
-  preview deploy config injects `preview`; production deploy config injects
-  `production`.
-- `INTERNAL_ENTITLEMENT_GRANTS_ENABLED` is only a production kill switch for
-  active `entitlement_grant` rows. Non-production environments may resolve
-  active grants by default; production ignores grants unless this flag is
-  exactly `true`.
-
-## Current callers
-
-- `src/infra/adapters/db/index.ts`
-- `src/infra/platform/auth/config.ts`
-- `src/domains/settings/application/settings-store.ts`
-- `src/shared/lib/api/parse.ts`
-- `src/shared/lib/api/limiters-factory.ts`
-- `src/app/api/ai/notify/[provider]/route.ts`
-- `src/app/api/remover/provider-adapter.server.ts`
-- `src/app/api/remover/upload/route.ts`
-- `src/app/api/storage/upload-image/route.ts`
-- `src/domains/billing/application/payment-notify-flow.ts`
-- `src/infra/adapters/payment/creem-webhook.ts`
-- `src/shared/platform/cloudflare/storage.ts`
-- `src/shared/platform/cloudflare/stateful-limiters.ts`
-
-## Removed paths
-
-- `src/shared/lib/cloudflare-workers-env.server.ts`
-- `src/shared/lib/api/request-body.ts`
-
-Do not re-introduce compatibility aliases for those modules.
+- AI composition: `apps/web/src/server/handlers/ai.ts`
+- Payment composition: `apps/web/src/server/handlers/payment.ts`
+- Remover API logic: `src/server/api/remover/**`
+- Cloudflare binding scope: `apps/web/src/server/cloudflare-bindings.ts`
+- Server Worker loader: `cloudflare/workers/create-server-worker.ts`

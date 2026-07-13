@@ -221,7 +221,7 @@ test('cf:check --workers=app 仍要求 app server runtime auth secret', async ()
 
     assert.equal(result.ok, false);
     assert.match(result.stderr, /BETTER_AUTH_SECRET or AUTH_SECRET/);
-    assert.match(result.stderr, /Next server runtime shared auth secret/i);
+    assert.match(result.stderr, /server runtime shared auth secret/i);
   } finally {
     await fixture.cleanup();
   }
@@ -826,7 +826,7 @@ test('cf:check 缺少 server runtime auth secret 时给出 worker 级错误', as
 
     assert.equal(result.ok, false);
     assert.match(result.stderr, /BETTER_AUTH_SECRET or AUTH_SECRET/);
-    assert.match(result.stderr, /Next server runtime shared auth secret/i);
+    assert.match(result.stderr, /server runtime shared auth secret/i);
     assert.match(result.stderr, /worker auth|worker public-web|worker payment/);
   } finally {
     await fixture.cleanup();

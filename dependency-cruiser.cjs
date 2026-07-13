@@ -1,5 +1,9 @@
 const { ARCHITECTURE_RULES } = require('./architecture-rules.cjs');
 
+const PRODUCTION_RUNTIME_PATH = '^(?:apps/web/src/|src/|cloudflare/)';
+const NON_PRODUCTION_SOURCE_PATH =
+  '^(?:src/testing/|src/architecture-boundaries\\.test\\.ts$)|(?:^|/)[^/]+\\.(?:test|spec)\\.[cm]?[jt]sx?$';
+
 function escapeRegex(value) {
   return value.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
 }
@@ -60,8 +64,8 @@ module.exports = {
       name: 'no-runtime-to-scripts-or-tests',
       severity: 'error',
       from: {
-        path: '^(src/|cloudflare/)',
-        pathNot: '^src/testing/',
+        path: PRODUCTION_RUNTIME_PATH,
+        pathNot: NON_PRODUCTION_SOURCE_PATH,
       },
       to: { path: '^(scripts/|tests/)' },
     },
@@ -74,15 +78,32 @@ module.exports = {
     {
       name: 'no-runtime-to-sites',
       severity: 'error',
-      from: { path: '^(src/|cloudflare/)' },
+      from: {
+        path: PRODUCTION_RUNTIME_PATH,
+        pathNot: NON_PRODUCTION_SOURCE_PATH,
+      },
       to: { path: '^sites/' },
+    },
+    {
+      name: 'no-tanstack-routes-to-domain-infra-adapters-themes-or-testing',
+      severity: 'error',
+      from: { path: '^apps/web/src/routes/' },
+      to: {
+        path: '^src/(domains/[^/]+/infra|infra/adapters|themes|testing)/',
+      },
+    },
+    {
+      name: 'no-runtime-to-web-entry-layer',
+      severity: 'error',
+      from: { path: '^(src|cloudflare)/' },
+      to: { path: '^apps/web/' },
     },
     {
       name: 'no-prod-to-testing',
       severity: 'error',
       from: {
-        path: '^(src/|cloudflare/)',
-        pathNot: '^src/testing/|^src/architecture-boundaries\\.test\\.ts$',
+        path: PRODUCTION_RUNTIME_PATH,
+        pathNot: NON_PRODUCTION_SOURCE_PATH,
       },
       to: { path: '^src/testing/' },
     },
@@ -137,14 +158,12 @@ module.exports = {
     ...createPathRules({
       baseName: 'no-surfaces-admin-to-app-facades-domain-infra-or-adapters-3',
       fromPath: '^src/surfaces/admin/',
-      importPatterns: ARCHITECTURE_RULES.surfacesAdminForbiddenImports.filter(
-        (pattern) => !pattern.startsWith('^@/app/')
-      ),
+      importPatterns: ARCHITECTURE_RULES.surfacesAdminForbiddenImports,
     }),
   ],
   options: {
     doNotFollow: {
-      path: 'node_modules',
+      path: 'node_modules|^apps/web/src/routeTree\\.gen\\.ts$',
     },
     exclude:
       '(^node_modules)|(^dist)|(^build)|(^output)|(^\\.tmp)|(^src/shared/types/cloudflare\\.d\\.ts$)',

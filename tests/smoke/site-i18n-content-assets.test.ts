@@ -50,7 +50,7 @@ test('localized content issues include English residuals from site JSON assets',
             required: true,
             source: {
               kind: 'app-route',
-              path: 'src/app/[locale]/(landing)/page.tsx',
+              path: 'apps/web/src/routes/index.tsx',
             },
             hashScope: 'seo',
           },
@@ -96,7 +96,7 @@ test('localized content issues skip pages absent from manifest', () => {
             required: true,
             source: {
               kind: 'app-route',
-              path: 'src/app/[locale]/(landing)/page.tsx',
+              path: 'apps/web/src/routes/index.tsx',
             },
             hashScope: 'seo',
           },
@@ -152,7 +152,7 @@ test('localized content issues ignore non-visible JSON config strings', () => {
             required: true,
             source: {
               kind: 'app-route',
-              path: 'src/app/[locale]/(landing)/pricing/page.tsx',
+              path: 'apps/web/src/routes/pricing.tsx',
             },
             hashScope: 'seo',
           },

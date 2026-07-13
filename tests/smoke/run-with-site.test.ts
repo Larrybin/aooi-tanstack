@@ -48,16 +48,6 @@ async function runWithSite(
   }
 }
 
-test('run-with-site 对 production 语义命令要求显式 SITE', async () => {
-  const result = await runWithSite(['node', 'scripts/next-build.mjs'], {
-    SITE: '',
-  });
-
-  assert.equal(result.ok, false);
-  assert.match(result.stderr, /SITE is required for this command/);
-  assert.match(result.stderr, /SITE=mamamiya/);
-});
-
 test('run-with-site 对 Vite production build/preview 要求显式 SITE', async () => {
   for (const command of [
     ['pnpm', 'exec', 'vite', 'build', '--config', 'vite.config.mts'],
@@ -107,13 +97,6 @@ test('run-with-site regenerates content for TanStack commands', () => {
     true
   );
   assert.equal(
-    requiresContentGeneration([
-      'node',
-      'scripts/validate-tanstack-native-migration.mjs',
-    ]),
-    true
-  );
-  assert.equal(
     requiresContentGeneration(['node', 'scripts/run-tests.mjs']),
     true
   );
@@ -123,15 +106,6 @@ test('run-with-site regenerates content for TanStack commands', () => {
       '--import',
       'tsx',
       'scripts/run-cf-build.mjs',
-    ]),
-    true
-  );
-  assert.equal(
-    requiresContentGeneration([
-      'pnpm',
-      'exec',
-      'opennextjs-cloudflare',
-      'build',
     ]),
     true
   );
@@ -178,7 +152,7 @@ test('run-with-site 尊重显式 SITE', async () => {
   assert.equal(result.stdout.trimEnd().split('\n').at(-1), 'mamamiya');
 });
 
-test('run-with-site 注入当前站点 active OpenNext split workers', async () => {
+test('run-with-site 注入当前站点 active split workers', async () => {
   const result = await runWithSite(
     ['node', '-p', 'process.env.CLOUDFLARE_ACTIVE_SPLIT_WORKERS || ""'],
     {

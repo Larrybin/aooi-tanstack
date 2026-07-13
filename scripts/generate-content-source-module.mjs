@@ -7,7 +7,7 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import path from 'node:path';
-import { postInstall } from 'fumadocs-mdx/next';
+import { postInstall } from 'fumadocs-mdx/vite';
 
 import {
   buildPublicContentDocuments,
@@ -36,19 +36,6 @@ async function fileExists(filePath) {
   } catch {
     return false;
   }
-}
-
-async function removeLegacyContentArtifacts({ rootDir }) {
-  await Promise.all([
-    rm(path.resolve(rootDir, '.source', 'index.ts'), { force: true }),
-    rm(path.resolve(rootDir, '.source', 'source.config.mjs'), { force: true }),
-    rm(path.resolve(rootDir, '.source', 'dev-local', 'index.ts'), {
-      force: true,
-    }),
-    rm(path.resolve(rootDir, '.source', 'mamamiya', 'index.ts'), {
-      force: true,
-    }),
-  ]);
 }
 
 function readVersionSortKey(versionId) {
@@ -137,10 +124,13 @@ async function generateSiteContentArtifacts({
   );
   await postInstall(path.resolve(rootDir, 'source.config.ts'), tempOutDir);
 
-  const generatedIndexPath = path.resolve(tempOutDir, 'index.ts');
-  if (!(await fileExists(generatedIndexPath))) {
+  const generatedSourceModulePath = path.resolve(
+    tempOutDir,
+    'source.generated.ts'
+  );
+  if (!(await fileExists(generatedSourceModulePath))) {
     throw new Error(
-      `content artifact generation failed: missing ${generatedIndexPath}`
+      `content artifact generation failed: missing ${generatedSourceModulePath}`
     );
   }
 
@@ -159,8 +149,6 @@ async function generateSiteContentArtifacts({
   await rename(tempOutDir, targetOutDir);
   await rename(tempGeneratedSourcePath, generatedSourcePath);
   await rename(tempGeneratedPublicContentPath, generatedPublicContentPath);
-  await removeLegacyContentArtifacts({ rootDir });
-
   await pruneOlderSiteVersions({
     rootDir,
     siteKey,

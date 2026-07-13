@@ -3,29 +3,6 @@ import { copyFile, mkdir, readdir, rename, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 const FREE_TOOL_ROUTE_PRUNE_PATHS = Object.freeze([
-  'src/app/[locale]/(admin)',
-  'src/app/[locale]/admin',
-  'src/app/[locale]/(auth)',
-  'src/app/[locale]/(chat)',
-  'src/app/[locale]/(docs)',
-  'src/app/[locale]/(landing)/(ai)',
-  'src/app/[locale]/(landing)/activity',
-  'src/app/[locale]/(landing)/blog',
-  'src/app/[locale]/(landing)/my-images',
-  'src/app/[locale]/(landing)/pricing',
-  'src/app/[locale]/(landing)/settings',
-  'src/app/api/ai',
-  'src/app/api/auth',
-  'src/app/api/background-remover',
-  'src/app/api/chat',
-  'src/app/api/config',
-  'src/app/api/docs',
-  'src/app/api/email',
-  'src/app/api/payment',
-  'src/app/api/remover',
-  'src/app/api/storage',
-  'src/app/api/tts',
-  'src/app/api/user',
   'apps/web/src/routes/admin_.tsx',
   'apps/web/src/routes/admin',
   'apps/web/src/routes/$locale/admin_.tsx',
@@ -89,30 +66,10 @@ const FREE_TOOL_ROUTE_PRUNE_PATHS = Object.freeze([
   'apps/web/src/routes/api/tts',
   'apps/web/src/routes/api/user',
 ]);
-const NEXT_ROUTE_ENTRY_FILENAMES = new Set([
-  'default.tsx',
-  'error.tsx',
-  'forbidden.tsx',
-  'global-error.tsx',
-  'instrumentation.ts',
-  'layout.tsx',
-  'loading.tsx',
-  'middleware.ts',
-  'not-found.tsx',
-  'page.tsx',
-  'proxy.ts',
-  'route.ts',
-  'template.tsx',
-  'unauthorized.tsx',
-]);
 const TANSTACK_ROUTE_EXTENSIONS = new Set(['.ts', '.tsx']);
 const GENERATED_ROUTE_FILES = Object.freeze(['apps/web/src/routeTree.gen.ts']);
 
 function isRouteEntryFile(relativePath) {
-  if (relativePath.startsWith('src/app/')) {
-    return NEXT_ROUTE_ENTRY_FILENAMES.has(path.basename(relativePath));
-  }
-
   if (relativePath.startsWith('apps/web/src/routes/')) {
     return TANSTACK_ROUTE_EXTENSIONS.has(path.extname(relativePath));
   }

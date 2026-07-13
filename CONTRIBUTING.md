@@ -1,254 +1,133 @@
 # Contributing Guide
 
-Thank you for your interest in contributing to this project. This guide covers the development workflow, code standards, and best practices.
+## Development setup
 
-## Development Setup
-
-### Prerequisites
-
-- Node.js 18+
-- pnpm (recommended package manager)
-- PostgreSQL database
-- Git
-
-### Initial Setup
+Requirements: Node.js 20+, pnpm, Git, and PostgreSQL for database-backed
+features.
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd roller-rabbit
-
-# Install dependencies
 pnpm install
-
-# Copy environment file
-cp .env.example .env
-
-# Configure environment variables
-# Edit .env with your database URL, auth secrets, etc.
-
-# Run database migrations
+cp .env.example .env.development
 pnpm db:migrate
-
-# Start development server
-pnpm dev
+pnpm dev:local
 ```
 
-## Available Commands
+Use `SITE=<site-key> pnpm dev` when working on another site. Never commit
+secrets to root env files, `sites/**`, deploy settings, pricing, i18n, or
+content files.
 
-| Command              | Description                                         |
-| -------------------- | --------------------------------------------------- |
-| `pnpm dev`           | Start development server (http://localhost:3000)    |
-| `pnpm build`         | Production build                                    |
-| `pnpm build:fast`    | Fast production build for larger deployments        |
-| `pnpm start`         | Run production build                                |
-| `pnpm test`          | Run Node.js tests (expects `*.test.*` / `*.spec.*`) |
-| `pnpm test:coverage` | Run tests with coverage                             |
-| `pnpm lint`          | Run ESLint                                          |
-| `pnpm format`        | Format code with Prettier                           |
-| `pnpm format:check`  | Check formatting without changes                    |
-| `pnpm db:generate`   | Generate Drizzle migrations                         |
-| `pnpm db:migrate`    | Apply database migrations                           |
-| `pnpm db:check`      | Verify DB schema (read-only)                        |
-| `pnpm db:studio`     | Open Drizzle Studio                                 |
-| `pnpm rbac:init`     | Initialize roles and permissions                    |
-| `pnpm rbac:assign`   | Assign a role to a user                             |
+## Commands
 
-## Code Style
+| Command                          | Purpose                                   |
+| -------------------------------- | ----------------------------------------- |
+| `pnpm dev:local`                 | Start the `dev-local` site                |
+| `SITE=<site> pnpm dev`           | Start a selected site                     |
+| `SITE=<site> pnpm build`         | Build the selected site with Vite         |
+| `SITE=<site> pnpm start`         | Preview that site's production build      |
+| `pnpm lint`                      | Run ESLint and runtime-env guards         |
+| `pnpm typecheck`                 | Type-check root and Web sources           |
+| `pnpm test`                      | Run repository tests, including `apps/**` |
+| `pnpm arch:check`                | Run dependency and semantic architecture  |
+| `pnpm format:check`              | Check Prettier formatting                 |
+| `pnpm run ci`                    | Run the canonical repository gate         |
+| `SITE=<site> pnpm release:check` | Run CI and Cloudflare release preflight   |
+| `pnpm db:generate`               | Generate a Drizzle migration              |
+| `pnpm db:migrate`                | Apply committed Drizzle migrations        |
+| `pnpm db:studio`                 | Open Drizzle Studio                       |
 
-### General Guidelines
+## Code structure
 
-- **Language**: TypeScript + React with Next.js App Router
-- **Formatting**: Prettier (run `pnpm format` before committing)
-- **Linting**: ESLint (run `pnpm lint` to check)
+- `apps/web/src/routes/**`: thin TanStack route entries. Keep path, params,
+  search, loader/head declarations, HTTP methods, redirects/not-found, and
+  calls to assembled handlers here.
+- `apps/web/src/server/**`: Web-runtime composition and handler wiring.
+- `src/domains/**`: business rules, application use cases, and domain-owned
+  persistence.
+- `src/server/**`: reusable server actions and handler factories.
+- `src/surfaces/**`: framework-neutral page data, SEO, and views.
+- `src/infra/**`: platform runtime and external adapters.
+- `src/shared/**`: generic UI, schemas, and utilities.
+- `src/testing/**`: test-only contracts and helpers.
+- `cloudflare/**`: Worker entrypoints and runtime contracts.
 
-### Naming Conventions
+Production code must not import `src/testing/**`. Runtime env and secrets must
+go through `src/config/env-contract.ts`; non-whitelisted runtime files must not
+read `process.env` directly.
 
-| Type                  | Convention       | Example                              |
-| --------------------- | ---------------- | ------------------------------------ |
-| React components      | PascalCase       | `UserProfile.tsx`                    |
-| Types/Interfaces      | PascalCase       | `interface UserData`                 |
-| Variables/Functions   | camelCase        | `getUserInfo()`                      |
-| Environment variables | UPPER_SNAKE_CASE | `DATABASE_URL`                       |
-| Files (Next.js)       | lowercase        | `page.tsx`, `layout.tsx`, `route.ts` |
+## Route and client boundaries
 
-### File Organization
-
-```
-src/
-├── app/           # Routes only - keep thin
-├── core/          # Domain logic - auth, db, i18n
-├── shared/        # Shared code
-│   ├── models/    # Data access layer (server-only)
-│   ├── services/  # Business logic services
-│   ├── lib/       # Utilities
-│   ├── components/# Reusable UI components
-│   └── blocks/    # Page-level UI blocks
-├── extensions/    # Third-party integrations
-└── config/        # Configuration files
-```
-
-### Server/Client Boundary
-
-- Use `'use client'` only in leaf components that need interactivity
-- Keep Server Components as the default
-- Never import server-only modules in client components
-- ESLint rules enforce these boundaries automatically
-
-## Pull Request Workflow
-
-### Before Submitting
-
-1. **Run checks locally**:
-
-   ```bash
-   pnpm lint
-   pnpm format:check
-   pnpm test
-   pnpm build
-   ```
-
-2. **Write clear commits**:
-   - Use Conventional Commit format: `type(scope): description`
-   - Examples:
-     - `feat(auth): add GitHub OAuth provider`
-     - `fix(payment): handle webhook timeout`
-     - `docs(readme): update installation steps`
-
-3. **Keep PRs focused**:
-   - One feature/fix per PR
-   - Small, reviewable changes
-
-### PR Description Template
-
-```markdown
-## What
-
-Brief description of changes.
-
-## Why
-
-Context and motivation.
-
-## How to Test
-
-1. Step-by-step testing instructions
-2. Expected behavior
-
-## Screenshots (if UI changes)
-
-Before/after screenshots.
-
-## Related Issues
-
-Closes #123
-```
-
-### Review Checklist
-
-- [ ] Code follows project style guidelines
-- [ ] No TypeScript errors (`pnpm build` passes)
-- [ ] No linting errors (`pnpm lint` passes)
-- [ ] Documentation updated if needed
-- [ ] Tests added/updated for new features
-
-## Architecture Guidelines
-
-### Layer Dependencies
-
-```
-app/ → shared/ → core/ → config/
-         ↓
-    extensions/
-```
-
-- `app/` can import from `shared/`, `core/`, `config/`
-- `shared/` can import from `core/`, `config/`, `extensions/`
-- `core/` can import from `config/`
-- `extensions/` should be self-contained
-
-### API Route Patterns
-
-Use the `withApi()` wrapper for consistent error handling:
+TanStack route files must remain thin. Put dependency assembly in
+`apps/web/src/server/**`, and reusable request behavior in `src/server/**`.
 
 ```typescript
-import { requireUser } from '@/shared/lib/api/guard';
-import { parseJson } from '@/shared/lib/api/parse';
-import { jsonOk } from '@/shared/lib/api/response';
-import { withApi } from '@/shared/lib/api/route';
+import { createFileRoute } from '@tanstack/react-router';
 
-export const POST = withApi(async (req: Request) => {
-  const user = await requireUser(req);
-  const body = await parseJson(req, MySchema);
+import { postExample } from '../../../server/handlers/example';
 
-  // ... logic
-
-  return jsonOk({ data });
+export const Route = createFileRoute('/api/example')({
+  server: {
+    handlers: {
+      POST: ({ request }) => postExample(request),
+    },
+  },
 });
 ```
 
-### Database Access
+Use `withApi()` inside the assembled handler when the endpoint follows the
+standard API envelope. Provider-controlled routes such as Better Auth may keep
+their explicit contract exception.
 
-- Always use Drizzle ORM for database operations
-- Place data access functions in `src/shared/models/`
-- Use `server-only` directive for model files
+Keep browser-only behavior in client modules or interactive leaf components.
+Do not import database, secret, Node-only, or Worker-only modules into the
+client closure. Validate bundle changes with:
+
+```bash
+SITE=dev-local pnpm build
+pnpm client:boundary
+```
+
+## Database access
+
+Use Drizzle. Domain-owned persistence belongs in `src/domains/<domain>/infra`;
+cross-domain platform adapters belong in `src/infra/adapters`. Do not add
+runtime marker packages: architecture and client-bundle gates enforce the
+boundary.
+
+Database schema changes require a generated, reviewed, and committed migration.
 
 ## Testing
 
-This project uses Node.js built-in test runner via `pnpm test`. When adding tests:
+Colocate deterministic tests as `*.test.ts` or `*.test.tsx`. Prefer domain unit
+tests, then lightweight handler or route integration tests. Tests under
+`apps/**`, `src/**`, `scripts/**`, and `tests/**` are discovered by `pnpm test`.
 
-- Colocate tests with features: `*.test.ts` / `*.test.tsx`
-- Prefer unit tests for `src/core/` logic
-- Use integration tests for `src/app/` routes
-- Keep tests fast and deterministic
-
-Run:
+Before submitting:
 
 ```bash
-pnpm test
-pnpm test:coverage
+pnpm format:check
+pnpm run ci
 ```
 
-## Documentation
+For site or Cloudflare changes, also run the smallest affected site contract,
+site gate, or Cloudflare preflight with an explicit `SITE`.
 
-When making changes:
+## Pull requests
 
-1. Update relevant docs in `docs/` if behavior changes
-2. Update `README.md` for major features
-3. Add JSDoc comments for public APIs
-4. Keep code comments minimal but meaningful
+- Keep each PR focused and explain what changed, why, and how it was tested.
+- Use clear imperative commit messages; Conventional Commits are preferred.
+- Include screenshots for visual changes.
+- Update current documentation when commands, configuration, APIs, or
+  architecture entrypoints change.
+- Do not treat `docs/archive/**` or `.codex/plan/**` as current contracts.
 
 ## Security
 
-### Reporting Vulnerabilities
+- Never commit secrets, credentials, production data, or generated secret
+  files.
+- Validate external input at runtime.
+- Enforce identity and permissions on protected operations.
+- Keep error responses free of stack traces, secret values, and internal
+  diagnostics.
 
-If you discover a security vulnerability, please **do not** open a public issue. Instead:
-
-1. **Email**: Send details to the project maintainers privately
-2. **Include**:
-   - Description of the vulnerability
-   - Steps to reproduce
-   - Potential impact
-   - Suggested fix (if any)
-
-3. **Response**: Expect acknowledgment within 48 hours
-
-### Security Best Practices
-
-When contributing code:
-
-- Never commit secrets, API keys, or credentials
-- Use environment variables for sensitive configuration
-- Validate all user inputs server-side
-- Follow the principle of least privilege for permissions
-- Keep dependencies up to date
-
-## Getting Help
-
-- Check existing documentation in `docs/`
-- Review `AGENTS.md` for repository guidelines
-- Open an issue for questions or problems
-
-## License
-
-No license file is included in this repository. Confirm licensing with the maintainers before distributing the code.
+Report security vulnerabilities privately to the maintainers rather than in a
+public issue.

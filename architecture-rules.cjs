@@ -23,9 +23,7 @@ const ARCHITECTURE_RULES = {
     '@/core',
     '@/features',
   ],
-  publicCompositionPathPatterns: [],
   domainForbiddenImports: [
-    '^@/app(?:/|$)',
     '^@/surfaces(?:/|$)',
     '^@/infra/platform(?:/|$)',
     '^@/infra/adapters(?:/|$)',
@@ -34,25 +32,6 @@ const ARCHITECTURE_RULES = {
   applicationAllowedPlatformImports: [
     '^@/infra/platform/logging(?:/|$)',
     '^@/infra/platform/request-context(?:/|$)',
-  ],
-  appOnlyFacades: [],
-  appOnlyFacadeImportPatterns: [],
-  appAdminForbiddenImports: [
-    '^@/domains/[^/]+/infra(?:/|$)',
-    '^@/infra/adapters(?:/|$)',
-  ],
-  memberSettingsForbiddenImports: [
-    '^@/domains/billing/infra(?:/|$)',
-    '^@/infra/adapters/payment(?:/|$)',
-  ],
-  memberActivityForbiddenImports: [
-    '^@/domains/chat/infra(?:/|$)',
-    '^@/domains/ai/infra(?:/|$)',
-  ],
-  memberChatForbiddenImports: ['^@/domains/chat/infra(?:/|$)'],
-  paymentCallbackRouteForbiddenImports: [
-    '^@/domains/billing/infra(?:/|$)',
-    '^@/infra/adapters/payment(?:/|$)',
   ],
   surfacesAdminForbiddenImports: [
     '^@/domains/[^/]+/infra(?:/|$)',

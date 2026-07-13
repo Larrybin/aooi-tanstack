@@ -10,7 +10,6 @@ export const EMPTY_TREE_SHA = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
 const CLOUDFLARE_EXACT_PATHS = new Set([
   '.github/workflows/cloudflare-acceptance.yaml',
   'docs/architecture/cloudflare-deployment-governance.md',
-  'next.config.mjs',
   'package.json',
   'pnpm-lock.yaml',
   'scripts/check-cloudflare-config.mjs',
@@ -20,6 +19,7 @@ const CLOUDFLARE_EXACT_PATHS = new Set([
 ]);
 
 const CLOUDFLARE_PREFIXES = [
+  'apps/web/src/',
   'cloudflare/',
   'scripts/create-cf-',
   'scripts/lib/cloudflare-',
@@ -32,7 +32,7 @@ const CLOUDFLARE_PREFIXES = [
 const AI_REMOVER_CONTRACT_EXACT_PATHS = new Set([
   'scripts/check-saas-product-contract.mjs',
   'scripts/check-saas-product-contract.test.ts',
-  'src/app/[locale]/(admin)/admin/credits/page.tsx',
+  'src/server/admin/admin-route-resolver.ts',
   'src/config/db/schema.ts',
   'src/config/env-contract.ts',
   'src/domains/settings/application/settings-runtime.contracts.ts',
@@ -40,10 +40,10 @@ const AI_REMOVER_CONTRACT_EXACT_PATHS = new Set([
 ]);
 
 const AI_REMOVER_CONTRACT_PREFIXES = [
+  'apps/web/src/routes/api/ai/',
+  'apps/web/src/routes/api/remover/',
   'docs/product/ai-remover/',
   'sites/ai-remover/',
-  'src/app/api/ai/',
-  'src/app/api/remover/',
   'src/config/saas-product-contract/',
   'src/config/db/migrations/',
   'src/domains/account/',
@@ -53,6 +53,8 @@ const AI_REMOVER_CONTRACT_PREFIXES = [
   'src/domains/settings/definitions/',
   'src/extensions/ai/',
   'src/infra/runtime/',
+  'src/server/api/ai/',
+  'src/server/api/remover/',
   'src/surfaces/admin/schemas/list/',
 ];
 

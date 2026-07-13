@@ -14,7 +14,10 @@ test('release input guard accepts schema change with committed migration', () =>
 
 test('release input guard accepts non-schema changes', () => {
   assert.doesNotThrow(() =>
-    assertReleaseInputs(['src/app/page.tsx', 'cloudflare/workers/router.ts'])
+    assertReleaseInputs([
+      'apps/web/src/routes/index.tsx',
+      'cloudflare/workers/router.ts',
+    ])
   );
 });
 

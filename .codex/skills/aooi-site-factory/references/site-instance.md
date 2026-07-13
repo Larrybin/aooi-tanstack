@@ -73,7 +73,6 @@ workers.router: aooi-<site-key>-router
 workers.state: aooi-<site-key>-state
 workers.public-web: aooi-<site-key>-public-web
 workers.<slot>: aooi-<site-key>-<slot>
-resources.incrementalCacheBucket: aooi-<site-key>-opennext-cache
 resources.appStorageBucket: aooi-<site-key>-storage
 ```
 

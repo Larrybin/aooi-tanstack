@@ -48,5 +48,6 @@ Stop and reconsider when an implementation:
 - Use-case flow: `src/domains/<domain>/application/**`.
 - Provider/runtime adapters: `src/infra/**` or domain-owned infra when already established.
 - Public/admin composition: `src/surfaces/**`.
-- Route entries: `src/app/**`, kept thin.
+- Route entries: `apps/web/src/routes/**`, kept thin.
+- Server composition: `src/server/**` and `apps/web/src/server/**`.
 - Generic pure UI/utilities: `src/shared/**`.

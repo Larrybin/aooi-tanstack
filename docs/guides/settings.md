@@ -31,21 +31,21 @@ User settings writes are implemented via Server Actions (not `/api/settings/*` R
 
 **Profile**
 
-- Page: `src/app/[locale]/(landing)/settings/profile/page.tsx`
+- Page routes: `apps/web/src/routes/settings/profile.tsx` and `apps/web/src/routes/$locale/settings/profile.tsx`
 - Schema: `src/shared/schemas/actions/settings-profile.ts`
 - Write: `updateProfileUseCase()` from `src/domains/account/application/use-cases.ts`
 
 **API Keys**
 
-- List: `src/app/[locale]/(landing)/settings/apikeys/page.tsx`
-- Create: `src/app/[locale]/(landing)/settings/apikeys/create/page.tsx`
-- Edit: `src/app/[locale]/(landing)/settings/apikeys/[id]/edit/page.tsx`
-- Delete: `src/app/[locale]/(landing)/settings/apikeys/[id]/delete/page.tsx` (soft delete: `status=DELETED` + `deletedAt`)
+- List: `apps/web/src/routes/settings/apikeys.tsx`
+- Create: `apps/web/src/routes/settings/apikeys_/create.tsx`
+- Edit: `apps/web/src/routes/settings/apikeys_/$id/edit.tsx`
+- Delete: `apps/web/src/routes/settings/apikeys_/$id/delete.tsx` (soft delete: `status=DELETED` + `deletedAt`)
 - Schema: `src/shared/schemas/actions/settings-apikey.ts` (requires `title`)
 
 **Security**
 
-- Page: `src/app/[locale]/(landing)/settings/security/page.tsx`
+- Page: `apps/web/src/routes/settings/security.tsx` (plus localized counterpart)
 - Password reset is handled by the auth flow (`/<locale?>/forgot-password` → email → `/<locale?>/reset-password?token=...`). See `docs/guides/auth.md`.
 - Account deletion UI is present but no self-serve delete flow is implemented.
 
@@ -59,9 +59,9 @@ User settings writes are implemented via Server Actions (not `/api/settings/*` R
 
 Admin pages are guarded in two layers:
 
-1. `/<locale?>/admin/**` requires `admin.access` via `src/app/[locale]/(admin)/layout.tsx` (`requireAdminAccess()`).
+1. `/<locale?>/admin/**` requires `admin.access` via the admin route resolver.
 2. Admin Settings additionally require **both** `admin.settings.read` and `admin.settings.write` in
-   `src/app/[locale]/(admin)/admin/settings/[tab]/page.tsx` (`requireAllPermissions()` and `requireActionPermissions()`).
+   `src/server/admin/admin-route-resolver.ts` (`requireAllPermissions()` and `requireActionPermissions()`).
 3. The default `admin` role seeded by `scripts/init-rbac.ts` includes both settings permissions, which is the contract used by Cloudflare app smoke for `/admin/settings/auth`.
 
 ### Config Storage & Validation
@@ -87,9 +87,10 @@ Admin pages are guarded in two layers:
 ## Related Files
 
 - `src/request-proxy.ts` - Protected-route session cookie gate (`/admin`, `/settings`, `/activity`)
-- `src/app/[locale]/(landing)/settings/layout.tsx` - User settings shell (sidebar + layout)
-- `src/app/[locale]/(landing)/settings/page.tsx` - `/settings` canonical redirect
-- `src/app/[locale]/(admin)/admin/settings/[tab]/page.tsx` - Admin settings page + Server Action submit
+- `apps/web/src/routes/settings_.tsx` - User settings shell and canonical redirect
+- `apps/web/src/routes/settings/**` - User settings routes
+- `apps/web/src/routes/admin/$.tsx` - Admin catch-all route
+- `src/server/admin/admin-route-resolver.ts` - Admin settings data/actions
 - `src/domains/settings/registry.ts` - Settings registry aggregation + derived public/group indexes
 - `src/domains/settings/application/settings-store.ts` - DB settings persistence and cache invalidation
 - `src/domains/settings/application/settings-runtime.query.ts` - Server-side typed runtime settings readers

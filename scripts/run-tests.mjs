@@ -7,7 +7,7 @@ const ROOT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 const TEST_FILE_PATTERN = /\.(test|spec)\.(mjs|[tj]sx?)$/;
 const SERVER_TEST_FILE_PATTERN = /\.server\.(test|spec)\.(mjs|[tj]sx?)$/;
-const IGNORED_DIRS = new Set(['.git', '.next', 'dist', 'node_modules', 'out']);
+const IGNORED_DIRS = new Set(['.git', 'dist', 'node_modules', 'out']);
 const EXCLUDED_TEST_FILES = new Set([
   'src/architecture-boundaries.test.ts',
   'tests/smoke/auth-dual-runtime.test.ts',
@@ -85,7 +85,7 @@ async function main() {
   process.chdir(ROOT_DIR);
 
   const candidateRoots = [];
-  for (const name of ['src', 'test', 'tests', 'scripts']) {
+  for (const name of ['apps', 'src', 'test', 'tests', 'scripts']) {
     const path = resolve(ROOT_DIR, name);
     if (await isDirectory(path)) candidateRoots.push(path);
   }

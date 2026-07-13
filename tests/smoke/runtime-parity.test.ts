@@ -46,7 +46,6 @@ test('runtime parity whitelist 固定为传输层与平台注入头', () => {
     'x-request-id',
     'x-vercel-id',
     'cf-ray',
-    'x-opennext',
   ]);
 });
 
@@ -82,7 +81,6 @@ test('compareRuntimeResponseContracts 忽略 whitelist 头差异', () => {
           date: 'Mon, 07 Apr 2026 10:00:09 GMT',
           'x-request-id': 'req-cloudflare',
           'cf-ray': 'ray-123',
-          'x-opennext': '1',
           'x-shared-contract': 'stable',
         },
       }),

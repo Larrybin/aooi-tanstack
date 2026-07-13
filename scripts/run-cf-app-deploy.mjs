@@ -259,7 +259,7 @@ export function buildRouterAppVersionIds(
       'current server',
       targets
     ),
-    target: normalizeServerVersionIds(nextVersions, 'next server', targets),
+    target: normalizeServerVersionIds(nextVersions, 'target server', targets),
   };
 }
 

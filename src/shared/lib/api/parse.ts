@@ -2,9 +2,8 @@
  * Usage:
  * - `parseJson(req, Schema)` for JSON body.
  * - `parseQuery(req.url, Schema)` for URL query params.
- * - `parseParams(paramsPromise, Schema)` for Next.js Route Handler params (Promise).
+ * - `parseParams(paramsPromise, Schema)` for route params provided as a Promise.
  */
-
 
 import { getRequestLogger } from '@/infra/platform/logging/request-logger.server';
 import type { z } from 'zod';

@@ -8,7 +8,7 @@
       "required": true,
       "source": {
         "kind": "app-route",
-        "path": "src/app/[locale]/(landing)/page.tsx"
+        "path": "apps/web/src/routes/index.tsx"
       },
       "hashScope": "seo"
     },
@@ -20,7 +20,7 @@
       "required": true,
       "source": {
         "kind": "app-route",
-        "path": "src/app/[locale]/(landing)/pricing/page.tsx"
+        "path": "apps/web/src/routes/pricing.tsx"
       },
       "hashScope": "seo"
     },
@@ -80,7 +80,7 @@
       "required": true,
       "source": {
         "kind": "app-route",
-        "path": "src/app/[locale]/(landing)/blog/page.tsx"
+        "path": "apps/web/src/routes/blog_.tsx"
       },
       "hashScope": "seo"
     },
@@ -104,7 +104,7 @@
       "required": true,
       "source": {
         "kind": "app-route",
-        "path": "src/app/[locale]/(auth)/sign-in/page.tsx"
+        "path": "apps/web/src/routes/sign-in.tsx"
       },
       "hashScope": "ui"
     },
@@ -116,7 +116,7 @@
       "required": true,
       "source": {
         "kind": "app-route",
-        "path": "src/app/[locale]/(auth)/sign-up/page.tsx"
+        "path": "apps/web/src/routes/sign-up.tsx"
       },
       "hashScope": "ui"
     },
@@ -128,7 +128,7 @@
       "required": true,
       "source": {
         "kind": "app-route",
-        "path": "src/app/[locale]/(admin)/admin/page.tsx"
+        "path": "apps/web/src/routes/admin_.tsx"
       },
       "hashScope": "ui"
     },
@@ -140,7 +140,7 @@
       "required": true,
       "source": {
         "kind": "app-route",
-        "path": "src/app/[locale]/(landing)/my-images/page.tsx"
+        "path": "apps/web/src/routes/my-images.tsx"
       },
       "hashScope": "ui"
     }

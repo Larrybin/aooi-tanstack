@@ -12,7 +12,7 @@ Use this reference when work touches Cloudflare deploy inputs, bindings, workers
 - Runtime code uses the generated `@/site` module.
 - Cloudflare preview uses `CF_DEPLOY_PROFILE=preview` on the real product `SITE`; preview must not be modeled as a separate site.
 - Do not put `SITE`, Hyperdrive IDs, worker names, R2 bucket names, or preview `STORAGE_PUBLIC_BASE_URL` in env files.
-- Do not bypass `scripts/run-with-site.mjs` by calling low-level Next.js, OpenNext, or Wrangler commands directly unless you are debugging the wrapper itself.
+- Do not bypass `scripts/run-with-site.mjs` by calling low-level Vite or Wrangler commands directly unless you are debugging the wrapper itself.
 
 ## Verification Ladder
 

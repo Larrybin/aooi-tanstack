@@ -3,7 +3,10 @@ import { cloudflare } from '@cloudflare/vite-plugin';
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import react from '@vitejs/plugin-react';
+import mdx from 'fumadocs-mdx/vite';
 import { defineConfig } from 'vite';
+
+import { docs, pages, posts } from './source.config';
 
 const projectRoot = import.meta.dirname;
 
@@ -49,6 +52,7 @@ export default defineConfig({
         generatedRouteTree: 'routeTree.gen.ts',
       },
     }),
+    mdx({ docs, pages, posts }, { generateIndexFile: false }),
     react(),
   ],
 });

@@ -1,326 +1,148 @@
 # Roller Rabbit
 
-Production-ready AI SaaS template built with Next.js App Router, TypeScript,
-PostgreSQL, and a Cloudflare Workers production deploy contract.
+Production-ready multi-site SaaS foundation built with TanStack Start, Vite,
+TypeScript, PostgreSQL, and Cloudflare Workers.
 
-## Developer Map
+## Developer map
 
-Start here:
+- `apps/web/src/routes/**`: TanStack page and API route entries. Keep these
+  files limited to route metadata, params/search handling, loaders, head
+  declarations, redirects/not-found, and assembled handlers.
+- `apps/web/src/server/**`: Web-runtime composition and route handler wiring.
+- `src/domains/**`: business rules, invariants, and application use cases.
+- `src/surfaces/**`: framework-neutral page data, SEO, and view composition.
+- `src/server/**`: reusable server actions and API handler factories.
+- `src/infra/**`: platform services, runtime readers, and external adapters.
+- `src/shared/**`: generic UI, utilities, schemas, and cross-cutting types.
+- `src/testing/**`: test-only contracts and helpers; production code must not
+  import this layer.
+- `cloudflare/**`: router, server Worker, state Worker, and Wrangler contracts.
+- `sites/**`: per-site identity, capabilities, deploy settings, i18n, and
+  content.
+- `scripts/**`: repository automation and release tooling.
 
-- [Quick Start](#quick-start): run the app locally.
-- [Project Structure](#project-structure): find the right layer before editing.
-- [Common Commands](#common-commands): daily development commands.
-- [Documentation](#documentation): deeper guides.
+See [Architecture Overview](docs/architecture/overview.md) and
+[Module Contract](docs/guides/module-contract.md) before changing layer
+boundaries or site capabilities.
 
-Core references:
+## Quick start
 
-- [Module Contract](docs/guides/module-contract.md): mainline vs optional modules.
-- [Architecture Overview](docs/architecture/overview.md): current architecture baseline.
-- [Deployment Guide](docs/guides/deployment.md): Cloudflare deployment and smoke flow.
-- [Contributing](CONTRIBUTING.md): PR, style, and repository rules.
-
-## Product Contract
-
-Roller Rabbit treats the repo as:
-
-- a mainline shell you can ship on day one
-- a set of optional modules you enable later
-
-Mainline today:
-
-- Core shell
-- Auth
-- Billing
-- Admin Settings
-- Deploy contract
-
-Optional modules today:
-
-- Docs / Blog
-- AI
-- Storage
-- Analytics / Affiliate / Customer Service / Ads
-
-The single source of truth for this split is
-[docs/guides/module-contract.md](docs/guides/module-contract.md).
-
-## Project Structure
-
-```text
-src/
-├── app/           # Route-only: Next.js routes, layouts, route handlers
-├── domains/       # Business semantics and application use cases
-├── surfaces/      # Product/admin composition surfaces
-├── infra/         # Platform/runtime/adapters
-├── shared/        # Pure UI, utilities, schemas, and cross-cutting types
-├── extensions/    # Third-party integrations
-├── config/        # Configuration, DB schema, locale messages
-├── testing/       # Shared smoke/test contracts and test-only helpers
-└── themes/        # UI themes
-
-docs/              # Engineering documentation
-sites/             # Per-site identity, deploy, and content inputs
-scripts/           # Maintenance and automation scripts
-```
-
-Layering rules:
-
-- `src/app/**` keeps route entries, layouts, and route handlers thin.
-- `src/domains/**` owns business semantics, invariants, and use cases.
-- `src/surfaces/**` composes product/admin surfaces from domains.
-- `src/infra/**` owns platform, runtime, and external adapters.
-- `src/shared/**` stays generic: UI primitives, utilities, schemas, types.
-- `src/testing/**` is test-only. Production code must not import it.
-
-## Quick Start
-
-Prerequisites:
-
-- Node.js 20+
-- pnpm
-- PostgreSQL database
-
-Run locally:
+Requirements: Node.js 20+, pnpm, and PostgreSQL for database-backed features.
 
 ```bash
 pnpm install
 cp .env.example .env.development
-```
-
-`pnpm dev:local` runs the `dev-local` site through the normal Next.js dev
-server. It also injects local fallback auth secrets when neither
-`BETTER_AUTH_SECRET` nor `AUTH_SECRET` is set.
-
-If you need database-backed features such as auth, admin, RBAC, settings, or
-payments, edit `.env.development` and set at least:
-
-```bash
-DATABASE_URL="postgresql://user:password@localhost:5432/aooi"
-DATABASE_PROVIDER="postgresql"
-DB_SINGLETON_ENABLED="true"
-BETTER_AUTH_SECRET="replace-with-a-local-secret"
-AUTH_SECRET="replace-with-the-same-local-secret"
-```
-
-Apply migrations when `DATABASE_URL` is configured, then start the local site:
-
-```bash
 pnpm db:migrate
 pnpm dev:local
 ```
 
-Visit http://localhost:3000.
-
-The root `.env.development` file is the repository-level local fallback. For a
-specific SaaS site, add a private `sites/<site-key>/.env.local` file to override
-those local values only when running with `SITE=<site-key>`. For example,
-`SITE=ai-remover pnpm dev` reads `sites/ai-remover/.env.local` after the root
-env files, while shell values passed directly to the command still win.
-
-Do not put database connection strings in `.dev.vars`. Local Cloudflare smoke
-and spike commands read `DATABASE_URL` or `AUTH_SPIKE_DATABASE_URL` from the
-process env after the root/site env files are loaded, then write only a
-temporary Wrangler config for Hyperdrive.
-
-`pnpm dev:local` selects `sites/dev-local/site.config.json`, whose local origin
-is `http://localhost:3000`. To run another site locally, use
-`SITE=<site-key> pnpm dev`. Production-like, Cloudflare, smoke, build, and
-deploy commands must pass the intended `SITE=<site-key>` explicitly.
-
-AI Remover's real upload / remove / download flow needs Cloudflare bindings.
-Use `pnpm dev:ai-remover:cloudflare` and open the printed `localhost:8787` URL
-instead of `localhost:3000` when testing that flow in a browser.
-
-### Feature Configuration
-
-Use env files and Cloudflare secrets for values required before the app can
-boot: database URLs, auth secrets, OAuth client secrets, payment provider
-secrets, storage URL prefixes, provider API keys, cleanup secrets, and deploy
-operator credentials.
-
-Use Admin Settings only after the app is running with a database. Admin Settings
-is for non-secret operational switches and mappings such as auth provider
-enablement, sender email, payment environment, Creem product ID mappings, AI
-feature enablement, and display/support values.
-
-For site-specific local values, prefer `sites/<site-key>/.env.local` over the
-root `.env.development`. For production, configure runtime secrets, vars, and
-bindings in Cloudflare; do not put secrets in `site.config.json`,
-`deploy.settings.json`, pricing JSON, or content files.
-
-## Common Commands
-
-| Command                          | Purpose                                       |
-| -------------------------------- | --------------------------------------------- |
-| `pnpm dev:local`                 | Start local Next.js development server        |
-| `pnpm check`                     | Run the default local change guard            |
-| `pnpm run ci`                    | Run local guard plus architecture and i18n    |
-| `SITE=<site> pnpm release:check` | Run CI plus site Cloudflare release preflight |
-| `pnpm test`                      | Run fast unit and contract tests              |
-| `pnpm test:extended`             | Run external or environment-dependent tests   |
-| `pnpm typecheck`                 | Run TypeScript without emitting files         |
-| `pnpm lint`                      | Run ESLint and env/process guards             |
-| `pnpm arch:check`                | Run dependency graph and boundary checks      |
-| `pnpm format:check`              | Check Prettier formatting                     |
-| `pnpm db:generate`               | Generate Drizzle migrations                   |
-| `pnpm db:migrate`                | Apply database migrations                     |
-| `pnpm db:studio`                 | Open Drizzle Studio                           |
-| `SITE=<site> pnpm build`         | Build the selected site                       |
-| `SITE=<site> pnpm analyze`       | Build with bundle analyzer reports            |
-
-Cloudflare commands live in the
-[Deployment Guide](docs/guides/deployment.md).
-
-Use `pnpm check` as the default Codex and local development verification entry.
-It stays fast and deterministic: lint, TypeScript, and the repository test
-runner. Use `pnpm run ci` when a change needs the stronger repository guard with
-architecture and strict i18n checks. Use `SITE=<site-key> pnpm release:check`
-before a site release or Cloudflare-sensitive handoff; it intentionally requires
-an explicit site and runs Cloudflare config, no-DB build, and typegen checks.
-
-Product contract checks stay site-scoped. Run `SITE=ai-remover pnpm
-contract:check` or `SITE=background-remover pnpm contract:check` when touching
-SaaS pricing, entitlement, quota, provider, or payment contract paths.
-
-Repo-local Codex hooks live in `.codex/hooks.json`. They inject short aooi
-context, block destructive shell/deploy commands, and require verification
-evidence before Codex finalizes code or config changes.
-
-Cloudflare preview deploys use the same `SITE=<site-key>` plus
-`CF_DEPLOY_PROFILE=preview`. Preview is a deploy profile, not a separate site.
-Use it when local Cloudflare topology is not enough and you need a real
-workers.dev runtime before production.
-
-## Bundle 分析
-
-使用分析构建（与现有 build 包装器一致）：
+Open <http://localhost:3000>. `pnpm dev:local` selects `SITE=dev-local` and
+provides safe local fallbacks for auth and storage configuration. To run another
+site:
 
 ```bash
-SITE=<site> pnpm analyze
+SITE=ai-remover pnpm dev
 ```
 
-例如本地基线可使用 `SITE=dev-local pnpm analyze`。
+Shell variables take precedence over `sites/<site-key>/.env.local`, which takes
+precedence over root env files. Never commit secrets to site config, deploy
+settings, pricing, i18n, or content files.
 
-报告输出位置（Next Bundle Analyzer 默认目录）：
+AI Remover's upload/remove/download flow requires Cloudflare bindings:
 
-- `.next/analyze/client.html`
-- `.next/analyze/edge.html`
-- `.next/analyze/nodejs.html`
+```bash
+pnpm dev:ai-remover:cloudflare
+```
 
-为便于基线对比，约定：
+## Commands
 
-- 原始 analyzer 报告固定使用 `.next/analyze/`。
-- 将关键指标按日期记录到本文档（或对应运维文档）“Bundle 分析”小节。
-- 至少跟踪以下关键页面：首页（`/[locale]`）、登录（`/[locale]/sign-in`）、账单（`/[locale]/settings/billing`）。
+| Command                          | Purpose                                                                              |
+| -------------------------------- | ------------------------------------------------------------------------------------ |
+| `pnpm dev`                       | Run the selected site with Vite                                                      |
+| `pnpm dev:local`                 | Run the `dev-local` site                                                             |
+| `SITE=<site> pnpm build`         | Build `dist/client/**` and `dist/server/server.mjs`                                  |
+| `SITE=<site> pnpm start`         | Preview the production build                                                         |
+| `pnpm typecheck`                 | Type-check root and Web sources                                                      |
+| `pnpm lint`                      | Run ESLint and runtime-env guards                                                    |
+| `pnpm test`                      | Run unit, contract, and smoke tests                                                  |
+| `pnpm check`                     | Run lint, typecheck, and tests                                                       |
+| `pnpm arch:check`                | Run dependency-graph and semantic architecture guards                                |
+| `pnpm format:check`              | Verify Prettier formatting                                                           |
+| `pnpm client:boundary`           | Check the built client bundle for server-only code                                   |
+| `pnpm run ci`                    | Run the full repository gate with a `dev-local` build, architecture, and strict i18n |
+| `SITE=<site> pnpm release:check` | Run CI plus Cloudflare release preflight                                             |
+| `pnpm db:generate`               | Generate Drizzle migrations                                                          |
+| `pnpm db:migrate`                | Apply Drizzle migrations                                                             |
+| `pnpm db:studio`                 | Open Drizzle Studio                                                                  |
 
-### 初始基线（2026-04-28，SITE=dev-local）
+Site and Cloudflare commands require an explicit `SITE=<site-key>` unless the
+script intentionally runs a matrix.
 
-- 初始 JS（root main files，总和）：`426,187 bytes`（≈ `416.2 KiB`）。
-- 三个关键页面共享 chunk（交集，总和）：`534,522 bytes`（≈ `522.0 KiB`）。
-- 主要路由 chunk（路由级 app chunks 总和）：
+## Site contract
 
-| 页面                                |             路由级 chunk 总量 |
-| ----------------------------------- | ----------------------------: |
-| 首页 `(/[locale])`                  | `33,812 bytes` (≈ `33.0 KiB`) |
-| 登录 `(/[locale]/sign-in)`          | `41,819 bytes` (≈ `40.8 KiB`) |
-| 账单 `(/[locale]/settings/billing)` | `35,939 bytes` (≈ `35.1 KiB`) |
+A site is selected from `sites/<site-key>/site.config.json` and exposed through
+the generated `@/site` module. The site config owns brand identity and module
+capabilities; `deploy.settings.json` owns Cloudflare topology and binding
+requirements.
 
-## Site Configuration
+Runtime environment and secret names are governed by
+[src/config/env-contract.ts](src/config/env-contract.ts). Existing
+`NEXT_PUBLIC_*` keys remain part of the deployed external contract even though
+the application no longer uses Next.js.
 
-Site identity is build-time input from `sites/<site>/site.config.json` and is
-exposed to runtime code through the generated `@/site` module.
+Use Admin Settings for non-secret operational values after the app is running.
+Use env files and Cloudflare secrets for database URLs, auth secrets, OAuth
+secrets, provider keys, storage URLs, and deploy credentials.
 
-Current sites:
+## Cloudflare
 
-- `dev-local`: local development and tests
-- `mamamiya`: production site
-- `ai-remover`: AI Object Remover SaaS product site
+Cloudflare Workers is the only supported production target. The router forwards
+requests to the active site-specific server Workers, which all load the native
+TanStack server artifact.
 
-Important fields:
+```bash
+RESEND_API_KEY=ci-resend-api-key-not-for-production SITE=dev-local pnpm cf:check
+pnpm cf:build:no-db --site=mp4-compressor
+RESEND_API_KEY=ci-resend-api-key-not-for-production SITE=dev-local pnpm cf:typegen:check
+SITE=dev-local pnpm test:cf-local-smoke
+```
 
-- `brand.appName`: site title, docs/SEO, and email title
-- `brand.appUrl`: canonical URL, sitemap, and callback origin
-- `brand.supportEmail`: legal pages and contact entry points
-- `brand.logo`, `brand.favicon`, `brand.previewImage`: brand assets
-- `capabilities`: site-level module availability
+Deployment remains explicit:
 
-To add another site, follow
-[docs/guides/add-site.md](docs/guides/add-site.md). If the new site has its
-own AI product workflow, also follow
-[docs/guides/add-ai-saas-site.md](docs/guides/add-ai-saas-site.md).
+```bash
+SITE=<site> pnpm release:cf
+```
 
-## Environment Contract
-
-[src/config/env-contract.ts](src/config/env-contract.ts) is the single env and
-secret allowlist source. Runtime files should read env through the approved
-helpers instead of touching `process.env` directly.
-
-`.env.example` is the template for local `.env.development` and production
-operator `.env.production` files. The production deploy target is Cloudflare;
-local `pnpm dev:local` still runs through Next.js and does not require Wrangler.
+See [Deployment Guide](docs/guides/deployment.md) and
+[Cloudflare Deployment Governance](docs/architecture/cloudflare-deployment-governance.md).
 
 ## Documentation
 
-Engineering guides:
+- [Development Guide](development.md)
+- [Contributing](CONTRIBUTING.md)
+- [Architecture Overview](docs/architecture/overview.md)
+- [Add Site](docs/guides/add-site.md)
+- [Auth](docs/guides/auth.md)
+- [Payment](docs/guides/payment.md)
+- [Database](docs/guides/database.md)
+- [RBAC](docs/guides/rbac.md)
+- [Settings](docs/guides/settings.md)
+- [Code Review](docs/CODE_REVIEW.md)
+- [TanStack migration closeout](docs/archive/architecture/tanstack-migration-closeout.md)
 
-| Document                                            | Description                                   |
-| --------------------------------------------------- | --------------------------------------------- |
-| [Auth Guide](docs/guides/auth.md)                   | Authentication with Better Auth               |
-| [Add Site Runbook](docs/guides/add-site.md)         | Add a site instance                           |
-| [Add AI SaaS Site](docs/guides/add-ai-saas-site.md) | Add an AI product workflow site               |
-| [Module Contract](docs/guides/module-contract.md)   | Product module matrix and verification status |
-| [Deployment Guide](docs/guides/deployment.md)       | Cloudflare deploy and smoke flow              |
-| [Database Guide](docs/guides/database.md)           | Drizzle ORM and migrations                    |
-| [Payment Guide](docs/guides/payment.md)             | Multi-provider payment integration            |
-| [RBAC Guide](docs/guides/rbac.md)                   | Role-based access control                     |
-| [Settings Guide](docs/guides/settings.md)           | User and admin settings surfaces              |
+Historical material under `docs/archive/**` and `.codex/plan/**` is not a
+current engineering contract.
 
-Quality references:
+## CI guardrails
 
-| Document                                                                | Description                              |
-| ----------------------------------------------------------------------- | ---------------------------------------- |
-| [Conventions Index](docs/CONVENTIONS.md)                                | Repository conventions and code patterns |
-| [Code Review](docs/CODE_REVIEW.md)                                      | Full code review guide                   |
-| [Architecture Overview](docs/architecture/overview.md)                  | Current architecture baseline            |
-| [Architecture Review](docs/archive/architecture/ARCHITECTURE_REVIEW.md) | Historical architecture audit snapshot   |
+`pnpm run ci` is the canonical repository gate. Database schema changes must
+include a committed migration. GitHub Actions are pinned to full commit SHAs
+with their source tag in a comment; keep dependency review and Cloudflare
+acceptance as required checks.
 
-Module guides:
+Production deployment, commit, and push are deliberate operator actions and are
+not performed by repository checks.
 
-- [Auth](docs/guides/modules/auth.md)
-- [Billing](docs/guides/modules/billing.md)
-- [Docs / Blog](docs/guides/modules/docs-blog.md)
-- [AI](docs/guides/modules/ai.md)
-- [Storage](docs/guides/modules/storage.md)
-- [Growth Support](docs/guides/modules/growth-support.md)
+### GitHub Actions is the Cloudflare acceptance gate, not the production deploy authority
 
-## CI Guardrails
-
-The `Cloudflare Deploy Acceptance` workflow splits generic CI from deployment
-acceptance:
-
-- `pnpm check` runs the default lint, TypeScript, and test gate.
-- `pnpm run ci` adds architecture and strict i18n checks.
-- `scripts/check-release-inputs.mjs` enforces DB schema changes shipping with
-  migrations.
-- `pnpm cf:check` and `pnpm cf:build:no-db --site=<site>` run only for
-  Cloudflare-relevant changes, across the explicit deployable site matrix, with
-  direct database URLs cleared and CI-only placeholder runtime bindings.
-- `SITE=ai-remover pnpm contract:check` runs only for AI Remover contract
-  changes.
-
-GitHub Actions are pinned to full commit SHAs with `# pinned from vX` comments.
-Keep `dependency-review` and `cloudflare acceptance` configured as required
-checks in repository settings.
-
-GitHub Actions is the Cloudflare acceptance gate, not the production deploy authority.
-Production Cloudflare releases are run explicitly from a local operator session
-with `SITE=mamamiya pnpm release:cf`.
-
-## Feedback
-
-Submit feedback via GitHub Issues.
-
-## License
-
-No license file is included in this repository. Add one if you plan to distribute
-the code.
+Production release authority belongs to the local operator session.

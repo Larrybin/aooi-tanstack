@@ -22,8 +22,9 @@ export function loadRootDotenv(
   options?: LoadRootDotenvOptions
 ): { loadedFiles: string[] };
 
-export function shouldLoadDotenvForScripts(env?: NodeJS.ProcessEnv): boolean;
+export function shouldLoadDotenvForScripts(): boolean;
 
-export function loadDotenvForScripts(
-  options?: LoadDotenvForScriptsOptions
-): { loaded: boolean; loadedFiles: string[] };
+export function loadDotenvForScripts(options?: LoadDotenvForScriptsOptions): {
+  loaded: boolean;
+  loadedFiles: string[];
+};

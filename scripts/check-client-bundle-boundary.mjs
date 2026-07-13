@@ -29,7 +29,9 @@ function walk(currentPath, files = []) {
 }
 
 if (!existsSync(clientDir)) {
-  throw new Error('dist/client is missing; run tanstack:build first');
+  throw new Error(
+    'dist/client is missing; run SITE=<site-key> pnpm build first'
+  );
 }
 
 const failures = [];

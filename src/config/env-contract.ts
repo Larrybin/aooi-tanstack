@@ -13,8 +13,6 @@ export const SERVER_RUNTIME_ENV_KEYS = [
   ...PUBLIC_ENV_KEYS,
   'NODE_ENV',
   'CI',
-  'NEXT_RUNTIME',
-  'NEXT_PHASE',
   'npm_lifecycle_event',
   'DATABASE_PROVIDER',
   'DATABASE_URL',

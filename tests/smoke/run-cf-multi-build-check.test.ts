@@ -22,7 +22,6 @@ test('run-cf-multi-build-check requires native TanStack artifacts', async () => 
 
   assert.equal(NATIVE_TANSTACK_SERVER_ARTIFACT, 'dist/server/server.mjs');
   assert.match(source, /NATIVE_TANSTACK_SERVER_ARTIFACT/);
-  assert.doesNotMatch(source, /\.open-next/);
   assert.doesNotMatch(source, /handler\.mjs/);
 });
 

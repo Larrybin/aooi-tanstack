@@ -8,3 +8,4 @@
 - `module-contract-implementation-plan.md`: 说明 module contract implementation plan 相关设计、流程或使用细节。
 - `saas-platform-core-contract-implementation-plan.md`: 说明 saas platform core contract implementation plan 相关设计、流程或使用细节。
 - `saas-platform-core-office-hours.md`: 说明 saas platform core office hours 相关设计、流程或使用细节。
+- `tanstack-migration-closeout.md`: 记录 TanStack Start、Vite 与 Cloudflare 迁移完成状态和持久门禁。

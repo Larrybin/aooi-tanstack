@@ -217,7 +217,7 @@ async function writeProviderSourceFiles(rootDir: string) {
     ].join('\n')
   );
   await writeText(
-    path.join(rootDir, 'src/app/api/remover/provider-adapter.server.ts'),
+    path.join(rootDir, 'src/server/api/remover/provider-adapter.ts'),
     [
       'import { getConfiguredAIService } from "@/domains/ai/application/service";',
       'import { CLOUDFLARE_WORKERS_AI_PROVIDER, DEFAULT_CLOUDFLARE_INPAINTING_MODEL } from "@/domains/remover/application/provider";',
@@ -322,7 +322,7 @@ async function writeProviderSourceFiles(rootDir: string) {
     ].join('\n')
   );
   await writeText(
-    path.join(rootDir, 'src/app/api/ai/notify/[provider]/route.ts'),
+    path.join(rootDir, 'apps/web/src/routes/api/ai/notify/$provider.ts'),
     [
       'export const POST = withApi(async (req, { params }) => {',
       '  const secret = getAiNotifyWebhookSecret();',
@@ -332,14 +332,14 @@ async function writeProviderSourceFiles(rootDir: string) {
     ].join('\n')
   );
   await writeText(
-    path.join(rootDir, 'src/app/api/ai/notify/signature.ts'),
+    path.join(rootDir, 'src/server/api/ai/notify-signature.ts'),
     [
       "export function getAiNotifyWebhookSecret() { return getRuntimeEnvString('AI_NOTIFY_WEBHOOK_SECRET') || ''; }",
       '',
     ].join('\n')
   );
   await writeText(
-    path.join(rootDir, 'src/app/api/ai/generate/create-handler.ts'),
+    path.join(rootDir, 'src/server/api/ai/generate-route.ts'),
     [
       'export async function createHandler() {',
       '  const notifySecret = deps.getAiNotifyWebhookSecret();',
@@ -452,14 +452,14 @@ async function writeUsageCreditSourceFiles(rootDir: string) {
     ].join('\n')
   );
   await writeText(
-    path.join(rootDir, 'src/app/api/remover/jobs/route.ts'),
+    path.join(rootDir, 'apps/web/src/routes/api/remover/jobs.ts'),
     [
       'export const deps = { createQueuedRemoverJob, submitRemoverJobToProvider, createRemoverQuotaReservationWithQuotaCheck, commitReservation: commitRemoverQuotaReservation, refundReservation: refundRemoverQuotaReservation };',
       '',
     ].join('\n')
   );
   await writeText(
-    path.join(rootDir, 'src/app/api/remover/jobs/action.ts'),
+    path.join(rootDir, 'src/server/api/remover/jobs-action.ts'),
     [
       'export async function createRemoverJobsPostAction(deps) {',
       '  return deps.createQueuedRemoverJob();',
@@ -468,7 +468,7 @@ async function writeUsageCreditSourceFiles(rootDir: string) {
     ].join('\n')
   );
   await writeText(
-    path.join(rootDir, 'src/app/api/remover/download/action.ts'),
+    path.join(rootDir, 'src/server/api/remover/download-action.ts'),
     [
       'export function createRemoverDownloadPostAction(deps) {',
       '  if (download.requiresHighResQuota) reservationId = reserveHighResDownloadQuota();',
@@ -478,14 +478,14 @@ async function writeUsageCreditSourceFiles(rootDir: string) {
     ].join('\n')
   );
   await writeText(
-    path.join(rootDir, 'src/app/api/remover/download/high-res/route.ts'),
+    path.join(rootDir, 'apps/web/src/routes/api/remover/download/high-res.ts'),
     [
       'export const deps = { reserveHighResQuota: reserveHighResDownloadQuota, commitReservation: commitRemoverQuotaReservation };',
       '',
     ].join('\n')
   );
   await writeText(
-    path.join(rootDir, 'src/app/api/remover/download/low-res/route.ts'),
+    path.join(rootDir, 'apps/web/src/routes/api/remover/download/low-res.ts'),
     [
       "const postAction = createRemoverDownloadPostAction(deps, 'low_res');",
       'export const deps = { reserveHighResQuota: reserveHighResDownloadQuota, commitReservation: commitRemoverQuotaReservation };',
@@ -537,7 +537,7 @@ async function writeUsageCreditSourceFiles(rootDir: string) {
     )
   );
   await writeText(
-    path.join(rootDir, 'src/app/[locale]/(admin)/admin/credits/page.tsx'),
+    path.join(rootDir, 'src/server/admin/admin-route-resolver.ts'),
     [
       'export async function CreditsPage() { return listAdminCreditsQuery(); }',
       '',
@@ -1472,7 +1472,7 @@ test('contract audit source-maps provider defaults and Workers AI binding', asyn
   assert.equal(result.status, 0, result.stderr);
   assert.match(
     result.stdout,
-    /source  provider_route:src\/app\/api\/remover\/provider-adapter\.server\.ts:REMOVER_AI_PROVIDER/
+    /source  provider_route:src\/server\/api\/remover\/provider-adapter\.ts:REMOVER_AI_PROVIDER/
   );
   assert.match(
     result.stdout,
@@ -1546,9 +1546,7 @@ test('contract audit degrades missing provider source files into source-mapped w
       ],
     },
   });
-  await rm(
-    path.join(rootDir, 'src/app/api/remover/provider-adapter.server.ts')
-  );
+  await rm(path.join(rootDir, 'src/server/api/remover/provider-adapter.ts'));
 
   const result = runAudit(rootDir);
 
@@ -1559,7 +1557,7 @@ test('contract audit degrades missing provider source files into source-mapped w
   );
   assert.match(
     result.stdout,
-    /source  provider_route:src\/app\/api\/remover\/provider-adapter\.server\.ts/
+    /source  provider_route:src\/server\/api\/remover\/provider-adapter\.ts/
   );
   assert.doesNotMatch(result.stderr, /SaaS contract audit failed/);
 });
@@ -1689,7 +1687,7 @@ test('contract audit source-maps high-res download quota separately from low-res
   );
   assert.match(
     result.stdout,
-    /source  usage_product_route:src\/app\/api\/remover\/download\/low-res\/route\.ts:low_res/
+    /source  usage_product_route:apps\/web\/src\/routes\/api\/remover\/download\/low-res\.ts:low_res/
   );
 });
 

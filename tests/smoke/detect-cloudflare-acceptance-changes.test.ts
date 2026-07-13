@@ -27,10 +27,13 @@ test('detect acceptance changes marks Cloudflare and source paths', () => {
     cloudflareChanged: true,
     contractAiRemoverChanged: false,
   });
-  assert.deepEqual(classifyChangedPaths(['src/app/api/health/route.ts']), {
-    cloudflareChanged: true,
-    contractAiRemoverChanged: false,
-  });
+  assert.deepEqual(
+    classifyChangedPaths(['apps/web/src/routes/api/health.ts']),
+    {
+      cloudflareChanged: true,
+      contractAiRemoverChanged: false,
+    }
+  );
 });
 
 test('detect acceptance changes marks AI Remover contract paths separately', () => {
@@ -52,11 +55,11 @@ test('detect acceptance changes marks AI Remover contract paths separately', () 
 
 test('detect acceptance changes marks AI Remover contract source-map paths', () => {
   const contractPaths = [
-    'src/app/[locale]/(admin)/admin/credits/page.tsx',
-    'src/app/api/ai/generate/create-handler.ts',
-    'src/app/api/ai/notify/signature.ts',
+    'src/server/admin/admin-route-resolver.ts',
+    'src/server/api/ai/generate-route.ts',
+    'src/server/api/ai/notify-signature.ts',
     'src/domains/remover/application/jobs.ts',
-    'src/app/api/remover/jobs/action.ts',
+    'src/server/api/remover/jobs-action.ts',
     'src/domains/billing/application/flows.ts',
     'src/domains/account/application/use-cases.ts',
     'src/domains/ai/application/service.ts',

@@ -40,7 +40,7 @@ Change shared theme code only when the result should apply to every site using t
 Current landing path to inspect before editing:
 
 ```text
-src/app/[locale]/(landing)/page.tsx
+apps/web/src/routes/index.tsx
 src/themes/default/layouts/landing-marketing.tsx
 src/themes/default/pages/landing.tsx
 src/themes/default/pages/landing-view.tsx
@@ -64,7 +64,8 @@ Prefer focused paths such as:
 src/themes/default/pages/<product>-landing.tsx
 src/domains/<feature>/ui/**
 src/domains/<feature>/application/**
-src/app/[locale]/(landing)/<feature>/page.tsx
+apps/web/src/routes/<feature>.tsx
+apps/web/src/routes/$locale/<feature>.tsx
 ```
 
 Keep route files thin. Avoid thin wrappers and speculative abstractions.

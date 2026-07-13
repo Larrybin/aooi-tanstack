@@ -16,7 +16,7 @@ src/infra/adapters/payment/
   service.ts
   stripe|paypal|creem transports, mappers, façades
 
-src/app/api/payment/
+apps/web/src/routes/api/payment/
   checkout/route.ts
   callback/route.ts
   notify/route.ts
@@ -34,7 +34,7 @@ src/app/api/payment/
 
 ## Checkout Flow
 
-1. `src/app/api/payment/checkout/route.ts` parses `PaymentCheckoutBodySchema`.
+1. `apps/web/src/routes/api/payment/checkout.ts` maps POST to the assembled handler.
 2. The route resolves the requested product from `sitePricing.pricing.items` and authenticates the user.
 3. The route calls `createPaymentCheckoutSession()`.
 4. Billing application code builds order/session semantics.
@@ -46,7 +46,7 @@ Free or non-checkout plans must set `checkout_enabled: false`. Paid checkout ite
 
 ## Webhook Flow
 
-1. `src/app/api/payment/notify/route.ts` derives the active provider from `site.capabilities.payment`.
+1. `apps/web/src/routes/api/payment/notify.ts` maps POST to the assembled handler; `apps/web/src/server/handlers/payment.ts` derives the active provider from `site.capabilities.payment`.
 2. The route reads runtime settings through `settings-runtime.query`.
 3. The route passes request metadata into `handlePaymentNotifyRequest()`.
 4. Billing application code records inbox/audit state and applies order/subscription transitions.

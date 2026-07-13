@@ -16,27 +16,20 @@ const TEST_STORAGE_PUBLIC_BASE_URL = 'http://127.0.0.1:9787/assets/';
 const ACTIVE_SPLIT_WORKERS_ENV = 'CLOUDFLARE_ACTIVE_SPLIT_WORKERS';
 const { applySiteLocalEnvOverlay } = siteEnvModule;
 const SITE_REQUIRED_COMMANDS = [
-  'pnpm exec next',
   'pnpm exec vite build',
   'pnpm exec vite preview',
-  'node scripts/next-build.mjs',
   'pnpm exec @better-auth/cli generate',
   'node --import tsx scripts/check-cloudflare-config.mjs',
-  'pnpm exec opennextjs-cloudflare build',
   'node --import tsx scripts/site-gate.mjs',
   'node --import tsx scripts/smoke.mjs',
   'node --import tsx scripts/run-cf-app-deploy.mjs',
   'node --import tsx scripts/run-cf-state-deploy.mjs',
 ];
 const CONTENT_GENERATION_REQUIRED_COMMANDS = [
-  'pnpm exec next',
   'pnpm exec tsc',
   'pnpm exec vite',
-  'node scripts/next-build.mjs',
   'node scripts/run-tests.mjs',
-  'node scripts/validate-tanstack-native-migration.mjs',
   'pnpm exec @better-auth/cli generate',
-  'pnpm exec opennextjs-cloudflare build',
   'node --import tsx scripts/run-cf-build.mjs',
   'node --import tsx scripts/smoke.mjs',
   'node --import tsx scripts/run-cf-app-deploy.mjs',

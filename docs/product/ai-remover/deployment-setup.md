@@ -71,7 +71,7 @@ REMOVER_AI_MODEL="@cf/runwayml/stable-diffusion-v1-5-inpainting"
 ```
 
 The default provider expects Cloudflare R2 and Workers AI bindings at runtime.
-Plain Next.js local dev can render pages and exercise database-backed flows, but
+Plain Vite local dev can render pages and exercise database-backed flows, but
 real upload / remove / download must use a Cloudflare runtime, preview, or
 deployed environment.
 
@@ -119,12 +119,11 @@ The Google OAuth origin, `AUTH_URL` / `BETTER_AUTH_URL` when used, and
 Update `sites/ai-remover/deploy.settings.json` for real production resource
 names:
 
-| Field                              | Production value                             |
-| ---------------------------------- | -------------------------------------------- |
-| `resources.incrementalCacheBucket` | R2 bucket for OpenNext cache                 |
-| `resources.appStorageBucket`       | R2 bucket for uploaded/remover images        |
-| `resources.hyperdriveId`           | Real Cloudflare Hyperdrive ID                |
-| `workers.*`                        | Active worker names for this production site |
+| Field                        | Production value                             |
+| ---------------------------- | -------------------------------------------- |
+| `resources.appStorageBucket` | R2 bucket for uploaded/remover images        |
+| `resources.hyperdriveId`     | Real Cloudflare Hyperdrive ID                |
+| `workers.*`                  | Active worker names for this production site |
 
 Do not put secrets, database URLs, or provider API keys in either site JSON
 file.
@@ -148,7 +147,6 @@ Provision these before the first production deploy:
 - Cloudflare zone and route/custom domain for `site.brand.appUrl`
 - PostgreSQL database reachable from Cloudflare
 - Cloudflare Hyperdrive pointing to the production PostgreSQL database
-- R2 bucket for `resources.incrementalCacheBucket`
 - R2 bucket for `resources.appStorageBucket`
 - Public R2 custom domain or `r2.dev` URL for uploaded assets
 - Cloudflare Images binding named `IMAGES`

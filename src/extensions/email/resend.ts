@@ -1,4 +1,3 @@
-
 import { createUseCaseLogger } from '@/infra/platform/logging/logger.server';
 import { Resend, type CreateEmailOptions } from 'resend';
 
@@ -16,7 +15,7 @@ const log = createUseCaseLogger({
 
 /**
  * Resend email provider configs
- * @docs https://resend.com/docs/send-with-nextjs
+ * @docs https://resend.com/docs/api-reference/emails/send-email
  */
 export interface ResendConfigs extends EmailConfigs {
   apiKey: string;

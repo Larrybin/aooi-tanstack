@@ -42,7 +42,7 @@
 仓库示例：
 
 - [tests/contract/payment-notify-route.test.ts](/Users/bin/Desktop/project/aooi/tests/contract/payment-notify-route.test.ts)
-- [src/app/api/storage/upload-image/route.test.ts](/Users/bin/Desktop/project/aooi/src/app/api/storage/upload-image/route.test.ts)
+- `src/server/api/storage/upload-image-route.server.test.ts`
 - [src/middleware.test.ts](/Users/bin/Desktop/project/aooi/src/middleware.test.ts)
 - [tests/smoke/cf-app-smoke.test.ts](/Users/bin/Desktop/project/aooi/tests/smoke/cf-app-smoke.test.ts)
 
@@ -117,7 +117,7 @@
 - [src/shared/contexts/app-boundaries.test.ts](/Users/bin/Desktop/project/aooi/src/shared/contexts/app-boundaries.test.ts)
 - [src/infra/platform/theme-import-contract.test.ts](/Users/bin/Desktop/project/aooi/src/infra/platform/theme-import-contract.test.ts)
 - [src/domains/account/ui/auth/auth-refresh-boundaries.test.ts](/Users/bin/Desktop/project/aooi/src/domains/account/ui/auth/auth-refresh-boundaries.test.ts)
-- [src/instrumentation.test.ts](/Users/bin/Desktop/project/aooi/src/instrumentation.test.ts)
+- `src/architecture-boundaries.test.ts`
 
 要求：
 
@@ -153,7 +153,7 @@
 
 ### 默认归为行为断言
 
-- `src/app/api/**/*.test.ts`
+- `apps/web/src/routes/**/*.test.ts` and `src/server/api/**/*.test.ts`
 - `src/themes/default/**/*.test.ts*`
 - `src/domains/settings/**/*mapper*.test.ts`
 - `tests/smoke/*.browser.ts`
@@ -178,7 +178,7 @@
 
 - `**/*boundaries.test.ts`
 - `**/*import-contract.test.ts`
-- `src/instrumentation.test.ts`
+- `src/architecture-boundaries.test.ts`
 - 直接读取源码/配置文件并做禁止项守卫的测试
 
 ## 直接迁移名单

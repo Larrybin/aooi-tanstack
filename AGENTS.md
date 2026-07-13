@@ -2,7 +2,8 @@
 
 ## Project Structure & Module Organization
 
-- `src/app`: Next.js routes, layouts, API handlers, and entrypoints.
+- `apps/web/src/routes`: TanStack page/API route entries; keep them thin.
+- `apps/web/src/server`: Web-runtime dependency composition and assembled handlers.
 - `src/domains`: business semantics, invariants, and application use cases.
 - `src/infra`: platform, runtime, and external adapters such as auth, database, billing transports, and background services.
 - `src/shared`: shared utilities, primitives, and cross-cutting types.
@@ -15,21 +16,21 @@
 
 - Install dependencies: `pnpm install`.
 - Local development: `pnpm dev` (http://localhost:3000).
-- Production build: `pnpm build` (or `pnpm build:fast` for larger deployments).
-- Run built app: `pnpm start`.
+- Production build: `SITE=<site-key> pnpm build`.
+- Run built app: `SITE=<site-key> pnpm start`.
 - Lint code: `pnpm lint`.
 - Lint architecture graph: `pnpm lint:deps`.
 - Format code: `pnpm format` / check only: `pnpm format:check`.
 - Database workflows: `pnpm db:generate`, `pnpm db:migrate`, `pnpm db:studio`.
-- TanStack migration checks: `SITE=dev-local pnpm tanstack:inventory`, `SITE=dev-local pnpm tanstack:validate`, `SITE=dev-local pnpm tanstack:typecheck`, `SITE=dev-local pnpm tanstack:build`.
+- Client bundle boundary: `SITE=dev-local pnpm build`, then `pnpm client:boundary`.
 - Cloudflare deployment helpers: `pnpm cf:check`, `pnpm cf:build`, `pnpm cf:typegen`, `pnpm cf:typegen:check`, `pnpm cf:deploy:state`, `pnpm cf:deploy:app`, `pnpm cf:deploy` (app alias), `pnpm test:cf-local-smoke`.
 
 ## Coding Style & Naming Conventions
 
-- Language: TypeScript + React, Next.js App Router.
+- Language: TypeScript + React, TanStack Start, TanStack Router, and Vite.
 - Use Prettier and ESLint; do not bypass them in CI or local workflows.
 - Prefer PascalCase for React components and types, camelCase for variables and functions, UPPER_SNAKE_CASE for environment variables.
-- Follow Next.js file naming (`page.tsx`, `layout.tsx`, `route.ts`) and keep components small and single-responsibility.
+- Follow TanStack file-route naming under `apps/web/src/routes` and keep components small and single-responsibility.
 - TanStack routes under `apps/web/src/routes` should stay thin: handle params/search, loader, head, component, redirect, and notFound only. Move data loading, SEO, and view composition into `src/surfaces/**`.
 - Do not import `next/*`, `next-intl`, `@/app/**`, or `@/themes/**` from TanStack route files or their runtime closure. Do not wrap old Next pages, use `React.use(Promise.resolve(...))`, `params: Promise`, `generateMetadata`, or `generateStaticParams` in TanStack paths.
 
@@ -37,10 +38,10 @@
 
 - Use `pnpm test` as the default repository test gate; when adding tests, colocate them with features using `*.test.ts` / `*.test.tsx`.
 - Keep `src/testing/**` limited to test-only contracts/helpers; do not let `src/**` or `cloudflare/**` production code import it.
-- Keep tests fast and deterministic; prefer unit tests for domain logic in `src/domains` and lightweight integration tests for `src/app`.
-- Treat generated directories such as `.open-next/`, `.next/`, `dist/`, `build/`, and `output/` as build artifacts only. Source files that must remain test-reachable may not top-level static `import` them; consume them only at explicit runtime boundaries, preferably via lazy `import()`.
+- Keep tests fast and deterministic; prefer unit tests for domain logic in `src/domains` and lightweight integration tests for `apps/web` routes and `src/server` handlers.
+- Treat generated directories such as `dist/`, `build/`, and `output/` as build artifacts only. Source files that must remain test-reachable may not top-level static `import` them; consume them only at explicit runtime boundaries, preferably via lazy `import()`.
 - Treat `src/config/env-contract.ts` as the single env/secret contract source. Non-whitelisted runtime files must not read or propagate `process.env` directly.
-- For Gate 4 page migration work, run `node scripts/tanstack-gate-4-plan.mjs --check` and `SITE=dev-local pnpm tanstack:validate` before broader checks.
+- For route or architecture work, run `pnpm arch:check` before broader checks.
 - Ensure critical flows (auth, billing, database migrations) have at least basic coverage before major releases.
 
 ## Commit & Pull Request Guidelines

@@ -22,7 +22,6 @@
 - `generate-site-module.mjs`: 执行 generate site module 相关的项目维护或自动化任务。
 - `grant-entitlement.ts`: 执行 grant entitlement 相关的项目维护或自动化任务。
 - `init-rbac.ts`: 执行 init rbac 相关的项目维护或自动化任务。
-- `next-build.mjs`: 执行 next build 相关的项目维护或自动化任务。
 - `postinstall.mjs`: 执行 postinstall 相关的项目维护或自动化任务。
 - `run-admin-settings-module-contract-smoke.mjs`: 执行 run admin settings module contract smoke 相关的项目维护或自动化任务。
 - `run-ai-remover-cloudflare-dev.mjs`: 执行 run ai remover cloudflare dev 相关的项目维护或自动化任务。
@@ -52,7 +51,4 @@
 - `site-production.mjs`: 执行 site production 相关的项目维护或自动化任务。
 - `site-schema.mjs`: 执行 site schema 相关的项目维护或自动化任务。
 - `smoke.mjs`: 执行 smoke 相关的项目维护或自动化任务。
-- `sync-open-next-generated-types.mjs`: 执行 sync open next generated types 相关的项目维护或自动化任务。
-- `tanstack-native-inventory.mjs`: 执行 tanstack native inventory 相关的项目维护或自动化任务。
 - `upsert-configs.ts`: 执行 upsert configs 相关的项目维护或自动化任务。
-- `validate-tanstack-native-migration.mjs`: 执行 validate tanstack native migration 相关的项目维护或自动化任务。

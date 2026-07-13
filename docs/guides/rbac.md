@@ -17,7 +17,8 @@ src/infra/adapters/access-control/
 
 src/shared/lib/api/guard.ts       # API adapter: 401/403 semantics
 src/shared/lib/action/guard.ts    # Action adapter: ActionError semantics
-src/app/[locale]/(admin)/layout.tsx
+apps/web/src/routes/admin_.tsx
+apps/web/src/routes/$locale/admin_.tsx
   page adapter: redirect/notFound semantics
 ```
 
@@ -85,7 +86,7 @@ Do not create a universal guard that switches behavior by parameter.
 ## Enforcement Model
 
 - `src/request-proxy.ts` only performs a lightweight session-cookie gate for `/admin`, `/settings`, `/activity`.
-- `/admin/**` requires `admin.access` in `src/app/[locale]/(admin)/layout.tsx`.
+- `/admin/**` requires `admin.access` through the admin route resolver used by `apps/web/src/routes/admin_.tsx` and its localized counterpart.
 - Route Handlers should use `requireUser()` plus permission checks at the entry point.
 - Server Actions should use action guards at the action boundary.
 

@@ -24,6 +24,8 @@
   },
   "include": [
     ".generated/**/*.ts",
+    "apps/web/src/**/*.ts",
+    "apps/web/src/**/*.tsx",
     "src/**/*.d.ts",
     "src/**/*.ts",
     "src/**/*.tsx",

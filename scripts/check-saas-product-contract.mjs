@@ -2718,7 +2718,7 @@ function buildAuditReport(siteKey) {
     ),
     removerProviderAdapter: path.resolve(
       ROOT_DIR,
-      'src/app/api/remover/provider-adapter.server.ts'
+      'src/server/api/remover/provider-adapter.ts'
     ),
     aiService: path.resolve(ROOT_DIR, 'src/domains/ai/application/service.ts'),
     providerBindings: path.resolve(
@@ -2735,15 +2735,15 @@ function buildAuditReport(siteKey) {
     runtimeEnv: path.resolve(ROOT_DIR, 'src/infra/runtime/env.server.ts'),
     aiNotifyRoute: path.resolve(
       ROOT_DIR,
-      'src/app/api/ai/notify/[provider]/route.ts'
+      'apps/web/src/routes/api/ai/notify/$provider.ts'
     ),
     aiNotifySignature: path.resolve(
       ROOT_DIR,
-      'src/app/api/ai/notify/signature.ts'
+      'src/server/api/ai/notify-signature.ts'
     ),
     aiGenerateHandler: path.resolve(
       ROOT_DIR,
-      'src/app/api/ai/generate/create-handler.ts'
+      'src/server/api/ai/generate-route.ts'
     ),
   };
   const usageCreditPaths = {
@@ -2763,19 +2763,22 @@ function buildAuditReport(siteKey) {
       ROOT_DIR,
       'src/domains/remover/application/download.ts'
     ),
-    jobsRoute: path.resolve(ROOT_DIR, 'src/app/api/remover/jobs/route.ts'),
-    jobsAction: path.resolve(ROOT_DIR, 'src/app/api/remover/jobs/action.ts'),
+    jobsRoute: path.resolve(
+      ROOT_DIR,
+      'apps/web/src/routes/api/remover/jobs.ts'
+    ),
+    jobsAction: path.resolve(ROOT_DIR, 'src/server/api/remover/jobs-action.ts'),
     downloadAction: path.resolve(
       ROOT_DIR,
-      'src/app/api/remover/download/action.ts'
+      'src/server/api/remover/download-action.ts'
     ),
     highResRoute: path.resolve(
       ROOT_DIR,
-      'src/app/api/remover/download/high-res/route.ts'
+      'apps/web/src/routes/api/remover/download/high-res.ts'
     ),
     lowResRoute: path.resolve(
       ROOT_DIR,
-      'src/app/api/remover/download/low-res/route.ts'
+      'apps/web/src/routes/api/remover/download/low-res.ts'
     ),
     accountCredit: path.resolve(
       ROOT_DIR,
@@ -2795,7 +2798,7 @@ function buildAuditReport(siteKey) {
     ),
     adminCreditsPage: path.resolve(
       ROOT_DIR,
-      'src/app/[locale]/(admin)/admin/credits/page.tsx'
+      'src/server/admin/admin-route-resolver.ts'
     ),
     adminCreditsQuery: path.resolve(
       ROOT_DIR,

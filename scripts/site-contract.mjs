@@ -13,17 +13,6 @@ import {
 } from './site-production.mjs';
 
 const FREE_TOOL_NO_DB_REQUIRED_PRUNED_PATHS = Object.freeze([
-  'src/app/[locale]/(admin)',
-  'src/app/[locale]/(auth)',
-  'src/app/[locale]/(chat)',
-  'src/app/[locale]/(docs)',
-  'src/app/[locale]/(landing)/blog',
-  'src/app/[locale]/(landing)/pricing',
-  'src/app/[locale]/(landing)/settings',
-  'src/app/api/auth',
-  'src/app/api/config',
-  'src/app/api/payment',
-  'src/app/api/user',
   'apps/web/src/routes/admin_.tsx',
   'apps/web/src/routes/$locale/admin_.tsx',
   'apps/web/src/routes/sign-in.tsx',

@@ -70,7 +70,8 @@ sites/<site-key>/**
 src/themes/** only when the selected UI path requires theme work
 src/domains/<feature>/** only for real product/domain behavior
 src/surfaces/** only for composition surfaces
-src/app/** only for routes, layouts, metadata, and route handlers
+apps/web/src/routes/** only for route declarations, loaders, head, redirects, and assembled handlers
+src/server/** and apps/web/src/server/** for server logic and dependency composition
 scripts/** only for site/deploy automation contract changes
 docs/** only when the code or workflow contract changes
 ```

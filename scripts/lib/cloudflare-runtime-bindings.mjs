@@ -147,7 +147,7 @@ function buildDeploySecretRequirementMap(contract) {
         names: ['BETTER_AUTH_SECRET', 'AUTH_SECRET'],
         outputNames: ['BETTER_AUTH_SECRET', 'AUTH_SECRET'],
         requirement: 'authSharedSecret',
-        capability: 'Next server runtime shared auth secret',
+        capability: 'server runtime shared auth secret',
       });
     }
   }

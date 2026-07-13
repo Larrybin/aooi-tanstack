@@ -6,7 +6,6 @@ export const RUNTIME_PARITY_IGNORED_HEADERS = [
   'x-request-id',
   'x-vercel-id',
   'cf-ray',
-  'x-opennext',
 ] as const;
 const RUNTIME_PARITY_IGNORED_HEADER_SET: ReadonlySet<string> = new Set(
   RUNTIME_PARITY_IGNORED_HEADERS

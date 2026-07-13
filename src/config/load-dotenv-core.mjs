@@ -46,7 +46,13 @@ function searchLastUnescapedDollar(value) {
   return matches.length > 0 ? matches.at(-1).index : -1;
 }
 
-function resolveInterpolationReplacement(name, defaultValue, env, parsed, stack) {
+function resolveInterpolationReplacement(
+  name,
+  defaultValue,
+  env,
+  parsed,
+  stack
+) {
   if (Object.prototype.hasOwnProperty.call(env, name)) {
     return String(env[name] ?? '');
   }
@@ -142,12 +148,8 @@ export function loadRootDotenv(
   return { loadedFiles };
 }
 
-export function shouldLoadDotenvForScripts(env = process.env) {
-  return (
-    typeof process !== 'undefined' &&
-    typeof process.cwd === 'function' &&
-    !env.NEXT_RUNTIME
-  );
+export function shouldLoadDotenvForScripts() {
+  return typeof process !== 'undefined' && typeof process.cwd === 'function';
 }
 
 export function loadDotenvForScripts({
@@ -158,7 +160,7 @@ export function loadDotenvForScripts({
   readFileSyncImpl = readFileSync,
   existsSyncImpl = existsSync,
 } = {}) {
-  if (!shouldLoadDotenvForScripts(env)) {
+  if (!shouldLoadDotenvForScripts()) {
     return { loaded: false, loadedFiles: [] };
   }
 

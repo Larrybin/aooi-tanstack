@@ -81,7 +81,7 @@ test('cf:build runs strict i18n check after site publishing enforcement', () => 
 test('cf:build:no-db covers the explicit deployable site list', () => {
   assert.deepEqual(NO_DB_CLOUDFLARE_BUILD_SITES, [
     'dev-local',
-  'mamamiya',
+    'mamamiya',
     'ai-remover',
     'background-remover',
     'text-to-speech-generator',
@@ -168,11 +168,11 @@ test('cf:build:no-db reports all sites even when one site fails', async () => {
 
 test('cf:build prunes disabled free tool routes only during native build', async () => {
   const rootDir = await mkdtemp(path.join(os.tmpdir(), 'site-route-prune-'));
-  const prunedRoute = 'src/app/api/auth';
-  const prunedRouteFile = path.join(prunedRoute, 'route.ts');
-  const keptRoute = 'src/app/[locale]/(landing)';
+  const prunedRoute = 'apps/web/src/routes/api/auth';
+  const prunedRouteFile = path.join(prunedRoute, 'index.ts');
+  const keptRoute = 'apps/web/src/routes';
   const prunedFile = path.join(rootDir, prunedRouteFile);
-  const keptFile = path.join(rootDir, keptRoute, 'page.tsx');
+  const keptFile = path.join(rootDir, keptRoute, 'index.tsx');
 
   await mkdir(path.dirname(prunedFile), { recursive: true });
   await mkdir(path.dirname(keptFile), { recursive: true });
@@ -255,11 +255,11 @@ test('cf:build real public-only free tool topology must prune disabled SaaS rout
   const prunePaths = resolveSiteRoutePrunePaths(contract);
 
   assert.deepEqual(Object.keys(contract.serverWorkers), ['public-web']);
-  assert.ok(prunePaths.includes('src/app/api/auth'));
-  assert.ok(prunePaths.includes('src/app/api/config'));
-  assert.ok(prunePaths.includes('src/app/[locale]/(admin)'));
-  assert.ok(prunePaths.includes('src/app/[locale]/(landing)/settings'));
-  assert.ok(prunePaths.includes('src/app/[locale]/(landing)/blog'));
+  assert.ok(prunePaths.includes('apps/web/src/routes/api/auth.ts'));
+  assert.ok(prunePaths.includes('apps/web/src/routes/api/config'));
+  assert.ok(prunePaths.includes('apps/web/src/routes/admin'));
+  assert.ok(prunePaths.includes('apps/web/src/routes/settings'));
+  assert.ok(prunePaths.includes('apps/web/src/routes/blog'));
 });
 
 test('cf:build real SaaS topology keeps split-worker routes available', () => {

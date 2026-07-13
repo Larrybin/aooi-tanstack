@@ -154,8 +154,6 @@ Data access functions live with their owning domain under `src/domains/*/infra/`
 
 ```typescript
 // src/domains/account/infra/user.ts
-import 'server-only';
-
 import { db } from '@/infra/adapters/db';
 import { eq } from 'drizzle-orm';
 
@@ -311,7 +309,7 @@ Smoke commands keep their public package names, but they now route through `scri
 
 The smoke is read-only. It must not upsert public config values or mutate the `config` table in local runtime or production.
 
-The governed deployment posture is now Cloudflare-only: production deploys must use the canonical multi-worker OpenNext + Hyperdrive topology.
+The governed deployment posture is Cloudflare-only: production deploys use the canonical native TanStack multi-worker topology with Hyperdrive.
 
 State Worker migrations must stay state-safe. Router request dispatch changes belong in `pnpm cf:deploy:app`, while Durable Object owner/migration changes belong in `pnpm cf:deploy:state`.
 `pnpm cf:deploy:app` is a pure app release step. It does not bootstrap missing router/server deployments, so brand-new or partially initialized production environments must run `pnpm cf:deploy:state` first and `pnpm cf:deploy` second.
@@ -321,7 +319,7 @@ State Worker migrations must stay state-safe. Router request dispatch changes be
 ## Best Practices
 
 1. **Always use Drizzle ORM** - Avoid raw SQL unless absolutely necessary
-2. **Use `server-only`** - Add to domain infra / adapter files to prevent client imports
+2. **Keep database code out of the client closure** - Use the architecture and client-bundle gates; do not add runtime marker packages
 3. **Type your functions** - Use inferred types from schema
 4. **Apply migrations before deployment** - Run `pnpm db:migrate` before deployment. In this repo, `SITE=mamamiya pnpm release:cf` runs migrations with `PRODUCTION_DATABASE_URL` before deploying Cloudflare workers.
 5. **Use transactions** - For multi-table operations

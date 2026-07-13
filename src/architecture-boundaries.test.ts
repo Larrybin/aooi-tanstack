@@ -11,7 +11,23 @@ const repoRoot = process.cwd();
 const srcRoot = path.resolve(repoRoot, 'src');
 
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx']);
-const DIRS_TO_SKIP = new Set(['.next', 'node_modules']);
+const RUNTIME_SOURCE_EXTENSIONS = new Set([
+  '.ts',
+  '.tsx',
+  '.mts',
+  '.cts',
+  '.js',
+  '.jsx',
+  '.mjs',
+  '.cjs',
+]);
+const PACKAGE_DEPENDENCY_FIELDS = [
+  'dependencies',
+  'devDependencies',
+  'optionalDependencies',
+  'peerDependencies',
+] as const;
+const DIRS_TO_SKIP = new Set(['node_modules']);
 const SITE_IDENTITY_SETTING_KEYS = [
   ['app', 'name'],
   ['app', 'url'],
@@ -28,7 +44,10 @@ type DirtyImportRule = {
   baseline: number;
 };
 
-async function collectSourceFiles(currentDir: string): Promise<string[]> {
+async function collectSourceFiles(
+  currentDir: string,
+  extensions = SOURCE_EXTENSIONS
+): Promise<string[]> {
   const entries = await readdir(currentDir, { withFileTypes: true });
   const files: string[] = [];
 
@@ -36,13 +55,16 @@ async function collectSourceFiles(currentDir: string): Promise<string[]> {
     if (entry.isDirectory()) {
       if (DIRS_TO_SKIP.has(entry.name)) continue;
       files.push(
-        ...(await collectSourceFiles(path.join(currentDir, entry.name)))
+        ...(await collectSourceFiles(
+          path.join(currentDir, entry.name),
+          extensions
+        ))
       );
       continue;
     }
 
     if (!entry.isFile()) continue;
-    if (!SOURCE_EXTENSIONS.has(path.extname(entry.name))) continue;
+    if (!extensions.has(path.extname(entry.name))) continue;
 
     files.push(path.join(currentDir, entry.name));
   }
@@ -107,20 +129,12 @@ const dirtyImportRules: DirtyImportRule[] = ARCHITECTURE_RULES.dirtyImports.map(
   }
 );
 
-const publicCompositionPathPatterns =
-  ARCHITECTURE_RULES.publicCompositionPathPatterns.map(
-    (pattern: string) => new RegExp(pattern)
-  );
 const domainForbiddenImportPatterns =
   ARCHITECTURE_RULES.domainForbiddenImports.map(
     (pattern: string) => new RegExp(pattern)
   );
 const applicationAllowedPlatformImportPatterns =
   ARCHITECTURE_RULES.applicationAllowedPlatformImports.map(
-    (pattern: string) => new RegExp(pattern)
-  );
-const appOnlyFacadeImportPatterns =
-  ARCHITECTURE_RULES.appOnlyFacadeImportPatterns.map(
     (pattern: string) => new RegExp(pattern)
   );
 const applicationPlatformImportExceptions =
@@ -144,23 +158,19 @@ const orchestrationPathPattern = new RegExp(
   ARCHITECTURE_RULES.orchestration.pathPattern
 );
 
-function isPublicCompositionFile(repoPath: string) {
-  return publicCompositionPathPatterns.some((pattern: RegExp) =>
-    pattern.test(repoPath)
-  );
-}
-
 function readImportSpecifiers(source: string) {
   const specifiers = new Set<string>();
   const importFromPattern =
     /^\s*(?:import|export)\s+(?:type\s+)?[\s\S]*?\s+from\s+['"]([^'"]+)['"]/gm;
   const dynamicImportPattern = /import\s*\(\s*['"]([^'"]+)['"]\s*\)/gm;
   const sideEffectImportPattern = /^\s*import\s+['"]([^'"]+)['"]/gm;
+  const requirePattern = /\brequire\s*\(\s*['"]([^'"]+)['"]\s*\)/gm;
 
   for (const pattern of [
     importFromPattern,
     dynamicImportPattern,
     sideEffectImportPattern,
+    requirePattern,
   ]) {
     for (const match of source.matchAll(pattern)) {
       const specifier = match[1]?.trim();
@@ -170,6 +180,54 @@ function readImportSpecifiers(source: string) {
 
   return [...specifiers];
 }
+
+function readPackageDependencyNames(packageJson: Record<string, unknown>) {
+  return PACKAGE_DEPENDENCY_FIELDS.flatMap((field) => {
+    const dependencies = packageJson[field];
+    if (
+      typeof dependencies !== 'object' ||
+      dependencies === null ||
+      Array.isArray(dependencies)
+    ) {
+      return [];
+    }
+    return Object.keys(dependencies);
+  });
+}
+
+test('architecture: runtime dependency guard covers active module formats and CommonJS imports', () => {
+  for (const extension of [
+    '.ts',
+    '.tsx',
+    '.mts',
+    '.cts',
+    '.js',
+    '.jsx',
+    '.mjs',
+    '.cjs',
+  ]) {
+    assert.equal(
+      RUNTIME_SOURCE_EXTENSIONS.has(extension),
+      true,
+      `runtime guard should scan ${extension}`
+    );
+  }
+
+  assert.deepEqual(
+    readImportSpecifiers(
+      "import 'server-only';\nconst nextRuntime = require('next/server');"
+    ).sort(),
+    ['next/server', 'server-only']
+  );
+
+  assert.deepEqual(
+    readPackageDependencyNames({
+      optionalDependencies: { next: 'latest' },
+      peerDependencies: { 'server-only': 'latest' },
+    }).sort(),
+    ['next', 'server-only']
+  );
+});
 
 function parseDomainApplicationPath(repoPath: string) {
   const match = repoPath.match(/^src\/domains\/([^/]+)\/application\/(.+)$/);
@@ -374,7 +432,7 @@ test('architecture: canonical base 只能在 canonical helper 内构造', async 
     ({ repoPath }) =>
       !isTestFile(repoPath) &&
       repoPath !== 'src/infra/url/canonical.ts' &&
-      /^src\/(?:app|surfaces)\//.test(repoPath)
+      /^src\/surfaces\//.test(repoPath)
   );
 
   for (const file of files) {
@@ -544,9 +602,9 @@ test('architecture: access-control domain/application 不包含 Web 拒绝行为
 
   for (const file of files) {
     assert.equal(
-      /next\/navigation|redirect\s*\(|notFound\s*\(/.test(file.content),
+      /redirect\s*\(|notFound\s*\(/.test(file.content),
       false,
-      `${file.repoPath} 不应包含 redirect/notFound/next/navigation`
+      `${file.repoPath} 不应包含 redirect/notFound`
     );
   }
 });
@@ -556,7 +614,7 @@ test('architecture: content domain 不拥有 composition/platform/runtime 职责
     /^src\/domains\/content\//.test(repoPath)
   );
   const forbiddenContentImportPattern =
-    /@\/(?:app|infra\/platform\/i18n|infra\/runtime|themes)(?:\/|['"])|next\/navigation|generateMetadata|Metadata\s+from\s+['"]next/;
+    /@\/(?:infra\/platform\/i18n|infra\/runtime|themes)(?:\/|['"])|generateMetadata/;
 
   for (const file of files) {
     assert.equal(
@@ -580,31 +638,6 @@ test('architecture: shared/schemas/api 只保存 HTTP wire contract', async () =
       false,
       `${file.repoPath} 不应依赖业务模块或 infra`
     );
-  }
-});
-
-test('architecture: Public Composition Layer 只导入只读 domain 入口', async () => {
-  const files = (await readSourceFiles()).filter(({ repoPath }) =>
-    isPublicCompositionFile(repoPath)
-  );
-
-  for (const file of files) {
-    for (const specifier of readImportSpecifiers(file.content)) {
-      assert.equal(
-        /^@\/infra\/adapters(?:\/|$)/.test(specifier),
-        false,
-        `${file.repoPath} 不应导入 infra/adapters`
-      );
-
-      const match = specifier.match(/^@\/domains\/[^/]+\/application\/(.+)$/);
-      if (!match) continue;
-
-      assert.equal(
-        queryViewAllowedSameDomainApplicationPathPattern.test(match[1]),
-        true,
-        `${file.repoPath} 只能导入受控只读 domain 入口: ${specifier}`
-      );
-    }
   }
 });
 
@@ -724,38 +757,7 @@ test('architecture: settings-store does not depend on process-local settings cac
   );
 });
 
-test('architecture: app-only facade 只有两个 runtime-deps 且仅限 app 导入', async () => {
-  const files = await readSourceFiles();
-  const runtimeFacadeFiles = files.filter(({ repoPath }) =>
-    /^src\/app\/.+\/runtime-deps\.ts$/.test(repoPath)
-  );
-
-  assert.deepEqual(
-    runtimeFacadeFiles.map((file) => file.repoPath).sort(),
-    [...ARCHITECTURE_RULES.appOnlyFacades].sort(),
-    'runtime-deps 长期边界只能是 account/access-control 两个 app-only facade'
-  );
-
-  for (const file of files) {
-    for (const specifier of readImportSpecifiers(file.content)) {
-      if (
-        !appOnlyFacadeImportPatterns.some((pattern: RegExp) =>
-          pattern.test(specifier)
-        )
-      ) {
-        continue;
-      }
-
-      assert.equal(
-        /^src\/app\//.test(file.repoPath),
-        true,
-        `${file.repoPath} 不应导入 app-only facade ${specifier}`
-      );
-    }
-  }
-});
-
-test('architecture: 只有 settings domain 和 admin settings 页面可以导入 settings-store / Configs', async () => {
+test('architecture: 只有 settings domain 可以导入 settings-store / Configs', async () => {
   const files = await readSourceFiles();
 
   for (const file of files) {
@@ -773,10 +775,7 @@ test('architecture: 只有 settings domain 和 admin settings 页面可以导入
       continue;
     }
 
-    const allowed =
-      /^src\/domains\/settings\//.test(file.repoPath) ||
-      file.repoPath ===
-        'src/app/[locale]/(admin)/admin/settings/[tab]/page.tsx';
+    const allowed = /^src\/domains\/settings\//.test(file.repoPath);
 
     assert.equal(
       allowed,
@@ -1049,6 +1048,60 @@ test('architecture: aggregation/orchestration 不能被外域 application 调用
   }
 });
 
+test('architecture: runtime 不重新引入 Next、OpenNext 或 server-only', async () => {
+  const packageJson = JSON.parse(
+    await readFile(path.resolve(repoRoot, 'package.json'), 'utf8')
+  );
+  const packageNames = new Set(readPackageDependencyNames(packageJson));
+
+  for (const packageName of packageNames) {
+    assert.equal(
+      packageName === 'next' ||
+        packageName === 'next-intl' ||
+        packageName === 'server-only' ||
+        packageName.startsWith('@opennextjs/'),
+      false,
+      `package.json 不应依赖 ${packageName}`
+    );
+  }
+
+  const runtimeFiles = (
+    await Promise.all(
+      ['apps/web/src', 'src', 'cloudflare'].map((root) =>
+        collectSourceFiles(
+          path.resolve(repoRoot, root),
+          RUNTIME_SOURCE_EXTENSIONS
+        )
+      )
+    )
+  ).flat();
+
+  for (const filePath of runtimeFiles) {
+    const repoPath = toRepoPath(filePath);
+    const content = await readFile(filePath, 'utf8');
+    if (isTestFile(repoPath)) continue;
+
+    for (const specifier of readImportSpecifiers(content)) {
+      assert.equal(
+        specifier === 'next' ||
+          specifier.startsWith('next/') ||
+          specifier === 'next-intl' ||
+          specifier.startsWith('next-intl/') ||
+          specifier === 'server-only' ||
+          specifier.startsWith('@opennextjs/'),
+        false,
+        `${repoPath} 不应导入 ${specifier}`
+      );
+    }
+
+    assert.equal(
+      content.includes('.open-next'),
+      false,
+      `${repoPath} 不应依赖 .open-next 构建产物`
+    );
+  }
+});
+
 test('architecture: 架构门禁配置保持单一事实源', async () => {
   const dependencyCruiserConfigPath = path.resolve(
     repoRoot,
@@ -1072,15 +1125,25 @@ test('architecture: 架构门禁配置保持单一事实源', async () => {
     ruleNames.includes('no-circular'),
     'dependency-cruiser.cjs 必须启用 no-circular'
   );
+  for (const ruleName of [
+    'no-runtime-to-scripts-or-tests',
+    'no-runtime-to-sites',
+    'no-prod-to-testing',
+  ]) {
+    const rule = dependencyCruiserConfig.forbidden.find(
+      (candidate: { name: string }) => candidate.name === ruleName
+    );
+    assert.ok(rule, `dependency-cruiser.cjs 缺少 ${ruleName}`);
+    assert.match(
+      rule.from.path,
+      /apps\/web\/src/,
+      `${ruleName} 必须覆盖 apps/web/src production runtime`
+    );
+  }
   assert.equal(
     ruleNames.includes('no-admin-app-to-domain-infra-or-adapters'),
     false,
-    'legacy admin app 入口目录门禁应随 src/app 删除'
-  );
-  assert.equal(
-    ARCHITECTURE_RULES.appOnlyFacades.length,
-    0,
-    'app-only facades 应随 src/app 删除'
+    'legacy admin app 入口目录门禁不应恢复'
   );
 });
 

@@ -1,6 +1,6 @@
 /**
  * Browser-side cookie utilities
- * Note: Next.js doesn't provide client-side cookie helpers.
+ * Browser cookie helpers kept intentionally small and dependency-free.
  * We use standard browser APIs for client components.
  */
 

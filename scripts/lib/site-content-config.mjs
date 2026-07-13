@@ -83,12 +83,12 @@ export function toContentSourceModuleSpecifier({ siteKey, versionId }) {
     );
   }
 
-  return `../.source/${siteKey}/${versionId}/index`;
+  return `../.source/${siteKey}/${versionId}/source.generated`;
 }
 
 export function parseContentSourceModuleSpecifier(source) {
   const match = source.match(
-    /export \* from '\.\.\/\.source\/([^/]+)\/([^/]+)\/index';/
+    /export \* from '\.\.\/\.source\/([^/]+)\/([^/]+)\/source\.generated';/
   );
   if (!match) {
     return null;

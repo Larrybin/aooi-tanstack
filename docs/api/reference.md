@@ -8,33 +8,25 @@ This document covers the API route patterns, common utilities, and available end
 
 Most API routes use the `withApi()` wrapper for consistent error handling.
 
-Contract exceptions exist (e.g. `/api/auth/[...all]` for Better Auth) where we intentionally bypass `withApi()` to preserve third-party semantics (redirects, cookies, status codes). These endpoints do not follow the `{code,message,data}` response envelope documented below.
+Contract exceptions exist (for example `/api/auth/*` for Better Auth) where we intentionally bypass `withApi()` to preserve third-party semantics (redirects, cookies, status codes). These endpoints do not follow the `{code,message,data}` response envelope documented below.
 
 ```typescript
-// src/app/api/example/route.ts
-import { createApiContext } from '@/app/api/_lib/context';
+// apps/web/src/routes/api/example.ts
+import { createFileRoute } from '@tanstack/react-router';
 
-import { jsonOk } from '@/shared/lib/api/response';
-import { withApi } from '@/shared/lib/api/route';
+import { postExample } from '../../server/handlers/example';
 
-export const POST = withApi(async (req: Request) => {
-  // 1. Create request context and authenticate
-  const api = createApiContext(req);
-  const user = await api.requireUser();
-
-  // 2. Parse & validate input
-  const body = await api.parseJson(MyRequestSchema);
-
-  // 3. Convert transport model to use-case input
-  const result = await runUseCase({
-    actorUserId: user.id,
-    ...mapHttpToUseCaseInput(body),
-  });
-
-  // 4. Return response
-  return jsonOk({ data: result });
+export const Route = createFileRoute('/api/example')({
+  server: {
+    handlers: {
+      POST: ({ request }) => postExample(request),
+    },
+  },
 });
 ```
+
+The assembled handler belongs in `apps/web/src/server/handlers/**`; reusable
+request parsing and use-case logic belongs in `src/server/api/**`.
 
 Route handlers are inbound adapters. They may parse HTTP bodies, enforce auth,
 convert transport models to use-case inputs, and wrap responses. Business
@@ -357,12 +349,12 @@ entrypoints. Use `createUseCaseLogger()` in server-side application,
 platform, or adapter code. Client-safe request-id formatting lives in
 `src/shared/lib/api/request-id.ts`.
 
-## Middleware
+## Router middleware
 
-The middleware (`src/middleware.ts`) handles:
+The Cloudflare router middleware (`cloudflare/workers/router-middleware.ts`) handles:
 
 1. **Request ID injection** - Adds `x-request-id` to all requests
-2. **Internationalization** - Routes through next-intl
+2. **Internationalization** - Resolves localized route forms
 3. **Light auth check** - Checks session cookie for protected routes
 
 Protected routes (`/admin`, `/settings`, `/activity`) require a session cookie. Full authentication is verified in the route handler.
@@ -380,11 +372,11 @@ For settings surfaces, see `docs/guides/settings.md`.
 ## Related Files
 
 - `src/shared/lib/api/route.ts` - `withApi()` wrapper
-- `src/app/api/_lib/context.ts` - API request context
-- `src/app/access-control/api-guard.ts` - API auth and permission adapters
+- `apps/web/src/server/api-context.ts` - API request context composition
+- `src/domains/access-control/application/**` - Permission policy
 - `src/shared/lib/api/parse.ts` - Request parsing
 - `src/shared/lib/api/response.ts` - Response helpers
 - `src/shared/lib/api/errors.ts` - Error classes
 - `src/shared/lib/api/request-id.ts` - Client-safe request-id formatting
 - `src/infra/platform/logging/request-logger.server.ts` - Server request logger
-- `src/middleware.ts` - Request middleware
+- `cloudflare/workers/router-middleware.ts` - Router middleware

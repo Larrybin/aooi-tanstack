@@ -1,21 +1,10 @@
-// .source folder will be generated when you run `next dev`
 import { createElement } from 'react';
-import { docs, pages, posts } from '@/content-source';
+import { create, docs } from '@/content-source';
 import type { I18nConfig } from 'fumadocs-core/i18n';
 import { loader, type Source, type SourceConfig } from 'fumadocs-core/source';
 import { icons } from 'lucide-react';
 
 export const docsI18n: I18nConfig = {
-  defaultLanguage: 'en',
-  languages: ['en', 'zh'],
-};
-
-export const pagesI18n: I18nConfig = {
-  defaultLanguage: 'en',
-  languages: ['en', 'zh', 'zh-TW', 'ja'],
-};
-
-export const postsI18n: I18nConfig = {
   defaultLanguage: 'en',
   languages: ['en', 'zh'],
 };
@@ -48,26 +37,13 @@ export const toLoaderSource = <Config extends SourceConfig>(
   return { files } as Source<Config>;
 };
 
-// Docs source
+export const docsLoaderSource = toLoaderSource(
+  await create.sourceAsync(docs.doc, docs.meta)
+);
+
 export const docsSource = loader({
   baseUrl: '/docs',
-  source: toLoaderSource(docs.toFumadocsSource()),
+  source: docsLoaderSource,
   i18n: docsI18n,
-  icon: iconHelper,
-});
-
-// Pages source (using root path)
-export const pagesSource = loader({
-  baseUrl: '/',
-  source: toLoaderSource(pages.toFumadocsSource()),
-  i18n: pagesI18n,
-  icon: iconHelper,
-});
-
-// Posts source
-export const postsSource = loader({
-  baseUrl: '/blog',
-  source: toLoaderSource(posts.toFumadocsSource()),
-  i18n: postsI18n,
   icon: iconHelper,
 });

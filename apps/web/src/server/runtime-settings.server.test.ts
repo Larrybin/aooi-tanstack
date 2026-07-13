@@ -7,17 +7,17 @@ import {
 } from '@/domains/settings/registry';
 import type { ServerRuntimeEnv } from '@/infra/runtime/env.server';
 
-import { readTanStackAiRuntimeSettings } from '../../apps/web/src/server/ai-runtime';
+import { readTanStackAiRuntimeSettings } from './ai-runtime';
 import {
   readTanStackSettingsCached,
   type ReadTanStackSettingsCachedDeps,
-} from '../../apps/web/src/server/billing-runtime';
+} from './billing-runtime';
 import {
   createRuntimeRandomInt,
   readTanStackEmailRuntimeSettings,
   readTanStackEmailRuntimeSettingsFresh,
-} from '../../apps/web/src/server/email-runtime';
-import { readTanStackPublicUiConfigCached } from '../../apps/web/src/server/public-ui-config-runtime';
+} from './email-runtime';
+import { readTanStackPublicUiConfigCached } from './public-ui-config-runtime';
 
 const TEST_RUNTIME_ENV: ServerRuntimeEnv = {
   databaseProvider: 'postgres',
