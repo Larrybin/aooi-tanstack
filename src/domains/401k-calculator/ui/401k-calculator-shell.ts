@@ -26,9 +26,9 @@ export function buildCalculatorHeaderFooter(
     },
     nav: {
       items: [
-        { title: copy.formula, url: '#formula', icon: 'Sigma' },
-        { title: copy.howTo, url: '#guide', icon: 'ListChecks' },
-        { title: copy.faq, url: '#faq', icon: 'CircleHelp' },
+        { title: copy.formula, url: '/#formula', icon: 'Sigma' },
+        { title: copy.howTo, url: '/#guide', icon: 'ListChecks' },
+        { title: copy.faq, url: '/#faq', icon: 'CircleHelp' },
       ],
     },
     buttons: [],
