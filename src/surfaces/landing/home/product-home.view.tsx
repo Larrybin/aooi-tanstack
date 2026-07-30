@@ -1,3 +1,4 @@
+import { CalculatorHome } from '@/domains/401k-calculator/ui/401k-calculator-home';
 import { BackgroundRemoverHome } from '@/domains/background-remover/ui/background-remover-home';
 import { Mp4CompressorHome } from '@/domains/mp4-compressor/ui/mp4-compressor-home';
 import { RemoverHome } from '@/domains/remover/ui/remover-home';
@@ -13,6 +14,8 @@ export function ProductHomeView({
   locale: string;
 }) {
   switch (productHome.kind) {
+    case '401k-calculator':
+      return <CalculatorHome copy={productHome.copy} locale={locale} />;
     case 'ai-remover':
       return (
         <RemoverHome

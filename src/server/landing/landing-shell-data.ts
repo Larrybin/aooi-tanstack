@@ -1,23 +1,10 @@
-import { resolveBackgroundRemoverHomeCopy } from '@/domains/background-remover/ui/background-remover-home-copy';
-import { buildBackgroundRemoverHeaderFooter } from '@/domains/background-remover/ui/background-remover-shell';
 import { getLocalPublicContentDocument } from '@/domains/content/application/public-content-manifest';
-import { resolveMp4CompressorHomeCopy } from '@/domains/mp4-compressor/ui/mp4-compressor-home-copy';
-import { buildMp4CompressorHeaderFooter } from '@/domains/mp4-compressor/ui/mp4-compressor-shell';
-import { resolveRemoverHomeCopy } from '@/domains/remover/ui/remover-home-copy';
-import { buildRemoverHeaderFooter } from '@/domains/remover/ui/remover-shell';
 import type {
   AuthUiRuntimeSettings,
   BillingRuntimeSettings,
   PublicUiConfig,
 } from '@/domains/settings/application/settings-runtime.contracts';
-import { resolveTextToSpeechGeneratorHomeCopy } from '@/domains/text-to-speech-generator/ui/text-to-speech-home-copy';
-import { buildTextToSpeechGeneratorHeaderFooter } from '@/domains/text-to-speech-generator/ui/text-to-speech-shell';
-import {
-  site,
-  siteHomeContent,
-  siteLocalizedPricing,
-  sitePricing,
-} from '@/site';
+import { site, siteLocalizedPricing, sitePricing } from '@/site';
 import type {
   SerializablePublicUiConfig,
   SerializablePublicUiNavItem,
@@ -40,6 +27,11 @@ import type {
   Header as HeaderType,
 } from '@/shared/types/blocks/landing';
 import type { SitePricing } from '@/shared/types/blocks/pricing';
+
+import {
+  buildProductHomeHeaderFooter,
+  resolveProductHomeRouteData,
+} from './product-home-route-data';
 
 type HeaderFooter = {
   header: HeaderType;
@@ -80,41 +72,8 @@ export function resolveLandingShellData(locale: string): SlugShellData {
 export function resolveProductHeaderFooter(
   locale: string
 ): HeaderFooter | null {
-  if (!siteHomeContent) {
-    return null;
-  }
-
-  const brand = {
-    appName: site.brand.appName,
-    appLogo: site.brand.logo,
-  };
-
-  const siteKey = site.key as string;
-
-  switch (siteKey) {
-    case 'ai-remover':
-      return buildRemoverHeaderFooter(
-        brand,
-        resolveRemoverHomeCopy(siteHomeContent, locale).shell
-      );
-    case 'background-remover':
-      return buildBackgroundRemoverHeaderFooter(
-        brand,
-        resolveBackgroundRemoverHomeCopy(siteHomeContent, locale).shell
-      );
-    case 'text-to-speech-generator':
-      return buildTextToSpeechGeneratorHeaderFooter(
-        brand,
-        resolveTextToSpeechGeneratorHomeCopy(siteHomeContent, locale).shell
-      );
-    case 'mp4-compressor':
-      return buildMp4CompressorHeaderFooter(
-        brand,
-        resolveMp4CompressorHomeCopy(siteHomeContent, locale).shell
-      );
-    default:
-      return null;
-  }
+  const productHome = resolveProductHomeRouteData(locale);
+  return productHome ? buildProductHomeHeaderFooter(productHome) : null;
 }
 
 export function buildLandingShellData({

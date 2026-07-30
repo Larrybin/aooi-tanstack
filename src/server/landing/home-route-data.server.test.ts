@@ -29,6 +29,17 @@ test('resolveHomeRouteData returns default home data', async () => {
       data.head.meta?.find((meta) => 'title' in meta)?.title,
       data.productHome.copy.metadata.title
     );
+    if (site.key === '401k-calculator') {
+      assert.equal(data.head.scripts?.length, 3);
+      assert.equal(
+        data.head.scripts?.every(
+          (script) => script.type === 'application/ld+json'
+        ),
+        true
+      );
+    } else {
+      assert.equal(data.head.scripts, undefined);
+    }
   } else {
     assert.equal(data.variant, 'generic');
     assert.match(data.page.hero?.title ?? '', /Launch the first version/);
@@ -40,7 +51,8 @@ test('resolveHomeRouteData returns approved localized home data', async () => {
 
   if (
     site.key === 'text-to-speech-generator' ||
-    site.key === 'mp4-compressor'
+    site.key === 'mp4-compressor' ||
+    site.key === '401k-calculator'
   ) {
     assert.equal(data, null);
     return;
@@ -80,6 +92,7 @@ test('resolveHomeRouteData rejects locales without home messages instead of fall
 
 function isProductSite() {
   return [
+    '401k-calculator',
     'ai-remover',
     'background-remover',
     'text-to-speech-generator',

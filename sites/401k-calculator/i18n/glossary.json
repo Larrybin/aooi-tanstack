@@ -1,0 +1,12 @@
+{
+  "preserve": ["401k Calculator", "401(k)", "401k"],
+  "terms": {},
+  "forbidden": {
+    "allLocales": [
+      "guaranteed returns",
+      "financial advice",
+      "tax advice",
+      "guaranteed retirement income"
+    ]
+  }
+}

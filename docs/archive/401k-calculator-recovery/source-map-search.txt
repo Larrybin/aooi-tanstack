@@ -1,0 +1,11 @@
+Searched public HTML, CSS, and JavaScript for:
+- sourceMappingURL
+- sourcesContent
+- webpack://
+- vite://
+- .astro
+
+Result:
+- No source-map reference or original-framework source evidence was found.
+- /js/app.js.map and /css/style.css.map returned the same HTML fallback as /,
+  not source-map JSON.

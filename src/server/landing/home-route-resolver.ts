@@ -33,6 +33,7 @@ import { buildLandingShellData } from './landing-shell-data';
 import {
   buildProductHomeHeaderFooter,
   getProductHomeMetadata,
+  getProductHomeStructuredData,
   isProductHomeSite,
   resolveProductHomeRouteData,
 } from './product-home-route-data';
@@ -89,6 +90,15 @@ export async function resolveHomeRouteData({
     const metadata = getProductHomeMetadata(productHome);
     const canonical = buildCanonicalUrl('/', locale);
 
+    const head = buildSeoHead({
+      title: metadata.title,
+      description: metadata.description,
+      canonical,
+      alternates: buildLanguageAlternates('/'),
+      locale,
+      siteName: site.brand.appName,
+    });
+
     return JSON.parse(
       JSON.stringify({
         locale,
@@ -100,14 +110,10 @@ export async function resolveHomeRouteData({
           authSettings,
           billingSettings,
         }),
-        head: buildSeoHead({
-          title: metadata.title,
-          description: metadata.description,
-          canonical,
-          alternates: buildLanguageAlternates('/'),
-          locale,
-          siteName: site.brand.appName,
-        }),
+        head: {
+          ...head,
+          scripts: getProductHomeStructuredData(productHome, canonical),
+        },
         variant: 'product',
         productHome,
       })

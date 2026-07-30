@@ -1,3 +1,4 @@
+import type { CalculatorHomeCopy } from '@/domains/401k-calculator/ui/401k-calculator-home-copy';
 import type { BackgroundRemoverHomeCopy } from '@/domains/background-remover/ui/background-remover-home-copy';
 import type { Mp4CompressorHomeCopy } from '@/domains/mp4-compressor/ui/mp4-compressor-home-copy';
 import type { RemoverHomeCopy } from '@/domains/remover/ui/remover-home-copy';
@@ -96,6 +97,10 @@ export type HomePageData = {
 };
 
 export type ProductHomeRouteData =
+  | {
+      kind: '401k-calculator';
+      copy: CalculatorHomeCopy;
+    }
   | {
       kind: 'ai-remover';
       copy: RemoverHomeCopy;

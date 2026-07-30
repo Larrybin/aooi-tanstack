@@ -1,0 +1,24 @@
+{
+  "fullyRecoveredPublicFiles": [
+    "/index.html",
+    "/css/style.css",
+    "/js/app.js",
+    "/robots.txt",
+    "/sitemap.xml"
+  ],
+  "htmlFallbackPathsConfirmed": [
+    "/privacy",
+    "/privacy/",
+    "/terms",
+    "/terms/",
+    "/favicon.ico",
+    "/manifest.json",
+    "/js/app.js.map",
+    "/css/style.css.map"
+  ],
+  "externalAssets": [],
+  "images": [],
+  "fonts": [],
+  "svgFiles": [],
+  "icons": []
+}

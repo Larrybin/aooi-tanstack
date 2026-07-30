@@ -1,0 +1,27 @@
+{
+  "key": "401k-calculator",
+  "domain": "401k-calculator.net",
+  "brand": {
+    "appName": "401k Calculator",
+    "appUrl": "https://401k-calculator.net",
+    "supportEmail": "support@401k-calculator.net",
+    "logo": "/401k-calculator-logo.svg",
+    "favicon": "/401k-calculator-logo.svg",
+    "previewImage": "/401k-calculator-logo.svg"
+  },
+  "capabilities": {
+    "auth": false,
+    "payment": "none",
+    "ai": false,
+    "docs": false,
+    "blog": false
+  },
+  "i18n": {
+    "defaultLocale": "en",
+    "supportedLocales": ["en"],
+    "localePrefix": "as-needed",
+    "localeDetection": false,
+    "strictPublishing": true
+  },
+  "configVersion": 1
+}

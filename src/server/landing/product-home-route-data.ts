@@ -1,3 +1,6 @@
+import { resolveCalculatorHomeCopy } from '@/domains/401k-calculator/ui/401k-calculator-home-copy';
+import { buildCalculatorStructuredData } from '@/domains/401k-calculator/ui/401k-calculator-seo';
+import { buildCalculatorHeaderFooter } from '@/domains/401k-calculator/ui/401k-calculator-shell';
 import { resolveBackgroundRemoverHomeCopy } from '@/domains/background-remover/ui/background-remover-home-copy';
 import { buildBackgroundRemoverHeaderFooter } from '@/domains/background-remover/ui/background-remover-shell';
 import { resolveMp4CompressorHomeCopy } from '@/domains/mp4-compressor/ui/mp4-compressor-home-copy';
@@ -30,6 +33,11 @@ export function resolveProductHomeRouteData(
   }
 
   switch (getSiteKey()) {
+    case '401k-calculator':
+      return {
+        kind: '401k-calculator',
+        copy: resolveCalculatorHomeCopy(siteHomeContent, locale),
+      };
     case 'ai-remover':
       return {
         kind: 'ai-remover',
@@ -65,6 +73,8 @@ export function buildProductHomeHeaderFooter(
   };
 
   switch (productHome.kind) {
+    case '401k-calculator':
+      return buildCalculatorHeaderFooter(brand, productHome.copy.shell);
     case 'ai-remover':
       return buildRemoverHeaderFooter(brand, productHome.copy.shell);
     case 'background-remover':
@@ -83,6 +93,18 @@ export function getProductHomeMetadata(productHome: ProductHomeRouteData) {
   return productHome.copy.metadata;
 }
 
+export function getProductHomeStructuredData(
+  productHome: ProductHomeRouteData,
+  canonical: string
+) {
+  switch (productHome.kind) {
+    case '401k-calculator':
+      return buildCalculatorStructuredData(productHome.copy, canonical);
+    default:
+      return undefined;
+  }
+}
+
 function hasStrictHomeContent(locale: string) {
   const content = siteHomeContent as SiteHomeContent | null;
   return Boolean(content?.[locale]);
@@ -90,6 +112,7 @@ function hasStrictHomeContent(locale: string) {
 
 export function isProductHomeSite() {
   switch (getSiteKey()) {
+    case '401k-calculator':
     case 'ai-remover':
     case 'background-remover':
     case 'text-to-speech-generator':

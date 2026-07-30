@@ -1,0 +1,31 @@
+{
+  "configVersion": 1,
+  "bindingRequirements": {
+    "bindings": {
+      "hyperdrive": false,
+      "workersAi": false
+    },
+    "secrets": {
+      "authSharedSecret": false,
+      "googleOauth": false,
+      "githubOauth": false,
+      "removerCleanup": false,
+      "turnstile": false
+    },
+    "vars": {
+      "storagePublicBaseUrl": false
+    }
+  },
+  "workers": {
+    "router": "aooi-401k-calculator-router",
+    "state": "aooi-401k-calculator-state",
+    "public-web": "aooi-401k-calculator-public-web"
+  },
+  "resources": {
+    "appStorageBucket": "aooi-401k-calculator-storage",
+    "hyperdriveId": "00000000000000000000000000000006"
+  },
+  "state": {
+    "schemaVersion": 1
+  }
+}
