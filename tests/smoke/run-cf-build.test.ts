@@ -82,6 +82,7 @@ test('cf:build:no-db covers the explicit deployable site list', () => {
   assert.deepEqual(NO_DB_CLOUDFLARE_BUILD_SITES, [
     'dev-local',
     'mamamiya',
+    '401k-calculator',
     'ai-remover',
     'background-remover',
     'text-to-speech-generator',

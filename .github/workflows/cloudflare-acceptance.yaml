@@ -154,7 +154,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        site: [mamamiya, ai-remover, background-remover]
+        site: [mamamiya, 401k-calculator, ai-remover, background-remover]
     env:
       SITE: ${{ matrix.site }}
       DEPLOY_TARGET: cloudflare
@@ -198,6 +198,10 @@ jobs:
 
       - name: Run no-DB Cloudflare build gate
         run: pnpm cf:build:no-db --site=${{ matrix.site }}
+
+      - name: Run 401k bundle budget
+        if: ${{ matrix.site == '401k-calculator' }}
+        run: pnpm test -- tests/smoke/401k-calculator-bundle-budget.test.ts
 
   contract-ai-remover:
     name: contract ai-remover

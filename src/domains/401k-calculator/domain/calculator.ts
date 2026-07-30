@@ -166,12 +166,16 @@ export function calculateProjection(
     });
   }
 
+  const investmentGrowth = Math.max(
+    0,
+    balance - startingBalance - userContributions - employerMatchTotal
+  );
+
   return {
     projectedBalance: balance,
     userContributions,
     employerMatchTotal,
-    investmentGrowth:
-      balance - startingBalance - userContributions - employerMatchTotal,
+    investmentGrowth,
     monthlyRetirementIncome: (balance * 0.04) / 12,
     rows,
   };

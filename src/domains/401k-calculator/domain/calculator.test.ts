@@ -76,6 +76,23 @@ test('one year before retirement produces one annual row', () => {
   assert.equal(result.rows[0]?.age, 67);
 });
 
+test('zero annual return normalizes floating-point growth to zero', () => {
+  const validation = validateCalculatorDraft(
+    withDraft({
+      currentAge: '35',
+      retirementAge: '45',
+      currentBalance: '0',
+      annualReturnPercent: '0',
+    })
+  );
+  assert.equal(validation.ok, true);
+  if (!validation.ok) return;
+
+  const result = calculateProjection(validation.values);
+
+  assert.equal(result.investmentGrowth, 0);
+});
+
 const requiredCases: Array<[keyof CalculatorDraft, string]> = [
   ['currentAge', 'Current age is required.'],
   ['retirementAge', 'Retirement age is required.'],
