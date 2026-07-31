@@ -1,0 +1,27 @@
+{
+  "key": "random-group-generator",
+  "domain": "randomgroupgenerator.org",
+  "brand": {
+    "appName": "Random Group Generator",
+    "appUrl": "https://randomgroupgenerator.org",
+    "supportEmail": "support@randomgroupgenerator.org",
+    "logo": "/random-group-generator-logo.svg",
+    "favicon": "/random-group-generator-logo.svg",
+    "previewImage": "/random-group-generator-logo.svg"
+  },
+  "capabilities": {
+    "auth": false,
+    "payment": "none",
+    "ai": false,
+    "docs": false,
+    "blog": false
+  },
+  "i18n": {
+    "defaultLocale": "en",
+    "supportedLocales": ["en"],
+    "localePrefix": "as-needed",
+    "localeDetection": false,
+    "strictPublishing": true
+  },
+  "configVersion": 1
+}
