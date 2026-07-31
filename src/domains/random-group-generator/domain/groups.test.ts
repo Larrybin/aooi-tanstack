@@ -45,7 +45,7 @@ test('group-count mode never creates empty groups', () => {
   assert.deepEqual(groups, [['A'], ['B']]);
 });
 
-test('group-size mode creates as many groups as needed', () => {
+test('group-size mode keeps each full group at the requested size', () => {
   const groups = splitNames({
     names: ['A', 'B', 'C', 'D', 'E'],
     mode: 'size',
@@ -53,10 +53,10 @@ test('group-size mode creates as many groups as needed', () => {
     random: keepOrder,
   });
 
-  assert.deepEqual(groups, [['A', 'D'], ['B', 'E'], ['C']]);
+  assert.deepEqual(groups, [['A', 'B'], ['C', 'D'], ['E']]);
 });
 
-test('group-size mode balances a small final group across the result', () => {
+test('group-size mode preserves the smaller final group from the source tool', () => {
   const groups = splitNames({
     names: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
     mode: 'size',
@@ -65,9 +65,9 @@ test('group-size mode balances a small final group across the result', () => {
   });
 
   assert.deepEqual(groups, [
-    ['A', 'D', 'G', 'J'],
-    ['B', 'E', 'H'],
-    ['C', 'F', 'I'],
+    ['A', 'B', 'C', 'D'],
+    ['E', 'F', 'G', 'H'],
+    ['I', 'J'],
   ]);
 });
 

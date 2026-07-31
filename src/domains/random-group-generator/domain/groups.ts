@@ -26,10 +26,16 @@ export function splitNames({
 
   const normalizedCount = clampCount(count);
   const shuffled = shuffle(names, random);
-  const groupTotal =
-    mode === 'groups'
-      ? Math.min(normalizedCount, shuffled.length)
-      : Math.ceil(shuffled.length / normalizedCount);
+
+  if (mode === 'size') {
+    const groups: string[][] = [];
+    for (let index = 0; index < shuffled.length; index += normalizedCount) {
+      groups.push(shuffled.slice(index, index + normalizedCount));
+    }
+    return groups;
+  }
+
+  const groupTotal = Math.min(normalizedCount, shuffled.length);
   const groups = Array.from({ length: groupTotal }, (): string[] => []);
 
   shuffled.forEach((name, index) => {

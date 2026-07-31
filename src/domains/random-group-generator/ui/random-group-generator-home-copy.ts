@@ -29,6 +29,10 @@ export type RandomGroupGeneratorHomeCopy = {
     namesLabel: string;
     namesPlaceholder: string;
     namesReady: string;
+    nameSingular: string;
+    namePlural: string;
+    groupSingular: string;
+    groupPlural: string;
     sampleAction: string;
     sampleNames: readonly string[];
     splitTitle: string;

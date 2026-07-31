@@ -9,6 +9,11 @@ import {
   type SplitMode,
 } from '../domain/groups';
 import type { RandomGroupGeneratorHomeCopy } from './random-group-generator-home-copy';
+import {
+  buildNamesReadyText,
+  buildResultStatus,
+  buildSplitSummary,
+} from './random-group-generator-workbench-copy';
 
 type WorkbenchCopy = RandomGroupGeneratorHomeCopy['workbench'];
 
@@ -52,9 +57,7 @@ export function RandomGroupGeneratorWorkbench({
 
     setGroups(nextGroups);
     setStatus(
-      `${copy.resultStatus
-        .replace('{names}', String(nextNames.length))
-        .replace('{groups}', String(nextGroups.length))} ${balance}`
+      `${buildResultStatus(nextNames.length, nextGroups.length, copy)} ${balance}`
     );
   }
 
@@ -145,7 +148,7 @@ export function RandomGroupGeneratorWorkbench({
           />
           <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm">
             <span className="text-[#5B6A74]" aria-live="polite">
-              {copy.namesReady.replace('{count}', String(names.length))}
+              {buildNamesReadyText(names.length, copy)}
             </span>
             <button
               type="button"
@@ -300,30 +303,6 @@ export function RandomGroupGeneratorWorkbench({
       </div>
     </section>
   );
-}
-
-function buildSplitSummary(
-  nameCount: number,
-  mode: SplitMode,
-  count: number,
-  copy: WorkbenchCopy
-) {
-  if (nameCount === 0) return copy.emptySummary;
-
-  if (mode === 'groups') {
-    const groupTotal = Math.min(count, nameCount);
-    const extra = nameCount % groupTotal;
-    return copy.groupCountSummary
-      .replace('{names}', String(nameCount))
-      .replace('{groups}', String(groupTotal))
-      .replace('{extra}', String(extra));
-  }
-
-  const groupTotal = Math.ceil(nameCount / count);
-  return copy.groupSizeSummary
-    .replace('{names}', String(nameCount))
-    .replace('{groups}', String(groupTotal))
-    .replace('{size}', String(count));
 }
 
 function PanelHeading({
