@@ -6,41 +6,27 @@ import { fileURLToPath } from 'node:url';
 
 import { loadRootDotenv } from '../src/config/load-dotenv-core.mjs';
 import siteEnvModule from '../src/config/site-env.cjs';
-import {
-  getActiveSplitWorkerSlots,
-  readSiteDeploySettings,
-} from './lib/site-deploy-settings.mjs';
 
 const args = process.argv.slice(2);
 const TEST_SITE_KEY = 'dev-local';
 const TEST_AUTH_SHARED_SECRET = 'dev-local-auth-secret-dev-local-auth-secret';
 const TEST_STORAGE_PUBLIC_BASE_URL = 'http://127.0.0.1:9787/assets/';
-const ACTIVE_SPLIT_WORKERS_ENV = 'CLOUDFLARE_ACTIVE_SPLIT_WORKERS';
 const { applySiteLocalEnvOverlay } = siteEnvModule;
 const SITE_REQUIRED_COMMANDS = [
   'pnpm exec vite build',
   'pnpm exec vite preview',
   'pnpm exec @better-auth/cli generate',
-  'node --import tsx scripts/check-cloudflare-config.mjs',
-  'node --import tsx scripts/site-gate.mjs',
+  'pnpm exec tsx scripts/cloudflare.ts',
   'node --import tsx scripts/smoke.mjs',
-  'node --import tsx scripts/run-cf-app-deploy.mjs',
-  'node --import tsx scripts/run-cf-state-deploy.mjs',
 ];
 const CONTENT_GENERATION_REQUIRED_COMMANDS = [
   'pnpm exec tsc',
   'pnpm exec vite',
   'node scripts/run-tests.mjs',
   'pnpm exec @better-auth/cli generate',
-  'node --import tsx scripts/run-cf-build.mjs',
   'node --import tsx scripts/smoke.mjs',
-  'node --import tsx scripts/run-cf-app-deploy.mjs',
-  'node --import tsx scripts/run-cf-state-deploy.mjs',
 ];
-const BUILD_LOCK_REQUIRED_COMMANDS = [
-  'pnpm exec vite build',
-  'node --import tsx scripts/run-cf-build.mjs',
-];
+const BUILD_LOCK_REQUIRED_COMMANDS = ['pnpm exec vite build'];
 
 const generateScript = resolve(
   process.cwd(),
@@ -127,18 +113,6 @@ async function acquireBuildLock({ rootDir = process.cwd() } = {}) {
   throw new Error('timed out waiting for the site build lock');
 }
 
-function applyActiveSplitWorkerEnv({ env, rootDir, siteKey }) {
-  try {
-    const deploySettings = readSiteDeploySettings({ rootDir, siteKey });
-    env[ACTIVE_SPLIT_WORKERS_ENV] =
-      getActiveSplitWorkerSlots(deploySettings).join(',');
-  } catch {
-    // Site generation and deploy contract checks own the actionable error.
-  }
-
-  return env;
-}
-
 export function buildSiteEnv(
   commandParts,
   env = process.env,
@@ -148,7 +122,6 @@ export function buildSiteEnv(
   const siteKey = explicitSiteKey;
   if (siteKey) {
     env.SITE = siteKey;
-    applyActiveSplitWorkerEnv({ env, rootDir, siteKey });
     applySiteLocalEnvOverlay({
       env,
       originalEnv,
@@ -186,7 +159,6 @@ export function buildSiteEnv(
     ...env,
     SITE: TEST_SITE_KEY,
   };
-  applyActiveSplitWorkerEnv({ env: nextEnv, rootDir, siteKey: TEST_SITE_KEY });
 
   applySiteLocalEnvOverlay({
     env: nextEnv,

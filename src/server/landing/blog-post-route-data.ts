@@ -16,9 +16,8 @@ export const loadBlogPostRouteData = createServerFn({ method: 'GET' })
     };
   })
   .handler(async ({ data }) => {
-    const { resolveBlogPostRouteData } = await import(
-      './blog-post-route-resolver'
-    );
+    const { resolveBlogPostRouteData } =
+      await import('./blog-post-route-resolver');
 
     return resolveBlogPostRouteData(data);
   });

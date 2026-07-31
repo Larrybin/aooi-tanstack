@@ -16,5 +16,8 @@ test('SidebarUser sign-out redirects without triggering a full-page reload first
 
   assert.ok(signOutBlock, 'handleSignOut should stay explicit');
   assert.doesNotMatch(signOutBlock, /router\.refresh\(\)/);
-  assert.match(signOutBlock, /router\.replace\(user\.signout_callback \|\| '\/sign-in'\)/);
+  assert.match(
+    signOutBlock,
+    /router\.replace\(user\.signout_callback \|\| '\/sign-in'\)/
+  );
 });

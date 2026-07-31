@@ -1,4 +1,3 @@
-
 import { formatPostDate } from '@/domains/content/domain/post-date';
 import { PostStatus, type PostType } from '@/domains/content/domain/post-types';
 import { generateTOC } from '@/domains/content/domain/toc';

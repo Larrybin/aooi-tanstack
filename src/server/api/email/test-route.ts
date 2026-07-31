@@ -1,4 +1,5 @@
 import type { EmailService } from '@/infra/adapters/email/service-builder';
+import type { z } from 'zod';
 
 import { PERMISSIONS } from '@/shared/constants/rbac-permissions';
 import type { buildVerificationCodeEmailPayload as buildVerificationCodeEmailPayloadFn } from '@/shared/content/email/verification-code';
@@ -10,7 +11,6 @@ import {
 import { jsonOk } from '@/shared/lib/api/response';
 import { withApi } from '@/shared/lib/api/route';
 import { EmailSendBodySchema } from '@/shared/schemas/api/email/send-email';
-import type { z } from 'zod';
 
 const MAX_EMAIL_RECIPIENTS = 10;
 

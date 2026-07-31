@@ -1,4 +1,3 @@
-
 import type { BillingGrantCredit } from '@/domains/billing/domain/credit';
 import type { PaymentType } from '@/domains/billing/domain/payment';
 import type { NewEntitlementGrant } from '@/domains/entitlements/infra/grant';

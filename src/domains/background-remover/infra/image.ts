@@ -1,4 +1,3 @@
-
 import type { ProductOwner } from '@/domains/product-access/domain/ownership';
 import { db } from '@/infra/adapters/db';
 import { and, eq, inArray, isNull, lte, or } from 'drizzle-orm';

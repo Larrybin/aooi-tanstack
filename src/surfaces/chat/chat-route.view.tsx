@@ -2,9 +2,10 @@ import { ChatGenerator } from '@/domains/chat/ui/generator';
 import { ChatHistory } from '@/domains/chat/ui/history';
 import { ChatRouteShell } from '@/domains/chat/ui/route-shell';
 import { ChatThreadShell } from '@/domains/chat/ui/thread-shell';
+import type { UIMessage } from 'ai';
+
 import type { AuthSessionUserSnapshot } from '@/shared/types/auth-session';
 import type { Chat } from '@/shared/types/chat';
-import type { UIMessage } from 'ai';
 
 export function ChatIndexRouteView({
   initialUser,

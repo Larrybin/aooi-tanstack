@@ -1,8 +1,8 @@
+import type { AIService } from '@/domains/ai/application/service-builder';
 import type {
   AiProviderBindings,
   AiRuntimeSettings,
 } from '@/domains/settings/application/settings-runtime.contracts';
-import type { AIService } from '@/domains/ai/application/service-builder';
 
 import { AITaskStatus } from '@/extensions/ai';
 import {

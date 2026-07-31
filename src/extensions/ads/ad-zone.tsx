@@ -1,4 +1,3 @@
-
 import { getAdsRuntimeCached } from '@/infra/adapters/ads/service';
 
 import { cn } from '@/shared/lib/utils';

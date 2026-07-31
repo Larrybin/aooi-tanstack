@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import {
   cp,
+  mkdir,
   mkdtemp,
   readdir,
   readFile,
@@ -12,6 +13,9 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { promisify } from 'node:util';
+
+import { readCurrentSiteConfig } from '../scripts/lib/site-config.mjs';
+import { validateSiteContentCompleteness } from '../scripts/lib/site-content-config.mjs';
 
 const execFileAsync = promisify(execFile);
 const rootDir = process.cwd();
@@ -223,52 +227,30 @@ test('@/content-source: blog-enabled site requires at least one post', async () 
 });
 
 test('@/content-source: disabled docs/blog site may omit docs and posts directories', async () => {
-  const backupDir = await mkdtemp(path.join(os.tmpdir(), 'content-backup-'));
-  const siteConfigPath = path.resolve(
-    rootDir,
-    'sites/dev-local/site.config.json'
-  );
-  const docsDir = path.resolve(rootDir, 'sites/dev-local/content/docs');
-  const postsDir = path.resolve(rootDir, 'sites/dev-local/content/posts');
-  const originalSiteConfig = await readFile(siteConfigPath, 'utf8');
-
-  try {
-    await cp(docsDir, path.join(backupDir, 'docs'), { recursive: true });
-    await cp(postsDir, path.join(backupDir, 'posts'), { recursive: true });
-
-    const siteConfig = JSON.parse(originalSiteConfig);
-    await writeFile(
-      siteConfigPath,
-      JSON.stringify(
-        {
-          ...siteConfig,
-          capabilities: {
-            ...siteConfig.capabilities,
-            enabledModules: siteConfig.capabilities.enabledModules.filter(
-              (moduleId: string) => moduleId !== 'docs' && moduleId !== 'blog'
-            ),
-          },
-        },
-        null,
-        2
-      ) + '\n',
+  const tempRoot = await mkdtemp(path.join(os.tmpdir(), 'content-no-docs-'));
+  const siteKey = 'no-docs';
+  const pagesDir = path.resolve(tempRoot, `sites/${siteKey}/content/pages`);
+  const site = JSON.parse(
+    await readFile(
+      path.resolve(rootDir, 'sites/dev-local/site.config.json'),
       'utf8'
+    )
+  );
+  site.key = siteKey;
+  site.capabilities.enabledModules = site.capabilities.enabledModules.filter(
+    (moduleId: string) => moduleId !== 'docs' && moduleId !== 'blog'
+  );
+  try {
+    await mkdir(pagesDir, { recursive: true });
+    assert.doesNotThrow(() =>
+      validateSiteContentCompleteness({
+        rootDir: tempRoot,
+        siteKey,
+        site,
+      })
     );
-    await rm(docsDir, { recursive: true, force: true });
-    await rm(postsDir, { recursive: true, force: true });
-
-    await runGenerateContentSource('dev-local');
-
-    const pointer = parseGeneratedPointer(await readGeneratedContentSource());
-    assert.equal(pointer.siteKey, 'dev-local');
   } finally {
-    await writeFile(siteConfigPath, originalSiteConfig, 'utf8');
-    await rm(docsDir, { recursive: true, force: true });
-    await rm(postsDir, { recursive: true, force: true });
-    await cp(path.join(backupDir, 'docs'), docsDir, { recursive: true });
-    await cp(path.join(backupDir, 'posts'), postsDir, { recursive: true });
-    await rm(backupDir, { recursive: true, force: true });
-    await runGenerateContentSource('dev-local');
+    await rm(tempRoot, { recursive: true, force: true });
   }
 });
 
@@ -364,13 +346,15 @@ test('@/content-source: cross-site publish does not collapse previous site reten
 });
 
 test('@/content-source: site.config key mismatch fails fast', async () => {
-  const siteConfigPath = path.resolve(
-    rootDir,
-    'sites/dev-local/site.config.json'
+  const tempRoot = await mkdtemp(path.join(os.tmpdir(), 'site-key-mismatch-'));
+  const siteDir = path.resolve(tempRoot, 'sites/dev-local');
+  const original = await readFile(
+    path.resolve(rootDir, 'sites/dev-local/site.config.json'),
+    'utf8'
   );
-  const original = await readFile(siteConfigPath, 'utf8');
 
   try {
+    await mkdir(siteDir, { recursive: true });
     const broken = JSON.stringify(
       {
         ...JSON.parse(original),
@@ -379,14 +363,21 @@ test('@/content-source: site.config key mismatch fails fast', async () => {
       null,
       2
     );
-    await writeFile(siteConfigPath, `${broken}\n`, 'utf8');
+    await writeFile(
+      path.resolve(siteDir, 'site.config.json'),
+      `${broken}\n`,
+      'utf8'
+    );
 
-    await assert.rejects(
-      () => runGenerateContentSource('dev-local'),
+    assert.throws(
+      () =>
+        readCurrentSiteConfig({
+          rootDir: tempRoot,
+          siteKey: 'dev-local',
+        }),
       /site config key mismatch: expected "dev-local" but found "mamamiya"/
     );
   } finally {
-    await writeFile(siteConfigPath, original, 'utf8');
-    await runGenerateContentSource('dev-local');
+    await rm(tempRoot, { recursive: true, force: true });
   }
 });

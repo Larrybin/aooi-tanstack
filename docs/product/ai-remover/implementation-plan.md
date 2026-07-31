@@ -180,7 +180,7 @@ ${REMOVER_CLEANUP_SECRET}`.
 - `/my-images` shows thumbnail, processed time, download action, delete action,
   and expiration.
 - The AI Remover deploy contract requires `REMOVER_CLEANUP_SECRET` and injects
-  a public-web Cloudflare cron trigger for the cleanup route.
+  an App Worker Cloudflare cron trigger for the cleanup route.
 
 Remaining tasks:
 

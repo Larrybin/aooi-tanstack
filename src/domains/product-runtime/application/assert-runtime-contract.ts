@@ -6,8 +6,9 @@ import type {
 export type ProductRuntimeContractTarget = {
   siteKey: string;
   workers?: Readonly<Record<string, unknown>>;
-  bindingRequirements?: {
+  runtime?: {
     bindings?: Readonly<Record<string, boolean>>;
+    resources?: Readonly<Record<string, boolean>>;
     vars?: Readonly<Record<string, boolean>>;
     secrets?: Readonly<Record<string, boolean>>;
   };
@@ -25,6 +26,10 @@ export type ProductRuntimeContractIssue =
     }
   | {
       code: 'missing_binding';
+      key: string;
+    }
+  | {
+      code: 'missing_resource';
       key: string;
     }
   | {
@@ -71,6 +76,7 @@ function getRequiredKeys(
   return {
     workers: requiredKeys(contract.requiredWorkers),
     bindings: requiredKeys(contract.requiredBindings),
+    resources: requiredKeys(contract.requiredResources),
     vars: requiredKeys(contract.requiredVars),
     secrets: requiredKeys(contract.requiredSecrets),
   };
@@ -86,6 +92,8 @@ export function formatProductRuntimeContractIssue(
       return `missing worker ${issue.key}`;
     case 'missing_binding':
       return `missing binding ${issue.key}`;
+    case 'missing_resource':
+      return `missing resource ${issue.key}`;
     case 'missing_var':
       return `missing var ${issue.key}`;
     case 'missing_secret':
@@ -100,7 +108,11 @@ function collectMissingEnabledKeys({
 }: {
   required: string[];
   actual?: Readonly<Record<string, boolean>>;
-  code: 'missing_binding' | 'missing_var' | 'missing_secret';
+  code:
+    | 'missing_binding'
+    | 'missing_resource'
+    | 'missing_var'
+    | 'missing_secret';
 }): ProductRuntimeContractIssue[] {
   return required
     .filter((key) => actual?.[key] !== true)
@@ -131,17 +143,22 @@ export function checkProductRuntimeContract({
       .map((key) => ({ code: 'missing_worker' as const, key })),
     ...collectMissingEnabledKeys({
       required: required.bindings,
-      actual: target.bindingRequirements?.bindings,
+      actual: target.runtime?.bindings,
       code: 'missing_binding',
     }),
     ...collectMissingEnabledKeys({
+      required: required.resources,
+      actual: target.runtime?.resources,
+      code: 'missing_resource',
+    }),
+    ...collectMissingEnabledKeys({
       required: required.vars,
-      actual: target.bindingRequirements?.vars,
+      actual: target.runtime?.vars,
       code: 'missing_var',
     }),
     ...collectMissingEnabledKeys({
       required: required.secrets,
-      actual: target.bindingRequirements?.secrets,
+      actual: target.runtime?.secrets,
       code: 'missing_secret',
     })
   );

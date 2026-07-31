@@ -82,8 +82,9 @@ script intentionally runs a matrix.
 
 A site is selected from `sites/<site-key>/site.config.json` and exposed through
 the generated `@/site` module. The site config owns brand identity and module
-capabilities; `deploy.settings.json` owns Cloudflare topology and binding
-requirements.
+capabilities; `deploy.settings.json` owns App/State Worker names and optional
+Cloudflare resource identities. Runtime requirements are derived from modules
+and product contracts.
 
 Runtime environment and secret names are governed by
 [src/config/env-contract.ts](src/config/env-contract.ts). Existing
@@ -96,15 +97,15 @@ secrets, provider keys, storage URLs, and deploy credentials.
 
 ## Cloudflare
 
-Cloudflare Workers is the only supported production target. The router forwards
-requests to the active site-specific server Workers, which all load the native
-TanStack server artifact.
+Cloudflare Workers is the only supported production target. Each site has one
+App Worker that loads the native TanStack server artifact and, only when
+required, one State Worker for Durable Object rate limiting.
 
 ```bash
 RESEND_API_KEY=ci-resend-api-key-not-for-production SITE=dev-local pnpm cf:check
 pnpm cf:build:no-db --site=mp4-compressor
 RESEND_API_KEY=ci-resend-api-key-not-for-production SITE=dev-local pnpm cf:typegen:check
-SITE=dev-local pnpm test:cf-local-smoke
+SITE=dev-local pnpm site:gate -- --cloudflare
 ```
 
 Deployment remains explicit:

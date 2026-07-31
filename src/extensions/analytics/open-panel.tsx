@@ -46,11 +46,7 @@ export class OpenPanelAnalyticsProvider implements AnalyticsProvider {
             `,
           }}
         />
-        <script
-          src="https://openpanel.dev/op1.js"
-          defer
-          async
-        />
+        <script src="https://openpanel.dev/op1.js" defer async />
       </>
     );
   }

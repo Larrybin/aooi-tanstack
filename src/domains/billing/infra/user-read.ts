@@ -1,4 +1,3 @@
-
 import { db } from '@/infra/adapters/db';
 import { eq, inArray } from 'drizzle-orm';
 

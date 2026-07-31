@@ -1,8 +1,8 @@
 import { site } from '@/site';
 
 import enBlog from '@/config/locale/messages/en/blog.json';
-import zhBlog from '@/config/locale/messages/zh/blog.json';
 import zhTwBlog from '@/config/locale/messages/zh-TW/blog.json';
+import zhBlog from '@/config/locale/messages/zh/blog.json';
 import { normalizeLocale } from '@/shared/i18n/locale';
 import {
   buildCanonicalUrl,
@@ -34,9 +34,11 @@ export function getBlogPostSurfaceHead(
 
 function getMissingBlogPostHead(params?: BlogHeadParams): TanStackHead {
   const locale =
-    normalizeLocale(typeof params?.locale === 'string' ? params.locale : null) ??
-    'en';
-  const slug = typeof params?.slug === 'string' ? normalizeSlug(params.slug) : '';
+    normalizeLocale(
+      typeof params?.locale === 'string' ? params.locale : null
+    ) ?? 'en';
+  const slug =
+    typeof params?.slug === 'string' ? normalizeSlug(params.slug) : '';
   const canonicalPath = slug ? `/blog/${slug}` : '/blog';
   const canonical = buildCanonicalUrl(canonicalPath, locale);
   const messages = blogMessagesByLocale[locale] ?? blogMessagesByLocale.en;
@@ -60,13 +62,11 @@ function getMissingBlogPostHead(params?: BlogHeadParams): TanStackHead {
     ],
     links: [
       { rel: 'canonical', href: canonical },
-      ...Object.entries(alternates).map(
-        ([hrefLang, href]) => ({
-          rel: 'alternate',
-          hrefLang,
-          href,
-        })
-      ),
+      ...Object.entries(alternates).map(([hrefLang, href]) => ({
+        rel: 'alternate',
+        hrefLang,
+        href,
+      })),
     ],
   };
 }

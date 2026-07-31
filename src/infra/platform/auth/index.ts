@@ -1,4 +1,3 @@
-
 import { betterAuth } from 'better-auth';
 
 import { getAuthOptions, type AuthConfigDeps } from './config';

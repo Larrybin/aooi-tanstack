@@ -1,4 +1,3 @@
-
 import { createHash, timingSafeEqual } from 'crypto';
 import { db } from '@/infra/adapters/db';
 import { getServerRuntimeEnv } from '@/infra/runtime/env.server';

@@ -6,8 +6,8 @@ import {
   streamChatUseCase,
 } from '@/domains/chat/application/use-cases';
 import type { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import type { z } from 'zod';
 import type { convertToModelMessages, streamText, UIMessage } from 'ai';
+import type { z } from 'zod';
 
 import { jsonOk } from '@/shared/lib/api/response';
 import { setResponseHeader } from '@/shared/lib/api/response-headers';
@@ -43,7 +43,9 @@ type ChatLog = {
 
 export type ChatApiContext = {
   log: ChatLog;
-  parseJson: <TSchema extends z.ZodTypeAny>(schema: TSchema) => Promise<z.infer<TSchema>>;
+  parseJson: <TSchema extends z.ZodTypeAny>(
+    schema: TSchema
+  ) => Promise<z.infer<TSchema>>;
   requireUser: () => Promise<{ id: string }>;
 };
 
@@ -120,7 +122,9 @@ export function createChatInfoPostAction(deps: ChatHandlerDeps) {
     await deps.requireAiEnabled();
 
     const api = deps.createApiContext(request);
-    const { chatId } = (await api.parseJson(ChatInfoBodySchema)) as ChatInfoBody;
+    const { chatId } = (await api.parseJson(
+      ChatInfoBodySchema
+    )) as ChatInfoBody;
     const user = await api.requireUser();
 
     const chat = await getChatInfoUseCase(
@@ -173,7 +177,9 @@ export function createChatStreamPostAction(deps: ChatHandlerDeps) {
 
     const api = deps.createApiContext(request);
     const { log } = api;
-    const parsed = (await api.parseJson(ChatStreamBodySchema)) as ChatStreamBody;
+    const parsed = (await api.parseJson(
+      ChatStreamBodySchema
+    )) as ChatStreamBody;
     const { chatId, message: rawMessage, model, webSearch, reasoning } = parsed;
     const user = await api.requireUser();
 

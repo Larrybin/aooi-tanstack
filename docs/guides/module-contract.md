@@ -75,8 +75,6 @@ Deploy Contract stays in mainline because the template promise depends on one de
 Current evidence points:
 
 - `pnpm test:auth-spike`
-- `SITE=<site-key> pnpm test:cf-app-smoke`
-- `SITE=<site-key> pnpm test:cf-admin-settings-smoke`
-- `SITE=<site-key> pnpm test:cf-local-smoke`
+- `SITE=<site-key> pnpm site:gate -- --cloudflare`
 
 The deploy contract guide remains engineering-heavy by design. It is not an optional provider matrix.

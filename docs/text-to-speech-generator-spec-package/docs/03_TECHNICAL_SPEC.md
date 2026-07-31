@@ -2,7 +2,7 @@
 
 ## Runtime Stack Assumption
 
-Target repository: `Larrybin/aooi`.
+Target repository: `Larrybin/aooi-tanstack`.
 
 The implementation must align with aooi's existing conventions for:
 

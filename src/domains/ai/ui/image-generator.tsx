@@ -18,7 +18,6 @@ import {
 import { toast } from 'sonner';
 
 import { AIMediaType, AITaskStatus } from '@/extensions/ai';
-import { createAiTranslator, type AiUiMessages } from './i18n';
 import { AppImage } from '@/shared/blocks/common/app-image';
 import {
   ImageUploader,
@@ -43,6 +42,8 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { Textarea } from '@/shared/components/ui/textarea';
 import { useBlobDownload } from '@/shared/hooks/use-blob-download';
+
+import { createAiTranslator, type AiUiMessages } from './i18n';
 
 interface ImageGeneratorProps {
   locale: string;

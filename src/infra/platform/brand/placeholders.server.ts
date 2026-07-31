@@ -1,4 +1,3 @@
-
 import { site } from '@/site';
 
 import { getDomainFromOrigin } from '@/shared/lib/support-email';

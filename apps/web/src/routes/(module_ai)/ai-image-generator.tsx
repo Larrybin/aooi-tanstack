@@ -1,6 +1,6 @@
 import { loadAiGeneratorRouteData } from '@/server/ai/ai-generator-route-data';
-import { AiGeneratorRouteView } from '@/surfaces/landing/ai-generator/ai-generator.view';
 import type { AiGeneratorRouteData } from '@/server/ai/ai-generator-route-resolver';
+import { AiGeneratorRouteView } from '@/surfaces/landing/ai-generator/ai-generator.view';
 import { createFileRoute, notFound } from '@tanstack/react-router';
 
 import { defaultLocale } from '@/config/locale';

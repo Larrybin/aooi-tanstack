@@ -4,7 +4,6 @@ import { MarkdownPreview } from '@/domains/content/ui/markdown-preview';
 import { isRtlLocale } from '@/config/locale';
 
 import { LandingShellView } from '../shell/landing-shell.view';
-
 import type { BlogPostAdZoneData, BlogPostRouteData } from './blog-post.types';
 
 export function BlogPostSurfaceView({ data }: { data: BlogPostRouteData }) {
@@ -76,8 +75,12 @@ export function BlogPostSurfaceView({ data }: { data: BlogPostRouteData }) {
               {data.post.authorImage ? (
                 <img src={data.post.authorImage} alt={data.post.authorName} />
               ) : null}
-              {data.post.authorName ? <strong>{data.post.authorName}</strong> : null}
-              {data.post.authorRole ? <span>{data.post.authorRole}</span> : null}
+              {data.post.authorName ? (
+                <strong>{data.post.authorName}</strong>
+              ) : null}
+              {data.post.authorRole ? (
+                <span>{data.post.authorRole}</span>
+              ) : null}
             </aside>
           ) : null}
         </div>
@@ -86,11 +89,7 @@ export function BlogPostSurfaceView({ data }: { data: BlogPostRouteData }) {
   );
 }
 
-function BlogPostAdZoneView({
-  adZone,
-}: {
-  adZone: BlogPostAdZoneData | null;
-}) {
+function BlogPostAdZoneView({ adZone }: { adZone: BlogPostAdZoneData | null }) {
   useEffect(() => {
     if (adZone?.provider !== 'adsense') {
       return;

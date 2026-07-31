@@ -12,6 +12,7 @@ export type ProductRuntimeContract = {
   environment?: ProductRuntimeEnvironment;
   requiredWorkers?: ProductRuntimeRequirementMap;
   requiredBindings?: ProductRuntimeRequirementMap;
+  requiredResources?: ProductRuntimeRequirementMap;
   requiredVars?: ProductRuntimeRequirementMap;
   requiredSecrets?: ProductRuntimeRequirementMap;
 };
@@ -19,6 +20,7 @@ export type ProductRuntimeContract = {
 export type ProductRuntimeRequiredKeys = {
   workers: string[];
   bindings: string[];
+  resources: string[];
   vars: string[];
   secrets: string[];
 };
@@ -42,6 +44,7 @@ export function getProductRuntimeRequiredKeys(
   return {
     workers: requiredKeys(contract.requiredWorkers),
     bindings: requiredKeys(contract.requiredBindings),
+    resources: requiredKeys(contract.requiredResources),
     vars: requiredKeys(contract.requiredVars),
     secrets: requiredKeys(contract.requiredSecrets),
   };

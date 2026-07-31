@@ -1,4 +1,8 @@
-import type { EmailRuntimeBindings, EmailRuntimeSettings } from '@/domains/settings/application/settings-runtime.contracts';
+import type {
+  EmailRuntimeBindings,
+  EmailRuntimeSettings,
+} from '@/domains/settings/application/settings-runtime.contracts';
+
 import type { EmailMessage, EmailSendResult } from '@/extensions/email';
 import { ResendProvider } from '@/extensions/email/providers';
 

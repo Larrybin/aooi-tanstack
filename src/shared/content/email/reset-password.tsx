@@ -1,4 +1,3 @@
-
 import type { EmailMessage } from '@/extensions/email';
 
 function ResetPasswordEmail(props: { url: string }) {

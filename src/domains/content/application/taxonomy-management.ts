@@ -1,4 +1,3 @@
-
 import { TaxonomyStatus } from '@/domains/content/domain/taxonomy-types';
 import {
   addTaxonomyRow,

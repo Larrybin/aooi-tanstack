@@ -42,8 +42,7 @@ test('handleAuthApiRequest rewrites local auth-spike redirects', async () => {
           new Response(null, {
             status: 302,
             headers: {
-              Location:
-                'https://example.test/api/auth/callback/google?code=1',
+              Location: 'https://example.test/api/auth/callback/google?code=1',
             },
           }),
       }),

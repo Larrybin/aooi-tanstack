@@ -18,7 +18,7 @@ description: 用最少配置把 Roller Rabbit 跑起来（本地开发、数据�
 1. 获取代码
 
 ```bash
-git clone "https://github.com/Larrybin/aooi.git" "my-project"
+git clone "https://github.com/Larrybin/aooi-tanstack.git" "my-project"
 cd "my-project"
 ```
 
@@ -165,7 +165,7 @@ pnpm rbac:assign -- --email="admin@your-domain.com" --role="super_admin"
 
 部署流程：
 
-- Cloudflare Workers（使用受版本控制的 Wrangler 模板；可执行 `pnpm cf:check`、`pnpm cf:build`、`pnpm test:cf-local-smoke`、`pnpm test:cf-admin-settings-smoke`、`pnpm cf:deploy`；数据库需配置 Hyperdrive。受控模板中的 `localConnectionString` 固定为空，local/CI runtime smoke 会通过生成的临时配置注入真实 DSN。`pnpm test:cf-local-smoke` 现在会通过单个本地 `wrangler dev` 多配置 session 启动完整的 router + split-worker topology。`pnpm test:cf-admin-settings-smoke` 现在是更小的本地验收链：直接预写数据库配置、通过真实 Cloudflare runtime 上传资源，并在同一个本地 runtime session 内验证公开配置投影和缺失 `STORAGE_PUBLIC_BASE_URL` 的显式失败路径。支付/上传已分别由 `pnpm test:creem-webhook-spike` 与 `pnpm test:r2-upload-spike` 正式 gate）
+- Cloudflare Workers（每个站点使用一个 App Worker，并按需使用一个 State Worker；通过 `pnpm cf:check`、`pnpm cf:build`、`SITE=<site-key> pnpm site:gate -- --cloudflare` 和 `pnpm release:cf` 验证与发布；数据库站点使用 Hyperdrive。Wrangler 配置生成到 `.generated/cloudflare/<site-key>`。）
 
 ## 功能配置
 

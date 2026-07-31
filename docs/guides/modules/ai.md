@@ -40,7 +40,7 @@ behavior.
 ## Minimum Verification Commands
 
 - `pnpm test`
-- `pnpm test:cf-app-smoke`
+- `SITE=<site-key> pnpm site:gate -- --cloudflare`
 - AI Remover anonymous limiter smoke:
   `SITE=ai-remover pnpm test:remover-guest-limiter-smoke`
 - AI Remover Workers AI runtime spike:

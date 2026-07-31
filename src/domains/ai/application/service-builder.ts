@@ -11,7 +11,6 @@ import {
   trimmedProviderNameKey,
 } from '@/shared/lib/providers/provider-registry';
 
-
 export type AIService = {
   getProvider(name: string): AIProvider | undefined;
   getDefaultProvider(): AIProvider | undefined;

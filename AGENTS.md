@@ -23,7 +23,7 @@
 - Format code: `pnpm format` / check only: `pnpm format:check`.
 - Database workflows: `pnpm db:generate`, `pnpm db:migrate`, `pnpm db:studio`.
 - Client bundle boundary: `SITE=dev-local pnpm build`, then `pnpm client:boundary`.
-- Cloudflare deployment helpers: `pnpm cf:check`, `pnpm cf:build`, `pnpm cf:typegen`, `pnpm cf:typegen:check`, `pnpm cf:deploy:state`, `pnpm cf:deploy:app`, `pnpm cf:deploy` (app alias), `pnpm test:cf-local-smoke`.
+- Cloudflare deployment helpers: `pnpm cf:check`, `pnpm cf:build`, `pnpm cf:typegen`, `pnpm cf:typegen:check`, `pnpm cf:deploy:state`, `pnpm cf:deploy:app`, `pnpm cf:deploy` (app alias), and `pnpm release:cf`.
 
 ## Coding Style & Naming Conventions
 

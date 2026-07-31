@@ -15,7 +15,7 @@ SITE=mamamiya pnpm cf:build
 DATABASE_URL="$PRODUCTION_DATABASE_URL" SITE=mamamiya pnpm db:migrate
 SITE=mamamiya pnpm cf:deploy:state
 SITE=mamamiya pnpm cf:deploy
-SITE=mamamiya pnpm test:cf-app-smoke
+SITE=mamamiya pnpm site:gate -- --cloudflare
 ```
 
 后续生产发布应优先使用 `SITE=mamamiya pnpm release:cf`。

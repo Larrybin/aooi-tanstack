@@ -18,10 +18,8 @@ This skill is for `aooi` as a multi-site SaaS foundation. It is not a keyword-on
 ```text
 sites/<site-key>/site.config.json       build-time site identity and capabilities
 sites/<site-key>/deploy.settings.json   infra-only Cloudflare deploy contract
-sites/<site-key>/deploy.preview.settings.json
-                                        optional preview Hyperdrive overlay
 sites/<site-key>/.env.local             ignored operator-local env for local,
-                                        preview, and production release values
+                                        and production release values
 sites/<site-key>/content/**             site-scoped pages, docs, and posts
 @/site                                  generated runtime site identity module
 SITE=<site-key>                         explicit command selector for non-local work
@@ -81,11 +79,9 @@ Shared platform edits must be intentional and recorded in the final summary. Do 
 ## Decision Rules
 
 - Brand, canonical URL, logo, preview image, support email, and capability flags belong in `site.config.json`.
-- Worker names, Cloudflare resources, and binding requirements belong in `deploy.settings.json`.
-- Production worker and bucket names are explicit values in `deploy.settings.json`; only preview worker and bucket names are derived from `SITE=<site-key>`.
-- Use `SITE=<site-key> pnpm site:production:init-settings` to write the recommended production worker and R2 bucket names into `deploy.settings.json` during site setup.
-- Workers.dev preview belongs to `CF_DEPLOY_PROFILE=preview` on the real product `SITE`, with only the preview Hyperdrive id in `deploy.preview.settings.json`. Do not create a separate `<site-key>-preview` site.
-- Operator-local env for every site belongs in one ignored `sites/<site-key>/.env.local` file. Use sections and prefixes for common, local dev, preview, and production release values.
+- App/State Worker names and optional Hyperdrive/R2 identities belong in `deploy.settings.json`.
+- Binding, secret, variable, and State Worker requirements are derived from modules and product runtime contracts.
+- Operator-local env for every site belongs in one ignored `sites/<site-key>/.env.local` file.
 - Do not put `SITE`, Hyperdrive IDs, worker names, R2 bucket names, or preview `STORAGE_PUBLIC_BASE_URL` in env files. `SITE=<site-key>` stays explicit in commands, Hyperdrive IDs stay in deploy settings, and preview storage base URLs are derived.
 - Landing copy, docs, blog posts, and page content belong in `sites/<site-key>/content/**`.
 - Auth, payment, email, storage, AI, analytics, docs/blog, and admin settings should reuse mainline modules. Do not fork them for a single site.
@@ -102,16 +98,12 @@ pnpm test
 pnpm lint
 pnpm arch:check
 SITE=<site-key> pnpm site:contract
-SITE=<site-key> pnpm site:gate
+SITE=<site-key> pnpm site:gate -- --cloudflare
 SITE=<site-key> pnpm build
 SITE=<site-key> pnpm cf:check
-pnpm cf:build:no-db --site=<site-key>
-SITE=<site-key> pnpm site:production:doctor
-SITE=<site-key> pnpm site:preview:doctor
-SITE=<site-key> pnpm cf:preview:check
-SITE=<site-key> pnpm test:cf-local-smoke
-SITE=<site-key> pnpm test:cf-admin-settings-smoke
-SITE=<site-key> pnpm test:cf-app-smoke
+SITE=<site-key> pnpm cf:build
+SITE=<site-key> pnpm cf:typegen:check
+pnpm run ci
 ```
 
 When production release is in scope, read `references/cloudflare-release.md` before running deploy commands.

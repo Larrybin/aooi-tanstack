@@ -153,7 +153,9 @@ export function Pagination({
   const handlePageChange = (nextPage: number) => {
     const url = new URL(globalThis.location.href);
     url.searchParams.set('page', nextPage.toString());
-    globalThis.location.assign(`${url.pathname}?${url.searchParams.toString()}`);
+    globalThis.location.assign(
+      `${url.pathname}?${url.searchParams.toString()}`
+    );
   };
 
   if (totalPages <= 1) {

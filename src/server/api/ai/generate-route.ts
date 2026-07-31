@@ -45,7 +45,9 @@ export type AiGenerateRouteDeps = {
     requireUser: AiGenerateApiContext['requireUser'];
   };
   readAiRuntimeSettings: () => Promise<AiRuntimeSettings>;
-  readAiProviderBindings: () => AiProviderBindings | Promise<AiProviderBindings>;
+  readAiProviderBindings: () =>
+    | AiProviderBindings
+    | Promise<AiProviderBindings>;
   getAIService: (input: {
     settings: AiRuntimeSettings;
     bindings: AiProviderBindings;

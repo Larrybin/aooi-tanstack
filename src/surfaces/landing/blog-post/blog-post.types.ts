@@ -1,6 +1,6 @@
-import type { SlugPageTocItem, SlugShellData } from '../slug/slug.types';
 import type { TanStackHead } from '@/shared/seo/canonical';
 
+import type { SlugPageTocItem, SlugShellData } from '../slug/slug.types';
 
 export type BlogPostAdZoneData =
   | {

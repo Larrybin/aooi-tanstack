@@ -50,12 +50,12 @@ Run `pnpm arch:check` for any boundary-sensitive change.
 
 ## 5. Cloudflare
 
-- Router/server/state Worker ownership remains aligned with
-  `src/shared/config/cloudflare-worker-splits.ts`.
-- Server Workers load `dist/server/entry.server.mjs` only at the explicit Worker
-  boundary.
-- Hyperdrive, R2, Durable Object, service binding, and secret requirements match
-  the selected site's deploy settings.
+- Each site has one App Worker and only derived Durable Object requirements add
+  a State Worker.
+- The App Worker loads `dist/server/entry.server.mjs` only at the explicit
+  Worker boundary.
+- Hyperdrive, R2, Durable Object, variable, and secret requirements are derived
+  from site modules and product runtime contracts.
 - Cloudflare changes include `cf:check`, build, and typegen evidence.
 - Validation does not silently deploy.
 

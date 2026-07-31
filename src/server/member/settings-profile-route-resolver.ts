@@ -6,9 +6,7 @@ import type {
   SettingsProfileRouteData,
   SettingsProfileUpdateResult,
 } from '@/surfaces/member/settings-profile/settings-profile.types';
-import type {
-  SettingsShellData,
-} from '@/surfaces/member/settings-shell/settings-shell.types';
+import type { SettingsShellData } from '@/surfaces/member/settings-shell/settings-shell.types';
 
 import { localePath, normalizeLocale } from '@/shared/i18n/locale';
 import { normalizeProfileImageValue } from '@/shared/schemas/actions/settings-profile';

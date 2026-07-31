@@ -97,9 +97,7 @@ export function detectAllowedImageMime(
 }
 
 type UploadImageDeps = {
-  getStorageService: () => Promise<
-    Pick<StorageService, 'uploadFile'>
-  >;
+  getStorageService: () => Promise<Pick<StorageService, 'uploadFile'>>;
   log: {
     error: (message: string, meta?: Record<string, unknown>) => void;
   };

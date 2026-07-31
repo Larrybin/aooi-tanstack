@@ -51,7 +51,7 @@ export interface ProductModuleTabItem {
 }
 
 export const PRODUCT_MODULE_GUIDE_REPO_BASE_URL =
-  'https://github.com/Larrybin/aooi/blob/main/docs/guides/';
+  'https://github.com/Larrybin/aooi-tanstack/blob/main/docs/guides/';
 
 const PRODUCT_MODULE_BASES: Omit<ProductModule, 'settingKeys'>[] = [
   {

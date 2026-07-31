@@ -4,10 +4,14 @@ export const AI_REMOVER_RUNTIME_CONTRACT = {
   siteKey: 'ai-remover',
   productKey: 'ai-remover',
   requiredWorkers: {
-    'public-web': true,
+    app: true,
   },
   requiredBindings: {
     workersAi: true,
+  },
+  requiredResources: {
+    r2: true,
+    state: true,
   },
   requiredVars: {
     storagePublicBaseUrl: true,

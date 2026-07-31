@@ -87,17 +87,15 @@ test('run-with-site 对 Cloudflare smoke 命令要求显式 SITE', async () => {
   assert.match(result.stderr, /scripts\/smoke\.mjs cf-local/);
 });
 
-test('run-with-site 对 site gate 命令要求显式 SITE', async () => {
+test('run-with-site 对 Cloudflare deploy 命令要求显式 SITE', async () => {
   const result = await runWithSite(
-    ['node', '--import', 'tsx', 'scripts/site-gate.mjs'],
-    {
-      SITE: '',
-    }
+    ['pnpm', 'exec', 'tsx', 'scripts/cloudflare.ts', 'check'],
+    { SITE: '' }
   );
 
   assert.equal(result.ok, false);
   assert.match(result.stderr, /SITE is required for this command/);
-  assert.match(result.stderr, /scripts\/site-gate\.mjs/);
+  assert.match(result.stderr, /scripts\/cloudflare\.ts check/);
 });
 
 test('run-with-site regenerates content for TanStack commands', () => {
@@ -114,15 +112,6 @@ test('run-with-site regenerates content for TanStack commands', () => {
     true
   );
   assert.equal(
-    requiresContentGeneration([
-      'node',
-      '--import',
-      'tsx',
-      'scripts/run-cf-build.mjs',
-    ]),
-    true
-  );
-  assert.equal(
     requiresContentGeneration(['pnpm', 'exec', 'eslint', '.']),
     false
   );
@@ -130,10 +119,6 @@ test('run-with-site regenerates content for TanStack commands', () => {
 
 test('run-with-site serializes commands that publish shared build artifacts', () => {
   assert.equal(requiresBuildLock(['pnpm', 'exec', 'vite', 'build']), true);
-  assert.equal(
-    requiresBuildLock(['node', '--import', 'tsx', 'scripts/run-cf-build.mjs']),
-    true
-  );
   assert.equal(requiresBuildLock(['pnpm', 'exec', 'vite', 'dev']), false);
 });
 
@@ -172,21 +157,6 @@ test('run-with-site 尊重显式 SITE', async () => {
   assert.equal(result.ok, true, result.stderr);
   assert.match(result.stdout, /\[site\] generated mamamiya/);
   assert.equal(result.stdout.trimEnd().split('\n').at(-1), 'mamamiya');
-});
-
-test('run-with-site 注入当前站点 active split workers', async () => {
-  const result = await runWithSite(
-    ['node', '-p', 'process.env.CLOUDFLARE_ACTIVE_SPLIT_WORKERS || ""'],
-    {
-      SITE: 'ai-remover',
-    }
-  );
-
-  assert.equal(result.ok, true, result.stderr);
-  assert.equal(
-    result.stdout.trimEnd().split('\n').at(-1),
-    'auth,payment,member,admin'
-  );
 });
 
 test('run-with-site buildSiteEnv applies selected site local env without overriding shell env', () => {

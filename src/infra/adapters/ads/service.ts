@@ -1,4 +1,3 @@
-
 import {
   readAdsRuntimeSettingsCached,
   readAdsRuntimeSettingsFresh,

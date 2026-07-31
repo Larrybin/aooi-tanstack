@@ -56,7 +56,7 @@ Notes:
 
 - This endpoint is a contract exception: it bypasses `withApi()` and does not return the standard `{code,message,data}` envelope (Better Auth controls redirects/cookies/status codes).
 - Responses are dynamic and marked `Cache-Control: no-store` by the auth action.
-- This route is exercised by the Cloudflare smoke chain (`SITE=<site-key> pnpm test:cf-local-smoke` and `SITE=<site-key> pnpm test:cf-app-smoke`).
+- This route is exercised by `SITE=<site-key> pnpm site:gate -- --cloudflare`.
 - The local dual-runtime harness depends on a generated temporary Wrangler config whose `localConnectionString` points at a migrated Postgres instance. Every tracked Wrangler config must keep `localConnectionString = ""`.
 
 The route entry is `apps/web/src/routes/api/auth.ts`; reusable request logic is
@@ -152,8 +152,8 @@ Auth UI 按 effective availability 展示：
 
 - Google 按钮只看 `google_auth_enabled=true`。
 - GitHub 按钮只看 `github_auth_enabled=true`。
-- Google One Tap 只在 `google_auth_enabled=true`、`google_one_tap_enabled=true` 且当前 Auth UI worker 存在可用于前端的 `GOOGLE_CLIENT_ID` 时启用。
-- OAuth callback / token exchange 仍只依赖 auth handler worker 上的 provider credentials。
+- Google One Tap 只在 `google_auth_enabled=true`、`google_one_tap_enabled=true` 且 App Worker 存在可用于前端的 `GOOGLE_CLIENT_ID` 时启用。
+- OAuth callback / token exchange 依赖同一 App Worker 上的 provider credentials。
 
 ## Environment Variables
 
@@ -172,12 +172,11 @@ Notes:
 - canonical auth base URL 由 `site.brand.appUrl` 决定。
 - `BETTER_AUTH_URL` 和 `AUTH_URL` 只能作为同源镜像存在，不能指向另一个 auth 域名。
 - auth secrets 与 OAuth credentials 只来自 runtime env / Cloudflare secrets，不来自 settings。
-- 多 worker Cloudflare 拓扑下，普通 OAuth 按钮显示不再依赖当前页面 worker 是否持有 provider secret；只有 Google One Tap 需要 Auth UI worker 持有 `GOOGLE_CLIENT_ID`。
+- App Worker 同时承载 OAuth UI 与 handler；Google One Tap 还需要 `GOOGLE_CLIENT_ID`。
 - 若部署在 Cloudflare Workers（`nodejs_compat`）并通过 Hyperdrive 提供连接串，则 `DATABASE_URL` 可为空；非 Workers 运行时生产环境仍要求 `DATABASE_URL`。
-- 本地 Cloudflare smoke 默认要求显式 `DATABASE_URL` 来生成临时 Wrangler config；仓库根 `.dev.vars` 只允许非数据库的运行时键，Wrangler 模板本身也不存储本地数据库连接串。
-- CI 中的 `Cloudflare Deploy Acceptance` 已拆分为独立 jobs。`cloudflare-acceptance` matrix job 不再启动临时 Postgres service，也不执行 `pnpm db:migrate`；它在清空直接数据库 URL 后运行 Cloudflare 检查和 `pnpm cf:build:no-db --site=<site>`。schema/migration 配对仍由独立 guard 负责，生产 migration 仍由本地 release 命令负责。
-- `pnpm cf:check` 与 Cloudflare secrets 文件生成会基于 `sites/<site>/deploy.settings.json` 要求当前启用能力对应的 provider bindings。需要局部校验时使用 `pnpm cf:check -- --workers=state|app|all|<comma-list>`；secrets 文件生成必须显式传同样的 worker scope。
-- `BETTER_AUTH_SECRET` / `AUTH_SECRET` 不属于 provider secrets；它们是 server runtime secret，只对当前站点 active topology 里的 server workers 必填，`state` worker 不消费它。
+- `pnpm run ci` 动态发现所有站点并运行站点构建与 Cloudflare acceptance。
+- `pnpm cf:check` 根据站点模块和产品运行时契约推导 provider bindings。
+- `BETTER_AUTH_SECRET` / `AUTH_SECRET` 是 App Worker runtime secrets；State Worker 不消费它们。
 
 ### Optional
 
