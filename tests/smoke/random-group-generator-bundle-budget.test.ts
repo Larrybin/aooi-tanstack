@@ -6,11 +6,17 @@ import { gzipSync } from 'node:zlib';
 
 const clientAssetsDir = resolve(process.cwd(), 'dist/client/assets');
 const hasClientBuild = existsSync(clientAssetsDir);
+const requiresClientBuild = process.env.SITE === 'random-group-generator';
 
 test(
   'random group generator home chunks stay within the 30 kB gzip budget',
-  { skip: !hasClientBuild },
+  { skip: !hasClientBuild && !requiresClientBuild },
   () => {
+    assert.ok(
+      hasClientBuild,
+      'random-group-generator bundle budget requires a completed client build'
+    );
+
     const assetFiles = readdirSync(clientAssetsDir);
     const chunkPrefixes = ['home.view-', 'random-group-generator-home-'];
     const homeChunkFiles = chunkPrefixes.map((prefix) => {

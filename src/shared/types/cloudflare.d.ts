@@ -3,6 +3,7 @@
 // Runtime types generated with workerd@1.20260609.1 2025-03-01 global_fetch_strictly_public,nodejs_compat
 interface __BaseEnv_CloudflareEnv {
 	APP_STORAGE_R2_BUCKET: R2Bucket;
+	HYPERDRIVE: Hyperdrive;
 	IMAGES: ImagesBinding;
 	ASSETS: Fetcher;
 	DEPLOY_TARGET: "cloudflare";

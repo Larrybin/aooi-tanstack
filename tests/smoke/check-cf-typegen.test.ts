@@ -38,6 +38,25 @@ test('cf:typegen canonical contract covers every supported worker slot', async (
   }
 });
 
+test('cf:typegen canonical contract keeps the superset of optional bindings', async () => {
+  const loadedModule = await import(
+    `../../scripts/check-cf-typegen.mjs?ts=${Date.now()}`
+  );
+  const artifacts = await loadedModule.createCanonicalTypegenWranglerConfig({
+    rootPath: process.cwd(),
+    siteKey: 'random-group-generator',
+  });
+
+  try {
+    assert.deepEqual(artifacts.contract.bindingRequirements.bindings, {
+      hyperdrive: true,
+      workersAi: true,
+    });
+  } finally {
+    await artifacts.cleanup();
+  }
+});
+
 test('cf:typegen normalizes current and older Wrangler generated headers', async () => {
   const loadedModule = await import(
     `../../scripts/check-cf-typegen.mjs?ts=${Date.now()}`
