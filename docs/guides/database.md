@@ -44,7 +44,7 @@ const users = await db().select().from(user);
 Notes:
 
 - In Cloudflare Workers runtime, `db()` ignores `DATABASE_URL` and uses `HYPERDRIVE.connectionString` from bindings (`[[hyperdrive]] binding = "HYPERDRIVE"`). Missing bindings fail with a `ServiceUnavailableError` and a generic public message.
-- In Cloudflare Workers runtime, `db()` does **not** reuse a postgres/Hyperdrive client across requests. It creates a fresh client per request and keeps schema-check state request-scoped to avoid Worker hangs caused by cross-request I/O reuse.
+- In Cloudflare Workers and serverless runtimes, `db()` reuses one module-scoped postgres/Hyperdrive client per connection string. `closeDb()` releases every cached client.
 - Cloudflare bindings are read only through `src/infra/runtime/env.server.ts`. Business code should not touch Workers detection or bindings directly.
 - This also enables DB-backed settings/configs (the `config` table, `getAllConfigs()`/`getConfigs()`) at runtime in Workers even when `DATABASE_URL` is empty.
 - `DB_SINGLETON_ENABLED` only applies to non-Workers Node runtimes. Workers always use the Hyperdrive request-scoped path above.
@@ -117,7 +117,7 @@ Optional read-only check (does not apply migrations):
 pnpm db:check
 ```
 
-This verifies required columns exist (e.g. `role.deleted_at`) and provides a migration hint when they do not.
+This verifies that the latest row in Drizzle's migration journal has the same timestamp and SHA-256 hash as the latest repository migration.
 
 ### Migration Files
 
@@ -247,19 +247,7 @@ const [result] = await db()
 
 ## Schema Validation
 
-The database connection includes automatic schema validation. On startup, it checks for required columns (e.g., `role.deleted_at`). If migrations are missing:
-
-```
-Database schema mismatch: missing column public.role.deleted_at.
-This usually means migrations were not applied.
-Run: pnpm db:migrate
-```
-
-Notes:
-
-- Schema checks cache successful results; failures are cleared and retried after a short cooldown, and queries always gate on the latest check so transient startup failures can self-heal without a process restart.
-- Hints reference the migrations directory/log table instead of a specific migration filename to avoid drift.
-- In production, connectivity/schema mismatches are mapped to generic public errors (`DB_STARTUP_CHECK_FAILED (...)`) while detailed hints are logged server-side.
+Production release runs `pnpm db:migrate` followed by `pnpm db:check` before deploying. Runtime queries do not perform partial schema probes.
 
 ## Multi-Environment Support
 

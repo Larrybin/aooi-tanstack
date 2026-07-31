@@ -155,3 +155,10 @@ export type AdsRuntimeSettings = {
   adsterraZoneBlogPostFooterSnippet: string;
   adsterraAdsTxtEntry: string;
 };
+
+export type RootRuntimeSettings = {
+  ads: AdsRuntimeSettings;
+  analytics: AnalyticsRuntimeSettings;
+  affiliate: AffiliateRuntimeSettings;
+  customerService: CustomerServiceRuntimeSettings;
+};

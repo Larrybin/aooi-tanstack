@@ -273,6 +273,13 @@ export async function runLocalCloudflareRelease({
   );
   await runStep(
     commandRunner,
+    'checking production database migration journal',
+    'pnpm',
+    ['db:check'],
+    productionEnv
+  );
+  await runStep(
+    commandRunner,
     'deploying Cloudflare state worker',
     'node',
     ['--import', 'tsx', 'scripts/run-cf-state-deploy.mjs'],

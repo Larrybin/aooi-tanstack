@@ -22,10 +22,13 @@ function buildDeps(
     isProductionEnv: () => false,
     isDebugEnv: () => true,
     shouldReadRuntimeSettings: () => true,
-    readAdsRuntimeSettingsCached: async () => ({}) as never,
-    readAnalyticsRuntimeSettingsCached: async () => ({}) as never,
-    readAffiliateRuntimeSettingsCached: async () => ({}) as never,
-    readCustomerServiceRuntimeSettingsCached: async () => ({}) as never,
+    readRootRuntimeSettingsCached: async () =>
+      ({
+        ads: {},
+        analytics: {},
+        affiliate: {},
+        customerService: {},
+      }) as never,
     createAdsRuntime: () => ({ enabled: false }),
     createAnalyticsManager: emptyProvider,
     createAffiliateManager: emptyProvider,
@@ -40,7 +43,7 @@ test('resolveRootRuntimeInjections skips runtime settings outside production and
   const result = await resolveRootRuntimeInjections(
     buildDeps({
       isDebugEnv: () => false,
-      readAdsRuntimeSettingsCached: async () => {
+      readRootRuntimeSettingsCached: async () => {
         readSettings = true;
         return {} as never;
       },
@@ -49,6 +52,26 @@ test('resolveRootRuntimeInjections skips runtime settings outside production and
 
   assert.deepEqual(result, { meta: [], headScripts: [], bodyScripts: [] });
   assert.equal(readSettings, false);
+});
+
+test('resolveRootRuntimeInjections reads the settings store once', async () => {
+  let readCount = 0;
+
+  await resolveRootRuntimeInjections(
+    buildDeps({
+      readRootRuntimeSettingsCached: async () => {
+        readCount += 1;
+        return {
+          ads: {},
+          analytics: {},
+          affiliate: {},
+          customerService: {},
+        } as never;
+      },
+    })
+  );
+
+  assert.equal(readCount, 1);
 });
 
 test('resolveRootRuntimeInjections returns native head and body descriptors', async () => {

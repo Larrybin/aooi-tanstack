@@ -283,6 +283,7 @@ test('runLocalCloudflareRelease runs gates then production deploy steps with spl
       'pnpm cf:check',
       'pnpm cf:build',
       'pnpm db:migrate',
+      'pnpm db:check',
       'node --import tsx scripts/run-cf-state-deploy.mjs',
       'node --import tsx scripts/run-cf-app-deploy.mjs',
       'pnpm test:cf-app-smoke',
@@ -295,6 +296,9 @@ test('runLocalCloudflareRelease runs gates then production deploy steps with spl
   const migrateCall = stepCalls.find(
     (call) => call.command === 'pnpm' && call.args[0] === 'db:migrate'
   );
+  const migrationCheckCall = stepCalls.find(
+    (call) => call.command === 'pnpm' && call.args[0] === 'db:check'
+  );
   const appDeployCall = stepCalls.find((call) =>
     call.args.includes('scripts/run-cf-app-deploy.mjs')
   );
@@ -305,6 +309,10 @@ test('runLocalCloudflareRelease runs gates then production deploy steps with spl
   );
   assert.equal(
     migrateCall?.env.DATABASE_URL,
+    'postgresql://postgres:postgres@db.example.com:5432/aooi'
+  );
+  assert.equal(
+    migrationCheckCall?.env.DATABASE_URL,
     'postgresql://postgres:postgres@db.example.com:5432/aooi'
   );
   assert.equal(
