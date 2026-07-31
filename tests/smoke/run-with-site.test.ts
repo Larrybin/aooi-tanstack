@@ -239,7 +239,7 @@ test('run-with-site 对未知 SITE 输出可修复的配置错误', async () => 
   );
   assert.match(
     result.stderr,
-    /set SITE to one of: 401k-calculator, ai-remover, background-remover, dev-local, mamamiya, mp4-compressor, random-group-generator, text-to-speech-generator/
+    /set SITE to one of: 401k-calculator, ai-remover, anagram-generator, background-remover, dev-local, mamamiya, mp4-compressor, random-group-generator, text-to-speech-generator/
   );
   assert.doesNotMatch(result.stderr, /ENOENT/);
   assert.doesNotMatch(result.stderr, /Error: site "__missing_site__"/);

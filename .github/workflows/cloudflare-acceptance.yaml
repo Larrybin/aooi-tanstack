@@ -162,6 +162,7 @@ jobs:
             ai-remover,
             background-remover,
             random-group-generator,
+            anagram-generator,
           ]
     env:
       SITE: ${{ matrix.site }}
@@ -217,6 +218,10 @@ jobs:
       - name: Run random group generator bundle budget
         if: ${{ matrix.site == 'random-group-generator' }}
         run: pnpm test -- tests/smoke/random-group-generator-bundle-budget.test.ts
+
+      - name: Run anagram generator bundle budget
+        if: ${{ matrix.site == 'anagram-generator' }}
+        run: pnpm test -- tests/smoke/anagram-generator-bundle-budget.test.ts
 
   contract-ai-remover:
     name: contract ai-remover

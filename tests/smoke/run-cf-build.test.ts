@@ -88,6 +88,7 @@ test('cf:build:no-db covers the explicit deployable site list', () => {
     'text-to-speech-generator',
     'mp4-compressor',
     'random-group-generator',
+    'anagram-generator',
   ]);
 });
 

@@ -125,7 +125,7 @@ test('Cloudflare acceptance 拆分职责并保留稳定 required check', () => {
   );
   assert.match(
     acceptanceWorkflowContent,
-    /strategy:[\s\S]*?matrix:[\s\S]*?site:[\s\S]*?mamamiya,[\s\S]*?401k-calculator,[\s\S]*?ai-remover,[\s\S]*?background-remover,[\s\S]*?random-group-generator/
+    /strategy:[\s\S]*?matrix:[\s\S]*?site:[\s\S]*?mamamiya,[\s\S]*?401k-calculator,[\s\S]*?ai-remover,[\s\S]*?background-remover,[\s\S]*?random-group-generator,[\s\S]*?anagram-generator/
   );
   assert.match(
     cloudflareAcceptanceJob,
@@ -138,6 +138,10 @@ test('Cloudflare acceptance 拆分职责并保留稳定 required check', () => {
   assert.match(
     cloudflareAcceptanceJob,
     /Run random group generator bundle budget[\s\S]*?matrix\.site == 'random-group-generator'[\s\S]*?random-group-generator-bundle-budget\.test\.ts/
+  );
+  assert.match(
+    cloudflareAcceptanceJob,
+    /Run anagram generator bundle budget[\s\S]*?matrix\.site == 'anagram-generator'[\s\S]*?anagram-generator-bundle-budget\.test\.ts/
   );
   assert.match(
     acceptanceWorkflowContent,
