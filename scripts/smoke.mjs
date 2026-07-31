@@ -6,15 +6,6 @@ export const SMOKE_SCENARIOS = Object.freeze({
   'auth-spike': {
     script: 'scripts/run-auth-spike.mjs',
   },
-  'cf-app': {
-    script: 'scripts/run-cf-app-smoke.mjs',
-  },
-  'cf-local': {
-    script: 'scripts/run-cf-local-smoke.mjs',
-  },
-  'cf-admin-settings': {
-    script: 'scripts/run-cf-admin-settings-smoke.mjs',
-  },
 });
 
 const rootDir = path.resolve(

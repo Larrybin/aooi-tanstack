@@ -190,37 +190,37 @@ function createChatStreamDeps(input: {
   readAiProviderBindings: () => Promise<AiProviderBindings>;
 }) {
   return {
-  findChatById: async (id: string) => mapChatRecord(await findChatById(id)),
-  createChatMessage: async (record: NewChatMessageRecord) =>
-    mapChatMessageRecord(
-      await createChatMessage({
-        ...record,
-        status: toChatMessageStatus(record.status),
-      })
-    ),
-  getChatMessageWindow: async ({
-    userId,
-    chatId,
-    status,
-    limit,
-  }: {
-    userId: string;
-    chatId: string;
-    status: DomainChatMessageStatus;
-    limit: number;
-  }) =>
-    (
-      await getChatMessageWindow({
-        userId,
-        chatId,
-        status: toChatMessageStatus(status),
-        limit,
-      })
-    ).map(mapChatMessageRecord),
-  readAiRuntimeSettings: input.readAiRuntimeSettings,
-  readAiProviderBindings: input.readAiProviderBindings,
-  consumeCredits,
-  refundConsumedCreditById,
+    findChatById: async (id: string) => mapChatRecord(await findChatById(id)),
+    createChatMessage: async (record: NewChatMessageRecord) =>
+      mapChatMessageRecord(
+        await createChatMessage({
+          ...record,
+          status: toChatMessageStatus(record.status),
+        })
+      ),
+    getChatMessageWindow: async ({
+      userId,
+      chatId,
+      status,
+      limit,
+    }: {
+      userId: string;
+      chatId: string;
+      status: DomainChatMessageStatus;
+      limit: number;
+    }) =>
+      (
+        await getChatMessageWindow({
+          userId,
+          chatId,
+          status: toChatMessageStatus(status),
+          limit,
+        })
+      ).map(mapChatMessageRecord),
+    readAiRuntimeSettings: input.readAiRuntimeSettings,
+    readAiProviderBindings: input.readAiProviderBindings,
+    consumeCredits,
+    refundConsumedCreditById,
   };
 }
 

@@ -5,6 +5,7 @@ import {
 import type { Order } from '@/domains/billing/infra/order';
 import { getRuntimeEnvString } from '@/infra/runtime/env.server';
 
+import { assertPaymentCapabilityEnabled } from '@/config/payment-capability';
 import { resolveRuntimeAppUrl } from '@/config/runtime-app-url';
 import {
   BadRequestError,
@@ -12,7 +13,6 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from '@/shared/lib/api/errors';
-import { assertPaymentCapabilityEnabled } from '@/config/payment-capability';
 import { jsonOk } from '@/shared/lib/api/response';
 import {
   resolveConfigConsistencyMode,
@@ -108,8 +108,7 @@ export function createPaymentCallbackPostAction<TSettings, TBindings>(
 
     return jsonOk({
       orderNo,
-      redirectUrl:
-        order.callbackUrl || toPaymentFallbackUrl(order.paymentType),
+      redirectUrl: order.callbackUrl || toPaymentFallbackUrl(order.paymentType),
     });
   };
 }

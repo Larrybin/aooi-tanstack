@@ -8,40 +8,23 @@ import {
 } from '../../scripts/smoke.mjs';
 
 test('smoke runner: public scenarios map to existing runner scripts', () => {
-  assert.deepEqual(Object.keys(SMOKE_SCENARIOS).sort(), [
-    'auth-spike',
-    'cf-admin-settings',
-    'cf-app',
-    'cf-local',
-  ]);
+  assert.deepEqual(Object.keys(SMOKE_SCENARIOS), ['auth-spike']);
 
   assert.equal(
     SMOKE_SCENARIOS['auth-spike'].script,
     'scripts/run-auth-spike.mjs'
   );
-  assert.equal(
-    SMOKE_SCENARIOS['cf-app'].script,
-    'scripts/run-cf-app-smoke.mjs'
-  );
-  assert.equal(
-    SMOKE_SCENARIOS['cf-admin-settings'].script,
-    'scripts/run-cf-admin-settings-smoke.mjs'
-  );
-  assert.equal(
-    SMOKE_SCENARIOS['cf-local'].script,
-    'scripts/run-cf-local-smoke.mjs'
-  );
 });
 
 test('smoke runner: scenario command keeps tsx loader for TS imports', () => {
-  const command = getSmokeScenarioCommand('cf-app', {
+  const command = getSmokeScenarioCommand('auth-spike', {
     nodePath: '/usr/local/bin/node',
   });
 
   assert.equal(command.command, '/usr/local/bin/node');
   assert.deepEqual(command.args.slice(0, 2), ['--import', 'tsx']);
   assert.equal(
-    command.args.at(-1)?.endsWith('scripts/run-cf-app-smoke.mjs'),
+    command.args.at(-1)?.endsWith('scripts/run-auth-spike.mjs'),
     true
   );
 });
@@ -54,24 +37,4 @@ test('package scripts: public smoke command names stay stable', async () => {
     'node --import tsx scripts/smoke.mjs auth-spike'
   );
   assert.equal(packageJson.scripts['test:extended'], 'pnpm test:auth-spike');
-  assert.equal(
-    packageJson.scripts['test:cf-app-smoke'],
-    'node scripts/run-with-site.mjs node --import tsx scripts/smoke.mjs cf-app'
-  );
-  assert.equal(
-    packageJson.scripts['test:cf-local-smoke'],
-    'node scripts/run-with-site.mjs node --import tsx scripts/smoke.mjs cf-local'
-  );
-  assert.match(
-    packageJson.scripts['test:cf-admin-settings-smoke'],
-    /pnpm cf:build/
-  );
-  assert.match(
-    packageJson.scripts['test:cf-admin-settings-smoke'],
-    /node scripts\/run-with-site\.mjs node --import tsx scripts\/smoke\.mjs cf-admin-settings$/
-  );
-  assert.match(
-    packageJson.scripts['test:remover-workers-ai-spike'],
-    /SMOKE_AUTH_REQUIRED=true/
-  );
 });

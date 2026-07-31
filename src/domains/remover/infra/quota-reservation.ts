@@ -1,4 +1,3 @@
-
 import type { ProductActor } from '@/domains/product-access/domain/actor';
 import {
   reserveProductQuota,

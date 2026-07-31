@@ -1,4 +1,4 @@
-name = "roller-rabbit-state"
+name = "aooi-state-template"
 main = "workers/state.ts"
 compatibility_date = "2025-03-01"
 compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
@@ -10,14 +10,11 @@ name = "STATEFUL_LIMITERS"
 class_name = "StatefulLimitersDurableObject"
 
 [[migrations]]
-tag = "cloudflare-state-v1"
-new_sqlite_classes = [
-  "StatefulLimitersDurableObject",
-]
+tag = "aooi-state-v1"
+new_sqlite_classes = ["StatefulLimitersDurableObject"]
 
 [observability]
 enabled = true
 
 [vars]
 DEPLOY_TARGET = "cloudflare"
-NEXT_PUBLIC_APP_URL = "https://mamamiya.pdfreprinting.net/"

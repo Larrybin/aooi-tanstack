@@ -32,8 +32,5 @@ test('pre-tool policy keeps destructive git commands blocked', () => {
   const output = JSON.parse(result.stdout);
 
   assert.equal(result.status, 0);
-  assert.equal(
-    output.hookSpecificOutput.permissionDecision,
-    'deny'
-  );
+  assert.equal(output.hookSpecificOutput.permissionDecision, 'deny');
 });

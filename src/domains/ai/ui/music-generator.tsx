@@ -22,7 +22,6 @@ import {
 import { toast } from 'sonner';
 
 import { AIMediaType } from '@/extensions/ai';
-import { createAiTranslator, type AiUiMessages } from './i18n';
 import { AppImage } from '@/shared/blocks/common/app-image';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
@@ -46,6 +45,8 @@ import { Switch } from '@/shared/components/ui/switch';
 import { Textarea } from '@/shared/components/ui/textarea';
 import { useBlobDownload } from '@/shared/hooks/use-blob-download';
 import { cn } from '@/shared/lib/utils';
+
+import { createAiTranslator, type AiUiMessages } from './i18n';
 
 interface SongGeneratorProps {
   locale: string;

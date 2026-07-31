@@ -103,9 +103,10 @@ resolution, billing, runtime, job lifecycle, media asset, provider, or editor
 behavior. AI Remover is the first consumer, and this stage does not rename or
 replace the existing `remover_quota_reservation` table.
 `src/domains/product-runtime/**` is the generic product runtime binding
-contract layer. It only models which workers, bindings, vars, and secrets a
-product needs at deploy/runtime boundaries. AI Remover declares `public-web`,
-`workersAi`, `storagePublicBaseUrl`, and `removerCleanup` as its current
+contract layer. It only models which workers, resources, bindings, vars, and
+secrets a product needs at deploy/runtime boundaries. AI Remover declares the
+App Worker, `workersAi`, R2, State, `storagePublicBaseUrl`, and
+`removerCleanup` as its current
 runtime requirements. Product runtime AI binding is separate from the platform
 `ai` module entry: AI Remover omits `ai` from `capabilities.enabledModules`
 because it does not enable the shared chat/generator module, while still

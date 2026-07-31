@@ -13,14 +13,25 @@ function uniqueStrings(values: string[]) {
 
 function buildRobotsTxt() {
   const appUrl = stripTrailingSlash(site.brand.appUrl);
-  const protectedRoots = ['/admin', '/settings', '/activity', '/chat', '/my-images'];
+  const protectedRoots = [
+    '/admin',
+    '/settings',
+    '/activity',
+    '/chat',
+    '/my-images',
+  ];
   const disallow = uniqueStrings([
     '/*?*q=',
     ...protectedRoots.flatMap((root) => {
       const localePrefixed = locales
         .filter((locale) => locale !== defaultLocale)
         .map((locale) => `/${locale}${root}`);
-      return [root, `${root}/`, ...localePrefixed, ...localePrefixed.map((p) => `${p}/`)];
+      return [
+        root,
+        `${root}/`,
+        ...localePrefixed,
+        ...localePrefixed.map((p) => `${p}/`),
+      ];
     }),
   ]);
 

@@ -14,10 +14,14 @@ const aiRemoverRuntimeContract = defineProductRuntimeContract({
   siteKey: 'ai-remover',
   productKey: 'ai-remover',
   requiredWorkers: {
-    'public-web': true,
+    app: true,
   },
   requiredBindings: {
     workersAi: true,
+  },
+  requiredResources: {
+    r2: true,
+    state: true,
   },
   requiredVars: {
     storagePublicBaseUrl: true,
@@ -30,13 +34,16 @@ const aiRemoverRuntimeContract = defineProductRuntimeContract({
 const validTarget = {
   siteKey: 'ai-remover',
   workers: {
-    router: 'aooi-ai-remover-router',
+    app: 'aooi-ai-remover-router',
     state: 'aooi-ai-remover-state',
-    'public-web': 'aooi-ai-remover-public-web',
   },
-  bindingRequirements: {
+  runtime: {
     bindings: {
       workersAi: true,
+    },
+    resources: {
+      r2: true,
+      state: true,
     },
     vars: {
       storagePublicBaseUrl: true,
@@ -54,8 +61,9 @@ test('assertProductRuntimeContract accepts matching product runtime requirements
   });
 
   assert.deepEqual(result.required, {
-    workers: ['public-web'],
+    workers: ['app'],
     bindings: ['workersAi'],
+    resources: ['r2', 'state'],
     vars: ['storagePublicBaseUrl'],
     secrets: ['removerCleanup'],
   });
@@ -66,13 +74,12 @@ test('checkProductRuntimeContract reports missing bindings, vars, secrets, and w
     contract: aiRemoverRuntimeContract,
     target: {
       siteKey: 'ai-remover',
-      workers: {
-        router: 'aooi-ai-remover-router',
-      },
-      bindingRequirements: {
+      workers: {},
+      runtime: {
         bindings: {
           workersAi: false,
         },
+        resources: {},
         vars: {},
         secrets: {},
       },
@@ -80,8 +87,10 @@ test('checkProductRuntimeContract reports missing bindings, vars, secrets, and w
   });
 
   assert.deepEqual(result.issues, [
-    { code: 'missing_worker', key: 'public-web' },
+    { code: 'missing_worker', key: 'app' },
     { code: 'missing_binding', key: 'workersAi' },
+    { code: 'missing_resource', key: 'r2' },
+    { code: 'missing_resource', key: 'state' },
     { code: 'missing_var', key: 'storagePublicBaseUrl' },
     { code: 'missing_secret', key: 'removerCleanup' },
   ]);
@@ -94,8 +103,8 @@ test('assertProductRuntimeContract throws a typed error for missing runtime cont
         contract: aiRemoverRuntimeContract,
         target: {
           ...validTarget,
-          bindingRequirements: {
-            ...validTarget.bindingRequirements,
+          runtime: {
+            ...validTarget.runtime,
             secrets: {
               removerCleanup: false,
             },

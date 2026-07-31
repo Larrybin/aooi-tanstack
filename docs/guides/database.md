@@ -266,43 +266,26 @@ The `db()` function automatically detects and uses Hyperdrive.
 Hyperdrive IDs belong in deploy settings, not local env files:
 
 - Local Node.js development and Drizzle commands use a direct `DATABASE_URL`.
-- Cloudflare preview uses
-  `sites/<site-key>/deploy.preview.settings.json`
-  `resources.hyperdriveId`.
 - Cloudflare production uses `sites/<site-key>/deploy.settings.json`
   `resources.hyperdriveId`.
 
-Tracked Wrangler configs are templates. Keep every checked-in `localConnectionString = ""` and generate a temporary Wrangler config when local Hyperdrive access is needed.
+Wrangler config is generated under `.generated/cloudflare/<site-key>` and keeps
+`localConnectionString = ""`.
 
 Cloudflare helper commands:
 
 - `pnpm cf:check`
 - `pnpm cf:build`
-- `SITE=<site-key> pnpm test:cf-local-smoke`
-- `SITE=<site-key> pnpm test:cf-admin-settings-smoke`
-- `SITE=<site-key> pnpm test:cf-app-smoke`
+- `SITE=<site-key> pnpm site:gate -- --cloudflare`
 - `pnpm cf:typegen`
 - `pnpm cf:typegen:check`
 - `pnpm cf:deploy:state`
 - `pnpm cf:deploy:app`
 - `pnpm cf:deploy` (`pnpm cf:deploy:app` 的别名)
 
-Smoke commands keep their public package names, but they now route through `scripts/smoke.mjs <scenario>` internally. Cloudflare local runtime uses the `cf-local` scenario, admin/settings storage smoke uses `cf-admin-settings`, and production read-only app smoke uses `cf-app`.
-
-`SITE=<site-key> pnpm test:cf-admin-settings-smoke` is intentionally a smaller local acceptance chain: it seeds the required settings rows directly in Postgres, uploads through the real Cloudflare runtime API, and then validates public config projection plus the missing-`STORAGE_PUBLIC_BASE_URL` failure path inside the same generated local Cloudflare runtime session.
-
-`pnpm cf:build` now validates the router/app workers through `wrangler versions upload --dry-run` instead of trusting raw intermediate `handler.mjs` file size. State preflight is owned by `pnpm cf:check -- --workers=state` and `pnpm cf:deploy:state`; it only verifies the Durable Object artifacts imported by the state worker, not router/server worker bundles.
-
-`SITE=<site-key> pnpm test:cf-app-smoke` is the Cloudflare full-app smoke: landing, sign-in, sign-up, docs, public config API, sitemap, robots, and same-origin protected-route redirects back to `/sign-in`.
-
-The smoke is read-only. It must not upsert public config values or mutate the `config` table in local runtime or production.
-
-The governed deployment posture is Cloudflare-only: production deploys use the canonical native TanStack multi-worker topology with Hyperdrive.
-
-State Worker migrations must stay state-safe. Router request dispatch changes belong in `pnpm cf:deploy:app`, while Durable Object owner/migration changes belong in `pnpm cf:deploy:state`.
-`pnpm cf:deploy:app` is a pure app release step. It does not bootstrap missing router/server deployments, so brand-new or partially initialized production environments must run `pnpm cf:deploy:state` first and `pnpm cf:deploy` second.
-
-`Cloudflare Deploy Acceptance` keeps DB schema governance in the schema migration guard, while production migrations remain owned by the local release command before deploy. The split `cloudflare-acceptance` matrix job no longer starts a temporary Postgres service or runs `pnpm db:migrate`; it runs Cloudflare checks and `pnpm cf:build:no-db --site=<site>` with direct database URLs cleared.
+`pnpm cf:build` validates the App Worker and optional State Worker with Wrangler
+dry runs. `pnpm release:cf` migrates and verifies the journal before deploying
+State and App Workers in that order.
 
 ## Best Practices
 

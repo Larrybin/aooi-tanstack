@@ -1,11 +1,9 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readdir, readFile, writeFile } from 'node:fs/promises';
-import os from 'node:os';
+import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { ensureCiDevVars } from '../../scripts/lib/cloudflare-preview-smoke.mjs';
 import {
   CLOUDFLARE_SECRET_ENV_KEYS,
   findUnknownPublicEnvKeys,
@@ -123,24 +121,4 @@ test('非白名单运行时代码不得直接访问或传播 process.env', async
   }
 
   assert.deepEqual(offenders, []);
-});
-
-test('.dev.vars 的生成/复用逻辑只允许输出 allowlist 内键', async () => {
-  const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'env-contract-'));
-  const devVarsPath = path.join(tmpDir, '.dev.vars');
-  const originalContent = 'FOO=bar\nAUTH_SECRET=\n';
-
-  await writeFile(devVarsPath, originalContent, 'utf8');
-
-  await assert.rejects(
-    () =>
-      ensureCiDevVars({
-        authSecret: 'preview-secret',
-        devVarsPath,
-      }),
-    /unsupported keys: FOO/i
-  );
-
-  const nextContent = await readFile(devVarsPath, 'utf8');
-  assert.equal(nextContent, originalContent);
 });

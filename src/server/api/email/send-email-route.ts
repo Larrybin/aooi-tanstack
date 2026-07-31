@@ -1,4 +1,5 @@
 import type { EmailService } from '@/infra/adapters/email/service-builder';
+import type { z } from 'zod';
 
 import type { EmailSendResult } from '@/extensions/email';
 import { PERMISSIONS } from '@/shared/constants/rbac-permissions';
@@ -12,7 +13,6 @@ import { jsonOk } from '@/shared/lib/api/response';
 import { withApi } from '@/shared/lib/api/route';
 import { maskEmail, normalizeEmail } from '@/shared/lib/email';
 import { EmailSendBodySchema } from '@/shared/schemas/api/email/send-email';
-import type { z } from 'zod';
 
 const MAX_EMAIL_RECIPIENTS = 10;
 

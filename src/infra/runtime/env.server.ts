@@ -28,12 +28,6 @@ export type CloudflareBindings = {
   APP_STORAGE_R2_BUCKET?: R2Bucket;
   STATEFUL_LIMITERS?: unknown;
   NEXT_PUBLIC_TURNSTILE_SITE_KEY?: string;
-  PUBLIC_WEB_WORKER?: Fetcher;
-  AUTH_WORKER?: Fetcher;
-  PAYMENT_WORKER?: Fetcher;
-  MEMBER_WORKER?: Fetcher;
-  CHAT_WORKER?: Fetcher;
-  ADMIN_WORKER?: Fetcher;
   APP_ENVIRONMENT?: string;
   INTERNAL_ENTITLEMENT_GRANTS_ENABLED?: string;
   BETTER_AUTH_SECRET?: string;

@@ -20,7 +20,7 @@ Docs and Blog are optional content modules:
 ## Minimum Verification Commands
 
 - `pnpm test`
-- `pnpm test:cf-app-smoke`
+- `SITE=<site-key> pnpm site:gate -- --cloudflare`
 
 ## Common Failure Modes
 

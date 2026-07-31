@@ -1,4 +1,3 @@
-
 import type {
   AuthServerBindings,
   AuthUiRuntimeSettings,
@@ -47,9 +46,8 @@ export type AuthConfigDeps = {
 };
 
 async function readDefaultAuthUiRuntimeSettings(): Promise<AuthUiRuntimeSettings> {
-  const { readAuthUiRuntimeSettingsCached } = await import(
-    '@/domains/settings/application/settings-runtime.query'
-  );
+  const { readAuthUiRuntimeSettingsCached } =
+    await import('@/domains/settings/application/settings-runtime.query');
   return readAuthUiRuntimeSettingsCached();
 }
 

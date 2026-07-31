@@ -11,11 +11,14 @@ test('defineProductRuntimeContract preserves product runtime requirements', () =
     siteKey: 'ai-remover',
     productKey: 'ai-remover',
     requiredWorkers: {
-      'public-web': true,
-      chat: false,
+      app: true,
     },
     requiredBindings: {
       workersAi: true,
+    },
+    requiredResources: {
+      r2: true,
+      state: true,
     },
     requiredVars: {
       storagePublicBaseUrl: true,
@@ -26,8 +29,9 @@ test('defineProductRuntimeContract preserves product runtime requirements', () =
   });
 
   assert.deepEqual(getProductRuntimeRequiredKeys(contract), {
-    workers: ['public-web'],
+    workers: ['app'],
     bindings: ['workersAi'],
+    resources: ['r2', 'state'],
     vars: ['storagePublicBaseUrl'],
     secrets: ['removerCleanup'],
   });

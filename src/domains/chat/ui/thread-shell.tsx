@@ -1,9 +1,10 @@
 'use client';
 
-import { ChatBox } from './box';
 import type { UIMessage } from 'ai';
 
 import type { Chat } from '@/shared/types/chat';
+
+import { ChatBox } from './box';
 
 export function ChatThreadShell({
   initialChat,

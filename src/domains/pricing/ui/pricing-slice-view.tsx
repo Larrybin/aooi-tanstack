@@ -66,7 +66,7 @@ export function isCurrentSubscriptionPricingItem(
 ) {
   return Boolean(
     currentSubscriptionProductId &&
-      item.product_id === currentSubscriptionProductId
+    item.product_id === currentSubscriptionProductId
   );
 }
 

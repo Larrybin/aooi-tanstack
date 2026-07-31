@@ -1,4 +1,3 @@
-
 import { appendUserToResult, type User } from '@/domains/account/infra/user';
 import { db } from '@/infra/adapters/db';
 import { and, count, desc, eq, or, type SQL } from 'drizzle-orm';

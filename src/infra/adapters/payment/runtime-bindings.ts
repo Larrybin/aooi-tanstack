@@ -1,4 +1,3 @@
-
 import type { PaymentRuntimeBindings } from '@/domains/settings/application/settings-runtime.contracts';
 import {
   getRuntimeEnvString,

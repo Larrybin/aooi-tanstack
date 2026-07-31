@@ -1,8 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import type {
+  AiProviderBindings,
+  AiRuntimeSettings,
+} from '@/domains/settings/application/settings-runtime.contracts';
 
 import { AITaskStatus } from '@/extensions/ai';
-import type { AiProviderBindings, AiRuntimeSettings } from '@/domains/settings/application/settings-runtime.contracts';
 
 import { createAiQueryPostHandler, type AiQueryRouteDeps } from './query-route';
 
@@ -14,7 +17,9 @@ const BINDINGS: AiProviderBindings = {
   kieApiKey: '',
 };
 
-function createDeps(overrides: Partial<AiQueryRouteDeps> = {}): AiQueryRouteDeps {
+function createDeps(
+  overrides: Partial<AiQueryRouteDeps> = {}
+): AiQueryRouteDeps {
   const log = {
     debug() {},
     info() {},
@@ -139,7 +144,9 @@ test('ai query updates task from provider result', async () => {
   );
 
   const response = await handler(new Request('http://localhost/api/ai/query'));
-  const body = (await response.json()) as { data: { status: string; taskInfo: unknown } };
+  const body = (await response.json()) as {
+    data: { status: string; taskInfo: unknown };
+  };
 
   assert.equal(response.status, 200);
   assert.equal(body.data.status, AITaskStatus.SUCCESS);

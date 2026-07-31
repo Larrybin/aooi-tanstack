@@ -1,36 +1,11 @@
 {
-  "configVersion": 1,
-  "bindingRequirements": {
-    "bindings": {
-      "hyperdrive": true,
-      "workersAi": false
-    },
-    "secrets": {
-      "authSharedSecret": true,
-      "googleOauth": false,
-      "githubOauth": false,
-      "removerCleanup": false,
-      "turnstile": false
-    },
-    "vars": {
-      "storagePublicBaseUrl": true
-    }
-  },
+  "configVersion": 2,
   "workers": {
-    "router": "aooi-dev-local-router",
-    "state": "aooi-dev-local-state",
-    "public-web": "aooi-dev-local-public-web",
-    "auth": "aooi-dev-local-auth",
-    "payment": "aooi-dev-local-payment",
-    "member": "aooi-dev-local-member",
-    "chat": "aooi-dev-local-chat",
-    "admin": "aooi-dev-local-admin"
+    "app": "aooi-dev-local-router",
+    "state": "aooi-dev-local-state"
   },
   "resources": {
-    "appStorageBucket": "aooi-dev-local-storage",
-    "hyperdriveId": "d208cd72765b46a7b0849fc687e2fb61"
-  },
-  "state": {
-    "schemaVersion": 1
+    "hyperdriveId": "d208cd72765b46a7b0849fc687e2fb61",
+    "appStorageBucket": "aooi-dev-local-storage"
   }
 }

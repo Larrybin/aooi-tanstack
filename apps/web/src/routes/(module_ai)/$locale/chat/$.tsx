@@ -2,11 +2,14 @@ import {
   loadChatShellRouteData,
   loadChatThreadRouteData,
 } from '@/server/chat/chat-route-data';
+import type {
+  ChatShellRouteData,
+  ChatThreadRouteData,
+} from '@/server/chat/chat-route-resolver';
 import {
   ChatHistoryRouteView,
   ChatThreadRouteView,
 } from '@/surfaces/chat/chat-route.view';
-import type { ChatShellRouteData, ChatThreadRouteData } from '@/server/chat/chat-route-resolver';
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
 import type { UIMessage } from 'ai';
 
@@ -47,7 +50,9 @@ function ChatSplatRoute() {
     <ChatThreadRouteView
       initialUser={routeData.data.initialUser}
       initialChat={routeData.data.initialChat}
-      initialMessages={JSON.parse(routeData.data.initialMessagesJson) as UIMessage[]}
+      initialMessages={
+        JSON.parse(routeData.data.initialMessagesJson) as UIMessage[]
+      }
     />
   );
 }

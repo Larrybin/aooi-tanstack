@@ -96,6 +96,7 @@ test('getServerPublicEnvConfigs 不承载站点 identity fallback', () => {
   const configs = getServerPublicEnvConfigs({
     env: createEnv({
       NODE_ENV: 'production',
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: '',
     }),
     bindings: null,
   });

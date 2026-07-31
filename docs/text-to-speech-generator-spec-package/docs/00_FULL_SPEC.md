@@ -2,7 +2,7 @@
 
 Version: v1.0  
 Date: 2026-06-05  
-Repository target: `Larrybin/aooi`  
+Repository target: `Larrybin/aooi-tanstack`
 Site key: `text-to-speech-generator`  
 Brand: `Text to Speech Generator`  
 Production domain: `TBD`  

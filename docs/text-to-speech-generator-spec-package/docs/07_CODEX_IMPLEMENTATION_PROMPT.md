@@ -1,13 +1,13 @@
 # Codex Implementation Prompt
 
-You are working in the `Larrybin/aooi` repository.
+You are working in the `Larrybin/aooi-tanstack` repository.
 
 Goal: implement the v1 `text-to-speech-generator` SaaS site according to the included SPEC package.
 
 ## Critical Rules
 
 1. Do not start coding before auditing existing aooi patterns.
-2. First inspect existing site instance conventions, auth, payment, entitlement, quota, public-web routing, Cloudflare bindings, sitemap/canonical logic, and tests.
+2. First inspect existing site instance conventions, auth, payment, entitlement, quota, App Worker routing, Cloudflare bindings, sitemap/canonical logic, and tests.
 3. Reuse aooi existing architecture. Do not create a parallel auth/payment/quota stack unless the repo has no compatible pattern.
 4. The site key is `text-to-speech-generator`.
 5. Homepage `/` is the main generator page.

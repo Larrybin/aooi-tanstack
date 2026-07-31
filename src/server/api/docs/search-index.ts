@@ -70,9 +70,8 @@ export async function searchPublicDocsIndex(input: {
   locale?: string | null;
   limit?: number;
 }) {
-  const { getLocalPublicContentDocuments } = await import(
-    '@/domains/content/application/public-content-manifest'
-  );
+  const { getLocalPublicContentDocuments } =
+    await import('@/domains/content/application/public-content-manifest');
 
   return searchDocsIndex({
     ...input,

@@ -104,7 +104,7 @@ export function buildAuthRuntimeDiagnostics({
       status: 'handler-bindings-missing',
       title: 'OAuth handler bindings are incomplete',
       description:
-        'The auth handler worker does not have all provider credentials required to complete the enabled OAuth flows.',
+        'The App Worker does not have all provider credentials required to complete the enabled OAuth flows.',
     };
   } else if (
     settings.googleOneTapRequested &&
@@ -112,9 +112,9 @@ export function buildAuthRuntimeDiagnostics({
   ) {
     summary = {
       status: 'one-tap-bindings-missing',
-      title: 'Google One Tap is unavailable on the auth UI worker',
+      title: 'Google One Tap is unavailable on the App Worker',
       description:
-        'The auth UI worker is missing GOOGLE_CLIENT_ID, so Google One Tap cannot initialize even though Google auth itself is enabled.',
+        'The App Worker is missing GOOGLE_CLIENT_ID, so Google One Tap cannot initialize even though Google auth itself is enabled.',
     };
   } else if (googleCachedStale || githubCachedStale || oneTapCachedStale) {
     summary = {
@@ -128,7 +128,7 @@ export function buildAuthRuntimeDiagnostics({
       status: 'ready',
       title: 'Auth runtime contract is aligned',
       description:
-        'The auth UI worker and auth handler worker agree with the current settings, so social auth should render and complete successfully.',
+        'The App Worker runtime agrees with the current settings, so social auth should render and complete successfully.',
     };
   }
 

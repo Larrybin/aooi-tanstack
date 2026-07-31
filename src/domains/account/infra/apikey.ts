@@ -1,4 +1,3 @@
-
 import { db } from '@/infra/adapters/db';
 import { and, count, desc, eq } from 'drizzle-orm';
 

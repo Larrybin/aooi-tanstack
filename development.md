@@ -58,9 +58,9 @@ The root TypeScript config includes both `src/**` and `apps/web/src/**`.
 Production artifacts are `dist/client/**` and
 `dist/server/entry.server.mjs`.
 
-Use `pnpm run ci` for the complete repository gate. It runs the default check,
-builds `dev-local`, checks the client boundary and architecture, then performs
-strict i18n validation.
+Use `pnpm run ci` for the complete repository gate. It runs formatting, lint,
+typecheck, tests, architecture checks, then dynamically discovers and validates
+every site with build, client boundary, strict i18n, and Cloudflare acceptance.
 
 ## Database
 
@@ -92,9 +92,9 @@ server Worker that participates in auth.
 ## Configuration
 
 Site identity and capabilities belong in
-`sites/<site-key>/site.config.json`. Deployment topology and required bindings
-belong in `sites/<site-key>/deploy.settings.json`. Runtime env access must go
-through `src/config/env-contract.ts` and approved helpers.
+`sites/<site-key>/site.config.json`. App/State Worker names and optional
+Cloudflare resource identities belong in
+`sites/<site-key>/deploy.settings.json`. Runtime requirements are derived.
 
 Existing `NEXT_PUBLIC_*` keys are intentionally retained as external deployment
 inputs. Do not introduce new framework compatibility keys.
@@ -108,12 +108,11 @@ RESEND_API_KEY=ci-resend-api-key-not-for-production SITE=dev-local pnpm cf:check
 SITE=dev-local pnpm cf:build
 pnpm cf:build:no-db --site=mp4-compressor
 RESEND_API_KEY=ci-resend-api-key-not-for-production SITE=dev-local pnpm cf:typegen:check
-SITE=dev-local pnpm test:cf-local-smoke
+SITE=dev-local pnpm site:gate -- --cloudflare
 ```
 
-`pnpm cf:build` builds the native TanStack server artifact and validates each
-active router/server Worker bundle. The canonical local smoke starts the
-generated multi-Worker topology through Wrangler and tests the router origin.
+`pnpm cf:build` builds the native TanStack server artifact and validates the
+site's App Worker plus its optional State Worker.
 
 Deployment commands are explicit and never part of ordinary validation:
 
@@ -129,8 +128,8 @@ the selected site module, content source, and active Worker contract.
 
 ```bash
 SITE=dev-local pnpm site:contract
-SITE=mp4-compressor pnpm site:gate
-SITE=ai-remover pnpm contract:check
+SITE=mp4-compressor pnpm site:gate -- --cloudflare
+SITE=ai-remover pnpm site:gate -- --cloudflare
 ```
 
 Use strict i18n checks whenever route-source configuration or localized assets

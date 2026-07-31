@@ -5,8 +5,8 @@ import type { PricingRouteData } from '@/domains/pricing/application/pricing-pag
 import { renderToStaticMarkup } from 'react-dom/server';
 
 import {
-  PricingSliceView,
   isCurrentSubscriptionPricingItem,
+  PricingSliceView,
   resolveCheckoutFailureAction,
   resolvePricingCheckoutReadiness,
 } from './pricing-slice-view';
@@ -163,7 +163,10 @@ test('PricingSliceView defaults zh checkout display to CNY currency', () => {
 
 test('isCurrentSubscriptionPricingItem matches the active subscription product id', () => {
   assert.equal(
-    isCurrentSubscriptionPricingItem({ product_id: 'pro-monthly' }, 'pro-monthly'),
+    isCurrentSubscriptionPricingItem(
+      { product_id: 'pro-monthly' },
+      'pro-monthly'
+    ),
     true
   );
   assert.equal(

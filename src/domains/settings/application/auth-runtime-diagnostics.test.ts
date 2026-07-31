@@ -12,7 +12,7 @@ test('auth runtime diagnostics: reports cached-stale when auth UI worker cached 
     },
     authUiWorker: {
       role: 'auth-ui',
-      workerTarget: 'public-web',
+      workerTarget: 'app',
       cached: {
         emailAuthEnabled: true,
         googleAuthEnabled: false,
@@ -34,7 +34,7 @@ test('auth runtime diagnostics: reports cached-stale when auth UI worker cached 
     },
     authHandlerWorker: {
       role: 'auth-handler',
-      workerTarget: 'auth',
+      workerTarget: 'app',
       googleCredentialsReady: true,
       githubCredentialsReady: true,
     },
@@ -52,7 +52,7 @@ test('auth runtime diagnostics: reports handler-bindings-missing when enabled pr
     },
     authUiWorker: {
       role: 'auth-ui',
-      workerTarget: 'public-web',
+      workerTarget: 'app',
       cached: {
         emailAuthEnabled: true,
         googleAuthEnabled: true,
@@ -74,7 +74,7 @@ test('auth runtime diagnostics: reports handler-bindings-missing when enabled pr
     },
     authHandlerWorker: {
       role: 'auth-handler',
-      workerTarget: 'auth',
+      workerTarget: 'app',
       googleCredentialsReady: false,
       githubCredentialsReady: true,
     },
@@ -92,7 +92,7 @@ test('auth runtime diagnostics: reports one-tap-bindings-missing when Google One
     },
     authUiWorker: {
       role: 'auth-ui',
-      workerTarget: 'public-web',
+      workerTarget: 'app',
       cached: {
         emailAuthEnabled: true,
         googleAuthEnabled: true,
@@ -114,7 +114,7 @@ test('auth runtime diagnostics: reports one-tap-bindings-missing when Google One
     },
     authHandlerWorker: {
       role: 'auth-handler',
-      workerTarget: 'auth',
+      workerTarget: 'app',
       googleCredentialsReady: true,
       githubCredentialsReady: true,
     },
@@ -132,7 +132,7 @@ test('auth runtime diagnostics: reports ready when UI worker, handler worker, an
     },
     authUiWorker: {
       role: 'auth-ui',
-      workerTarget: 'public-web',
+      workerTarget: 'app',
       cached: {
         emailAuthEnabled: false,
         googleAuthEnabled: true,
@@ -154,7 +154,7 @@ test('auth runtime diagnostics: reports ready when UI worker, handler worker, an
     },
     authHandlerWorker: {
       role: 'auth-handler',
-      workerTarget: 'auth',
+      workerTarget: 'app',
       googleCredentialsReady: true,
       githubCredentialsReady: true,
     },

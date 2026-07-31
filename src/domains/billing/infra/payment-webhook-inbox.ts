@@ -1,4 +1,3 @@
-
 import { createHash } from 'crypto';
 import {
   PaymentEventType,

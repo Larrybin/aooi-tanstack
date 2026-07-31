@@ -3,8 +3,8 @@ import {
   resolveAuthSpikeRedirectRequestUrl,
   toRelativeSameOriginAuthSpikeRedirectLocationValue,
 } from '@/infra/platform/auth/auth-spike-redirect';
-import { isAuthSpikeOAuthUpstreamMockEnabled } from '@/infra/platform/auth/oauth-spike-config';
 import type { AuthConfigDeps } from '@/infra/platform/auth/config';
+import { isAuthSpikeOAuthUpstreamMockEnabled } from '@/infra/platform/auth/oauth-spike-config';
 import { getRuntimeEnvString } from '@/infra/runtime/env.server';
 
 import { setResponseHeader } from '@/shared/lib/api/response-headers';

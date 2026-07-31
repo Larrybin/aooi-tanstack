@@ -33,7 +33,10 @@ test('searchDocsIndex matches title and heading case-insensitively', () => {
 
   assert.equal(results[0]?.url, '/docs/quick-start#local-development');
   assert.equal(results[0]?.type, 'heading');
-  assert.equal(results.some((result) => result.url === '/docs/quick-start'), true);
+  assert.equal(
+    results.some((result) => result.url === '/docs/quick-start'),
+    true
+  );
 });
 
 test('searchDocsIndex filters by locale', () => {
@@ -44,7 +47,10 @@ test('searchDocsIndex filters by locale', () => {
   });
 
   assert.equal(results.length > 0, true);
-  assert.equal(results.every((result) => result.url.startsWith('/zh/')), true);
+  assert.equal(
+    results.every((result) => result.url.startsWith('/zh/')),
+    true
+  );
 });
 
 test('searchDocsIndex prefixes localized document urls from locale and slug', () => {
@@ -58,7 +64,11 @@ test('searchDocsIndex prefixes localized document urls from locale and slug', ()
 });
 
 test('searchDocsIndex returns deterministic limited results', () => {
-  const results = searchDocsIndex({ documents: DOCS, query: 'start', limit: 1 });
+  const results = searchDocsIndex({
+    documents: DOCS,
+    query: 'start',
+    limit: 1,
+  });
 
   assert.equal(results.length, 1);
   assert.equal(typeof results[0]?.id, 'string');

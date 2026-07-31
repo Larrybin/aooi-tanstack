@@ -1,10 +1,11 @@
+import type { z } from 'zod';
+
 import { PERMISSIONS } from '@/shared/constants/rbac-permissions';
 import { BadRequestError, TooManyRequestsError } from '@/shared/lib/api/errors';
 import { jsonOk } from '@/shared/lib/api/response';
 import { withApi } from '@/shared/lib/api/route';
 import { maskEmail, normalizeEmail } from '@/shared/lib/email';
 import { EmailVerifyCodeBodySchema } from '@/shared/schemas/api/email/verify-code';
-import type { z } from 'zod';
 
 type MaybePromise<T> = T | Promise<T>;
 type EmailRouteLog = {

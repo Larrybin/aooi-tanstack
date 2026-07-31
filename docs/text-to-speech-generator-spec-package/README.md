@@ -1,6 +1,6 @@
 # Text to Speech Generator SPEC Package
 
-This package contains the complete v1 product and technical documentation for building the `Text to Speech Generator` SaaS site in the `Larrybin/aooi` repository.
+This package contains the complete v1 product and technical documentation for building the `Text to Speech Generator` SaaS site in the `Larrybin/aooi-tanstack` repository.
 
 ## Files
 

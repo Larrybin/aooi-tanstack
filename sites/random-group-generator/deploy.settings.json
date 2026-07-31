@@ -1,31 +1,7 @@
 {
-  "configVersion": 1,
-  "bindingRequirements": {
-    "bindings": {
-      "hyperdrive": false,
-      "workersAi": false
-    },
-    "secrets": {
-      "authSharedSecret": false,
-      "googleOauth": false,
-      "githubOauth": false,
-      "removerCleanup": false,
-      "turnstile": false
-    },
-    "vars": {
-      "storagePublicBaseUrl": false
-    }
-  },
+  "configVersion": 2,
   "workers": {
-    "router": "aooi-random-group-generator-router",
-    "state": "aooi-random-group-generator-state",
-    "public-web": "aooi-random-group-generator-public-web"
+    "app": "aooi-random-group-generator-router"
   },
-  "resources": {
-    "appStorageBucket": "aooi-random-group-generator-storage",
-    "hyperdriveId": "00000000000000000000000000000007"
-  },
-  "state": {
-    "schemaVersion": 1
-  }
+  "resources": {}
 }

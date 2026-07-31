@@ -30,6 +30,8 @@ build
 *.d.ts
 !src/**/*.d.ts
 apps/web/src/routeTree.gen.ts
+src/paraglide
+src/shared/types/cloudflare.d.ts
 
 # Public assets
 public

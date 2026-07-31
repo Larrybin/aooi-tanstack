@@ -147,7 +147,7 @@ Notes:
 
 - `/api/auth/[...all]` is a passthrough to Better Auth and does not use `withApi()`; response shape and errors are defined by Better Auth.
 - Treat `/api/auth/**` as sensitive: do not cache it at the edge. The route sets `Cache-Control: no-store`.
-- `/api/auth/**` is validated by the Cloudflare smoke chain (`SITE=<site-key> pnpm test:cf-local-smoke`, `SITE=<site-key> pnpm test:cf-app-smoke`).
+- `/api/auth/**` is validated by `SITE=<site-key> pnpm site:gate -- --cloudflare`.
 
 ### User
 
