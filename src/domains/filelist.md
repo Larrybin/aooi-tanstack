@@ -10,6 +10,7 @@
 - `entitlements/`: entitlements 业务域的应用、领域、基础设施和 UI 代码目录。
 - `mp4-compressor/`: mp4-compressor 业务域的应用、领域、基础设施和 UI 代码目录。
 - `pricing/`: pricing 业务域的应用、领域、基础设施和 UI 代码目录。
+- `random-group-generator/`: random-group-generator 的分组规则和产品 UI。
 - `product-access/`: product-access 业务域的应用、领域、基础设施和 UI 代码目录。
 - `product-entitlements/`: product-entitlements 业务域的应用、领域、基础设施和 UI 代码目录。
 - `product-quota/`: product-quota 业务域的应用、领域、基础设施和 UI 代码目录。
