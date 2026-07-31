@@ -8,24 +8,33 @@ const clientAssetsDir = resolve(process.cwd(), 'dist/client/assets');
 const hasClientBuild = existsSync(clientAssetsDir);
 
 test(
-  '401k home view stays within the 30 kB gzip budget',
+  '401k home chunks stay within the 30 kB gzip budget',
   { skip: !hasClientBuild },
   () => {
-    const homeViewFiles = readdirSync(clientAssetsDir).filter(
-      (file) => file.startsWith('home.view-') && file.endsWith('.js')
-    );
+    const assetFiles = readdirSync(clientAssetsDir);
+    const chunkPrefixes = ['home.view-', '401k-calculator-home-'];
+    const homeChunkFiles = chunkPrefixes.map((prefix) => {
+      const matches = assetFiles.filter(
+        (file) => file.startsWith(prefix) && file.endsWith('.js')
+      );
 
-    assert.equal(
-      homeViewFiles.length,
-      1,
-      `expected one home.view client chunk, found ${homeViewFiles.join(', ')}`
+      assert.equal(
+        matches.length,
+        1,
+        `expected one ${prefix} client chunk, found ${matches.join(', ')}`
+      );
+      return matches[0]!;
+    });
+    const gzipBytes = homeChunkFiles.reduce(
+      (total, file) =>
+        total +
+        gzipSync(readFileSync(resolve(clientAssetsDir, file))).byteLength,
+      0
     );
-    const payload = readFileSync(resolve(clientAssetsDir, homeViewFiles[0]!));
-    const gzipBytes = gzipSync(payload).byteLength;
 
     assert.ok(
       gzipBytes <= 30 * 1024,
-      `home.view client chunk is ${(gzipBytes / 1024).toFixed(2)} kB gzip`
+      `401k home client chunks are ${(gzipBytes / 1024).toFixed(2)} kB gzip (${homeChunkFiles.join(', ')})`
     );
   }
 );
