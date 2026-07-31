@@ -100,9 +100,7 @@ pnpm rbac:assign -- --email=user@example.com --role=editor
 
 ## Error Handling
 
-The RBAC schema check verifies required columns such as `role.deleted_at`.
-
-In non-production, missing schema details include a migration hint. In production, checks throw a generic public error and log detailed hints server-side.
+RBAC normalizes a missing `role.deleted_at` query error into an operator-facing migration hint. Release readiness is enforced by the complete migration journal check.
 
 ## Related Files
 

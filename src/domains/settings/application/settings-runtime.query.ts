@@ -23,6 +23,7 @@ import type {
   EmailRuntimeBindings,
   EmailRuntimeSettings,
   PublicUiConfig,
+  RootRuntimeSettings,
 } from './settings-runtime.contracts';
 import { readSettingsCached, readSettingsFresh } from './settings-store';
 
@@ -93,6 +94,17 @@ export async function readCustomerServiceRuntimeSettingsCached(): Promise<Custom
 
 export async function readAdsRuntimeSettingsCached(): Promise<AdsRuntimeSettings> {
   return buildAdsRuntimeSettings(await readSettingsCached());
+}
+
+export async function readRootRuntimeSettingsCached(): Promise<RootRuntimeSettings> {
+  const configs = await readSettingsCached();
+
+  return {
+    ads: buildAdsRuntimeSettings(configs),
+    analytics: buildAnalyticsRuntimeSettings(configs),
+    affiliate: buildAffiliateRuntimeSettings(configs),
+    customerService: buildCustomerServiceRuntimeSettings(configs),
+  };
 }
 
 export async function readAdsRuntimeSettingsFresh(): Promise<AdsRuntimeSettings> {

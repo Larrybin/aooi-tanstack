@@ -1,10 +1,10 @@
 import { getPermissionMatchCandidates } from '@/domains/access-control/domain/policy';
-import { db } from '@/infra/adapters/db';
 import {
   buildPublicPermissionMisconfigurationError,
   buildRoleDeletedAtMissingHint,
   isMissingRoleDeletedAtColumnError,
-} from '@/infra/adapters/db/schema-check';
+} from '@/infra/adapters/access-control/role-schema-error';
+import { db } from '@/infra/adapters/db';
 import {
   createUseCaseLogger,
   logger,

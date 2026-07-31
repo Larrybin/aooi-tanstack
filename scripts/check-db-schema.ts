@@ -11,7 +11,13 @@
 
 import '@/config/load-dotenv';
 
-import { assertRoleDeletedAtColumnExists } from '@/infra/adapters/db/schema-check';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import {
+  assertMigrationJournalCurrent,
+  type MigrationRecord,
+} from '@/infra/adapters/db/migration-journal';
+import { readMigrationFiles } from 'drizzle-orm/migrator';
 import postgres from 'postgres';
 
 async function main() {
@@ -28,16 +34,46 @@ async function main() {
   });
 
   try {
-    await assertRoleDeletedAtColumnExists({
-      sql,
-      isProduction: process.env.NODE_ENV === 'production',
-      logger: {
-        error: (message, meta) => {
-          console.error(message, meta);
-        },
+    const migrations = readMigrationFiles({
+      migrationsFolder: path.resolve('src/config/db/migrations'),
+    });
+    const latest = migrations.at(-1);
+    if (!latest) {
+      throw new Error('No repository migrations found.');
+    }
+    const journal = JSON.parse(
+      await readFile(
+        path.resolve('src/config/db/migrations/meta/_journal.json'),
+        'utf8'
+      )
+    ) as { entries?: Array<{ tag?: string }> };
+    const latestTag = journal.entries?.at(-1)?.tag;
+    if (!latestTag) {
+      throw new Error('Migration journal has no latest tag.');
+    }
+
+    const rows = await sql<MigrationRecord[]>`
+      select hash, created_at as "createdAt"
+      from drizzle.__drizzle_migrations
+      order by created_at desc
+      limit 1
+    `;
+    const applied = rows[0]
+      ? {
+          hash: rows[0].hash,
+          createdAt: Number(rows[0].createdAt),
+        }
+      : null;
+
+    assertMigrationJournalCurrent({
+      applied,
+      expected: {
+        hash: latest.hash,
+        createdAt: latest.folderMillis,
+        tag: latestTag,
       },
     });
-    console.log('db: schema check ok', { check: 'schema.role.deleted_at' });
+    console.log('db: migration journal current');
   } finally {
     try {
       await sql.end?.({ timeout: 5 });

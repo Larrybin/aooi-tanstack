@@ -10,13 +10,9 @@ import type {
   AffiliateRuntimeSettings,
   AnalyticsRuntimeSettings,
   CustomerServiceRuntimeSettings,
+  RootRuntimeSettings,
 } from '@/domains/settings/application/settings-runtime.contracts';
-import {
-  readAdsRuntimeSettingsCached,
-  readAffiliateRuntimeSettingsCached,
-  readAnalyticsRuntimeSettingsCached,
-  readCustomerServiceRuntimeSettingsCached,
-} from '@/domains/settings/application/settings-runtime.query';
+import { readRootRuntimeSettingsCached } from '@/domains/settings/application/settings-runtime.query';
 import type { ResolvedAdsRuntime } from '@/infra/adapters/ads/runtime';
 import { createAdsRuntime } from '@/infra/adapters/ads/service';
 import { createAffiliateManager } from '@/infra/adapters/affiliate/service';
@@ -53,10 +49,7 @@ export type RootRuntimeInjectionDeps = {
   isProductionEnv: () => boolean;
   isDebugEnv: () => boolean;
   shouldReadRuntimeSettings?: () => boolean;
-  readAdsRuntimeSettingsCached: () => Promise<AdsRuntimeSettings>;
-  readAnalyticsRuntimeSettingsCached: () => Promise<AnalyticsRuntimeSettings>;
-  readAffiliateRuntimeSettingsCached: () => Promise<AffiliateRuntimeSettings>;
-  readCustomerServiceRuntimeSettingsCached: () => Promise<CustomerServiceRuntimeSettings>;
+  readRootRuntimeSettingsCached: () => Promise<RootRuntimeSettings>;
   createAdsRuntime: (settings: AdsRuntimeSettings) => ResolvedAdsRuntime;
   createAnalyticsManager: (
     settings: AnalyticsRuntimeSettings
@@ -222,35 +215,25 @@ export async function resolveRootRuntimeInjections(
     return cloneEmptyInjections();
   }
 
-  const [
-    adsSettings,
-    analyticsSettings,
-    affiliateSettings,
-    customerServiceSettings,
-  ] = await Promise.all([
-    deps.readAdsRuntimeSettingsCached(),
-    deps.readAnalyticsRuntimeSettingsCached(),
-    deps.readAffiliateRuntimeSettingsCached(),
-    deps.readCustomerServiceRuntimeSettingsCached(),
-  ]);
+  const settings = await deps.readRootRuntimeSettingsCached();
 
   const result = cloneEmptyInjections();
-  const adsRuntime = deps.createAdsRuntime(adsSettings);
+  const adsRuntime = deps.createAdsRuntime(settings.ads);
   if (adsRuntime.enabled) {
     appendProviderInjections(result, adsRuntime.provider);
   }
 
   appendProviderInjections(
     result,
-    deps.createAnalyticsManager(analyticsSettings)
+    deps.createAnalyticsManager(settings.analytics)
   );
   appendProviderInjections(
     result,
-    deps.createAffiliateManager(affiliateSettings)
+    deps.createAffiliateManager(settings.affiliate)
   );
   appendProviderInjections(
     result,
-    deps.createCustomerServiceManager(customerServiceSettings)
+    deps.createCustomerServiceManager(settings.customerService)
   );
 
   return result;
@@ -260,10 +243,7 @@ const rootRuntimeInjectionDeps = {
   isProductionEnv,
   isDebugEnv,
   shouldReadRuntimeSettings: shouldReadRuntimeSettingsForSite,
-  readAdsRuntimeSettingsCached,
-  readAnalyticsRuntimeSettingsCached,
-  readAffiliateRuntimeSettingsCached,
-  readCustomerServiceRuntimeSettingsCached,
+  readRootRuntimeSettingsCached,
   createAdsRuntime,
   createAnalyticsManager,
   createAffiliateManager,
