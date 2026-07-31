@@ -31,3 +31,22 @@ test('section navigation points back to the calculator home', () => {
     ['/#formula', '/#guide', '/#faq']
   );
 });
+
+test('footer shows legal links once in the Trust group', () => {
+  const { footer } = buildCalculatorHeaderFooter(
+    {
+      appName: '401k Calculator',
+      appLogo: '/logo.png',
+    },
+    copy
+  );
+
+  assert.deepEqual(
+    footer.nav?.items?.find((item) => item.title === 'Trust')?.children,
+    [
+      { title: 'Privacy policy', url: '/privacy-policy' },
+      { title: 'Terms of service', url: '/terms-of-service' },
+    ]
+  );
+  assert.equal(footer.agreement, undefined);
+});

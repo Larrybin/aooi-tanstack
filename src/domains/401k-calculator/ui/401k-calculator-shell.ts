@@ -71,12 +71,6 @@ export function buildCalculatorHeaderFooter(
       ],
     },
     copyright: `© ${new Date().getFullYear()} ${brand.appName}. ${copy.copyrightSuffix}`,
-    agreement: {
-      items: [
-        { title: copy.privacyPolicy, url: '/privacy-policy' },
-        { title: copy.termsOfService, url: '/terms-of-service' },
-      ],
-    },
   };
 
   return { header, footer };
