@@ -610,20 +610,19 @@ test('cf:check 对 AI Remover public-web 要求 cleanup secret', async () => {
 
 test('cf:check 拒绝任意两个已配置 site 复用同一 domain', async () => {
   const fixture = await withFixture(async (fixtureDir) => {
-    await copySiteFixture(fixtureDir, 'dev-local');
-
-    const devLocalConfigPath = path.join(
-      fixtureDir,
-      'sites/dev-local/site.config.json'
-    );
+    const mamamiyaDir = path.join(fixtureDir, 'sites/mamamiya');
+    const devLocalDir = path.join(fixtureDir, 'sites/dev-local');
+    await mkdir(devLocalDir, { recursive: true });
+    const devLocalConfigPath = path.join(devLocalDir, 'site.config.json');
     const devLocalConfig = JSON.parse(
-      await readFile(devLocalConfigPath, 'utf8')
+      await readFile(path.join(mamamiyaDir, 'site.config.json'), 'utf8')
     );
     await writeFile(
       devLocalConfigPath,
       JSON.stringify(
         {
           ...devLocalConfig,
+          key: 'dev-local',
           domain: 'mamamiya.pdfreprinting.net',
           brand: {
             ...devLocalConfig.brand,
@@ -634,6 +633,10 @@ test('cf:check 拒绝任意两个已配置 site 复用同一 domain', async () =
         2
       ) + '\n',
       'utf8'
+    );
+    await cp(
+      path.join(mamamiyaDir, 'deploy.settings.json'),
+      path.join(devLocalDir, 'deploy.settings.json')
     );
   });
 
