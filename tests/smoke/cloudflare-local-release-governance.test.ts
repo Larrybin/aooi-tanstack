@@ -19,6 +19,7 @@ const productionMigrateWorkflowPath = path.resolve(
 const packageJson = JSON.parse(
   fs.readFileSync(path.resolve(rootDir, 'package.json'), 'utf8')
 ) as {
+  devDependencies: Record<string, string>;
   scripts: Record<string, string>;
 };
 const acceptanceWorkflowContent = fs.readFileSync(
@@ -112,6 +113,9 @@ test('Cloudflare acceptance 拆分职责并保留稳定 required check', () => {
     cloudflareAcceptanceJob,
     /Run no-DB Cloudflare build gate[\s\S]*?pnpm cf:build:no-db/
   );
+  assert.match(cloudflareAcceptanceJob, /timeout-minutes:\s*15/);
+  assert.equal(packageJson.devDependencies.vite, '7.3.6');
+  assert.equal(packageJson.devDependencies['@vitejs/plugin-react'], '5.2.0');
   assert.doesNotMatch(ciStaticJob, /pnpm db:migrate/);
   assert.doesNotMatch(testJob, /pnpm db:migrate/);
   assert.doesNotMatch(schemaMigrationGuardJob, /pnpm db:migrate/);
@@ -121,7 +125,11 @@ test('Cloudflare acceptance 拆分职责并保留稳定 required check', () => {
   );
   assert.match(
     acceptanceWorkflowContent,
-    /strategy:[\s\S]*?matrix:[\s\S]*?site:\s*\[mamamiya, ai-remover, background-remover\]/
+    /strategy:[\s\S]*?matrix:[\s\S]*?site:\s*\[mamamiya, 401k-calculator, ai-remover, background-remover\]/
+  );
+  assert.match(
+    cloudflareAcceptanceJob,
+    /Run 401k bundle budget[\s\S]*?matrix\.site == '401k-calculator'[\s\S]*?401k-calculator-bundle-budget\.test\.ts/
   );
   assert.match(
     acceptanceWorkflowContent,

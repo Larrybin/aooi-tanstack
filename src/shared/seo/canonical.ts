@@ -93,6 +93,10 @@ export function isPublishedLocaleForPath(relativePath: string, locale: string) {
 export type TanStackHead = {
   meta?: Array<Record<string, string>>;
   links?: Array<Record<string, string>>;
+  scripts?: Array<{
+    type: string;
+    children: string;
+  }>;
 };
 
 export function buildSeoHead(input: {

@@ -7,6 +7,7 @@ const rootDir = process.cwd();
 export const NO_DB_CLOUDFLARE_BUILD_SITES = Object.freeze([
   'dev-local',
   'mamamiya',
+  '401k-calculator',
   'ai-remover',
   'background-remover',
   'text-to-speech-generator',

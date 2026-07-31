@@ -1,5 +1,6 @@
 # File List
 
+- `401k-calculator-logo.svg`: 401k Calculator site logo and favicon.
 - `imgs/`: 站点展示图片、头像、图标和 Logo 资源目录。
 - `vendor/`: 前端直接分发的第三方静态资源目录。
 - `_headers`: 提供前端可直接访问的 headers 静态资源。

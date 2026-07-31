@@ -1,0 +1,52 @@
+{
+  "metadata": {
+    "title": "401k Calculator Pricing",
+    "description": "401k Calculator is free to use in your browser with no sign-up or checkout."
+  },
+  "pricing": {
+    "id": "pricing",
+    "sr_only_title": "401k Calculator Pricing",
+    "title": "401k Calculator Pricing",
+    "description": "The calculator is free and does not require an account.",
+    "items": [
+      {
+        "title": "Free",
+        "description": "Estimate a 401(k) projection locally in your browser.",
+        "features_title": "Includes",
+        "features": [
+          "Projected retirement balance",
+          "Employee and employer contributions",
+          "Investment growth estimate",
+          "Year-by-year projection"
+        ],
+        "interval": "month",
+        "amount": 0,
+        "currency": "USD",
+        "price": "$0",
+        "unit": "",
+        "button": {
+          "title": "Calculate now",
+          "url": "/",
+          "icon": "Calculator"
+        },
+        "product_id": "free",
+        "product_name": "401k Calculator Free",
+        "plan_name": "Free",
+        "checkout_enabled": false,
+        "entitlements": {
+          "local_projection": true
+        }
+      }
+    ]
+  },
+  "faq": {
+    "id": "pricing-faq",
+    "title": "401k Calculator pricing questions",
+    "items": [
+      {
+        "question": "Is 401k Calculator free?",
+        "answer": "Yes. It is free and does not require sign-up or checkout."
+      }
+    ]
+  }
+}

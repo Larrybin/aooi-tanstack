@@ -1,0 +1,34 @@
+{
+  "desktop": {
+    "viewport": "1440x1000",
+    "status": 200,
+    "title": "401k Calculator - Estimate Your 401(k) Balance",
+    "h1": "401(k) Calculator",
+    "defaultOutputs": [
+      "$1,620,932",
+      "$405,584",
+      "$121,675",
+      "$1,043,673",
+      "$5,403"
+    ],
+    "zeroContributionOutput": "$0",
+    "zeroMatchOutput": "$0",
+    "consoleErrors": []
+  },
+  "mobile": {
+    "viewport": "390x844",
+    "status": 200,
+    "title": "401k Calculator - Estimate Your 401(k) Balance",
+    "h1": "401(k) Calculator",
+    "defaultOutputs": [
+      "$1,620,932",
+      "$405,584",
+      "$121,675",
+      "$1,043,673",
+      "$5,403"
+    ],
+    "zeroContributionOutput": "$0",
+    "zeroMatchOutput": "$0",
+    "consoleErrors": []
+  }
+}

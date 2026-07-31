@@ -1,0 +1,165 @@
+{
+  "metadata": {
+    "title": "401k Calculator - Estimate Your 401(k) Balance",
+    "description": "Use this free 401k Calculator to estimate your projected 401(k) balance, contributions, employer match, investment growth, and monthly retirement income. Runs locally in your browser.",
+    "keywords": [
+      "401k calculator",
+      "401(k) calculator",
+      "retirement calculator",
+      "401k projection",
+      "employer match calculator"
+    ]
+  },
+  "shell": {
+    "formula": "Formula",
+    "howTo": "How to use",
+    "faq": "FAQ",
+    "footerDescription": "A free educational 401(k) projection calculator that runs locally in your browser.",
+    "productGroup": "Calculator",
+    "tool": "401k Calculator",
+    "trustGroup": "Trust",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "copyrightSuffix": "All rights reserved."
+  },
+  "hero": {
+    "title": "401(k) Calculator",
+    "description": "Estimate your projected 401(k) balance, contributions, employer match, investment growth, and illustrative monthly retirement income in one clear dashboard.",
+    "privacyNote": "Runs locally in your browser. No sign-up. No personal data stored.",
+    "includesTitle": "Estimate includes",
+    "includes": [
+      "Contributions",
+      "Employer match",
+      "Investment growth",
+      "Monthly income estimate"
+    ]
+  },
+  "calculator": {
+    "sectionLabel": "Your assumptions",
+    "title": "Enter your 401(k) details",
+    "reset": "Reset",
+    "fields": {
+      "currentAge": {
+        "label": "Current age"
+      },
+      "retirementAge": {
+        "label": "Retirement age"
+      },
+      "currentBalance": {
+        "label": "Current 401(k) balance"
+      },
+      "annualSalary": {
+        "label": "Annual salary"
+      },
+      "employeeContributionPercent": {
+        "label": "Employee contribution",
+        "helper": "The percent of salary you contribute each year."
+      },
+      "employerMatchPercent": {
+        "label": "Employer match",
+        "helper": "Example: 50% means your employer contributes 50 cents for each eligible dollar."
+      },
+      "matchLimitPercent": {
+        "label": "Match limit",
+        "helper": "The salary percent eligible for employer matching."
+      },
+      "annualReturnPercent": {
+        "label": "Annual return assumption",
+        "helper": "A hypothetical annual investment return before retirement."
+      },
+      "salaryIncreasePercent": {
+        "label": "Annual salary increase",
+        "helper": "Salary grows before each future year's contribution and match are calculated."
+      }
+    },
+    "resultsLabel": "Live results",
+    "resultsTitle": "Projected 401(k) estimate",
+    "projectedBalance": "Projected balance",
+    "userContributions": "User contributions",
+    "employerMatch": "Employer match",
+    "investmentGrowth": "Investment growth",
+    "monthlyIncome": "Monthly retirement income",
+    "assumptionsTitle": "Assumptions shown in results",
+    "assumptions": [
+      "Compounds annually using your annual return input.",
+      "Monthly income uses an illustrative 4% annual withdrawal estimate divided by 12.",
+      "Taxes, fees, IRS limits, vesting rules, loans, and withdrawals are not modeled."
+    ],
+    "disclaimer": [
+      "Educational estimate only.",
+      "This calculator does not provide financial, investment, tax, or legal advice.",
+      "Results are hypothetical and not guaranteed."
+    ]
+  },
+  "projection": {
+    "label": "Projection table",
+    "title": "Balance over time",
+    "description": "Year-by-year estimate based on the current inputs.",
+    "age": "Age",
+    "salary": "Salary",
+    "employeeContribution": "Employee contribution",
+    "employerMatch": "Employer match",
+    "balance": "Balance"
+  },
+  "formula": {
+    "label": "Plain-English method",
+    "title": "401(k) formula and assumptions",
+    "description": "This calculator projects one year at a time. For each projected year, salary is increased first, then employee contributions and employer match are added after applying the annual return assumption to the existing balance.",
+    "lines": [
+      "salary = salary × (1 + salary increase)",
+      "employee contribution = salary × employee contribution percent",
+      "eligible match percent = min(employee contribution percent, match limit percent)",
+      "employer match = salary × eligible match percent × employer match percent",
+      "balance = balance × (1 + annual return) + employee contribution + employer match"
+    ],
+    "estimateTitle": "Why projections are estimates",
+    "estimateDescription": "Investment returns vary. Salary, contributions, employer match, fees, taxes, plan rules, and federal contribution limits may also change. Compare assumptions instead of treating one result as guaranteed."
+  },
+  "guide": {
+    "label": "Quick guide",
+    "title": "How to use the 401k Calculator",
+    "steps": [
+      {
+        "title": "Enter age and retirement age",
+        "description": "The difference between these ages determines how many years are projected."
+      },
+      {
+        "title": "Add balance and salary",
+        "description": "Your current balance is the starting point. Salary grows annually using your input."
+      },
+      {
+        "title": "Set contribution and match",
+        "description": "Contribution, employer match, and match limit determine how much new money is added."
+      },
+      {
+        "title": "Compare scenarios",
+        "description": "Adjust return, salary growth, and contribution assumptions to compare projections."
+      }
+    ]
+  },
+  "faq": {
+    "title": "401k Calculator FAQ",
+    "items": [
+      {
+        "question": "What does this 401k Calculator estimate?",
+        "answer": "It estimates a future 401(k) balance, employee contributions, employer match, investment growth, illustrative monthly retirement income, and a year-by-year projection."
+      },
+      {
+        "question": "Does this calculator store my financial information?",
+        "answer": "No. The calculator runs locally in your browser and does not require login, account creation, or data submission."
+      },
+      {
+        "question": "How is employer match calculated?",
+        "answer": "Employer match is salary multiplied by the lesser of your employee contribution percent and the match limit percent, then multiplied by the employer match percent."
+      },
+      {
+        "question": "Are the results guaranteed?",
+        "answer": "No. Results are hypothetical estimates. Actual returns, salary changes, contribution limits, fees, taxes, and plan rules may differ."
+      },
+      {
+        "question": "Is this financial advice?",
+        "answer": "No. This calculator is for educational purposes and does not provide financial, investment, tax, legal, or retirement planning advice."
+      }
+    ]
+  }
+}

@@ -1,9 +1,16 @@
+import { lazy, Suspense } from 'react';
 import { BackgroundRemoverHome } from '@/domains/background-remover/ui/background-remover-home';
 import { Mp4CompressorHome } from '@/domains/mp4-compressor/ui/mp4-compressor-home';
 import { RemoverHome } from '@/domains/remover/ui/remover-home';
 import { TextToSpeechGeneratorHome } from '@/domains/text-to-speech-generator/ui/text-to-speech-home';
 
 import type { ProductHomeRouteData } from './home.types';
+
+const CalculatorHome = lazy(() =>
+  import('@/domains/401k-calculator/ui/401k-calculator-home').then(
+    ({ CalculatorHome }) => ({ default: CalculatorHome })
+  )
+);
 
 export function ProductHomeView({
   productHome,
@@ -13,6 +20,12 @@ export function ProductHomeView({
   locale: string;
 }) {
   switch (productHome.kind) {
+    case '401k-calculator':
+      return (
+        <Suspense fallback={null}>
+          <CalculatorHome copy={productHome.copy} locale={locale} />
+        </Suspense>
+      );
     case 'ai-remover':
       return (
         <RemoverHome
