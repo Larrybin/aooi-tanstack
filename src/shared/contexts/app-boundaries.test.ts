@@ -61,7 +61,7 @@ test('product home route data keeps product shells registered explicitly', async
   assert.equal(content.includes("siteKey === 'ai-remover'"), false);
 });
 
-test('shared product home lazy-loads the 401k calculator', async () => {
+test('shared product home eagerly loads the 401k calculator for hydration', async () => {
   const content = await readRepoFile(
     'src/surfaces/landing/home/product-home.view.tsx'
   );
@@ -70,9 +70,9 @@ test('shared product home lazy-loads the 401k calculator', async () => {
     content.includes(
       "import { CalculatorHome } from '@/domains/401k-calculator/ui/401k-calculator-home'"
     ),
-    false
+    true
   );
-  assert.match(
+  assert.doesNotMatch(
     content,
     /lazy\(\(\) =>\s*import\(\s*'@\/domains\/401k-calculator\/ui\/401k-calculator-home'\s*\)/
   );
