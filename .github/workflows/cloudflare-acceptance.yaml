@@ -147,6 +147,7 @@ jobs:
   cloudflare-acceptance:
     name: cloudflare acceptance (${{ matrix.site }})
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: detect-cloudflare-changes
     if: ${{ needs.detect-cloudflare-changes.outputs.cloudflare_changed == 'true' }}
     permissions:

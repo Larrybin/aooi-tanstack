@@ -19,6 +19,7 @@ const productionMigrateWorkflowPath = path.resolve(
 const packageJson = JSON.parse(
   fs.readFileSync(path.resolve(rootDir, 'package.json'), 'utf8')
 ) as {
+  devDependencies: Record<string, string>;
   scripts: Record<string, string>;
 };
 const acceptanceWorkflowContent = fs.readFileSync(
@@ -112,6 +113,9 @@ test('Cloudflare acceptance 拆分职责并保留稳定 required check', () => {
     cloudflareAcceptanceJob,
     /Run no-DB Cloudflare build gate[\s\S]*?pnpm cf:build:no-db/
   );
+  assert.match(cloudflareAcceptanceJob, /timeout-minutes:\s*15/);
+  assert.equal(packageJson.devDependencies.vite, '7.3.6');
+  assert.equal(packageJson.devDependencies['@vitejs/plugin-react'], '5.2.0');
   assert.doesNotMatch(ciStaticJob, /pnpm db:migrate/);
   assert.doesNotMatch(testJob, /pnpm db:migrate/);
   assert.doesNotMatch(schemaMigrationGuardJob, /pnpm db:migrate/);
