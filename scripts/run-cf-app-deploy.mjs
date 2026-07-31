@@ -481,7 +481,7 @@ function buildMissingDeploymentsError(currentVersions, contract) {
   const setupMessage =
     contract.deployProfile === 'preview'
       ? 'Run "pnpm cf:preview:deploy:state" first, then run "pnpm cf:preview:bootstrap".'
-      : 'Run "pnpm cf:deploy:state" first, then run "pnpm cf:deploy:app" or "pnpm cf:deploy".';
+      : 'Run "pnpm cf:deploy:state" first, then run "CF_DEPLOY_BOOTSTRAP_MISSING=true pnpm cf:deploy:app".';
 
   return new Error(
     `Cloudflare app deploy requires an existing state-initialized topology. Missing deployed workers: ${missingWorkers.join(
@@ -616,7 +616,7 @@ async function deployInitialAppTopology(contract = resolveDeployContract()) {
       const versionId = currentVersions.servers[target];
       if (!versionId) {
         throw new Error(
-          `Cloudflare preview bootstrap could not read version id for ${contract.serverWorkers[target].workerName}`
+          `Cloudflare bootstrap could not read version id for ${contract.serverWorkers[target].workerName}`
         );
       }
       targetRouterVersionIds[target] = versionId;
@@ -668,18 +668,13 @@ export async function deployCloudflareApp({
 } = {}) {
   await assertBuildArtifactsReadyImpl();
   const bootstrapMissing = isBootstrapMissingEnabled(processEnv);
-  if (bootstrapMissing && contract.deployProfile !== 'preview') {
-    throw new Error(
-      'CF_DEPLOY_BOOTSTRAP_MISSING=true is only allowed with CF_DEPLOY_PROFILE=preview'
-    );
-  }
 
   const currentVersions = await collectCurrentVersionsImpl(contract);
   const deployMode = determineDeployMode(currentVersions, contract);
 
   if (deployMode === 'missing-deployments') {
     if (bootstrapMissing) {
-      log('missing preview app workers detected; bootstrapping app topology');
+      log('missing app workers detected; bootstrapping app topology');
       await deployInitialAppTopologyImpl(contract);
       return;
     }

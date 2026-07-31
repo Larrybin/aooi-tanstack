@@ -389,25 +389,36 @@ test('deployCloudflareApp 在缺少部署版本时直接失败并要求先跑 st
           throw new Error('should not reach steady-state deploy');
         },
       }),
-    /Run "pnpm cf:deploy:state" first, then run "pnpm cf:deploy:app" or "pnpm cf:deploy"/i
+    /Run "pnpm cf:deploy:state" first, then run "CF_DEPLOY_BOOTSTRAP_MISSING=true pnpm cf:deploy:app"/i
   );
 });
 
-test('deployCloudflareApp 在 production 下禁止 bootstrap missing app workers', async () => {
-  await assert.rejects(
-    () =>
-      deployCloudflareApp({
-        async assertBuildArtifactsReadyImpl() {},
-        contract,
-        processEnv: {
-          CF_DEPLOY_BOOTSTRAP_MISSING: 'true',
-        },
-        async collectCurrentVersionsImpl() {
-          throw new Error('should not inspect current versions');
-        },
-      }),
-    /only allowed with CF_DEPLOY_PROFILE=preview/i
-  );
+test('deployCloudflareApp 在显式 bootstrap flag 下初始化 production app workers', async () => {
+  const calls: Array<['bootstrap', unknown]> = [];
+
+  await deployCloudflareApp({
+    async assertBuildArtifactsReadyImpl() {},
+    contract,
+    processEnv: {
+      CF_DEPLOY_BOOTSTRAP_MISSING: 'true',
+    },
+    async collectCurrentVersionsImpl() {
+      return {
+        router: null,
+        servers: Object.fromEntries(
+          CLOUDFLARE_ALL_SERVER_WORKER_TARGETS.map((target) => [target, null])
+        ),
+      };
+    },
+    async deployInitialAppTopologyImpl(resolvedContract) {
+      calls.push(['bootstrap', resolvedContract]);
+    },
+    async deploySteadyStateImpl() {
+      throw new Error('should not reach steady-state deploy');
+    },
+  });
+
+  assert.deepEqual(calls, [['bootstrap', contract]]);
 });
 
 test('deployCloudflareApp 在 preview bootstrap flag 下初始化缺失 app workers', async () => {

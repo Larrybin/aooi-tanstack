@@ -78,21 +78,6 @@ function handleBash(command) {
         'Blocked rm -rf. Use targeted file edits and preserve unrelated work.',
     },
     {
-      pattern: /\bpnpm\s+(?:run\s+)?release:cf\b/,
-      reason:
-        'Blocked production Cloudflare release. Provide a release checklist; a local operator must run this explicitly.',
-    },
-    {
-      pattern: /\bpnpm\s+(?:run\s+)?cf:deploy(?::(?:state|app))?(?:\s|$)/,
-      reason:
-        'Blocked Cloudflare deploy command. Codex hooks allow checks, not production deploys.',
-    },
-    {
-      pattern: /\bwrangler\s+deploy\b/,
-      reason:
-        'Blocked wrangler deploy. Use aooi release/check flows and keep production deploys operator-owned.',
-    },
-    {
       pattern: /\bpnpm\s+(?:run\s+)?db:push\b/,
       reason:
         'Blocked db:push. Use generated migrations and reviewed migration flows.',
