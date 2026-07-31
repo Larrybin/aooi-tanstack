@@ -1,12 +1,8 @@
 import { lazy, Suspense } from 'react';
+import { CalculatorHome } from '@/domains/401k-calculator/ui/401k-calculator-home';
 
 import type { ProductHomeRouteData } from './home.types';
 
-const CalculatorHome = lazy(() =>
-  import('@/domains/401k-calculator/ui/401k-calculator-home').then(
-    ({ CalculatorHome }) => ({ default: CalculatorHome })
-  )
-);
 const RemoverHome = lazy(() =>
   import('@/domains/remover/ui/remover-home').then(({ RemoverHome }) => ({
     default: RemoverHome,
@@ -46,11 +42,7 @@ export function ProductHomeView({
 }) {
   switch (productHome.kind) {
     case '401k-calculator':
-      return (
-        <Suspense fallback={null}>
-          <CalculatorHome copy={productHome.copy} locale={locale} />
-        </Suspense>
-      );
+      return <CalculatorHome copy={productHome.copy} locale={locale} />;
     case 'ai-remover':
       return (
         <Suspense fallback={null}>
