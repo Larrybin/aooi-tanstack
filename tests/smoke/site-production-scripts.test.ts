@@ -12,6 +12,7 @@ import {
   isProductionAuthRequired,
   isProductionHyperdrivePlaceholder,
   isProductionHyperdriveRequired,
+  isProductionStorageRequired,
   updateProductionDeploySettingsHyperdriveId,
   updateProductionDeploySettingsNames,
 } from '../../scripts/site-production.mjs';
@@ -320,6 +321,35 @@ test('site production doctor does not require auth env for auth-free sites', () 
         STORAGE_PUBLIC_BASE_URL: 'https://assets.example.com/',
       },
       { authRequired: false }
+    ),
+    []
+  );
+});
+
+test('site production doctor does not require storage env for no-storage sites', () => {
+  assert.equal(
+    isProductionStorageRequired({
+      ...baseDeploySettings,
+      bindingRequirements: {
+        ...baseDeploySettings.bindingRequirements,
+        vars: {
+          storagePublicBaseUrl: false,
+        },
+      },
+    }),
+    false
+  );
+  assert.deepEqual(
+    getMissingProductionReleaseEnvNames(
+      {
+        CLOUDFLARE_ACCOUNT_ID: 'account-id',
+        CLOUDFLARE_API_TOKEN: 'api-token',
+      },
+      {
+        authRequired: false,
+        hyperdriveRequired: false,
+        storageRequired: false,
+      }
     ),
     []
   );

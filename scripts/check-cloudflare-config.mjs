@@ -407,9 +407,13 @@ function buildEffectiveWorkerConfig(contract, workerKey) {
 }
 
 function assertRouterConfig(content, contract, requiredBindingsByWorker) {
+  const requiresStorage =
+    contract.bindingRequirements.vars?.storagePublicBaseUrl === true;
   assertSharedSettings(content, 'router', {
     requiresHyperdrive:
       contract.bindingRequirements.bindings?.hyperdrive === true,
+    requiresR2Buckets: requiresStorage,
+    requiresStoragePublicBaseUrl: requiresStorage,
     expectedWorkersDev: contract.route.mode === 'workers-dev',
     expectedPreviewUrls: contract.route.mode === 'workers-dev',
     expectedAppOrigin: contract.appOrigin,
@@ -657,9 +661,13 @@ function assertServerConfig(
   target,
   requiredBindingsByWorker
 ) {
+  const requiresStorage =
+    contract.bindingRequirements.vars?.storagePublicBaseUrl === true;
   assertSharedSettings(content, `${target}`, {
     requiresHyperdrive:
       contract.bindingRequirements.bindings?.hyperdrive === true,
+    requiresR2Buckets: requiresStorage,
+    requiresStoragePublicBaseUrl: requiresStorage,
     expectedAppOrigin: contract.appOrigin,
     expectedAppStorageBucket: contract.resources.appStorageBucket,
     requiresWorkersAi:

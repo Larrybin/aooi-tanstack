@@ -463,6 +463,26 @@ test('cf:check 缺少 storage public runtime binding 时失败', async () => {
   }
 });
 
+test('cf:check 不要求 no-storage site 配置 R2 runtime binding', async () => {
+  const fixture = await withFixture(async (fixtureDir) => {
+    await copySiteFixture(fixtureDir, '401k-calculator');
+  });
+
+  try {
+    const result = await runCheckCloudflareConfig({
+      cwd: fixture.fixtureDir,
+      env: {
+        SITE: '401k-calculator',
+        [storagePublicBaseUrlName]: '',
+      },
+    });
+
+    assert.equal(result.ok, true, result.stderr);
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
 test('cf:check 禁止 Cloudflare vars 回流站点 identity env', async () => {
   const fixture = await withFixture(async (fixtureDir) => {
     const configPath = path.join(fixtureDir, 'wrangler.cloudflare.toml');

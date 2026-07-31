@@ -46,6 +46,7 @@ const PRODUCTION_DATABASE_ENV_KEYS = new Set([
   'PRODUCTION_DATABASE_URL',
 ]);
 const PRODUCTION_AUTH_ENV_KEYS = new Set(['RESEND_API_KEY']);
+const PRODUCTION_STORAGE_ENV_KEYS = new Set(['STORAGE_PUBLIC_BASE_URL']);
 
 function trimEnvValue(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -89,6 +90,10 @@ export function isProductionHyperdriveRequired(deploySettings) {
   return deploySettings.bindingRequirements.bindings.hyperdrive === true;
 }
 
+export function isProductionStorageRequired(deploySettings) {
+  return deploySettings.bindingRequirements.vars.storagePublicBaseUrl === true;
+}
+
 export function isProductionAuthRequired({ deploySettings, siteConfig }) {
   return (
     siteConfig.capabilities.auth !== false ||
@@ -98,13 +103,20 @@ export function isProductionAuthRequired({ deploySettings, siteConfig }) {
 
 export function getMissingProductionReleaseEnvNames(
   env,
-  { authRequired = true, hyperdriveRequired = true } = {}
+  {
+    authRequired = true,
+    hyperdriveRequired = true,
+    storageRequired = true,
+  } = {}
 ) {
   const missing = PRODUCTION_RELEASE_ENV_KEYS.filter((name) => {
     if (!hyperdriveRequired && PRODUCTION_DATABASE_ENV_KEYS.has(name)) {
       return false;
     }
     if (!authRequired && PRODUCTION_AUTH_ENV_KEYS.has(name)) {
+      return false;
+    }
+    if (!storageRequired && PRODUCTION_STORAGE_ENV_KEYS.has(name)) {
       return false;
     }
 
@@ -260,6 +272,7 @@ function createProductionContext({
     siteKey,
     authRequired: isProductionAuthRequired({ deploySettings, siteConfig }),
     hyperdriveRequired: isProductionHyperdriveRequired(deploySettings),
+    storageRequired: isProductionStorageRequired(deploySettings),
   };
 }
 
@@ -279,10 +292,14 @@ function requireProductionOperatorValues(context) {
   }
 }
 
-function printProductionEnvStatus(env, { authRequired, hyperdriveRequired }) {
+function printProductionEnvStatus(
+  env,
+  { authRequired, hyperdriveRequired, storageRequired }
+) {
   const missing = getMissingProductionReleaseEnvNames(env, {
     authRequired,
     hyperdriveRequired,
+    storageRequired,
   });
   const missingSet = new Set(missing);
   for (const name of PRODUCTION_RELEASE_ENV_KEYS) {
@@ -292,6 +309,10 @@ function printProductionEnvStatus(env, { authRequired, hyperdriveRequired }) {
     }
     if (!authRequired && PRODUCTION_AUTH_ENV_KEYS.has(name)) {
       printStatus('skip', name, 'Auth disabled');
+      continue;
+    }
+    if (!storageRequired && PRODUCTION_STORAGE_ENV_KEYS.has(name)) {
+      printStatus('skip', name, 'Storage disabled');
       continue;
     }
 
@@ -419,22 +440,27 @@ async function runDoctor() {
   failures += printProductionEnvStatus(env, {
     authRequired: context.authRequired,
     hyperdriveRequired: context.hyperdriveRequired,
+    storageRequired: context.storageRequired,
   });
 
-  try {
-    if (await checkR2Bucket(resources.appStorageBucket, env)) {
-      printStatus('ok', 'R2 bucket', resources.appStorageBucket);
-    } else {
+  if (!context.storageRequired) {
+    printStatus('skip', 'R2 bucket', 'Storage disabled');
+  } else {
+    try {
+      if (await checkR2Bucket(resources.appStorageBucket, env)) {
+        printStatus('ok', 'R2 bucket', resources.appStorageBucket);
+      } else {
+        failures += 1;
+        printStatus('missing', 'R2 bucket', resources.appStorageBucket);
+      }
+    } catch (error) {
       failures += 1;
-      printStatus('missing', 'R2 bucket', resources.appStorageBucket);
+      printStatus(
+        'error',
+        'R2 bucket check',
+        error instanceof Error ? error.message : String(error)
+      );
     }
-  } catch (error) {
-    failures += 1;
-    printStatus(
-      'error',
-      'R2 bucket check',
-      error instanceof Error ? error.message : String(error)
-    );
   }
 
   if (!context.hyperdriveRequired) {
@@ -517,7 +543,11 @@ async function runProvision() {
   const env = createProductionCommandEnv(context);
   const resources = context.deploySettings.resources;
 
-  await ensureR2Bucket(resources.appStorageBucket, env);
+  if (context.storageRequired) {
+    await ensureR2Bucket(resources.appStorageBucket, env);
+  } else {
+    printStatus('skip', 'R2 bucket', 'Storage disabled');
+  }
   if (context.hyperdriveRequired) {
     await ensureProductionHyperdrive(context, env);
   } else {

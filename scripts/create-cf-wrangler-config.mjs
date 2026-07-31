@@ -365,6 +365,8 @@ function applyWorkerSpecificBindings(content, contract, workerSlot) {
     contract.bindingRequirements.bindings?.workersAi === true;
   const requiresHyperdrive =
     contract.bindingRequirements.bindings?.hyperdrive === true;
+  const requiresStorage =
+    contract.bindingRequirements.vars?.storagePublicBaseUrl === true;
   const cleanupCrons = requiresRemoverCleanupCron(contract, workerSlot)
     ? [REMOVER_CLEANUP_CRON]
     : [];
@@ -439,12 +441,18 @@ function applyWorkerSpecificBindings(content, contract, workerSlot) {
   }
 
   if (workerSlot !== 'state') {
-    nextContent = replaceOrInsertArrayTable(nextContent, 'r2_buckets', [
-      {
-        binding: REQUIRED_APP_STORAGE_BINDING,
-        bucket_name: contract.resources.appStorageBucket,
-      },
-    ]);
+    nextContent = replaceOrInsertArrayTable(
+      nextContent,
+      'r2_buckets',
+      requiresStorage
+        ? [
+            {
+              binding: REQUIRED_APP_STORAGE_BINDING,
+              bucket_name: contract.resources.appStorageBucket,
+            },
+          ]
+        : []
+    );
 
     nextContent = replaceOrInsertHyperdriveBinding(
       nextContent,

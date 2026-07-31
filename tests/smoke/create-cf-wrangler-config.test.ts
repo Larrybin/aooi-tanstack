@@ -25,6 +25,10 @@ const textToSpeechContract = resolveSiteDeployContract({
   rootDir: process.cwd(),
   siteKey: 'text-to-speech-generator',
 });
+const calculatorContract = resolveSiteDeployContract({
+  rootDir: process.cwd(),
+  siteKey: '401k-calculator',
+});
 const mp4CompressorContract = resolveSiteDeployContract({
   rootDir: process.cwd(),
   siteKey: 'mp4-compressor',
@@ -703,4 +707,37 @@ STORAGE_PUBLIC_BASE_URL = ""
 
   assert.doesNotMatch(config, /\[\[hyperdrive\]\]/);
   assert.doesNotMatch(config, /localConnectionString/);
+});
+
+test('buildCloudflareWranglerConfig 为 no-storage worker 移除 R2 binding', () => {
+  const template = `
+name = "public-web-template"
+main = "workers/server-public-web.ts"
+
+[assets]
+directory = "../dist/client"
+
+[[r2_buckets]]
+binding = "APP_STORAGE_R2_BUCKET"
+bucket_name = "placeholder-storage"
+
+[observability]
+enabled = true
+
+[vars]
+DEPLOY_TARGET = "cloudflare"
+NEXT_PUBLIC_APP_URL = "https://example.com"
+STORAGE_PUBLIC_BASE_URL = ""
+`;
+
+  const config = buildCloudflareWranglerConfig({
+    template,
+    contract: calculatorContract,
+    workerSlot: 'public-web',
+    templatePath: '/repo/cloudflare/wrangler.server-public-web.toml',
+    outputPath: '/repo/.tmp/server/default.toml',
+  });
+
+  assert.doesNotMatch(config, /\[\[r2_buckets\]\]/);
+  assert.doesNotMatch(config, /APP_STORAGE_R2_BUCKET/);
 });
