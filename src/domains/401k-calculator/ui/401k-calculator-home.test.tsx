@@ -1,13 +1,24 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import test from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
-import homeCopy from '../../../../sites/401k-calculator/content/home.en.json';
 import { CalculatorHome } from './401k-calculator-home';
-import type { CalculatorHomeCopy } from './401k-calculator-home-copy';
+import { resolveCalculatorHomeCopy } from './401k-calculator-home-copy';
 
-const copy = homeCopy as unknown as CalculatorHomeCopy;
+const copy = resolveCalculatorHomeCopy(
+  {
+    en: JSON.parse(
+      readFileSync(
+        resolve(process.cwd(), 'sites/401k-calculator/content/home.en.json'),
+        'utf8'
+      )
+    ),
+  },
+  'en'
+);
 
 test('calculator home restores the projection chart and input guidance', () => {
   const html = renderToStaticMarkup(<CalculatorHome copy={copy} locale="en" />);

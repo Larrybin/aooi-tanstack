@@ -1,0 +1,52 @@
+{
+  "metadata": {
+    "title": "Random Group Generator Pricing",
+    "description": "Random Group Generator is free to use in your browser with no signup or checkout."
+  },
+  "pricing": {
+    "id": "pricing",
+    "sr_only_title": "Random Group Generator Pricing",
+    "title": "Random Group Generator Pricing",
+    "description": "The browser-based generator is free: no account, subscription, or checkout.",
+    "items": [
+      {
+        "title": "Free",
+        "description": "Create and export random groups in your browser.",
+        "features_title": "Includes",
+        "features": [
+          "Group-count and group-size modes",
+          "Unlimited reshuffles",
+          "Copy, CSV, and print actions",
+          "No account required"
+        ],
+        "interval": "month",
+        "amount": 0,
+        "currency": "USD",
+        "price": "$0",
+        "unit": "",
+        "button": {
+          "title": "Create Groups",
+          "url": "/#generator",
+          "icon": "RiGroupFill"
+        },
+        "product_id": "free",
+        "product_name": "Random Group Generator Free",
+        "plan_name": "Free",
+        "checkout_enabled": false,
+        "entitlements": {
+          "browser_group_generation": true
+        }
+      }
+    ]
+  },
+  "faq": {
+    "id": "pricing-faq",
+    "title": "Random Group Generator pricing questions",
+    "items": [
+      {
+        "question": "Is Random Group Generator free?",
+        "answer": "Yes. The generator is free and does not require signup or checkout."
+      }
+    ]
+  }
+}

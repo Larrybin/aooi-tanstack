@@ -5,6 +5,8 @@ import { resolveBackgroundRemoverHomeCopy } from '@/domains/background-remover/u
 import { buildBackgroundRemoverHeaderFooter } from '@/domains/background-remover/ui/background-remover-shell';
 import { resolveMp4CompressorHomeCopy } from '@/domains/mp4-compressor/ui/mp4-compressor-home-copy';
 import { buildMp4CompressorHeaderFooter } from '@/domains/mp4-compressor/ui/mp4-compressor-shell';
+import { resolveRandomGroupGeneratorHomeCopy } from '@/domains/random-group-generator/ui/random-group-generator-home-copy';
+import { buildRandomGroupGeneratorHeaderFooter } from '@/domains/random-group-generator/ui/random-group-generator-shell';
 import { resolveRemoverHomeCopy } from '@/domains/remover/ui/remover-home-copy';
 import { buildRemoverHeaderFooter } from '@/domains/remover/ui/remover-shell';
 import { resolveTextToSpeechGeneratorHomeCopy } from '@/domains/text-to-speech-generator/ui/text-to-speech-home-copy';
@@ -59,6 +61,11 @@ export function resolveProductHomeRouteData(
         kind: 'mp4-compressor',
         copy: resolveMp4CompressorHomeCopy(siteHomeContent, locale),
       };
+    case 'random-group-generator':
+      return {
+        kind: 'random-group-generator',
+        copy: resolveRandomGroupGeneratorHomeCopy(siteHomeContent, locale),
+      };
     default:
       return null;
   }
@@ -86,6 +93,11 @@ export function buildProductHomeHeaderFooter(
       );
     case 'mp4-compressor':
       return buildMp4CompressorHeaderFooter(brand, productHome.copy.shell);
+    case 'random-group-generator':
+      return buildRandomGroupGeneratorHeaderFooter(
+        brand,
+        productHome.copy.shell
+      );
   }
 }
 
@@ -117,6 +129,7 @@ export function isProductHomeSite() {
     case 'background-remover':
     case 'text-to-speech-generator':
     case 'mp4-compressor':
+    case 'random-group-generator':
       return true;
     default:
       return false;

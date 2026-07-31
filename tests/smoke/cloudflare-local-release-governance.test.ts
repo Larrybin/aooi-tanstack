@@ -125,11 +125,19 @@ test('Cloudflare acceptance 拆分职责并保留稳定 required check', () => {
   );
   assert.match(
     acceptanceWorkflowContent,
-    /strategy:[\s\S]*?matrix:[\s\S]*?site:\s*\[mamamiya, 401k-calculator, ai-remover, background-remover\]/
+    /strategy:[\s\S]*?matrix:[\s\S]*?site:[\s\S]*?mamamiya,[\s\S]*?401k-calculator,[\s\S]*?ai-remover,[\s\S]*?background-remover,[\s\S]*?random-group-generator/
+  );
+  assert.match(
+    cloudflareAcceptanceJob,
+    /Run Cloudflare typegen gate[\s\S]*?pnpm cf:typegen:check/
   );
   assert.match(
     cloudflareAcceptanceJob,
     /Run 401k bundle budget[\s\S]*?matrix\.site == '401k-calculator'[\s\S]*?401k-calculator-bundle-budget\.test\.ts/
+  );
+  assert.match(
+    cloudflareAcceptanceJob,
+    /Run random group generator bundle budget[\s\S]*?matrix\.site == 'random-group-generator'[\s\S]*?random-group-generator-bundle-budget\.test\.ts/
   );
   assert.match(
     acceptanceWorkflowContent,

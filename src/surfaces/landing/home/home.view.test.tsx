@@ -1,13 +1,26 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import test from 'node:test';
 import React from 'react';
-import type { CalculatorHomeCopy } from '@/domains/401k-calculator/ui/401k-calculator-home-copy';
+import { resolveCalculatorHomeCopy } from '@/domains/401k-calculator/ui/401k-calculator-home-copy';
 import { renderToStaticMarkup } from 'react-dom/server';
 
-import homeCopy from '../../../../sites/401k-calculator/content/home.en.json';
 import type { SlugShellData } from '../slug/slug.types';
 import type { HomeRouteData } from './home.types';
 import { HomeSurfaceView } from './home.view';
+
+const calculatorCopy = resolveCalculatorHomeCopy(
+  {
+    en: JSON.parse(
+      readFileSync(
+        resolve(process.cwd(), 'sites/401k-calculator/content/home.en.json'),
+        'utf8'
+      )
+    ),
+  },
+  'en'
+);
 
 test('401k home exposes a skip link before the site header', () => {
   const html = renderToStaticMarkup(
@@ -30,7 +43,7 @@ function createRouteData(): HomeRouteData {
     shell: createShell(),
     productHome: {
       kind: '401k-calculator',
-      copy: homeCopy as unknown as CalculatorHomeCopy,
+      copy: calculatorCopy,
     },
   };
 }

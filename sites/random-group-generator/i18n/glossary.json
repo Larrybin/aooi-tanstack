@@ -1,0 +1,11 @@
+{
+  "preserve": ["Random Group Generator", "CSV"],
+  "terms": {},
+  "forbidden": {
+    "allLocales": [
+      "perfect fairness",
+      "certified randomness",
+      "guaranteed balance"
+    ]
+  }
+}

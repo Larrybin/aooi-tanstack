@@ -52,7 +52,8 @@ test('resolveHomeRouteData returns approved localized home data', async () => {
   if (
     site.key === 'text-to-speech-generator' ||
     site.key === 'mp4-compressor' ||
-    site.key === '401k-calculator'
+    site.key === '401k-calculator' ||
+    site.key === 'random-group-generator'
   ) {
     assert.equal(data, null);
     return;
@@ -97,6 +98,7 @@ function isProductSite() {
     'background-remover',
     'text-to-speech-generator',
     'mp4-compressor',
+    'random-group-generator',
   ].includes(site.key);
 }
 
