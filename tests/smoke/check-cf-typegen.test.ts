@@ -52,6 +52,9 @@ test('cf:typegen canonical contract keeps the superset of optional bindings', as
       hyperdrive: true,
       workersAi: true,
     });
+    assert.deepEqual(artifacts.contract.bindingRequirements.vars, {
+      storagePublicBaseUrl: true,
+    });
   } finally {
     await artifacts.cleanup();
   }

@@ -481,6 +481,10 @@ export function createCanonicalTypegenContract(contract) {
           hyperdrive: true,
           workersAi: true,
         },
+        vars: {
+          ...contract.bindingRequirements.vars,
+          storagePublicBaseUrl: true,
+        },
       },
       configVersion: 1,
       workers: Object.fromEntries(
