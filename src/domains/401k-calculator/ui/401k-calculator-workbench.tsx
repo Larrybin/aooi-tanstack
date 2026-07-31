@@ -282,6 +282,7 @@ function ProjectionTable({
         </h2>
         <p className="text-sm text-[#64766B]">{copy.projection.description}</p>
       </div>
+      <ProjectionChart copy={copy} result={result} />
       <div className="mt-5 max-h-[28rem] overflow-auto rounded-xl border border-[#D6E0DA]">
         <table className="w-full min-w-[48rem] border-collapse text-sm">
           <thead className="sticky top-0 bg-[#EDF4EF] text-left text-xs tracking-wider text-[#466151] uppercase">
@@ -321,6 +322,60 @@ function ProjectionTable({
   );
 }
 
+function ProjectionChart({
+  copy,
+  result,
+}: {
+  copy: CalculatorHomeCopy;
+  result: ProjectionResult | null;
+}) {
+  const rows = selectProjectionMilestones(result?.rows ?? []);
+  const maxBalance = Math.max(...rows.map((row) => row.balance), 1);
+
+  return (
+    <div
+      role="img"
+      aria-label={copy.projection.title}
+      className="mt-6 space-y-3 rounded-xl border border-[#D6E0DA] bg-[#F7FAF8] p-4 md:p-5"
+    >
+      {rows.map((row) => (
+        <div
+          key={row.year}
+          data-projection-milestone={row.age}
+          className="grid grid-cols-[3.75rem_minmax(0,1fr)_5rem] items-center gap-2 text-xs sm:grid-cols-[4.25rem_minmax(0,1fr)_6rem]"
+        >
+          <span className="font-medium text-[#466151]">Age {row.age}</span>
+          <span className="h-3 overflow-hidden rounded-full bg-[#DCE9E0]">
+            <span
+              className="block h-full rounded-full bg-[#2E8B57]"
+              style={{
+                width: `${Math.max((row.balance / maxBalance) * 100, 1)}%`,
+              }}
+            />
+          </span>
+          <strong className="text-right font-semibold text-[#173526]">
+            {compactCurrency.format(row.balance)}
+          </strong>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function selectProjectionMilestones(rows: ProjectionResult['rows']) {
+  const milestoneCount = 9;
+  if (rows.length <= milestoneCount) {
+    return rows;
+  }
+
+  return Array.from({ length: milestoneCount }, (_, index) => {
+    const rowIndex = Math.round(
+      (index * (rows.length - 1)) / (milestoneCount - 1)
+    );
+    return rows[rowIndex]!;
+  });
+}
+
 function SectionLabel({
   children,
   index,
@@ -352,3 +407,10 @@ function SectionLabel({
 function formatCurrency(value: number | undefined) {
   return value === undefined ? '—' : currency.format(value);
 }
+
+const compactCurrency = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  notation: 'compact',
+  maximumFractionDigits: 1,
+});
