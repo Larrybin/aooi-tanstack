@@ -65,6 +65,19 @@ test('site contract enforces random-group-generator free-tool-no-db invariants',
   assert.ok(result.prunePaths.includes('apps/web/src/routes/pricing.tsx'));
 });
 
+test('site contract enforces anagram-generator free-tool-no-db invariants', () => {
+  const result = checkSiteContract({
+    rootDir: process.cwd(),
+    siteKey: 'anagram-generator',
+    processEnv: {},
+  });
+
+  assert.equal(result.profile, 'free-tool-no-db');
+  assert.deepEqual(result.failures, []);
+  assert.ok(result.prunePaths.includes('apps/web/src/routes/api/config'));
+  assert.ok(result.prunePaths.includes('apps/web/src/routes/pricing.tsx'));
+});
+
 test('site contract keeps SaaS sites on the custom profile', () => {
   const result = checkSiteContract({
     rootDir: process.cwd(),

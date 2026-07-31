@@ -1,0 +1,13 @@
+{
+  "preserve": ["Anagram Generator", "TXT", "Scrabble", "Words With Friends"],
+  "terms": {},
+  "forbidden": {
+    "allLocales": [
+      "official",
+      "guaranteed",
+      "complete dictionary",
+      "100% accurate",
+      "winning words"
+    ]
+  }
+}

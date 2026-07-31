@@ -1,6 +1,7 @@
 # File List
 
 - `401k-calculator-logo.svg`: 401k Calculator site logo and favicon.
+- `anagram-generator-logo.svg`: Anagram Generator site logo and favicon.
 - `random-group-generator-logo.svg`: Random Group Generator site logo and favicon.
 - `imgs/`: 站点展示图片、头像、图标和 Logo 资源目录。
 - `vendor/`: 前端直接分发的第三方静态资源目录。
