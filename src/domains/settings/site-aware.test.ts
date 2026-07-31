@@ -5,8 +5,8 @@ import { site } from '@/site';
 import { mapSettingsToForms } from './settings-form-mapper';
 
 test('site-aware settings: payment=none 时 payment tab 不存在', async () => {
-  const originalCapability = site.capabilities.payment;
-  site.capabilities.payment = 'none';
+  const originalCapability = site.capabilities.paymentProvider;
+  site.capabilities.paymentProvider = 'none';
 
   try {
     const mod = await import('./site-aware');
@@ -19,7 +19,7 @@ test('site-aware settings: payment=none 时 payment tab 不存在', async () => 
       false
     );
   } finally {
-    site.capabilities.payment = originalCapability;
+    site.capabilities.paymentProvider = originalCapability;
   }
 });
 
@@ -31,8 +31,8 @@ test('site-aware settings: 测试站点 payment!=none 时只暴露当前 provide
     import(registryModulePath),
   ]);
 
-  const originalCapability = site.capabilities.payment;
-  site.capabilities.payment = 'stripe';
+  const originalCapability = site.capabilities.paymentProvider;
+  site.capabilities.paymentProvider = 'stripe';
 
   try {
     const tabs = await settingsModule.getAvailableSettingTabs();
@@ -72,6 +72,6 @@ test('site-aware settings: 测试站点 payment!=none 时只暴露当前 provide
       true
     );
   } finally {
-    site.capabilities.payment = originalCapability;
+    site.capabilities.paymentProvider = originalCapability;
   }
 });

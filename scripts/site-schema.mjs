@@ -2,6 +2,11 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import {
+  PRODUCT_MODULE_IDS,
+  SITE_MODULE_IDS,
+} from '../src/config/product-modules/registry.mjs';
+
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const localeRegistryPath = resolve(
   rootDir,
@@ -19,17 +24,60 @@ function assertNonEmptyString(value, label) {
   }
 }
 
-function assertBoolean(value, label) {
-  if (typeof value !== 'boolean') {
-    throw new Error(`${label} must be a boolean`);
-  }
-}
-
 function assertPaymentCapability(value) {
   const allowedValues = new Set(['none', 'stripe', 'creem', 'paypal']);
   if (typeof value !== 'string' || !allowedValues.has(value)) {
     throw new Error(
-      'capabilities.payment must be one of: none, stripe, creem, paypal'
+      'capabilities.paymentProvider must be one of: none, stripe, creem, paypal'
+    );
+  }
+}
+
+function validateCapabilities(capabilities) {
+  if (
+    !capabilities ||
+    typeof capabilities !== 'object' ||
+    Array.isArray(capabilities)
+  ) {
+    throw new Error('site.capabilities is required');
+  }
+
+  if (!Array.isArray(capabilities.enabledModules)) {
+    throw new Error('site.capabilities.enabledModules must be an array');
+  }
+
+  const allowedModules = new Set(SITE_MODULE_IDS);
+  const seenModules = new Set();
+  for (const moduleId of capabilities.enabledModules) {
+    if (typeof moduleId !== 'string' || !allowedModules.has(moduleId)) {
+      if (PRODUCT_MODULE_IDS.includes(moduleId)) {
+        throw new Error(
+          `site.capabilities.enabledModules cannot configure platform module: ${moduleId}`
+        );
+      }
+      throw new Error(
+        `site.capabilities.enabledModules contains unknown module: ${String(moduleId)}`
+      );
+    }
+    if (seenModules.has(moduleId)) {
+      throw new Error(
+        `site.capabilities.enabledModules contains duplicate module: ${moduleId}`
+      );
+    }
+    seenModules.add(moduleId);
+  }
+
+  assertPaymentCapability(capabilities.paymentProvider);
+  const hasBilling = seenModules.has('billing');
+  const hasPaymentProvider = capabilities.paymentProvider !== 'none';
+  if (hasBilling !== hasPaymentProvider) {
+    throw new Error(
+      'site capabilities require billing and a non-none paymentProvider together'
+    );
+  }
+  if (seenModules.has('admin_settings') && !seenModules.has('auth')) {
+    throw new Error(
+      'site capabilities require auth when admin_settings is enabled'
     );
   }
 }
@@ -130,22 +178,10 @@ export function validateSiteConfig(config) {
   assertNonEmptyString(config.brand.favicon, 'site.brand.favicon');
   assertNonEmptyString(config.brand.previewImage, 'site.brand.previewImage');
 
-  if (
-    !config.capabilities ||
-    typeof config.capabilities !== 'object' ||
-    Array.isArray(config.capabilities)
-  ) {
-    throw new Error('site.capabilities is required');
-  }
-
-  assertBoolean(config.capabilities.auth, 'site.capabilities.auth');
-  assertPaymentCapability(config.capabilities.payment);
-  assertBoolean(config.capabilities.ai, 'site.capabilities.ai');
-  assertBoolean(config.capabilities.docs, 'site.capabilities.docs');
-  assertBoolean(config.capabilities.blog, 'site.capabilities.blog');
+  validateCapabilities(config.capabilities);
   validateSiteI18nConfig(config.i18n);
 
-  if (config.configVersion !== 1) {
-    throw new Error('site.configVersion must equal 1');
+  if (config.configVersion !== 2) {
+    throw new Error('site.configVersion must equal 2');
   }
 }

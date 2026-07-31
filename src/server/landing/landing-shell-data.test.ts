@@ -23,10 +23,14 @@ const publicUiConfig: PublicUiConfig = {
 };
 
 test('buildLandingShellData filters unavailable public shell links before localization', () => {
-  const originalDocs = site.capabilities.docs;
-  const originalBlog = site.capabilities.blog;
-  site.capabilities.docs = true;
-  site.capabilities.blog = true;
+  const originalModules = site.capabilities.enabledModules;
+  const modules = [...originalModules];
+  if (!modules.includes('docs')) modules.push('docs');
+  if (!modules.includes('blog')) modules.push('blog');
+  Object.defineProperty(site.capabilities, 'enabledModules', {
+    configurable: true,
+    value: modules,
+  });
 
   try {
     const shell = buildLandingShellData({
@@ -67,8 +71,10 @@ test('buildLandingShellData filters unavailable public shell links before locali
       ['/zh/pricing']
     );
   } finally {
-    site.capabilities.docs = originalDocs;
-    site.capabilities.blog = originalBlog;
+    Object.defineProperty(site.capabilities, 'enabledModules', {
+      configurable: true,
+      value: originalModules,
+    });
   }
 });
 

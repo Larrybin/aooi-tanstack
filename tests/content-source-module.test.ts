@@ -244,8 +244,9 @@ test('@/content-source: disabled docs/blog site may omit docs and posts director
           ...siteConfig,
           capabilities: {
             ...siteConfig.capabilities,
-            docs: false,
-            blog: false,
+            enabledModules: siteConfig.capabilities.enabledModules.filter(
+              (moduleId: string) => moduleId !== 'docs' && moduleId !== 'blog'
+            ),
           },
         },
         null,

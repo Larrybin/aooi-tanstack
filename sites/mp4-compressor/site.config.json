@@ -10,11 +10,8 @@
     "previewImage": "/logo.png"
   },
   "capabilities": {
-    "auth": false,
-    "payment": "none",
-    "ai": false,
-    "docs": false,
-    "blog": false
+    "enabledModules": ["analytics"],
+    "paymentProvider": "none"
   },
   "i18n": {
     "defaultLocale": "en",
@@ -23,5 +20,5 @@
     "localeDetection": false,
     "strictPublishing": true
   },
-  "configVersion": 1
+  "configVersion": 2
 }

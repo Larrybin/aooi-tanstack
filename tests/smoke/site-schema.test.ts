@@ -16,13 +16,10 @@ function buildSiteConfig(overrides: Record<string, unknown> = {}) {
       previewImage: '/logo.png',
     },
     capabilities: {
-      auth: true,
-      payment: 'none',
-      ai: false,
-      docs: true,
-      blog: true,
+      enabledModules: ['auth', 'admin_settings', 'docs', 'blog'],
+      paymentProvider: 'none',
     },
-    configVersion: 1,
+    configVersion: 2,
     ...overrides,
   };
 }
@@ -116,7 +113,7 @@ test('site schema rejects duplicate supported locales', () => {
   );
 });
 
-test('site schema requires fixed routing policy for v1', () => {
+test('site schema requires fixed routing policy for v2', () => {
   assert.throws(
     () =>
       validateSiteConfig(
@@ -145,6 +142,66 @@ test('site schema requires fixed routing policy for v1', () => {
         })
       ),
     /localeDetection must equal false/
+  );
+});
+
+test('site schema rejects platform-owned modules', () => {
+  for (const moduleId of ['core_shell', 'deploy_contract']) {
+    assert.throws(
+      () =>
+        validateSiteConfig(
+          buildSiteConfig({
+            capabilities: {
+              enabledModules: ['auth', moduleId],
+              paymentProvider: 'none',
+            },
+          })
+        ),
+      /cannot configure platform module/
+    );
+  }
+});
+
+test('site schema couples billing to a payment provider', () => {
+  assert.throws(
+    () =>
+      validateSiteConfig(
+        buildSiteConfig({
+          capabilities: {
+            enabledModules: ['auth', 'billing'],
+            paymentProvider: 'none',
+          },
+        })
+      ),
+    /billing and a non-none paymentProvider together/
+  );
+
+  assert.throws(
+    () =>
+      validateSiteConfig(
+        buildSiteConfig({
+          capabilities: {
+            enabledModules: ['auth'],
+            paymentProvider: 'creem',
+          },
+        })
+      ),
+    /billing and a non-none paymentProvider together/
+  );
+});
+
+test('site schema requires auth for admin settings', () => {
+  assert.throws(
+    () =>
+      validateSiteConfig(
+        buildSiteConfig({
+          capabilities: {
+            enabledModules: ['admin_settings'],
+            paymentProvider: 'none',
+          },
+        })
+      ),
+    /require auth when admin_settings is enabled/
   );
 });
 

@@ -24,25 +24,35 @@ const runtimePublicConfig: PublicUiConfig = {
 };
 
 test('landing visibility 对 docs/blog 使用站点 capabilities，而不是 runtime public config', () => {
-  const originalDocs = site.capabilities.docs;
-  const originalBlog = site.capabilities.blog;
-  site.capabilities.docs = true;
-  site.capabilities.blog = true;
+  const originalModules = site.capabilities.enabledModules;
+  const modules = [...originalModules];
+  if (!modules.includes('docs')) modules.push('docs');
+  if (!modules.includes('blog')) modules.push('blog');
+  Object.defineProperty(site.capabilities, 'enabledModules', {
+    configurable: true,
+    value: modules,
+  });
 
   try {
     assert.equal(isLandingDocsEnabled(runtimePublicConfig), true);
     assert.equal(isLandingBlogEnabled(runtimePublicConfig), true);
   } finally {
-    site.capabilities.docs = originalDocs;
-    site.capabilities.blog = originalBlog;
+    Object.defineProperty(site.capabilities, 'enabledModules', {
+      configurable: true,
+      value: originalModules,
+    });
   }
 });
 
 test('filterLandingNavItems keeps docs when docs capability is enabled', () => {
-  const originalDocs = site.capabilities.docs;
-  const originalBlog = site.capabilities.blog;
-  site.capabilities.docs = true;
-  site.capabilities.blog = true;
+  const originalModules = site.capabilities.enabledModules;
+  const modules = [...originalModules];
+  if (!modules.includes('docs')) modules.push('docs');
+  if (!modules.includes('blog')) modules.push('blog');
+  Object.defineProperty(site.capabilities, 'enabledModules', {
+    configurable: true,
+    value: modules,
+  });
 
   try {
     const items = filterLandingNavItems(
@@ -59,8 +69,10 @@ test('filterLandingNavItems keeps docs when docs capability is enabled', () => {
       ['/docs', '/blog', '/pricing']
     );
   } finally {
-    site.capabilities.docs = originalDocs;
-    site.capabilities.blog = originalBlog;
+    Object.defineProperty(site.capabilities, 'enabledModules', {
+      configurable: true,
+      value: originalModules,
+    });
   }
 });
 

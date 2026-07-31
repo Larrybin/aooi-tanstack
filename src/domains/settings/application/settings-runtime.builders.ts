@@ -122,7 +122,8 @@ export function buildBillingRuntimeSettings(
       configs[BILLING_RUNTIME_SETTING_KEYS.defaultLocale]
     ),
   } as const;
-  const paymentCapability = site.capabilities.payment as PaymentCapability;
+  const paymentCapability = site.capabilities
+    .paymentProvider as PaymentCapability;
 
   switch (paymentCapability) {
     case 'none':

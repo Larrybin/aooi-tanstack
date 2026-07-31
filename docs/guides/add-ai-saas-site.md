@@ -47,8 +47,8 @@ shape.
 6. Define the product runtime contract.
    Declare required workers, bindings, vars, and secrets through
    `product-runtime`. Product AI runtime bindings are separate from
-   `site.config.json.capabilities.ai`, which only controls the shared
-   chat/generator module.
+   the `ai` entry in `site.config.json.capabilities.enabledModules`, which only
+   controls the shared chat/generator module.
 
 7. Add `SITE=<site> pnpm contract:check` coverage.
    The audit must show actor/access, entitlement, quota, and runtime contract
@@ -120,4 +120,4 @@ For AI Remover, also verify the product smoke path:
   subscription, grants, reserve/commit/refund, or runtime binding logic.
 - `product-access`, `product-entitlements`, `product-quota`, and
   `product-runtime` must not import product implementation domains.
-- Product runtime AI bindings must not depend on `capabilities.ai=true`.
+- Product runtime AI bindings must not depend on the shared `ai` module.

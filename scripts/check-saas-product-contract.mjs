@@ -401,7 +401,7 @@ function auditCommercial({
   if (!sitePricing) {
     const issues = pricingIssues.length
       ? pricingIssues
-      : site.capabilities?.payment && site.capabilities.payment !== 'none'
+      : site.capabilities?.paymentProvider !== 'none'
         ? [
             issue(
               ISSUE_LEVEL.BLOCKER,
@@ -415,7 +415,7 @@ function auditCommercial({
     return section(
       issues.length === 0 ? 'not_applicable' : 'missing',
       {
-        billing: site.capabilities?.payment ?? 'none',
+        billing: site.capabilities?.paymentProvider ?? 'none',
         pricingFile: pricingIssues.length
           ? 'invalid'
           : existsSync(pricingPath)
@@ -436,7 +436,7 @@ function auditCommercial({
     const mappingOwnership = isCheckoutEnabled(item)
       ? resolveMappingOwnership({
           item,
-          paymentCapability: site.capabilities?.payment,
+          paymentCapability: site.capabilities?.paymentProvider,
           settingsSourcePath,
         })
       : {
@@ -474,7 +474,7 @@ function auditCommercial({
   return section(
     planIssues.length === 0 ? 'resolved' : 'partial',
     {
-      billing: site.capabilities?.payment ?? 'none',
+      billing: site.capabilities?.paymentProvider ?? 'none',
       pricingFile: 'resolved',
       planCount: items.length,
       paidCheckoutPlanCount: items.filter(isCheckoutEnabled).length,
@@ -482,7 +482,7 @@ function auditCommercial({
     },
     [
       source('pricing', pricingPath),
-      source('site_config', sitePath, 'capabilities.payment'),
+      source('site_config', sitePath, 'capabilities.paymentProvider'),
     ],
     planIssues
   );
@@ -555,7 +555,7 @@ function auditRuntimeOwnership({
   paymentSettingsPath,
   envContractPath,
 }) {
-  const paymentCapability = site.capabilities?.payment ?? 'none';
+  const paymentCapability = site.capabilities?.paymentProvider ?? 'none';
   const entries = [
     {
       name: 'payment provider product mapping',

@@ -1,0 +1,1 @@
+export { resolveSiteProductHomeRouteData } from './home';

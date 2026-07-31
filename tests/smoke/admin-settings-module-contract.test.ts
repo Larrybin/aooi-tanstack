@@ -58,11 +58,19 @@ test('getAdminSettingsModuleContractChecks: 覆盖 6 个代表性 settings tab',
 
 test('no-permission 页面位于 TanStack 公共 auth 路由', async () => {
   await assert.doesNotReject(
-    access(path.resolve(rootDir, 'apps/web/src/routes/no-permission.tsx'))
+    access(
+      path.resolve(
+        rootDir,
+        'apps/web/src/routes/(module_auth)/no-permission.tsx'
+      )
+    )
   );
   await assert.doesNotReject(
     access(
-      path.resolve(rootDir, 'apps/web/src/routes/$locale/no-permission.tsx')
+      path.resolve(
+        rootDir,
+        'apps/web/src/routes/(module_auth)/$locale/no-permission.tsx'
+      )
     )
   );
 });

@@ -4,6 +4,13 @@ import {
   readBuildPublicUiConfig,
 } from '@/domains/settings/application/settings-build.query';
 import { site } from '@/site';
+import {
+  buildSiteProductHomeHeaderFooter,
+  getSiteProductHomeMetadata,
+  getSiteProductHomeStructuredData,
+  isSiteProductHome,
+} from '@/site-home';
+import { resolveSiteProductHomeRouteData } from '@/site-home-server';
 import type {
   HomeButtonData,
   HomePageData,
@@ -30,13 +37,6 @@ import type { Button } from '@/shared/types/blocks/common';
 import type { Footer, Header } from '@/shared/types/blocks/landing';
 
 import { buildLandingShellData } from './landing-shell-data';
-import {
-  buildProductHomeHeaderFooter,
-  getProductHomeMetadata,
-  getProductHomeStructuredData,
-  isProductHomeSite,
-  resolveProductHomeRouteData,
-} from './product-home-route-data';
 
 type LandingMessages = {
   metadata?: {
@@ -81,13 +81,13 @@ export async function resolveHomeRouteData({
   const billingSettings = readBuildBillingUiSettings();
   const brand = buildBrandPlaceholderValues();
 
-  if (isProductHomeSite()) {
-    const productHome = resolveProductHomeRouteData(locale);
+  if (isSiteProductHome) {
+    const productHome = resolveSiteProductHomeRouteData(locale);
     if (!productHome) {
       return null;
     }
 
-    const metadata = getProductHomeMetadata(productHome);
+    const metadata = getSiteProductHomeMetadata(productHome);
     const canonical = buildCanonicalUrl('/', locale);
 
     const head = buildSeoHead({
@@ -99,25 +99,23 @@ export async function resolveHomeRouteData({
       siteName: site.brand.appName,
     });
 
-    return JSON.parse(
-      JSON.stringify({
+    return {
+      locale,
+      canonicalPath: '/',
+      shell: buildLandingShellData({
+        ...buildSiteProductHomeHeaderFooter(productHome),
         locale,
-        canonicalPath: '/',
-        shell: buildLandingShellData({
-          ...buildProductHomeHeaderFooter(productHome),
-          locale,
-          publicUiConfig,
-          authSettings,
-          billingSettings,
-        }),
-        head: {
-          ...head,
-          scripts: getProductHomeStructuredData(productHome, canonical),
-        },
-        variant: 'product',
-        productHome,
-      })
-    ) as HomeRouteData;
+        publicUiConfig,
+        authSettings,
+        billingSettings,
+      }),
+      head: {
+        ...head,
+        scripts: getSiteProductHomeStructuredData(productHome, canonical),
+      },
+      variant: 'product',
+      productHome,
+    } as HomeRouteData;
   }
 
   const messages = getLandingMessages(locale);
@@ -148,23 +146,21 @@ export async function resolveHomeRouteData({
     `${site.brand.appName} home page`;
   const canonical = buildCanonicalUrl('/', locale);
 
-  return JSON.parse(
-    JSON.stringify({
+  return {
+    locale,
+    canonicalPath: '/',
+    shell,
+    head: buildSeoHead({
+      title,
+      description,
+      canonical,
+      alternates: buildLanguageAlternates('/'),
       locale,
-      canonicalPath: '/',
-      shell,
-      head: buildSeoHead({
-        title,
-        description,
-        canonical,
-        alternates: buildLanguageAlternates('/'),
-        locale,
-        siteName: site.brand.appName,
-      }),
-      variant: 'generic',
-      page,
-    })
-  ) as HomeRouteData;
+      siteName: site.brand.appName,
+    }),
+    variant: 'generic',
+    page,
+  } as HomeRouteData;
 }
 
 function getLandingMessages(locale: string): LandingMessages | null {

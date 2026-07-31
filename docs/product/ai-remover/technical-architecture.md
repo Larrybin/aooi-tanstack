@@ -40,17 +40,23 @@ Expected capabilities:
 
 ```json
 {
-  "auth": true,
-  "payment": "creem",
-  "ai": false,
-  "docs": false,
-  "blog": false
+  "enabledModules": [
+    "auth",
+    "billing",
+    "admin_settings",
+    "storage",
+    "analytics",
+    "affiliate",
+    "customer_service",
+    "ads"
+  ],
+  "paymentProvider": "creem"
 }
 ```
 
-`capabilities.ai` controls the shared OpenRouter/chat/generator module. AI
+The `ai` module controls the shared OpenRouter/chat/generator module. AI
 Remover image processing uses the Cloudflare Workers AI binding declared in
-`deploy.settings.json`, so this site keeps `capabilities.ai=false` and does not
+its product contract, so this site does not enable `ai` and does not
 enable the optional `chat` worker in its deploy topology.
 
 Provider keys, OAuth secrets, Creem secrets, and storage settings must stay in
@@ -101,9 +107,10 @@ contract layer. It only models which workers, bindings, vars, and secrets a
 product needs at deploy/runtime boundaries. AI Remover declares `public-web`,
 `workersAi`, `storagePublicBaseUrl`, and `removerCleanup` as its current
 runtime requirements. Product runtime AI binding is separate from the platform
-`capabilities.ai` flag: AI Remover keeps `capabilities.ai=false` because it does
-not enable the shared chat/generator module, while still requiring Cloudflare
-Workers AI for the remover product runtime. `product-runtime` does not own
+`ai` module entry: AI Remover omits `ai` from `capabilities.enabledModules`
+because it does not enable the shared chat/generator module, while still
+requiring Cloudflare Workers AI for the remover product runtime.
+`product-runtime` does not own
 actor/session, entitlements, quota, billing, job lifecycle, media assets,
 provider adapters, or editor behavior.
 

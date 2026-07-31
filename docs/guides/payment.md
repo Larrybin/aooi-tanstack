@@ -22,7 +22,7 @@ apps/web/src/routes/api/payment/
   notify/route.ts
 ```
 
-`settings` stores payment-related provider values only. Site product pricing lives in `sites/<site-key>/pricing.json` and is generated into `@/site` as `sitePricing`. The active provider is derived from `site.capabilities.payment`, while billing interprets pricing, subscription, and credit behavior.
+`settings` stores payment-related provider values only. Site product pricing lives in `sites/<site-key>/pricing.json` and is generated into `@/site` as `sitePricing`. The active provider is derived from `site.capabilities.paymentProvider`, while billing interprets pricing, subscription, and credit behavior.
 
 ## Core Concepts
 
@@ -46,7 +46,7 @@ Free or non-checkout plans must set `checkout_enabled: false`. Paid checkout ite
 
 ## Webhook Flow
 
-1. `apps/web/src/routes/api/payment/notify.ts` maps POST to the assembled handler; `apps/web/src/server/handlers/payment.ts` derives the active provider from `site.capabilities.payment`.
+1. `apps/web/src/routes/api/payment/notify.ts` maps POST to the assembled handler; `apps/web/src/server/handlers/payment.ts` derives the active provider from `site.capabilities.paymentProvider`.
 2. The route reads runtime settings through `settings-runtime.query`.
 3. The route passes request metadata into `handlePaymentNotifyRequest()`.
 4. Billing application code records inbox/audit state and applies order/subscription transitions.
@@ -62,7 +62,7 @@ Free or non-checkout plans must set `checkout_enabled: false`. Paid checkout ite
 
 ## Configuration
 
-Payment settings are registered under `src/domains/settings/definitions/payment.ts`, persisted through `settings-store`, and read as values by billing/payment adapter code. The active provider is derived from `site.capabilities.payment`, and only the active provider's runtime fields remain configurable.
+Payment settings are registered under `src/domains/settings/definitions/payment.ts`, persisted through `settings-store`, and read as values by billing/payment adapter code. The active provider is derived from `site.capabilities.paymentProvider`, and only the active provider's runtime fields remain configurable.
 
 Examples:
 
@@ -71,7 +71,7 @@ Examples:
 - `creem_product_ids`
 - `paypal_environment`
 
-Provider availability semantics belong to `site.capabilities.payment`; settings only carry the active provider's runtime fields.
+Provider availability semantics belong to `site.capabilities.paymentProvider`; settings only carry the active provider's runtime fields.
 
 Pricing content and plan entitlements belong to `sites/<site-key>/pricing.json`. The build step reads only the selected `SITE` and emits `sitePricing` from `@/site`, so Cloudflare runtime code does not read `sites/**` or the filesystem for pricing.
 

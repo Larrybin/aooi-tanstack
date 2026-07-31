@@ -767,7 +767,7 @@ test('cf:check 在 chat worker 场景只要求 OPENROUTER_API_KEY', async () => 
           ...siteConfig,
           capabilities: {
             ...siteConfig.capabilities,
-            ai: true,
+            enabledModules: [...siteConfig.capabilities.enabledModules, 'ai'],
           },
         },
         null,
@@ -808,7 +808,7 @@ test('cf:check 已启用能力缺 bindings 时给出 setting -> binding 错误',
           ...siteConfig,
           capabilities: {
             ...siteConfig.capabilities,
-            ai: true,
+            enabledModules: [...siteConfig.capabilities.enabledModules, 'ai'],
           },
         },
         null,
@@ -870,7 +870,11 @@ test('cf:check active payment provider 缺 secret 时带环境上下文并直接
           ...siteConfig,
           capabilities: {
             ...siteConfig.capabilities,
-            payment: 'stripe',
+            enabledModules: [
+              ...siteConfig.capabilities.enabledModules,
+              'billing',
+            ],
+            paymentProvider: 'stripe',
           },
         },
         null,

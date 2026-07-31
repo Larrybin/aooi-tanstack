@@ -56,14 +56,14 @@ test('deploy contract resolver 从 active worker map 排除 disabled chat', () =
   assert.equal('CHAT_WORKER_NAME' in contract.router.workerNameVars, false);
 });
 
-test('deploy contract resolver keeps AI Remover product runtime AI binding separate from capabilities.ai', () => {
+test('deploy contract resolver keeps AI Remover product runtime AI binding separate from the generic ai module', () => {
   const contract = resolveSiteDeployContract({
     rootDir: process.cwd(),
     siteKey: 'ai-remover',
     processEnv: {},
   });
 
-  assert.equal(contract.site.capabilities.ai, false);
+  assert.equal(contract.site.capabilities.enabledModules.includes('ai'), false);
   assert.equal(contract.bindingRequirements.secrets.openrouter, false);
   assert.equal(contract.bindingRequirements.bindings.workersAi, true);
   assert.equal(contract.productRuntimeContracts.length, 1);

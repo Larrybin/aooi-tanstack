@@ -95,7 +95,7 @@ export function readCurrentSitePricing({
 }) {
   const sourcePath = resolveSitePricingPath({ rootDir, siteKey });
   if (!existsSync(sourcePath)) {
-    if (site.capabilities?.payment && site.capabilities.payment !== 'none') {
+    if (site.capabilities?.paymentProvider !== 'none') {
       throw new Error(
         `site "${siteKey}" requires sites/${siteKey}/pricing.json because payment is enabled`
       );

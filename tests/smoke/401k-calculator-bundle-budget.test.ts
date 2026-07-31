@@ -6,11 +6,16 @@ import { gzipSync } from 'node:zlib';
 
 const clientAssetsDir = resolve(process.cwd(), 'dist/client/assets');
 const hasClientBuild = existsSync(clientAssetsDir);
+const isTargetSite = process.env.SITE === '401k-calculator';
 
 test(
   '401k home entry stays within the 30 kB gzip budget',
-  { skip: !hasClientBuild },
+  { skip: !isTargetSite },
   () => {
+    assert.ok(
+      hasClientBuild,
+      '401k bundle budget requires a completed client build'
+    );
     const assetFiles = readdirSync(clientAssetsDir);
     const homeChunkFiles = assetFiles.filter(
       (file) => file.startsWith('home.view-') && file.endsWith('.js')

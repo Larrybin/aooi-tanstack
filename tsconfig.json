@@ -18,6 +18,8 @@
     "paths": {
       "@/*": ["./src/*"],
       "@/site": ["./.generated/site.ts"],
+      "@/site-home": ["./.generated/site-home.tsx"],
+      "@/site-home-server": ["./.generated/site-home.server.ts"],
       "@/content-source": ["./.generated/content-source.ts"],
       "@/public-content": ["./.generated/public-content.ts"]
     }
@@ -38,6 +40,8 @@
     "src/**/*.test.tsx",
     "src/**/*.spec.ts",
     "src/**/*.spec.tsx",
+    "apps/web/src/routes/(module_*)/**",
+    "apps/web/src/routes/(site_*)/**",
     "node_modules",
     "out",
     "dist",

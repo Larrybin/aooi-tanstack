@@ -6,11 +6,11 @@ import { gzipSync } from 'node:zlib';
 
 const clientAssetsDir = resolve(process.cwd(), 'dist/client/assets');
 const hasClientBuild = existsSync(clientAssetsDir);
-const requiresClientBuild = process.env.SITE === 'random-group-generator';
+const isTargetSite = process.env.SITE === 'random-group-generator';
 
 test(
   'random group generator home chunks stay within the 30 kB gzip budget',
-  { skip: !hasClientBuild && !requiresClientBuild },
+  { skip: !isTargetSite },
   () => {
     assert.ok(
       hasClientBuild,
@@ -18,19 +18,14 @@ test(
     );
 
     const assetFiles = readdirSync(clientAssetsDir);
-    const chunkPrefixes = ['home.view-', 'random-group-generator-home-'];
-    const homeChunkFiles = chunkPrefixes.map((prefix) => {
-      const matches = assetFiles.filter(
-        (file) => file.startsWith(prefix) && file.endsWith('.js')
-      );
-
-      assert.equal(
-        matches.length,
-        1,
-        `expected one ${prefix} client chunk, found ${matches.join(', ')}`
-      );
-      return matches[0]!;
-    });
+    const homeChunkFiles = assetFiles.filter(
+      (file) => file.startsWith('home.view-') && file.endsWith('.js')
+    );
+    assert.equal(
+      homeChunkFiles.length,
+      1,
+      `expected one home.view- client chunk, found ${homeChunkFiles.join(', ')}`
+    );
     const gzipBytes = homeChunkFiles.reduce(
       (total, file) =>
         total +

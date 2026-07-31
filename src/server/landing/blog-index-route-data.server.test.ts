@@ -5,8 +5,13 @@ import { site } from '@/site';
 import { resolveBlogIndexRouteData } from './blog-index-route-resolver';
 
 test('resolveBlogIndexRouteData builds blog index route data', async () => {
-  const originalBlog = site.capabilities.blog;
-  site.capabilities.blog = true;
+  const originalModules = site.capabilities.enabledModules;
+  const modules = [...originalModules];
+  if (!modules.includes('blog')) modules.push('blog');
+  Object.defineProperty(site.capabilities, 'enabledModules', {
+    configurable: true,
+    value: modules,
+  });
   const blogQueryInputs: Array<{
     locale: string;
     postPrefix?: string;
@@ -103,11 +108,14 @@ test('resolveBlogIndexRouteData builds blog index route data', async () => {
     );
     assert.equal(invalidLocaleData, null);
 
-    site.capabilities.blog = false;
+    modules.splice(modules.indexOf('blog'), 1);
 
     const data = await resolveBlogIndexRouteData({ locale: 'en' }, deps);
     assert.equal(data, null);
   } finally {
-    site.capabilities.blog = originalBlog;
+    Object.defineProperty(site.capabilities, 'enabledModules', {
+      configurable: true,
+      value: originalModules,
+    });
   }
 });

@@ -6,9 +6,12 @@ import react from '@vitejs/plugin-react';
 import mdx from 'fumadocs-mdx/vite';
 import { defineConfig } from 'vite';
 
+import { readCurrentSiteConfig } from './scripts/lib/site-config.mjs';
+import { buildSiteRouteIgnorePattern } from './scripts/lib/site-route-assembly.mjs';
 import { docs, pages, posts } from './source.config';
 
 const projectRoot = import.meta.dirname;
+const currentSite = readCurrentSiteConfig({ rootDir: projectRoot });
 
 export default defineConfig({
   root: projectRoot,
@@ -21,6 +24,14 @@ export default defineConfig({
       {
         find: '@/site',
         replacement: resolve(projectRoot, '.generated/site.ts'),
+      },
+      {
+        find: '@/site-home-server',
+        replacement: resolve(projectRoot, '.generated/site-home.server.ts'),
+      },
+      {
+        find: '@/site-home',
+        replacement: resolve(projectRoot, '.generated/site-home.tsx'),
       },
       {
         find: '@/content-source',
@@ -52,9 +63,19 @@ export default defineConfig({
     cloudflare({ viteEnvironment: { name: 'ssr' } }),
     tanstackStart({
       srcDirectory: 'apps/web/src',
+      client: {
+        entry: '../../../.generated/entry.client.tsx',
+      },
+      server: {
+        entry: '../../../.generated/entry.server.ts',
+      },
       router: {
         routesDirectory: 'routes',
-        generatedRouteTree: 'routeTree.gen.ts',
+        generatedRouteTree: '../../../.generated/routeTree.gen.ts',
+        routeFileIgnorePattern: buildSiteRouteIgnorePattern({
+          rootDir: projectRoot,
+          site: currentSite,
+        }),
       },
     }),
     mdx({ docs, pages, posts }, { generateIndexFile: false }),

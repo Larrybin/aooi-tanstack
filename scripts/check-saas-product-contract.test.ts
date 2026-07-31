@@ -584,14 +584,20 @@ async function createFixtureRoot(pricing: unknown) {
       previewImage: '/logo.png',
     },
     capabilities: {
-      auth: true,
-      payment: 'creem',
-      ai: false,
-      docs: false,
-      blog: false,
+      enabledModules: [
+        'auth',
+        'billing',
+        'admin_settings',
+        'storage',
+        'analytics',
+        'affiliate',
+        'customer_service',
+        'ads',
+      ],
+      paymentProvider: 'creem',
     },
     i18n: testSiteI18n,
-    configVersion: 1,
+    configVersion: 2,
   });
   await writeJson(
     path.join(rootDir, 'sites', siteKey, 'deploy.settings.json'),
@@ -693,14 +699,20 @@ async function createBackgroundRemoverFixtureRoot() {
       previewImage: '/logo.png',
     },
     capabilities: {
-      auth: true,
-      payment: 'creem',
-      ai: false,
-      docs: false,
-      blog: false,
+      enabledModules: [
+        'auth',
+        'billing',
+        'admin_settings',
+        'storage',
+        'analytics',
+        'affiliate',
+        'customer_service',
+        'ads',
+      ],
+      paymentProvider: 'creem',
     },
     i18n: testSiteI18n,
-    configVersion: 1,
+    configVersion: 2,
   });
   await writeJson(
     path.join(rootDir, 'sites', siteKey, 'deploy.settings.json'),
@@ -1025,14 +1037,11 @@ test('contract audit converts site config validation errors into source-mapped b
         previewImage: '/logo.png',
       },
       capabilities: {
-        auth: true,
-        payment: 'creem',
-        ai: true,
-        docs: false,
-        blog: false,
+        enabledModules: ['auth', 'billing', 'ai'],
+        paymentProvider: 'creem',
       },
       i18n: testSiteI18n,
-      configVersion: 1,
+      configVersion: 2,
     }
   );
 

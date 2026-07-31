@@ -5,8 +5,12 @@ import { site } from '@/site';
 import { resolveBlogCategoryRouteData } from './blog-category-route-resolver';
 
 test('resolveBlogCategoryRouteData returns null when blog capability is disabled', async () => {
-  const originalBlog = site.capabilities.blog;
-  site.capabilities.blog = false;
+  const originalModules = site.capabilities.enabledModules;
+  const modules = originalModules.filter((moduleId) => moduleId !== 'blog');
+  Object.defineProperty(site.capabilities, 'enabledModules', {
+    configurable: true,
+    value: modules,
+  });
   let loadedCategory = false;
 
   try {
@@ -23,6 +27,9 @@ test('resolveBlogCategoryRouteData returns null when blog capability is disabled
     assert.equal(data, null);
     assert.equal(loadedCategory, false);
   } finally {
-    site.capabilities.blog = originalBlog;
+    Object.defineProperty(site.capabilities, 'enabledModules', {
+      configurable: true,
+      value: originalModules,
+    });
   }
 });

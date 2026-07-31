@@ -23,7 +23,7 @@ export function resolveSiteConfigPath({
   return path.resolve(rootDir, 'sites', siteKey, 'site.config.json');
 }
 
-function listConfiguredSiteKeys(rootDir = process.cwd()) {
+export function listConfiguredSiteKeys(rootDir = process.cwd()) {
   const sitesDir = path.resolve(rootDir, 'sites');
   if (!existsSync(sitesDir)) {
     return [];

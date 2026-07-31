@@ -243,11 +243,8 @@ test('site i18n CLI exits non-zero for strict report errors', () => {
             previewImage: '/preview.png',
           },
           capabilities: {
-            auth: true,
-            payment: 'none',
-            ai: true,
-            docs: false,
-            blog: false,
+            enabledModules: ['auth', 'ai'],
+            paymentProvider: 'none',
           },
           i18n: {
             defaultLocale: 'en',
@@ -256,7 +253,7 @@ test('site i18n CLI exits non-zero for strict report errors', () => {
             localeDetection: false,
             strictPublishing: true,
           },
-          configVersion: 1,
+          configVersion: 2,
         },
         null,
         2

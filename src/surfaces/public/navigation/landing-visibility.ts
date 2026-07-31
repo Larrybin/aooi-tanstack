@@ -3,17 +3,18 @@ import type { Button, NavItem } from '@/shared/types/blocks/common';
 import { isAiEnabled } from '@/domains/ai/domain/enablement';
 import type { PublicUiConfig } from '@/domains/settings/application/settings-runtime.contracts';
 import { getSite } from '@/infra/platform/site';
+import { hasSiteModule } from '@/config/site-capabilities';
 
 export function isLandingBlogEnabled(
   _publicConfig?: PublicUiConfig
 ) {
-  return Boolean(getSite().capabilities.blog);
+  return hasSiteModule('blog', getSite().capabilities);
 }
 
 export function isLandingDocsEnabled(
   _publicConfig?: PublicUiConfig
 ) {
-  return Boolean(getSite().capabilities.docs);
+  return hasSiteModule('docs', getSite().capabilities);
 }
 
 export function isLandingAiEnabled(

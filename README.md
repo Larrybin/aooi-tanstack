@@ -60,7 +60,7 @@ pnpm dev:ai-remover:cloudflare
 | -------------------------------- | ------------------------------------------------------------------------------------ |
 | `pnpm dev`                       | Run the selected site with Vite                                                      |
 | `pnpm dev:local`                 | Run the `dev-local` site                                                             |
-| `SITE=<site> pnpm build`         | Build `dist/client/**` and `dist/server/server.mjs`                                  |
+| `SITE=<site> pnpm build`         | Build `dist/client/**` and `dist/server/entry.server.mjs`                            |
 | `SITE=<site> pnpm start`         | Preview the production build                                                         |
 | `pnpm typecheck`                 | Type-check root and Web sources                                                      |
 | `pnpm lint`                      | Run ESLint and runtime-env guards                                                    |

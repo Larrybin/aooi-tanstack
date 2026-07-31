@@ -10,8 +10,8 @@ Docs and Blog are optional content modules:
 
 ## Required Configuration
 
-- `sites/<site>/site.config.json` → `capabilities.docs`
-- `sites/<site>/site.config.json` → `capabilities.blog`
+- `sites/<site>/site.config.json` → `capabilities.enabledModules` entry `docs`
+- `sites/<site>/site.config.json` → `capabilities.enabledModules` entry `blog`
 
 ## External Services
 

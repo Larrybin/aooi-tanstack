@@ -11,11 +11,8 @@ Site capabilities select existing mainline modules. They should not cause copied
 Use `site.config.json` for high-level capability selection:
 
 ```text
-capabilities.auth
-capabilities.payment
-capabilities.ai
-capabilities.docs
-capabilities.blog
+capabilities.enabledModules
+capabilities.paymentProvider
 ```
 
 Use admin/runtime settings, env, secrets, and Cloudflare bindings for provider details.
@@ -25,7 +22,7 @@ Use `deploy.settings.json` for infra resource names and binding requirements.
 ## Common Decisions
 
 - Auth enabled: reuse Better Auth platform code and required email/OAuth secrets.
-- Payment enabled: use the billing domain and provider selected by `capabilities.payment`.
+- Payment enabled: include `billing` and use the provider selected by `capabilities.paymentProvider`.
 - AI enabled: use the AI domain capability resolver and runtime provider settings.
 - Docs/blog enabled: provide required site content directories and entries.
 - Storage enabled: configure R2 and public storage base URL through deploy/runtime inputs.

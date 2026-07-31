@@ -225,16 +225,25 @@ test('site deploy settings 启用能力时必须启用对应 worker', () => {
 
   const cases = [
     {
-      capabilities: { auth: true, payment: 'none', ai: false },
-      expected: /auth \(site\.capabilities\.auth\)/i,
+      capabilities: {
+        enabledModules: ['auth'],
+        paymentProvider: 'none',
+      },
+      expected: /auth \(auth module\)/i,
     },
     {
-      capabilities: { auth: false, payment: 'creem', ai: false },
-      expected: /payment \(site\.capabilities\.payment\)/i,
+      capabilities: {
+        enabledModules: ['billing'],
+        paymentProvider: 'creem',
+      },
+      expected: /payment \(billing module\)/i,
     },
     {
-      capabilities: { auth: false, payment: 'none', ai: true },
-      expected: /chat \(site\.capabilities\.ai\)/i,
+      capabilities: {
+        enabledModules: ['ai'],
+        paymentProvider: 'none',
+      },
+      expected: /chat \(ai module\)/i,
     },
   ];
 
@@ -244,10 +253,7 @@ test('site deploy settings 启用能力时必须启用对应 worker', () => {
         validateSiteDeploySettings(settings, {
           siteConfig: {
             ...baseSiteConfig,
-            capabilities: {
-              ...baseSiteConfig.capabilities,
-              ...item.capabilities,
-            },
+            capabilities: item.capabilities,
           },
         }),
       item.expected
@@ -396,8 +402,7 @@ test('site deploy settings allow site-specific capability-derived contract to st
     domain: 'demo.example.com',
     capabilities: {
       ...baseSiteConfig.capabilities,
-      auth: true,
-      ai: true,
+      enabledModules: [...baseSiteConfig.capabilities.enabledModules, 'ai'],
     },
   };
   const settings = {

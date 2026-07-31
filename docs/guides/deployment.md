@@ -46,7 +46,7 @@ RESEND_API_KEY=ci-resend-api-key-not-for-production SITE=dev-local pnpm cf:typeg
 
 `cf:check` verifies the selected site's Worker set, required bindings, vars,
 secrets, and Wrangler templates. `cf:build` builds
-`dist/server/server.mjs` and `dist/client/**`, then performs scoped Worker
+`dist/server/entry.server.mjs` and `dist/client/**`, then performs scoped Worker
 upload dry-runs. `cf:typegen:check` verifies the tracked Cloudflare
 declarations.
 

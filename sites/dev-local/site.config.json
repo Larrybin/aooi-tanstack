@@ -10,11 +10,18 @@
     "previewImage": "/logo.png"
   },
   "capabilities": {
-    "auth": true,
-    "payment": "none",
-    "ai": false,
-    "docs": true,
-    "blog": true
+    "enabledModules": [
+      "auth",
+      "admin_settings",
+      "docs",
+      "blog",
+      "storage",
+      "analytics",
+      "affiliate",
+      "customer_service",
+      "ads"
+    ],
+    "paymentProvider": "none"
   },
   "i18n": {
     "defaultLocale": "en",
@@ -22,5 +29,5 @@
     "localePrefix": "as-needed",
     "localeDetection": false
   },
-  "configVersion": 1
+  "configVersion": 2
 }

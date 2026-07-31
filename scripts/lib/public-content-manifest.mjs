@@ -3,6 +3,7 @@ import path from 'node:path';
 import GithubSlugger from 'github-slugger';
 import MarkdownIt from 'markdown-it';
 
+import { hasSiteModule } from './site-capabilities.mjs';
 import {
   CONTENT_COLLECTION_KEYS,
   resolveSiteCollectionDir,
@@ -216,8 +217,8 @@ function readCollectionDocuments({ rootDir, siteKey, site, collection }) {
 
 export function buildPublicContentDocuments({ rootDir, siteKey, site }) {
   return CONTENT_COLLECTION_KEYS.flatMap((collection) => {
-    if (collection === 'docs' && !site.capabilities.docs) return [];
-    if (collection === 'posts' && !site.capabilities.blog) return [];
+    if (collection === 'docs' && !hasSiteModule(site, 'docs')) return [];
+    if (collection === 'posts' && !hasSiteModule(site, 'blog')) return [];
 
     return readCollectionDocuments({ rootDir, siteKey, site, collection });
   }).sort((left, right) => {

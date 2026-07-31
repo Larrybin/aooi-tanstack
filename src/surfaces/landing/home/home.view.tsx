@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { getSiteProductHomeSkipLink, SiteProductHomeView } from '@/site-home';
 
 import { isRtlLocale } from '@/config/locale';
 import type { Image } from '@/shared/types/blocks/common';
@@ -11,7 +12,6 @@ import type {
   HomeRouteData,
   HomeSectionData,
 } from './home.types';
-import { ProductHomeView } from './product-home.view';
 
 const SECTION_ORDER = [
   'logos',
@@ -167,6 +167,10 @@ function HomeContent({ page }: { page: HomePageData }) {
 }
 
 export function HomeSurfaceView({ data }: { data: HomeRouteData }) {
+  const skipLink =
+    data.variant === 'product'
+      ? getSiteProductHomeSkipLink(data.productHome)
+      : null;
   useEffect(() => {
     document.documentElement.lang = data.locale;
     document.documentElement.dir = isRtlLocale(data.locale) ? 'rtl' : 'ltr';
@@ -174,18 +178,17 @@ export function HomeSurfaceView({ data }: { data: HomeRouteData }) {
 
   return (
     <>
-      {data.variant === 'product' &&
-      data.productHome.kind === '401k-calculator' ? (
+      {skipLink ? (
         <a
           href="#calculator"
           className="fixed top-3 left-3 z-[100] -translate-y-20 rounded-lg bg-[#173D29] px-4 py-3 text-sm font-semibold text-white shadow-lg transition-transform focus:translate-y-0 focus:ring-2 focus:ring-[#7ED69F] focus:ring-offset-2 focus:outline-none"
         >
-          {data.productHome.copy.shell.skipToCalculator}
+          {skipLink}
         </a>
       ) : null}
       <LandingShellView shell={data.shell}>
         {data.variant === 'product' ? (
-          <ProductHomeView
+          <SiteProductHomeView
             productHome={data.productHome}
             locale={data.locale}
           />

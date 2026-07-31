@@ -16,7 +16,10 @@ import { readRootRuntimeSettingsCached } from '@/domains/settings/application/se
 import type { ResolvedAdsRuntime } from '@/infra/adapters/ads/runtime';
 import { createAdsRuntime } from '@/infra/adapters/ads/service';
 import { createAffiliateManager } from '@/infra/adapters/affiliate/service';
-import { createAnalyticsManager } from '@/infra/adapters/analytics/service';
+import {
+  createAnalyticsManager,
+  readAnalyticsRuntimeSettingsFromEnv,
+} from '@/infra/adapters/analytics/service';
 import { createCustomerServiceManager } from '@/infra/adapters/customer-service/service';
 import { site } from '@/site';
 
@@ -50,6 +53,7 @@ export type RootRuntimeInjectionDeps = {
   isDebugEnv: () => boolean;
   shouldReadRuntimeSettings?: () => boolean;
   readRootRuntimeSettingsCached: () => Promise<RootRuntimeSettings>;
+  enabledModules: () => readonly string[];
   createAdsRuntime: (settings: AdsRuntimeSettings) => ResolvedAdsRuntime;
   createAnalyticsManager: (
     settings: AnalyticsRuntimeSettings
@@ -62,24 +66,67 @@ export type RootRuntimeInjectionDeps = {
   ) => RuntimeScriptProvider;
 };
 
-type RuntimeSettingCapabilities = {
-  auth: boolean;
-  payment: string;
-  ai: boolean;
-  docs: boolean;
-  blog: boolean;
+function shouldReadRuntimeSettingsForSite(): boolean {
+  return site.capabilities.enabledModules.some((moduleId) =>
+    ['ads', 'analytics', 'affiliate', 'customer_service'].includes(moduleId)
+  );
+}
+
+const EMPTY_ROOT_RUNTIME_SETTINGS: RootRuntimeSettings = {
+  ads: {
+    adsEnabled: false,
+    adsProvider: '',
+    adsenseClientId: '',
+    adsenseSlotLandingInlinePrimary: '',
+    adsenseSlotBlogPostInline: '',
+    adsenseSlotBlogPostFooter: '',
+    adsterraMode: '',
+    adsterraGlobalSnippet: '',
+    adsterraZoneLandingInlinePrimarySnippet: '',
+    adsterraZoneBlogPostInlineSnippet: '',
+    adsterraZoneBlogPostFooterSnippet: '',
+    adsterraAdsTxtEntry: '',
+  },
+  analytics: {
+    googleAnalyticsId: '',
+    clarityId: '',
+    plausibleDomain: '',
+    plausibleSrc: '',
+    openpanelClientId: '',
+  },
+  affiliate: {
+    affonsoEnabled: false,
+    affonsoId: '',
+    affonsoCookieDuration: 0,
+    promotekitEnabled: false,
+    promotekitId: '',
+  },
+  customerService: {
+    crispEnabled: false,
+    crispWebsiteId: '',
+    tawkEnabled: false,
+    tawkPropertyId: '',
+    tawkWidgetId: '',
+  },
 };
 
-function shouldReadRuntimeSettingsForSite(): boolean {
-  const capabilities: RuntimeSettingCapabilities = site.capabilities;
+export async function resolveRootRuntimeSettingsForSite({
+  enabledModules,
+  readStore,
+  readAnalyticsEnv,
+}: {
+  enabledModules: readonly string[];
+  readStore: () => Promise<RootRuntimeSettings>;
+  readAnalyticsEnv: () => AnalyticsRuntimeSettings;
+}): Promise<RootRuntimeSettings> {
+  if (enabledModules.length === 1 && enabledModules[0] === 'analytics') {
+    return {
+      ...EMPTY_ROOT_RUNTIME_SETTINGS,
+      analytics: readAnalyticsEnv(),
+    };
+  }
 
-  return (
-    capabilities.auth ||
-    capabilities.payment !== 'none' ||
-    capabilities.ai ||
-    capabilities.docs ||
-    capabilities.blog
-  );
+  return readStore();
 }
 
 function shouldReadRuntimeSettings(deps: RootRuntimeInjectionDeps): boolean {
@@ -216,25 +263,34 @@ export async function resolveRootRuntimeInjections(
   }
 
   const settings = await deps.readRootRuntimeSettingsCached();
+  const enabledModules = new Set(deps.enabledModules());
 
   const result = cloneEmptyInjections();
-  const adsRuntime = deps.createAdsRuntime(settings.ads);
-  if (adsRuntime.enabled) {
-    appendProviderInjections(result, adsRuntime.provider);
+  if (enabledModules.has('ads')) {
+    const adsRuntime = deps.createAdsRuntime(settings.ads);
+    if (adsRuntime.enabled) {
+      appendProviderInjections(result, adsRuntime.provider);
+    }
   }
 
-  appendProviderInjections(
-    result,
-    deps.createAnalyticsManager(settings.analytics)
-  );
-  appendProviderInjections(
-    result,
-    deps.createAffiliateManager(settings.affiliate)
-  );
-  appendProviderInjections(
-    result,
-    deps.createCustomerServiceManager(settings.customerService)
-  );
+  if (enabledModules.has('analytics')) {
+    appendProviderInjections(
+      result,
+      deps.createAnalyticsManager(settings.analytics)
+    );
+  }
+  if (enabledModules.has('affiliate')) {
+    appendProviderInjections(
+      result,
+      deps.createAffiliateManager(settings.affiliate)
+    );
+  }
+  if (enabledModules.has('customer_service')) {
+    appendProviderInjections(
+      result,
+      deps.createCustomerServiceManager(settings.customerService)
+    );
+  }
 
   return result;
 }
@@ -243,7 +299,13 @@ const rootRuntimeInjectionDeps = {
   isProductionEnv,
   isDebugEnv,
   shouldReadRuntimeSettings: shouldReadRuntimeSettingsForSite,
-  readRootRuntimeSettingsCached,
+  readRootRuntimeSettingsCached: () =>
+    resolveRootRuntimeSettingsForSite({
+      enabledModules: site.capabilities.enabledModules,
+      readStore: readRootRuntimeSettingsCached,
+      readAnalyticsEnv: readAnalyticsRuntimeSettingsFromEnv,
+    }),
+  enabledModules: () => site.capabilities.enabledModules,
   createAdsRuntime,
   createAnalyticsManager,
   createAffiliateManager,

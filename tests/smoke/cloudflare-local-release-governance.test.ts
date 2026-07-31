@@ -125,32 +125,18 @@ test('Cloudflare acceptance 拆分职责并保留稳定 required check', () => {
   );
   assert.match(
     acceptanceWorkflowContent,
-    /strategy:[\s\S]*?matrix:[\s\S]*?site:[\s\S]*?mamamiya,[\s\S]*?401k-calculator,[\s\S]*?ai-remover,[\s\S]*?background-remover,[\s\S]*?random-group-generator/
+    /site-matrix:[\s\S]*?node scripts\/list-sites\.mjs[\s\S]*?fromJSON\(needs\.site-matrix\.outputs\.sites\)/
   );
   assert.match(
     cloudflareAcceptanceJob,
     /Run Cloudflare typegen gate[\s\S]*?pnpm cf:typegen:check/
   );
-  assert.match(
-    cloudflareAcceptanceJob,
-    /Run 401k bundle budget[\s\S]*?matrix\.site == '401k-calculator'[\s\S]*?401k-calculator-bundle-budget\.test\.ts/
-  );
-  assert.match(
-    cloudflareAcceptanceJob,
-    /Run random group generator bundle budget[\s\S]*?matrix\.site == 'random-group-generator'[\s\S]*?random-group-generator-bundle-budget\.test\.ts/
-  );
-  assert.match(
-    acceptanceWorkflowContent,
-    /SITE=ai-remover pnpm contract:check/
-  );
+  assert.doesNotMatch(acceptanceWorkflowContent, /site:\s*\[[^\]]+\]/);
+  assert.doesNotMatch(acceptanceWorkflowContent, /SITE=ai-remover/);
   assert.match(acceptanceWorkflowContent, /const expected = \{/);
   assert.match(
     acceptanceWorkflowContent,
     /cloudflare_changed[\s\S]*?results\[key\] !== 'success'/
-  );
-  assert.match(
-    acceptanceWorkflowContent,
-    /contract_ai_remover_changed[\s\S]*?results\[key\] !== 'success'/
   );
   assert.match(acceptanceWorkflowContent, /CREEM_API_KEY:/);
   assert.match(acceptanceWorkflowContent, /CREEM_SIGNING_SECRET:/);

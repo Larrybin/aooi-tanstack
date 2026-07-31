@@ -5,8 +5,8 @@ type PublicWebEnv = Record<string, unknown> & {
   REMOVER_CLEANUP_SECRET?: string;
 };
 
-const publicWebWorker = createServerWorker<PublicWebEnv>(() =>
-  import('../../dist/server/server.mjs')
+const publicWebWorker = createServerWorker<PublicWebEnv>(
+  () => import('../../dist/server/entry.server.mjs')
 );
 
 function getStringBinding(env: PublicWebEnv, key: keyof PublicWebEnv) {

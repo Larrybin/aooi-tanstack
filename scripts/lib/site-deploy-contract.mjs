@@ -4,6 +4,7 @@ import * as paymentCapabilityNamespace from '../../src/config/payment-capability
 import * as productRuntimeAssertNamespace from '../../src/domains/product-runtime/application/assert-runtime-contract.ts';
 import cloudflareWorkerTopology from '../../src/shared/config/cloudflare-worker-topology.ts';
 import { getProductRuntimeContractsForSite } from './product-runtime-contracts.mjs';
+import { hasSiteModule } from './site-capabilities.mjs';
 import {
   readCurrentSiteConfig,
   resolveRequiredSiteKey,
@@ -103,7 +104,7 @@ function buildCanonicalBindingShape(contract) {
 }
 
 function buildDerivedBindingRequirements(site, { deployProfile }) {
-  const paymentCapability = site.capabilities.payment;
+  const paymentCapability = site.capabilities.paymentProvider;
   const paymentHealth = resolvePaymentHealth({
     capability: paymentCapability,
     settings: {},
@@ -115,8 +116,8 @@ function buildDerivedBindingRequirements(site, { deployProfile }) {
   return {
     secrets: {
       emailProvider:
-        deployProfile === 'production' ? site.capabilities.auth : false,
-      openrouter: site.capabilities.ai,
+        deployProfile === 'production' ? hasSiteModule(site, 'auth') : false,
+      openrouter: hasSiteModule(site, 'ai'),
     },
     payment: {
       capability: paymentCapability,

@@ -15,8 +15,8 @@ sites/<site-key>/.env.local            ignored local operator env
 sites/<site-key>/content/pages/
 ```
 
-`content/docs/` is required only when `capabilities.docs=true`.
-`content/posts/` is required only when `capabilities.blog=true`.
+`content/docs/` is required only when `enabledModules` includes `docs`.
+`content/posts/` is required only when `enabledModules` includes `blog`.
 
 ## Site Identity
 
@@ -37,13 +37,10 @@ Keep these fields real and site-specific:
     "previewImage": "/logo.png"
   },
   "capabilities": {
-    "auth": true,
-    "payment": "none",
-    "ai": false,
-    "docs": true,
-    "blog": true
+    "enabledModules": ["auth", "admin_settings", "docs", "blog"],
+    "paymentProvider": "none"
   },
-  "configVersion": 1
+  "configVersion": 2
 }
 ```
 
@@ -52,7 +49,9 @@ Rules:
 - `key` must match the directory and `SITE`.
 - `domain` is the bare domain, without protocol.
 - `brand.appUrl` is the canonical origin for metadata, sitemap, auth callbacks, and payment callbacks.
-- `capabilities.payment` must be `none`, `stripe`, `creem`, or `paypal`.
+- `capabilities.enabledModules` uses the product module registry and cannot include `core_shell` or `deploy_contract`.
+- `capabilities.paymentProvider` must be `none`, `stripe`, `creem`, or `paypal`, and must be enabled together with `billing`.
+- `admin_settings` requires `auth`.
 - Do not store runtime secrets or provider keys in `site.config.json`.
 
 ## Deploy Settings
@@ -91,7 +90,10 @@ It must not own:
 
 Provider-specific runtime requirements are derived from `site.config.json.capabilities` and the deploy resolver. Do not manually add top-level provider fields to `deploy.settings.json`.
 
-Production email provider requirements are derived from `site.config.json.capabilities.auth` only for the production deploy profile. Preview/local checks should not make `RESEND_API_KEY`, `CREEM_API_KEY`, or `CREEM_SIGNING_SECRET` hard blockers.
+Production email provider requirements are derived from the `auth` entry in
+`site.config.json.capabilities.enabledModules` only for the production deploy
+profile. Preview/local checks should not make `RESEND_API_KEY`,
+`CREEM_API_KEY`, or `CREEM_SIGNING_SECRET` hard blockers.
 
 ## Preview Deploy Settings
 

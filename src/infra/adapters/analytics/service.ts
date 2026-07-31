@@ -1,6 +1,6 @@
-
 import type { AnalyticsRuntimeSettings } from '@/domains/settings/application/settings-runtime.contracts';
 import { readAnalyticsRuntimeSettingsCached } from '@/domains/settings/application/settings-runtime.query';
+import { getRuntimeEnvString } from '@/infra/runtime/env.server';
 
 import {
   AnalyticsManager,
@@ -43,6 +43,16 @@ export function createAnalyticsManager(settings: AnalyticsRuntimeSettings) {
   }
 
   return analytics;
+}
+
+export function readAnalyticsRuntimeSettingsFromEnv(): AnalyticsRuntimeSettings {
+  return {
+    googleAnalyticsId: getRuntimeEnvString('GOOGLE_ANALYTICS_ID') ?? '',
+    clarityId: getRuntimeEnvString('CLARITY_ID') ?? '',
+    plausibleDomain: getRuntimeEnvString('PLAUSIBLE_DOMAIN') ?? '',
+    plausibleSrc: getRuntimeEnvString('PLAUSIBLE_SRC') ?? '',
+    openpanelClientId: getRuntimeEnvString('OPENPANEL_CLIENT_ID') ?? '',
+  };
 }
 
 export async function getAnalyticsService(): Promise<AnalyticsManager> {

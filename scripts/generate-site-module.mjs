@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { mkdir, rename, writeFile } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
+import { dirname, relative, resolve, sep } from 'node:path';
 
 import {
   readCurrentSiteConfig,
@@ -64,34 +64,44 @@ function readCurrentSiteHomeContent({ rootDir, site, siteKey }) {
   return Object.keys(content).length ? content : null;
 }
 
+function toImportSpecifier(fromPath, targetPath) {
+  const repoPath = relative(dirname(fromPath), targetPath).split(sep).join('/');
+  return repoPath.startsWith('.') ? repoPath : `./${repoPath}`;
+}
+
 async function main() {
+  const rootDir = process.cwd();
   const siteKey = resolveRequiredSiteKey(process.env);
-  const targetPath = resolve(process.cwd(), '.generated', 'site.ts');
+  const generatedDir = resolve(
+    rootDir,
+    process.env.AOOI_GENERATED_DIR?.trim() || '.generated'
+  );
+  const targetPath = resolve(generatedDir, 'site.ts');
   const site = readCurrentSiteConfig({
-    rootDir: process.cwd(),
+    rootDir,
     siteKey,
   });
   const sitePricing = readCurrentSitePricing({
-    rootDir: process.cwd(),
+    rootDir,
     site,
     siteKey,
   });
   const siteLocalizedPricing = readCurrentSiteLocalizedPricing({
-    rootDir: process.cwd(),
+    rootDir,
     site,
     siteKey,
   });
   const siteHomeContent = readCurrentSiteHomeContent({
-    rootDir: process.cwd(),
+    rootDir,
     site,
     siteKey,
   });
   const siteI18nPages = readSiteI18nPages({
-    rootDir: process.cwd(),
+    rootDir,
     siteKey,
   });
   const siteI18nManifest = readSiteI18nManifest({
-    rootDir: process.cwd(),
+    rootDir,
     siteKey,
   });
 
@@ -108,6 +118,37 @@ async function main() {
 
   await writeFile(tempPath, source, 'utf8');
   await rename(tempPath, targetPath);
+
+  for (const entry of ['entry.server.ts', 'entry.client.tsx']) {
+    const entryTargetPath = resolve(generatedDir, entry);
+    const entrySourcePath = resolve(
+      rootDir,
+      'sites',
+      siteKey,
+      entry.replace(/\.(?:ts|tsx)$/, '')
+    );
+    const entrySource = `export { default } from '${toImportSpecifier(entryTargetPath, entrySourcePath)}';\n`;
+    const entryTempPath = `${entryTargetPath}.${process.pid}.tmp`;
+    await writeFile(entryTempPath, entrySource, 'utf8');
+    await rename(entryTempPath, entryTargetPath);
+  }
+  const homeTargetPath = resolve(generatedDir, 'site-home.tsx');
+  const homeSource = `export * from '${toImportSpecifier(
+    homeTargetPath,
+    resolve(rootDir, 'sites', siteKey, 'home')
+  )}';\n`;
+  const homeTempPath = `${homeTargetPath}.${process.pid}.tmp`;
+  await writeFile(homeTempPath, homeSource, 'utf8');
+  await rename(homeTempPath, homeTargetPath);
+
+  const homeServerTargetPath = resolve(generatedDir, 'site-home.server.ts');
+  const homeServerSource = `export * from '${toImportSpecifier(
+    homeServerTargetPath,
+    resolve(rootDir, 'sites', siteKey, 'home.server')
+  )}';\n`;
+  const homeServerTempPath = `${homeServerTargetPath}.${process.pid}.tmp`;
+  await writeFile(homeServerTempPath, homeServerSource, 'utf8');
+  await rename(homeServerTempPath, homeServerTargetPath);
 
   process.stdout.write(`[site] generated ${siteKey}\n`);
 }
