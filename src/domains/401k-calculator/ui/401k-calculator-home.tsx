@@ -115,6 +115,40 @@ export function CalculatorHome({
               </article>
             ))}
           </div>
+
+          <div className="mt-14 border-t border-[#D8E3DC] pt-12">
+            <SectionKicker index="04.1">
+              {copy.inputExplanations.label}
+            </SectionKicker>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#153724]">
+              {copy.inputExplanations.title}
+            </h2>
+            <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+              <div className="grid gap-4 md:grid-cols-2">
+                {copy.inputExplanations.items.map((item) => (
+                  <article
+                    key={item.title}
+                    className="rounded-2xl border border-[#D5E1D9] bg-[#F7FAF8] p-5"
+                  >
+                    <h3 className="font-semibold text-[#173526]">
+                      {item.title}
+                    </h3>
+                    <p className="mt-2 text-sm leading-6 text-[#607267]">
+                      {item.description}
+                    </p>
+                  </article>
+                ))}
+              </div>
+              <aside className="self-start rounded-2xl bg-[#173D29] p-6 text-white">
+                <h3 className="text-xl font-semibold">
+                  {copy.inputExplanations.reminderTitle}
+                </h3>
+                <p className="mt-3 text-sm leading-7 text-[#C9E2D2]">
+                  {copy.inputExplanations.reminderDescription}
+                </p>
+              </aside>
+            </div>
+          </div>
         </div>
       </section>
 

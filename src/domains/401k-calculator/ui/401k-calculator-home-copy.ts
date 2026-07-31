@@ -12,6 +12,7 @@ export type CalculatorHomeCopy = {
     keywords: readonly string[];
   };
   shell: {
+    skipToCalculator: string;
     formula: string;
     howTo: string;
     faq: string;
@@ -71,6 +72,16 @@ export type CalculatorHomeCopy = {
       title: string;
       description: string;
     }[];
+  };
+  inputExplanations: {
+    label: string;
+    title: string;
+    items: readonly {
+      title: string;
+      description: string;
+    }[];
+    reminderTitle: string;
+    reminderDescription: string;
   };
   faq: {
     title: string;

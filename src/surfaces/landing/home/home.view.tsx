@@ -173,12 +173,26 @@ export function HomeSurfaceView({ data }: { data: HomeRouteData }) {
   }, [data.locale]);
 
   return (
-    <LandingShellView shell={data.shell}>
-      {data.variant === 'product' ? (
-        <ProductHomeView productHome={data.productHome} locale={data.locale} />
-      ) : (
-        <HomeContent page={data.page} />
-      )}
-    </LandingShellView>
+    <>
+      {data.variant === 'product' &&
+      data.productHome.kind === '401k-calculator' ? (
+        <a
+          href="#calculator"
+          className="fixed top-3 left-3 z-[100] -translate-y-20 rounded-lg bg-[#173D29] px-4 py-3 text-sm font-semibold text-white shadow-lg transition-transform focus:translate-y-0 focus:ring-2 focus:ring-[#7ED69F] focus:ring-offset-2 focus:outline-none"
+        >
+          {data.productHome.copy.shell.skipToCalculator}
+        </a>
+      ) : null}
+      <LandingShellView shell={data.shell}>
+        {data.variant === 'product' ? (
+          <ProductHomeView
+            productHome={data.productHome}
+            locale={data.locale}
+          />
+        ) : (
+          <HomeContent page={data.page} />
+        )}
+      </LandingShellView>
+    </>
   );
 }

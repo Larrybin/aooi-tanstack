@@ -4,6 +4,7 @@ import test from 'node:test';
 import { buildCalculatorHeaderFooter } from './401k-calculator-shell';
 
 const copy = {
+  skipToCalculator: 'Skip to calculator',
   formula: 'Formula',
   howTo: 'How to use',
   faq: 'FAQ',

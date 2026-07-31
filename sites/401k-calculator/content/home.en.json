@@ -11,6 +11,7 @@
     ]
   },
   "shell": {
+    "skipToCalculator": "Skip to calculator",
     "formula": "Formula",
     "howTo": "How to use",
     "faq": "FAQ",
@@ -136,6 +137,34 @@
         "description": "Adjust return, salary growth, and contribution assumptions to compare projections."
       }
     ]
+  },
+  "inputExplanations": {
+    "label": "Input explanations",
+    "title": "What each 401(k) input means",
+    "items": [
+      {
+        "title": "Employee contribution",
+        "description": "The percent of salary you contribute to your 401(k). This estimate does not apply IRS annual contribution limits."
+      },
+      {
+        "title": "Employer match",
+        "description": "The portion of eligible employee contributions your employer adds. A 50% match means $0.50 per eligible $1.00 contributed."
+      },
+      {
+        "title": "Match limit",
+        "description": "The maximum salary percentage eligible for matching. If you contribute above the match limit, the extra contribution is not matched in this model."
+      },
+      {
+        "title": "Annual return",
+        "description": "A hypothetical average annual return. Real markets do not move in a smooth line and may be higher or lower."
+      },
+      {
+        "title": "Salary increase",
+        "description": "The assumed annual salary growth rate used before calculating each future year's contribution and employer match."
+      }
+    ],
+    "reminderTitle": "Scenario reminder",
+    "reminderDescription": "Small changes in salary growth, contribution rate, match, and return assumptions can produce very different long-term results. Compare scenarios before relying on one estimate."
   },
   "faq": {
     "title": "401k Calculator FAQ",
