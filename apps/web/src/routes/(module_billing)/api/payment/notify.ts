@@ -1,0 +1,11 @@
+import { createFileRoute } from '@tanstack/react-router';
+
+import { postPaymentNotify } from '../../../../server/handlers/payment';
+
+export const Route = createFileRoute('/(module_billing)/api/payment/notify')({
+  server: {
+    handlers: {
+      POST: ({ request }) => postPaymentNotify(request),
+    },
+  },
+});

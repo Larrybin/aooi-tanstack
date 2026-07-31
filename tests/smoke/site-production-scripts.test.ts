@@ -22,11 +22,8 @@ const { applySiteLocalEnvOverlay } = siteEnvModule;
 
 const baseSiteConfig = {
   capabilities: {
-    ai: false,
-    auth: true,
-    blog: false,
-    docs: false,
-    payment: 'creem',
+    enabledModules: ['auth', 'billing', 'admin_settings', 'storage'],
+    paymentProvider: 'creem',
   },
   domain: 'example.com',
   key: 'background-remover',
@@ -224,7 +221,9 @@ test('site production helpers detect whether auth is required', () => {
         ...baseSiteConfig,
         capabilities: {
           ...baseSiteConfig.capabilities,
-          auth: false,
+          enabledModules: baseSiteConfig.capabilities.enabledModules.filter(
+            (moduleId) => moduleId !== 'auth'
+          ),
         },
       },
     }),

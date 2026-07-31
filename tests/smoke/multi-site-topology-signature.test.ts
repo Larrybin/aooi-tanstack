@@ -120,7 +120,7 @@ test('topology signature 只表示结构一致，不表示 payment 行为一致'
       ...site,
       capabilities: {
         ...site.capabilities,
-        payment: 'none',
+        paymentProvider: 'none',
       },
     },
     siteKey: 'fixture-none',
@@ -131,7 +131,7 @@ test('topology signature 只表示结构一致，不表示 payment 行为一致'
       ...site,
       capabilities: {
         ...site.capabilities,
-        payment: 'stripe',
+        paymentProvider: 'stripe',
       },
     },
     siteKey: 'fixture-stripe',

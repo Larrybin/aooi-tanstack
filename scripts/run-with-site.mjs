@@ -1,4 +1,6 @@
 import { spawn } from 'node:child_process';
+import { rmSync } from 'node:fs';
+import { mkdir, open, readFile, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -35,6 +37,10 @@ const CONTENT_GENERATION_REQUIRED_COMMANDS = [
   'node --import tsx scripts/run-cf-app-deploy.mjs',
   'node --import tsx scripts/run-cf-state-deploy.mjs',
 ];
+const BUILD_LOCK_REQUIRED_COMMANDS = [
+  'pnpm exec vite build',
+  'node --import tsx scripts/run-cf-build.mjs',
+];
 
 const generateScript = resolve(
   process.cwd(),
@@ -63,6 +69,62 @@ export function requiresContentGeneration(commandParts) {
   return CONTENT_GENERATION_REQUIRED_COMMANDS.some((prefix) =>
     joinedCommand.startsWith(prefix)
   );
+}
+
+export function requiresBuildLock(commandParts) {
+  const joinedCommand = joinCommand(commandParts);
+  return BUILD_LOCK_REQUIRED_COMMANDS.some((prefix) =>
+    joinedCommand.startsWith(prefix)
+  );
+}
+
+function isProcessRunning(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function acquireBuildLock({ rootDir = process.cwd() } = {}) {
+  const lockDir = resolve(rootDir, '.tmp');
+  const lockPath = resolve(lockDir, 'site-build.lockfile');
+  const deadline = Date.now() + 30 * 60 * 1000;
+
+  await mkdir(lockDir, { recursive: true });
+
+  while (Date.now() < deadline) {
+    try {
+      const ownerFile = await open(lockPath, 'wx');
+      await ownerFile.writeFile(String(process.pid), 'utf8');
+      await ownerFile.close();
+      return () => rmSync(lockPath, { force: true });
+    } catch (error) {
+      if (!(error instanceof Error) || !('code' in error)) throw error;
+      if (error.code !== 'EEXIST') throw error;
+
+      let ownerPid = Number.parseInt(
+        await readFile(lockPath, 'utf8').catch(() => ''),
+        10
+      );
+      if (!Number.isInteger(ownerPid)) {
+        await new Promise((resolveWait) => setTimeout(resolveWait, 100));
+        ownerPid = Number.parseInt(
+          await readFile(lockPath, 'utf8').catch(() => ''),
+          10
+        );
+      }
+      if (!Number.isInteger(ownerPid) || !isProcessRunning(ownerPid)) {
+        await rm(lockPath, { force: true });
+        continue;
+      }
+
+      await new Promise((resolveWait) => setTimeout(resolveWait, 100));
+    }
+  }
+
+  throw new Error('timed out waiting for the site build lock');
 }
 
 function applyActiveSplitWorkerEnv({ env, rootDir, siteKey }) {
@@ -184,9 +246,19 @@ async function main() {
   const siteEnv = buildSiteEnv([command, ...commandArgs], process.env, {
     originalEnv,
   });
+  const releaseBuildLock = requiresBuildLock([command, ...commandArgs])
+    ? await acquireBuildLock()
+    : () => {};
+  const releaseAndExit = (code) => {
+    releaseBuildLock();
+    process.exit(code);
+  };
+  process.once('SIGINT', () => releaseAndExit(130));
+  process.once('SIGTERM', () => releaseAndExit(143));
+
   const generateExitCode = await runNodeScript(generateScript, [], siteEnv);
   if (generateExitCode !== 0) {
-    process.exit(generateExitCode);
+    releaseAndExit(generateExitCode);
   }
 
   if (requiresContentGeneration([command, ...commandArgs])) {
@@ -196,7 +268,7 @@ async function main() {
       siteEnv
     );
     if (generateContentExitCode !== 0) {
-      process.exit(generateContentExitCode);
+      releaseAndExit(generateContentExitCode);
     }
   }
 
@@ -208,14 +280,14 @@ async function main() {
 
   child.on('exit', (code, signal) => {
     if (typeof code === 'number') {
-      process.exit(code);
+      releaseAndExit(code);
       return;
     }
 
     if (signal) {
       process.stderr.write(`Command terminated by signal: ${signal}\n`);
     }
-    process.exit(1);
+    releaseAndExit(1);
   });
 }
 

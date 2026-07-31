@@ -56,6 +56,11 @@ export type CloudflareBindings = {
   KIE_API_KEY?: string;
   AI_NOTIFY_WEBHOOK_SECRET?: string;
   STORAGE_PUBLIC_BASE_URL?: string;
+  GOOGLE_ANALYTICS_ID?: string;
+  CLARITY_ID?: string;
+  PLAUSIBLE_DOMAIN?: string;
+  PLAUSIBLE_SRC?: string;
+  OPENPANEL_CLIENT_ID?: string;
 } & Record<string, unknown>;
 
 type RuntimeEnvOptions = {

@@ -20,7 +20,7 @@ test('run-cf-multi-build-check 只覆盖 app worker，不再 dry-run state', asy
 test('run-cf-multi-build-check requires native TanStack artifacts', async () => {
   const source = await readFile('scripts/run-cf-multi-build-check.mjs', 'utf8');
 
-  assert.equal(NATIVE_TANSTACK_SERVER_ARTIFACT, 'dist/server/server.mjs');
+  assert.equal(NATIVE_TANSTACK_SERVER_ARTIFACT, 'dist/server/entry.server.mjs');
   assert.match(source, /NATIVE_TANSTACK_SERVER_ARTIFACT/);
   assert.doesNotMatch(source, /handler\.mjs/);
 });

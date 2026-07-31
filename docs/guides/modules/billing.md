@@ -11,7 +11,8 @@ Billing covers the commercial mainline:
 
 ## Required Configuration
 
-- `site.capabilities.payment`
+- `site.capabilities.enabledModules` entry `billing`
+- `site.capabilities.paymentProvider`
 - provider-specific secrets for the active capability
 - active provider settings under the `payment` tab
 

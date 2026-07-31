@@ -1,6 +1,7 @@
 import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
+import { hasSiteModule } from './site-capabilities.mjs';
 import { resolveRequiredSiteKey, TEST_SITE_KEY } from './site-config.mjs';
 
 export const CONTENT_COLLECTION_KEYS = Object.freeze([
@@ -107,11 +108,11 @@ export function assertSiteContentDirectoriesExist({
 } = {}) {
   const requiredCollections = ['pages'];
 
-  if (!site || site.capabilities.docs) {
+  if (!site || hasSiteModule(site, 'docs')) {
     requiredCollections.push('docs');
   }
 
-  if (!site || site.capabilities.blog) {
+  if (!site || hasSiteModule(site, 'blog')) {
     requiredCollections.push('posts');
   }
 
@@ -162,13 +163,13 @@ export function validateSiteContentCompleteness({
   const docsFiles = listMdxFiles(docsDir);
   const postFiles = listMdxFiles(postsDir);
 
-  if (site.capabilities.docs && !docsFiles.includes(DEFAULT_DOCS_ENTRY)) {
+  if (hasSiteModule(site, 'docs') && !docsFiles.includes(DEFAULT_DOCS_ENTRY)) {
     throw new Error(
       `site ${siteKey} enables docs, but sites/${siteKey}/content/docs/${DEFAULT_DOCS_ENTRY} is missing`
     );
   }
 
-  if (site.capabilities.blog && postFiles.length === 0) {
+  if (hasSiteModule(site, 'blog') && postFiles.length === 0) {
     throw new Error(
       `site ${siteKey} enables blog, but sites/${siteKey}/content/posts must contain at least one .mdx file`
     );

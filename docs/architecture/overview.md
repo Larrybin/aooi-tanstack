@@ -3,7 +3,7 @@
 ## Runtime
 
 The repository has one Web runtime: TanStack Start on Vite. Cloudflare Workers
-load the native server artifact at `dist/server/server.mjs`; browser assets are
+load the native server artifact at `dist/server/entry.server.mjs`; browser assets are
 emitted to `dist/client/**`.
 
 ```text
@@ -65,7 +65,11 @@ Test-only contracts and helpers. Production code under `apps/web/src`,
 ## Persistent guards
 
 - `pnpm arch:check` checks the dependency graph and semantic constraints.
-- Generated `apps/web/src/routeTree.gen.ts` is excluded from graph traversal.
+- Generated `.generated/routeTree.gen.ts` is site-scoped and excluded from graph traversal.
+- Optional and product routes use pathless `(module_<id>)` and
+  `(site_<site-key>)` groups. TanStack treats dots inside group names as route
+  separators, so these filesystem names intentionally use underscores while
+  preserving the public URLs.
 - Runtime packages and imports may not reintroduce Next.js, next-intl,
   OpenNext, or server-only.
 - `src/**` and `cloudflare/**` may not depend on the Web entry layer.

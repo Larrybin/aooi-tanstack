@@ -8,7 +8,9 @@ import { resolveNotFoundLocale } from './not-found.locale';
 const rootDir = process.cwd();
 
 test('localized TanStack routes pass locale through notFound data', async () => {
-  const source = await readRepoFile('apps/web/src/routes/$locale/pricing.tsx');
+  const source = await readRepoFile(
+    'apps/web/src/routes/(module_billing)/$locale/pricing.tsx'
+  );
 
   assert.match(
     source,
@@ -17,9 +19,11 @@ test('localized TanStack routes pass locale through notFound data', async () => 
 });
 
 test('My Images TanStack routes stay scoped to ai-remover', async () => {
-  const rootRoute = await readRepoFile('apps/web/src/routes/my-images.tsx');
+  const rootRoute = await readRepoFile(
+    'apps/web/src/routes/(module_storage)/my-images.tsx'
+  );
   const localizedRoute = await readRepoFile(
-    'apps/web/src/routes/$locale/my-images.tsx'
+    'apps/web/src/routes/(module_storage)/$locale/my-images.tsx'
   );
 
   assert.match(rootRoute, /site\.key[\s\S]*!==\s*'ai-remover'/);

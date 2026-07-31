@@ -56,7 +56,7 @@ pnpm i18n:check --strict
 
 The root TypeScript config includes both `src/**` and `apps/web/src/**`.
 Production artifacts are `dist/client/**` and
-`dist/server/server.mjs`.
+`dist/server/entry.server.mjs`.
 
 Use `pnpm run ci` for the complete repository gate. It runs the default check,
 builds `dev-local`, checks the client boundary and architecture, then performs

@@ -52,7 +52,7 @@ function createRouteHandler(overrides: Partial<PaymentNotifyRouteDeps> = {}) {
       },
     }),
     requirePaymentCapability: () => {
-      const capability = site.capabilities.payment;
+      const capability = site.capabilities.paymentProvider;
       if (capability === 'none') {
         throw new Error('requirePaymentCapability override required');
       }
@@ -121,15 +121,15 @@ async function withPaymentCapability<T>(
   capability: PaymentCapability,
   run: () => Promise<T>
 ): Promise<T> {
-  const originalCapability = site.capabilities.payment;
+  const originalCapability = site.capabilities.paymentProvider;
   const mutableCapabilities = site.capabilities as {
-    payment: PaymentCapability;
+    paymentProvider: PaymentCapability;
   };
-  mutableCapabilities.payment = capability;
+  mutableCapabilities.paymentProvider = capability;
   try {
     return await run();
   } finally {
-    mutableCapabilities.payment = originalCapability;
+    mutableCapabilities.paymentProvider = originalCapability;
   }
 }
 

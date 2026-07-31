@@ -564,6 +564,11 @@ export function buildCloudflareWranglerConfig({
         }
       : {}),
     STORAGE_PUBLIC_BASE_URL: storagePublicBaseUrl ?? '',
+    GOOGLE_ANALYTICS_ID: process.env.GOOGLE_ANALYTICS_ID?.trim() ?? '',
+    CLARITY_ID: process.env.CLARITY_ID?.trim() ?? '',
+    PLAUSIBLE_DOMAIN: process.env.PLAUSIBLE_DOMAIN?.trim() ?? '',
+    PLAUSIBLE_SRC: process.env.PLAUSIBLE_SRC?.trim() ?? '',
+    OPENPANEL_CLIENT_ID: process.env.OPENPANEL_CLIENT_ID?.trim() ?? '',
     DEPLOY_TARGET: deployTarget ?? 'cloudflare',
     ...(workerSlot === 'public-web' &&
     contract.bindingRequirements?.secrets?.turnstile

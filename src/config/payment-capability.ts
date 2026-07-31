@@ -131,7 +131,7 @@ function collectMissingSecrets(
 }
 
 export function resolveSitePaymentCapability(): PaymentCapability {
-  const capability = site.capabilities.payment;
+  const capability = site.capabilities.paymentProvider;
   if (!isPaymentCapability(capability)) {
     throw new Error(
       `Unsupported site payment capability: ${String(capability)}`

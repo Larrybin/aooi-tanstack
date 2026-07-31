@@ -163,7 +163,7 @@ module.exports = {
   ],
   options: {
     doNotFollow: {
-      path: 'node_modules|^apps/web/src/routeTree\\.gen\\.ts$',
+      path: 'node_modules|^\\.generated/',
     },
     exclude:
       '(^node_modules)|(^dist)|(^build)|(^output)|(^\\.tmp)|(^src/shared/types/cloudflare\\.d\\.ts$)',

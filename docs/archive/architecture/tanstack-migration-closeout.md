@@ -8,7 +8,7 @@
 
 - 页面与 API 路由位于 `apps/web/src/routes/**`。
 - 服务端组装位于 `src/server/**` 与 `apps/web/src/server/**`。
-- 构建产物为 `dist/client/**` 和 `dist/server/server.mjs`。
+- 构建产物为 `dist/client/**` 和 `dist/server/entry.server.mjs`。
 - Next.js、next-intl、OpenNext 与 server-only 不再属于运行时或构建依赖。
 - HTTP 路由、请求响应合同、数据库结构、站点配置、Worker 名称和现有 Cloudflare 资源保持不变。
 

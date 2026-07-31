@@ -7,7 +7,7 @@ const rootDir = path.resolve(
   '../..'
 );
 
-export const NATIVE_TANSTACK_SERVER_ARTIFACT = 'dist/server/server.mjs';
+export const NATIVE_TANSTACK_SERVER_ARTIFACT = 'dist/server/entry.server.mjs';
 export const NATIVE_TANSTACK_ASSETS_DIR = 'dist/client';
 
 const APP_RUNTIME_ARTIFACTS = [
@@ -47,6 +47,10 @@ export async function assertCloudflareBuildArtifactsReady({
   if (missingPaths.length === 0) return;
 
   throw new Error(
-    [contextMessage, nextStepMessage, `Missing artifacts: ${missingPaths.join(', ')}`].join(' ')
+    [
+      contextMessage,
+      nextStepMessage,
+      `Missing artifacts: ${missingPaths.join(', ')}`,
+    ].join(' ')
   );
 }

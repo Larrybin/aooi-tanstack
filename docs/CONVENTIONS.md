@@ -9,7 +9,7 @@ TanStack file routes live in `apps/web/src/routes/**`.
 - API routes map HTTP methods to already assembled handlers.
 - Dependency composition belongs in `apps/web/src/server/**`.
 - Reusable server actions and handler factories belong in `src/server/**`.
-- Generated `apps/web/src/routeTree.gen.ts` is never edited manually.
+- Generated `.generated/routeTree.gen.ts` is site-scoped and never edited manually.
 
 Examples:
 

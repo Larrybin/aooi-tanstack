@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -12,16 +12,23 @@ import {
 } from '../scripts/lib/site-pricing.mjs';
 
 const execFileAsync = promisify(execFile);
-const generatedSiteModulePath = path.resolve(
+const generatedDir = path.resolve(
   process.cwd(),
-  '.generated/site.ts'
+  '.generated',
+  `site-module-test-${process.pid}`
 );
+const generatedSiteModulePath = path.resolve(generatedDir, 'site.ts');
+
+test.after(async () => {
+  await rm(generatedDir, { recursive: true, force: true });
+});
 
 async function generateSiteModule(siteKey: string) {
   await execFileAsync(process.execPath, ['scripts/generate-site-module.mjs'], {
     cwd: process.cwd(),
     env: {
       ...process.env,
+      AOOI_GENERATED_DIR: generatedDir,
       SITE: siteKey,
     },
   });
@@ -203,7 +210,7 @@ test('@/site: exposes complete build-time site identity', async () => {
   assert.equal(typeof site.brand.logo, 'string');
   assert.equal(typeof site.brand.favicon, 'string');
   assert.equal(typeof site.brand.previewImage, 'string');
-  assert.equal(site.configVersion, 1);
+  assert.equal(site.configVersion, 2);
 });
 
 test('@/site: SITE=mamamiya resolves production identity when explicitly selected', async () => {
@@ -226,6 +233,23 @@ test('@/site: generated module is a pure literal module', async () => {
   assert.equal(source.includes('export const siteHomeContent = '), true);
   assert.equal(source.includes('export const siteI18nPages = {'), true);
   assert.equal(source.includes('export const siteI18nManifest = {'), true);
+});
+
+test('@/site: generated entries re-export the selected site entries', async () => {
+  await generateSiteModule('401k-calculator');
+
+  assert.equal(
+    await readFile(path.resolve(generatedDir, 'entry.server.ts'), 'utf8'),
+    "export { default } from '../../sites/401k-calculator/entry.server';\n"
+  );
+  assert.equal(
+    await readFile(path.resolve(generatedDir, 'entry.client.tsx'), 'utf8'),
+    "export { default } from '../../sites/401k-calculator/entry.client';\n"
+  );
+  assert.equal(
+    await readFile(path.resolve(generatedDir, 'site-home.server.ts'), 'utf8'),
+    "export * from '../../sites/401k-calculator/home.server';\n"
+  );
 });
 
 test('@/site: SITE=ai-remover exports site-scoped pricing', async () => {
@@ -402,7 +426,8 @@ test('site pricing loader rejects missing pricing when payment is enabled', asyn
         site: {
           key: 'paid-site',
           capabilities: {
-            payment: 'creem',
+            enabledModules: ['billing'],
+            paymentProvider: 'creem',
           },
         },
       }),

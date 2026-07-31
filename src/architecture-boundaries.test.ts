@@ -1285,7 +1285,7 @@ test('architecture: AI Remover product runtime AI binding is independent from sh
     'utf8'
   );
 
-  assert.equal(siteConfig.capabilities.ai, false);
+  assert.equal(siteConfig.capabilities.enabledModules.includes('ai'), false);
   assert.equal(deploySettings.bindingRequirements.bindings.workersAi, true);
   assert.match(
     runtimeContractSource,

@@ -27,7 +27,7 @@ provider adapters, runtime settings, and Cloudflare binding scope.
 - Content pointers: `.generated/content-source.ts` and
   `.generated/public-content.ts`
 - Client bundle: `dist/client/**`
-- Server bundle: `dist/server/server.mjs`
+- Server bundle: `dist/server/entry.server.mjs`
 - Cloudflare type declarations: `src/shared/types/cloudflare.d.ts`
 
 Build artifacts must not become ordinary source dependencies. Worker entries

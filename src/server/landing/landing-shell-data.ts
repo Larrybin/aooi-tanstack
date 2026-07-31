@@ -5,6 +5,8 @@ import type {
   PublicUiConfig,
 } from '@/domains/settings/application/settings-runtime.contracts';
 import { site, siteLocalizedPricing, sitePricing } from '@/site';
+import { buildSiteProductHomeHeaderFooter } from '@/site-home';
+import { resolveSiteProductHomeRouteData } from '@/site-home-server';
 import type {
   SerializablePublicUiConfig,
   SerializablePublicUiNavItem,
@@ -21,17 +23,13 @@ import enCommon from '@/config/locale/messages/en/common.json';
 import jaCommon from '@/config/locale/messages/ja/common.json';
 import zhTwCommon from '@/config/locale/messages/zh-TW/common.json';
 import zhCommon from '@/config/locale/messages/zh/common.json';
+import { hasSiteModule } from '@/config/site-capabilities';
 import type { NavItem } from '@/shared/types/blocks/common';
 import type {
   Footer as FooterType,
   Header as HeaderType,
 } from '@/shared/types/blocks/landing';
 import type { SitePricing } from '@/shared/types/blocks/pricing';
-
-import {
-  buildProductHomeHeaderFooter,
-  resolveProductHomeRouteData,
-} from './product-home-route-data';
 
 type HeaderFooter = {
   header: HeaderType;
@@ -72,8 +70,8 @@ export function resolveLandingShellData(locale: string): SlugShellData {
 export function resolveProductHeaderFooter(
   locale: string
 ): HeaderFooter | null {
-  const productHome = resolveProductHomeRouteData(locale);
-  return productHome ? buildProductHomeHeaderFooter(productHome) : null;
+  const productHome = resolveSiteProductHomeRouteData(locale);
+  return productHome ? buildSiteProductHomeHeaderFooter(productHome) : null;
 }
 
 export function buildLandingShellData({
@@ -203,7 +201,7 @@ function buildFallbackShellData(locale: string): SlugShellData {
       navItems: pricingItems,
       buttonItems: [],
       userNavItems: [],
-      showSign: Boolean(site.capabilities.auth),
+      showSign: hasSiteModule('auth'),
       signInHref: localizeUrl('/sign-in', locale),
       signInLabel: getSignInLabel(locale),
       ariaLabel: site.brand.appName,
@@ -346,7 +344,7 @@ function toSerializablePublicUiNavItems(
 
 function buildPublicUiConfig(): PublicUiConfig {
   return {
-    aiEnabled: Boolean(site.capabilities.ai),
+    aiEnabled: hasSiteModule('ai'),
     localeSwitcherEnabled: false,
     socialLinksEnabled: false,
     socialLinksJson: '',
@@ -360,7 +358,7 @@ function buildPublicUiConfig(): PublicUiConfig {
 
 function buildAuthSettings(): AuthUiRuntimeSettings {
   return {
-    emailAuthEnabled: Boolean(site.capabilities.auth),
+    emailAuthEnabled: hasSiteModule('auth'),
     googleAuthEnabled: false,
     googleOneTapEnabled: false,
     googleClientId: '',
@@ -374,7 +372,7 @@ function buildBillingSettings(): BillingRuntimeSettings {
     defaultLocale,
   } as const;
 
-  const paymentCapability = site.capabilities.payment as
+  const paymentCapability = site.capabilities.paymentProvider as
     | 'none'
     | 'stripe'
     | 'creem'

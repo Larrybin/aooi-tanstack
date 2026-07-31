@@ -1,3 +1,5 @@
 import { createServerWorker } from './create-server-worker';
 
-export default createServerWorker(() => import('../../dist/server/server.mjs'));
+export default createServerWorker(
+  () => import('../../dist/server/entry.server.mjs')
+);

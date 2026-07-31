@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { site, siteHomeContent } from '@/site';
+import { site, siteHomeContent, siteI18nManifest } from '@/site';
 
 import { buildCanonicalUrl } from '@/shared/seo/canonical';
 
@@ -22,9 +22,7 @@ test('resolveHomeRouteData returns default home data', async () => {
     }
   );
 
-  if (isProductSite()) {
-    assert.equal(data.variant, 'product');
-    assert.equal(data.productHome.kind, site.key);
+  if (data.variant === 'product') {
     assert.equal(
       data.head.meta?.find((meta) => 'title' in meta)?.title,
       data.productHome.copy.metadata.title
@@ -49,19 +47,13 @@ test('resolveHomeRouteData returns default home data', async () => {
 test('resolveHomeRouteData returns approved localized home data', async () => {
   const data = await resolveHomeRouteData({ locale: 'zh' });
 
-  if (
-    site.key === 'text-to-speech-generator' ||
-    site.key === 'mp4-compressor' ||
-    site.key === '401k-calculator' ||
-    site.key === 'random-group-generator'
-  ) {
+  if (!hasApprovedHome('zh')) {
     assert.equal(data, null);
     return;
   }
 
   assert.ok(data);
   assert.equal(data.locale, 'zh');
-  assert.equal(data.variant, isProductSite() ? 'product' : 'generic');
   assert.deepEqual(
     data.head.links?.find((link) => link.rel === 'canonical'),
     {
@@ -80,10 +72,8 @@ test('resolveHomeRouteData rejects invalid locales', async () => {
 test('resolveHomeRouteData rejects locales without home messages instead of falling back to English', async () => {
   const data = await resolveHomeRouteData({ locale: 'ja' });
 
-  if (site.key === 'ai-remover' || site.key === 'background-remover') {
-    assert.ok(data);
+  if (data) {
     assert.equal(data.variant, 'product');
-    assert.equal(data.productHome.kind, site.key);
     assert.deepEqual(data.productHome.copy, getHomeContent('ja'));
     return;
   }
@@ -91,17 +81,15 @@ test('resolveHomeRouteData rejects locales without home messages instead of fall
   assert.equal(data, null);
 });
 
-function isProductSite() {
-  return [
-    '401k-calculator',
-    'ai-remover',
-    'background-remover',
-    'text-to-speech-generator',
-    'mp4-compressor',
-    'random-group-generator',
-  ].includes(site.key);
-}
-
 function getHomeContent(locale: string) {
   return (siteHomeContent as Readonly<Record<string, unknown>>)[locale];
+}
+
+function hasApprovedHome(locale: string) {
+  const locales = siteI18nManifest.locales as Readonly<
+    Record<string, Readonly<Record<string, { path: string; status: string }>>>
+  >;
+  return Object.values(locales[locale] ?? {}).some(
+    (entry) => entry.path === '/' && entry.status === 'approved'
+  );
 }

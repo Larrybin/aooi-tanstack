@@ -240,11 +240,8 @@ test('public static build surfaces keep runtime reader imports explicitly allowl
 test('build auth settings are conservative and do not synthesize Google client ids', () => {
   const settings = buildAuthUiSettingsFromSite({
     capabilities: {
-      auth: true,
-      ai: true,
-      payment: 'creem',
-      docs: false,
-      blog: false,
+      enabledModules: ['auth', 'billing', 'ai'],
+      paymentProvider: 'creem',
     },
   });
 
@@ -292,11 +289,8 @@ test('auth route view uses full auth pages instead of inline sign modal', () => 
 test('build billing settings do not evaluate secrets or provider product mapping readiness', () => {
   const settings = buildBillingUiSettingsFromSite({
     capabilities: {
-      auth: true,
-      ai: true,
-      payment: 'creem',
-      docs: false,
-      blog: false,
+      enabledModules: ['auth', 'billing', 'ai'],
+      paymentProvider: 'creem',
     },
   });
 
@@ -316,7 +310,10 @@ test('build billing settings do not evaluate secrets or provider product mapping
 test('build public UI settings come from source-controlled site capabilities', () => {
   const settings = readBuildPublicUiConfig();
 
-  assert.equal(settings.aiEnabled, Boolean(site.capabilities.ai));
+  assert.equal(
+    settings.aiEnabled,
+    site.capabilities.enabledModules.includes('ai')
+  );
   assert.equal(settings.localeSwitcherEnabled, false);
   assert.equal(settings.socialLinksEnabled, false);
   assert.equal(settings.socialLinksJson, '');
@@ -327,11 +324,8 @@ test('build public UI settings preserve AI capability visibility semantics', () 
   assert.equal(
     buildPublicUiConfigFromSite({
       capabilities: {
-        auth: false,
-        ai: true,
-        payment: 'none',
-        docs: false,
-        blog: false,
+        enabledModules: ['ai'],
+        paymentProvider: 'none',
       },
     }).aiEnabled,
     true
@@ -339,11 +333,8 @@ test('build public UI settings preserve AI capability visibility semantics', () 
   assert.equal(
     buildPublicUiConfigFromSite({
       capabilities: {
-        auth: false,
-        ai: false,
-        payment: 'none',
-        docs: false,
-        blog: false,
+        enabledModules: [],
+        paymentProvider: 'none',
       },
     }).aiEnabled,
     false
@@ -366,6 +357,6 @@ test('pricing display config is read from the selected site pricing config', () 
 test('current build billing reader follows source-controlled site capability only', () => {
   const settings = readBuildBillingUiSettings();
 
-  assert.equal(settings.paymentCapability, site.capabilities.payment);
-  assert.equal(settings.provider, site.capabilities.payment);
+  assert.equal(settings.paymentCapability, site.capabilities.paymentProvider);
+  assert.equal(settings.provider, site.capabilities.paymentProvider);
 });

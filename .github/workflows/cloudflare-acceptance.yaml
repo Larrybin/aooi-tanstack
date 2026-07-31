@@ -15,7 +15,6 @@ jobs:
       contents: read
     outputs:
       cloudflare_changed: ${{ steps.detect.outputs.cloudflare_changed }}
-      contract_ai_remover_changed: ${{ steps.detect.outputs.contract_ai_remover_changed }}
       changed_path_count: ${{ steps.detect.outputs.changed_path_count }}
       reason: ${{ steps.detect.outputs.reason }}
 
@@ -144,25 +143,34 @@ jobs:
             --base-sha="$base_sha" \
             --head-sha="${{ github.sha }}"
 
+  site-matrix:
+    name: site matrix
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      sites: ${{ steps.sites.outputs.sites }}
+    steps:
+      - name: Checkout repository
+        # pinned from v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+
+      - name: Read site configs
+        id: sites
+        run: echo "sites=$(node scripts/list-sites.mjs)" >> "$GITHUB_OUTPUT"
+
   cloudflare-acceptance:
     name: cloudflare acceptance (${{ matrix.site }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: detect-cloudflare-changes
+    needs: [detect-cloudflare-changes, site-matrix]
     if: ${{ needs.detect-cloudflare-changes.outputs.cloudflare_changed == 'true' }}
     permissions:
       contents: read
     strategy:
       fail-fast: false
       matrix:
-        site:
-          [
-            mamamiya,
-            401k-calculator,
-            ai-remover,
-            background-remover,
-            random-group-generator,
-          ]
+        site: ${{ fromJSON(needs.site-matrix.outputs.sites) }}
     env:
       SITE: ${{ matrix.site }}
       DEPLOY_TARGET: cloudflare
@@ -179,6 +187,8 @@ jobs:
       GOOGLE_CLIENT_SECRET: ci-google-client-secret-not-for-production
       OPENROUTER_API_KEY: ci-openrouter-api-key-not-for-production
       REMOVER_CLEANUP_SECRET: ci-remover-cleanup-secret-not-for-production
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ci-turnstile-site-key-not-for-production
+      TURNSTILE_SECRET_KEY: ci-turnstile-secret-key-not-for-production
 
     steps:
       - name: Checkout repository
@@ -209,48 +219,8 @@ jobs:
 
       - name: Run Cloudflare typegen gate
         run: pnpm cf:typegen:check
-
-      - name: Run 401k bundle budget
-        if: ${{ matrix.site == '401k-calculator' }}
-        run: pnpm test -- tests/smoke/401k-calculator-bundle-budget.test.ts
-
-      - name: Run random group generator bundle budget
-        if: ${{ matrix.site == 'random-group-generator' }}
-        run: pnpm test -- tests/smoke/random-group-generator-bundle-budget.test.ts
-
-  contract-ai-remover:
-    name: contract ai-remover
-    runs-on: ubuntu-latest
-    needs: detect-cloudflare-changes
-    if: ${{ needs.detect-cloudflare-changes.outputs.contract_ai_remover_changed == 'true' }}
-    permissions:
-      contents: read
-    env:
-      SITE: ai-remover
-
-    steps:
-      - name: Checkout repository
-        # pinned from v6
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
-
-      - name: Setup pnpm
-        # pinned from v6
-        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
-        with:
-          version: 10
-
-      - name: Setup Node.js
-        # pinned from v6
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run AI Remover contract check
-        run: SITE=ai-remover pnpm contract:check
+        env:
+          SITE: dev-local
 
   cloudflare-acceptance-required:
     name: cloudflare acceptance
@@ -260,8 +230,8 @@ jobs:
       - ci-static
       - test
       - schema-migration-guard
+      - site-matrix
       - cloudflare-acceptance
-      - contract-ai-remover
     if: ${{ always() }}
 
     steps:
@@ -273,22 +243,21 @@ jobs:
             ciStatic: '${{ needs.ci-static.result }}',
             test: '${{ needs.test.result }}',
             schemaMigrationGuard: '${{ needs.schema-migration-guard.result }}',
+            siteMatrix: '${{ needs.site-matrix.result }}',
             cloudflareAcceptance: '${{ needs.cloudflare-acceptance.result }}',
-            contractAiRemover: '${{ needs.contract-ai-remover.result }}',
           };
           const expected = {
             cloudflareAcceptance:
               '${{ needs.detect-cloudflare-changes.outputs.cloudflare_changed }}' === 'true',
-            contractAiRemover:
-              '${{ needs.detect-cloudflare-changes.outputs.contract_ai_remover_changed }}' === 'true',
           };
           const required = [
             'detect',
             'ciStatic',
             'test',
             'schemaMigrationGuard',
+            'siteMatrix',
           ];
-          const optional = ['cloudflareAcceptance', 'contractAiRemover'];
+          const optional = ['cloudflareAcceptance'];
           const failedRequired = required.filter(
             (key) => results[key] !== 'success'
           );

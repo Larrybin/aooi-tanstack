@@ -1,6 +1,6 @@
-
 import { site, sitePricing } from '@/site';
 
+import type { SiteCapabilities } from '@/config/site-capabilities';
 import type { SitePricing } from '@/shared/types/blocks/pricing';
 
 import type {
@@ -9,18 +9,8 @@ import type {
   PublicUiConfig,
 } from './settings-runtime.contracts';
 
-type BuildPaymentCapability = 'none' | 'stripe' | 'creem' | 'paypal';
-
-type BuildSiteCapabilities = {
-  auth: boolean;
-  ai: boolean;
-  payment: BuildPaymentCapability;
-  docs: boolean;
-  blog: boolean;
-};
-
 type BuildSiteInput = {
-  capabilities: BuildSiteCapabilities;
+  capabilities: SiteCapabilities;
 };
 
 const BUILD_DEFAULT_LOCALE = 'en';
@@ -34,7 +24,7 @@ export function buildPublicUiConfigFromSite(
   siteConfig: BuildSiteInput
 ): PublicUiConfig {
   return {
-    aiEnabled: Boolean(siteConfig.capabilities.ai),
+    aiEnabled: siteConfig.capabilities.enabledModules.includes('ai'),
     localeSwitcherEnabled: false,
     socialLinksEnabled: false,
     socialLinksJson: BUILD_SOCIAL_LINKS_JSON,
@@ -66,7 +56,7 @@ export function buildBillingUiSettingsFromSite(
     defaultLocale: BUILD_DEFAULT_LOCALE,
   } as const;
 
-  switch (siteConfig.capabilities.payment) {
+  switch (siteConfig.capabilities.paymentProvider) {
     case 'none':
       return {
         ...shared,

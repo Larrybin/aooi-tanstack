@@ -1,14 +1,26 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
+import { rm } from 'node:fs/promises';
+import path from 'node:path';
 import test from 'node:test';
 import { promisify } from 'node:util';
 
 import {
   buildSiteEnv,
+  requiresBuildLock,
   requiresContentGeneration,
 } from '../../scripts/run-with-site.mjs';
 
 const execFileAsync = promisify(execFile);
+const generatedDir = path.resolve(
+  process.cwd(),
+  '.generated',
+  `run-with-site-test-${process.pid}`
+);
+
+test.after(async () => {
+  await rm(generatedDir, { recursive: true, force: true });
+});
 
 async function runWithSite(
   args: string[],
@@ -22,6 +34,7 @@ async function runWithSite(
         cwd: process.cwd(),
         env: {
           ...process.env,
+          AOOI_GENERATED_DIR: generatedDir,
           ...env,
         },
       }
@@ -113,6 +126,15 @@ test('run-with-site regenerates content for TanStack commands', () => {
     requiresContentGeneration(['pnpm', 'exec', 'eslint', '.']),
     false
   );
+});
+
+test('run-with-site serializes commands that publish shared build artifacts', () => {
+  assert.equal(requiresBuildLock(['pnpm', 'exec', 'vite', 'build']), true);
+  assert.equal(
+    requiresBuildLock(['node', '--import', 'tsx', 'scripts/run-cf-build.mjs']),
+    true
+  );
+  assert.equal(requiresBuildLock(['pnpm', 'exec', 'vite', 'dev']), false);
 });
 
 test('run-with-site 对 lint 使用内部 dev-local site fallback', async () => {

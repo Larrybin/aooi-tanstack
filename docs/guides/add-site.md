@@ -25,14 +25,14 @@
 | Landing page copy/content  | yes                | `sites/<site-key>/content/pages/**` 或 locale messages                        | no                                     |
 | Site/product UI            | partial            | content, locale messages, runtime settings                                    | yes when layout or interaction differs |
 | One core product feature   | no                 | feature-specific route/config                                                 | yes                                    |
-| Auth                       | yes                | `capabilities.auth`, auth settings, OAuth/email secrets                       | no                                     |
+| Auth                       | yes                | `enabledModules: auth`, auth settings, OAuth/email secrets                    | no                                     |
 | Email delivery             | yes                | email settings, `RESEND_API_KEY`, sender config                               | no                                     |
-| Payment                    | yes                | `capabilities.payment`, payment settings, provider secrets                    | no                                     |
+| Payment                    | yes                | `enabledModules: billing`, `paymentProvider`, provider secrets                | no                                     |
 | Storage/uploads            | yes                | R2 buckets, `STORAGE_PUBLIC_BASE_URL`, Cloudflare bindings                    | no                                     |
-| Shared AI generator/chat   | yes                | `capabilities.ai`, AI settings, OpenRouter key                                | no                                     |
+| Shared AI generator/chat   | yes                | `enabledModules: ai`, AI settings, OpenRouter key                             | no                                     |
 | Product runtime AI binding | yes                | product-runtime contract plus `bindingRequirements.bindings.workersAi`        | no                                     |
-| Docs                       | yes                | `capabilities.docs`, `sites/<site-key>/content/docs/**`                       | no                                     |
-| Blog                       | yes                | `capabilities.blog`, `sites/<site-key>/content/posts/**`                      | no                                     |
+| Docs                       | yes                | `enabledModules: docs`, `sites/<site-key>/content/docs/**`                    | no                                     |
+| Blog                       | yes                | `enabledModules: blog`, `sites/<site-key>/content/posts/**`                   | no                                     |
 | Analytics                  | yes                | analytics settings                                                            | no                                     |
 | Affiliate                  | yes                | affiliate settings                                                            | no                                     |
 | Customer service widget    | yes                | customer service settings, supporting email config                            | no                                     |
@@ -46,7 +46,7 @@
 - 新站的品牌、域名、模块开关、部署资源、第三方 provider key、文档、博客、营销文案，都应该通过 site config、deploy settings、runtime settings、secrets/vars 或 content 处理。
 - 只有“这个站真正卖给用户的核心产品能力”才应该写代码，例如新增一个工具页、一个生成器、一个计算器、一个上传处理流程，或重做首页的信息架构。
 - 如果你发现自己在为 auth、payment、email、storage、analytics 复制代码，先停下来。它们应该复用主干能力，通过配置接入。
-- 如果产品需要自己的 Cloudflare runtime binding、secret、var 或 worker，在 `product-runtime` 中声明产品运行时契约，并让 `deploy.settings.json` 满足它。不要把 `capabilities.ai` 当成产品 AI runtime binding；它只表示共享 chat/generator AI module。
+- 如果产品需要自己的 Cloudflare runtime binding、secret、var 或 worker，在 `product-runtime` 中声明产品运行时契约，并让 `deploy.settings.json` 满足它。不要把 `enabledModules` 中的 `ai` 当成产品 AI runtime binding；它只表示共享 chat/generator AI module。
 
 ## UI Change Rules
 
@@ -161,10 +161,13 @@ my-site
 sites/my-site/
 sites/my-site/site.config.json
 sites/my-site/deploy.settings.json
+sites/my-site/entry.server.ts
+sites/my-site/entry.client.tsx
+sites/my-site/home.tsx
 sites/my-site/content/pages/
 ```
 
-`content/docs/` 只在 `capabilities.docs=true` 时必须存在。`content/posts/` 只在 `capabilities.blog=true` 时必须存在。
+`content/docs/` 只在 `enabledModules` 包含 `docs` 时必须存在。`content/posts/` 只在 `enabledModules` 包含 `blog` 时必须存在。
 
 如果从已有 site 复制文件，复制后必须直接改成新 site 的真实值。不要保留旧 site 的历史命名。
 
@@ -187,13 +190,10 @@ sites/my-site/content/pages/
     "previewImage": "/logo.png"
   },
   "capabilities": {
-    "auth": true,
-    "payment": "none",
-    "ai": false,
-    "docs": true,
-    "blog": true
+    "enabledModules": ["auth", "admin_settings", "docs", "blog"],
+    "paymentProvider": "none"
   },
-  "configVersion": 1
+  "configVersion": 2
 }
 ```
 
@@ -203,8 +203,10 @@ sites/my-site/content/pages/
 - `domain` 是裸域名，不带协议。
 - `brand.appUrl` 是 canonical app origin，用于 metadata、sitemap、auth callback、payment callback 等。
 - `brand.logo`、`brand.favicon`、`brand.previewImage` 指向 public asset path。
-- `capabilities.payment` 只能是 `none`、`stripe`、`creem`、`paypal`。
-- `configVersion` 当前必须是 `1`。
+- `capabilities.enabledModules` 只能使用产品模块注册表中的站点模块；`core_shell` 和 `deploy_contract` 是平台固有能力，不可配置。
+- `capabilities.paymentProvider` 只能是 `none`、`stripe`、`creem`、`paypal`，并且必须与 `billing` 模块同时启用或同时禁用。
+- `admin_settings` 必须同时启用 `auth`。
+- `configVersion` 当前必须是 `2`。
 
 ## 4. Configure Deploy Settings
 
@@ -254,10 +256,10 @@ sites/my-site/content/pages/
 - `bindingRequirements.bindings.workersAi` 表示 app server workers 是否需要 Cloudflare Workers AI `[ai] binding = "AI"`。
 - `bindingRequirements.secrets.authSharedSecret`、`googleOauth`、`githubOauth` 是 operator-declared deploy requirements。
 - Production email provider secret requirement 由
-  `site.config.json.capabilities.auth` 派生；`CF_DEPLOY_PROFILE=preview` 不
+  `site.config.json.capabilities.enabledModules` 中的 `auth` 派生；`CF_DEPLOY_PROFILE=preview` 不
   要求 Resend。不允许在 `deploy.settings.json` 里手写 `emailProvider`。
-- OpenRouter/chat secret requirement 由 `site.config.json.capabilities.ai` 派生，不允许在 `deploy.settings.json` 里手写 `openrouter`。只使用 Workers AI binding 的产品不要打开 `capabilities.ai`。
-- Payment provider secret requirement 由 `site.config.json.capabilities.payment` 派生，不允许在 `deploy.settings.json.bindingRequirements.secrets` 里手写 `stripe`、`creem` 或 `paypal`。
+- OpenRouter/chat secret requirement 由 `enabledModules` 中的 `ai` 派生，不允许在 `deploy.settings.json` 里手写 `openrouter`。只使用 Workers AI binding 的产品不要启用通用 `ai` 模块。
+- Payment provider secret requirement 由 `site.config.json.capabilities.paymentProvider` 派生，不允许在 `deploy.settings.json.bindingRequirements.secrets` 里手写 `stripe`、`creem` 或 `paypal`。
 - `workers.router`、`workers.state`、`workers.public-web` 必填；当前不支持 pure public-web-only topology。
 - `workers.auth`、`workers.payment`、`workers.member`、`workers.chat`、`workers.admin` 可选。缺少 optional worker 时，该 worker 不会被 build、deploy、service-bind、local topology 启动或要求 secrets。
 - `workers.*` 必须是 Cloudflare-safe worker name；未知 worker key 会被 schema 拒绝。
@@ -266,7 +268,7 @@ sites/my-site/content/pages/
 
 不要把 auth、payment、AI、feature flags、runtime settings 或 secrets 作为顶层字段放进 `deploy.settings.json`。这些字段会被 schema 拒绝。
 
-Payment provider secrets 不写进 `deploy.settings.json.bindingRequirements.secrets`。active provider 由 `site.config.json.capabilities.payment` 派生，Cloudflare binding resolver 会根据 `stripe`、`creem` 或 `paypal` 要求对应 runtime secrets。
+Payment provider secrets 不写进 `deploy.settings.json.bindingRequirements.secrets`。active provider 由 `site.config.json.capabilities.paymentProvider` 派生，Cloudflare binding resolver 会根据 `stripe`、`creem` 或 `paypal` 要求对应 runtime secrets。
 
 `site.config.json.domain` 会派生成 router Worker 的 `[[routes]].pattern`，`cf:check` 会校验 route pattern 必须和 domain 完全一致，并且所有正式 site 的 domain 不能重复。
 
@@ -280,10 +282,10 @@ sites/my-site/content/pages/
 
 能力开关和内容完整性必须一致：
 
-- `capabilities.docs=true` 时，必须存在 `sites/my-site/content/docs/index.mdx`。
-- `capabilities.blog=true` 时，`sites/my-site/content/posts/` 至少要有一个 `.mdx` 文件。
-- `capabilities.docs=false` 时，`sites/my-site/content/docs/` 可以不存在。
-- `capabilities.blog=false` 时，`sites/my-site/content/posts/` 可以不存在。
+- `enabledModules` 包含 `docs` 时，必须存在 `sites/my-site/content/docs/index.mdx`。
+- `enabledModules` 包含 `blog` 时，`sites/my-site/content/posts/` 至少要有一个 `.mdx` 文件。
+- `enabledModules` 不包含 `docs` 时，`sites/my-site/content/docs/` 可以不存在。
+- `enabledModules` 不包含 `blog` 时，`sites/my-site/content/posts/` 可以不存在。
 
 content source 会按当前 `SITE` 生成到 `.generated/content-source.ts`，运行时代码不应直接读取其他 site 的 content。
 
@@ -312,13 +314,13 @@ SITE=my-site pnpm exec tsx scripts/upsert-configs.ts \
 | Site / Deploy Setting                                | Required Runtime Binding                                               |
 | ---------------------------------------------------- | ---------------------------------------------------------------------- |
 | `bindingRequirements.secrets.authSharedSecret=true`  | `BETTER_AUTH_SECRET` 或 `AUTH_SECRET`                                  |
-| production `capabilities.auth=true`                  | `RESEND_API_KEY`                                                       |
+| production `enabledModules` includes `auth`          | `RESEND_API_KEY`                                                       |
 | `bindingRequirements.vars.storagePublicBaseUrl=true` | `STORAGE_PUBLIC_BASE_URL`                                              |
 | `bindingRequirements.bindings.workersAi=true`        | Cloudflare Workers AI `[ai] binding = "AI"`                            |
-| `capabilities.ai=true`                               | `OPENROUTER_API_KEY` for shared OpenRouter/chat/generator              |
-| `capabilities.payment=stripe`                        | `STRIPE_PUBLISHABLE_KEY`、`STRIPE_SECRET_KEY`、`STRIPE_SIGNING_SECRET` |
-| `capabilities.payment=creem`                         | `CREEM_API_KEY`、`CREEM_SIGNING_SECRET`；preview/local 缺失时只警告    |
-| `capabilities.payment=paypal`                        | `PAYPAL_CLIENT_ID`、`PAYPAL_CLIENT_SECRET`、`PAYPAL_WEBHOOK_ID`        |
+| `enabledModules` includes `ai`                       | `OPENROUTER_API_KEY` for shared OpenRouter/chat/generator              |
+| `paymentProvider=stripe`                             | `STRIPE_PUBLISHABLE_KEY`、`STRIPE_SECRET_KEY`、`STRIPE_SIGNING_SECRET` |
+| `paymentProvider=creem`                              | `CREEM_API_KEY`、`CREEM_SIGNING_SECRET`；preview/local 缺失时只警告    |
+| `paymentProvider=paypal`                             | `PAYPAL_CLIENT_ID`、`PAYPAL_CLIENT_SECRET`、`PAYPAL_WEBHOOK_ID`        |
 
 本地只验证配置结构时，可以先用非生产占位值跑到 `cf:check` 通过。Preview/local
 缺少 `RESEND_API_KEY`、`CREEM_API_KEY`、`CREEM_SIGNING_SECRET` 时只警告并跳过本地
@@ -362,8 +364,8 @@ SITE=my-site pnpm test:cf-admin-settings-smoke
 | `site "<key>" is not configured`                                  | `SITE` 指向的目录缺少 `site.config.json`                 | 创建 `sites/<key>/site.config.json`，或把 `SITE` 改成已存在的 site key。                                                        |
 | `site config key mismatch`                                        | 目录名和 `site.config.json.key` 不一致                   | 让 `sites/<key>`、`site.config.json.key` 和命令里的 `SITE=<key>` 完全一致。                                                     |
 | `site content directory is required`                              | 缺少必需 content collection 目录                         | 至少补齐 `content/pages`；开启 docs/blog 时再补对应目录。                                                                       |
-| `enables docs, but ... docs/index.mdx is missing`                 | docs 开关开启但没有 docs 首页                            | 新增 `sites/<key>/content/docs/index.mdx`，或关闭 `capabilities.docs`。                                                         |
-| `enables blog, but ... posts must contain at least one .mdx file` | blog 开关开启但没有文章                                  | 新增至少一个 `sites/<key>/content/posts/*.mdx`，或关闭 `capabilities.blog`。                                                    |
+| `enables docs, but ... docs/index.mdx is missing`                 | docs 开关开启但没有 docs 首页                            | 新增 `sites/<key>/content/docs/index.mdx`，或从 `enabledModules` 删除 `docs`。                                                  |
+| `enables blog, but ... posts must contain at least one .mdx file` | blog 开关开启但没有文章                                  | 新增至少一个 `sites/<key>/content/posts/*.mdx`，或从 `enabledModules` 删除 `blog`。                                             |
 | `must be a Cloudflare-safe worker name`                           | worker 名称不符合 Cloudflare 限制                        | 使用小写字母、数字和短横线，长度不超过 63，且不要以短横线开头或结尾。                                                           |
 | `must be a valid R2 bucket name`                                  | R2 bucket 名称不合法                                     | 使用 3-63 位小写 bucket 名，不要用下划线、连续点或 IP 地址格式。                                                                |
 | `must be a valid Hyperdrive id`                                   | Hyperdrive id 不是 32 位小写十六进制                     | 填入真实 Cloudflare Hyperdrive id，不要保留示例占位值。                                                                         |

@@ -2,18 +2,13 @@ import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { listConfiguredSiteKeys } from './lib/site-config.mjs';
+
 const rootDir = process.cwd();
 
-export const NO_DB_CLOUDFLARE_BUILD_SITES = Object.freeze([
-  'dev-local',
-  'mamamiya',
-  '401k-calculator',
-  'ai-remover',
-  'background-remover',
-  'text-to-speech-generator',
-  'mp4-compressor',
-  'random-group-generator',
-]);
+export const NO_DB_CLOUDFLARE_BUILD_SITES = Object.freeze(
+  listConfiguredSiteKeys()
+);
 
 export const NO_DB_CLOUDFLARE_PLACEHOLDER_ENV = Object.freeze({
   BETTER_AUTH_SECRET: 'ci-auth-secret-not-for-production',

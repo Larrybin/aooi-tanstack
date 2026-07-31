@@ -28,7 +28,7 @@ test('buildRemoveMyImagesJobRequest preserves auth headers while changing method
 
 test('TanStack remover job DELETE path applies the remover API guard', async () => {
   const source = await readRepoFile(
-    'apps/web/src/routes/api/remover/jobs/$id.ts'
+    'apps/web/src/routes/(site_ai-remover)/api/remover/jobs/$id.ts'
   );
 
   assert.match(source, /import\s+\{\s*requireRemoverSite\s*\}/);
@@ -50,7 +50,7 @@ test('loadMyImagesRouteCopy returns localized My Images labels', async () => {
 
 test('TanStack My Images localized route rejects invalid locale data', async () => {
   const routeSource = await readRepoFile(
-    'apps/web/src/routes/$locale/my-images.tsx'
+    'apps/web/src/routes/(module_storage)/$locale/my-images.tsx'
   );
   const loaderSource = await readRepoFile(
     'src/server/remover/my-images-route-resolver.ts'

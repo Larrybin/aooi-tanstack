@@ -10,11 +10,8 @@ const freeToolContract = {
   site: {
     key: 'mp4-compressor',
     capabilities: {
-      auth: false,
-      payment: 'none',
-      ai: false,
-      docs: false,
-      blog: false,
+      enabledModules: ['analytics'],
+      paymentProvider: 'none',
     },
   },
   bindingRequirements: {
@@ -48,8 +45,6 @@ test('site contract enforces mp4-compressor free-tool-no-db invariants', () => {
 
   assert.equal(result.profile, 'free-tool-no-db');
   assert.deepEqual(result.failures, []);
-  assert.ok(result.prunePaths.includes('apps/web/src/routes/api/config'));
-  assert.ok(result.prunePaths.includes('apps/web/src/routes/pricing.tsx'));
 });
 
 test('site contract enforces random-group-generator free-tool-no-db invariants', () => {
@@ -61,8 +56,6 @@ test('site contract enforces random-group-generator free-tool-no-db invariants',
 
   assert.equal(result.profile, 'free-tool-no-db');
   assert.deepEqual(result.failures, []);
-  assert.ok(result.prunePaths.includes('apps/web/src/routes/api/config'));
-  assert.ok(result.prunePaths.includes('apps/web/src/routes/pricing.tsx'));
 });
 
 test('site contract keeps SaaS sites on the custom profile', () => {

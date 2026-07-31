@@ -22,11 +22,8 @@ docs/blog, or database-backed SaaS surfaces.
 Required source settings:
 
 ```text
-site.config.json capabilities.auth=false
-site.config.json capabilities.payment="none"
-site.config.json capabilities.ai=false
-site.config.json capabilities.docs=false
-site.config.json capabilities.blog=false
+site.config.json capabilities.enabledModules=["analytics"]
+site.config.json capabilities.paymentProvider="none"
 deploy.settings.json bindingRequirements.bindings.hyperdrive=false
 deploy.settings.json bindingRequirements.secrets.authSharedSecret=false
 ```
@@ -34,7 +31,7 @@ deploy.settings.json bindingRequirements.secrets.authSharedSecret=false
 Required behavior:
 
 - Cloudflare config must not include a Hyperdrive binding.
-- Free-tool route pruning must remove disabled SaaS and DB-backed routes.
+- Route assembly must exclude disabled SaaS and DB-backed route groups.
 - DB-backed API routes must not enter the public-web bundle.
 - Production doctor/provision must not require database URLs.
 - Production doctor/provision must not check or create Hyperdrive.

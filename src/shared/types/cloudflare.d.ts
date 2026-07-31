@@ -25,6 +25,11 @@ interface __BaseEnv_CloudflareEnv {
 	CHAT_WORKER_NAME: "cloudflare-typegen-chat";
 	ADMIN_WORKER_NAME: "cloudflare-typegen-admin";
 	APP_ENVIRONMENT: "production";
+	GOOGLE_ANALYTICS_ID: "";
+	CLARITY_ID: "";
+	PLAUSIBLE_DOMAIN: "";
+	PLAUSIBLE_SRC: "";
+	OPENPANEL_CLIENT_ID: "";
 	STATEFUL_LIMITERS: DurableObjectNamespace /* StatefulLimitersDurableObject from cloudflare-typegen-state */;
 	WORKER_SELF_REFERENCE: Service<typeof import("../../../cloudflare/workers/router").default>;
 	PUBLIC_WEB_WORKER: Fetcher /* cloudflare-typegen-public-web */;

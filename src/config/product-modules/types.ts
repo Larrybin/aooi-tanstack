@@ -1,20 +1,8 @@
 import type { SettingTabName } from '@/domains/settings/tab-names';
 
-export const PRODUCT_MODULE_IDS = [
-  'core_shell',
-  'auth',
-  'billing',
-  'admin_settings',
-  'deploy_contract',
-  'docs',
-  'blog',
-  'ai',
-  'storage',
-  'analytics',
-  'affiliate',
-  'customer_service',
-  'ads',
-] as const;
+import type { PRODUCT_MODULE_IDS } from './registry.mjs';
+
+export { PRODUCT_MODULE_IDS } from './registry.mjs';
 
 export const PRODUCT_MODULE_TIERS = [
   'mainline',
@@ -41,6 +29,10 @@ export const MODULE_GUIDE_SLUGS = [
 ] as const;
 
 export type ProductModuleId = (typeof PRODUCT_MODULE_IDS)[number];
+export type SiteModuleId = Exclude<
+  ProductModuleId,
+  'core_shell' | 'deploy_contract'
+>;
 export type ProductModuleTier = (typeof PRODUCT_MODULE_TIERS)[number];
 export type ProductModuleVerification =
   (typeof PRODUCT_MODULE_VERIFICATIONS)[number];

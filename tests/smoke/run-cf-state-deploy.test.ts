@@ -60,7 +60,7 @@ test('state deploy artifact guard 只检查 state worker 直接依赖的 native 
     'cloudflare/workers/state.ts',
     'cloudflare/workers/stateful-limiters.ts',
   ]);
-  assert.ok(appArtifacts.includes('dist/server/server.mjs'));
+  assert.ok(appArtifacts.includes('dist/server/entry.server.mjs'));
   assert.ok(appArtifacts.includes('dist/client'));
   assert.equal(
     stateArtifacts.some((artifact) => artifact.startsWith('dist/')),

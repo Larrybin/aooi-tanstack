@@ -378,9 +378,6 @@ test('buildCloudflareSecretsEnv 按 deploy.settings.json 与 workerKeys 限定 s
           ...readCurrentSiteConfig({ siteKey: 'mamamiya' }),
           capabilities: {
             ...readCurrentSiteConfig({ siteKey: 'mamamiya' }).capabilities,
-            auth: true,
-            ai: false,
-            payment: 'none',
           },
         },
         null,
@@ -475,9 +472,6 @@ test('buildCloudflareSecretsEnv 对 public-web 仅输出 Google One Tap 所需 c
           ...readCurrentSiteConfig({ siteKey: 'mamamiya' }),
           capabilities: {
             ...readCurrentSiteConfig({ siteKey: 'mamamiya' }).capabilities,
-            auth: true,
-            ai: false,
-            payment: 'none',
           },
         },
         null,

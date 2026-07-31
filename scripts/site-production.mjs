@@ -17,6 +17,7 @@ import {
   stripAnsi,
   withCommandPathFallback,
 } from './lib/cloudflare-provisioning.mjs';
+import { hasSiteModule } from './lib/site-capabilities.mjs';
 import {
   readCurrentSiteConfig,
   resolveRequiredSiteKey,
@@ -96,7 +97,7 @@ export function isProductionStorageRequired(deploySettings) {
 
 export function isProductionAuthRequired({ deploySettings, siteConfig }) {
   return (
-    siteConfig.capabilities.auth !== false ||
+    hasSiteModule(siteConfig, 'auth') ||
     deploySettings.bindingRequirements.secrets.authSharedSecret === true
   );
 }

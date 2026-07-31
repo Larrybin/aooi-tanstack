@@ -9,6 +9,7 @@ import { defaultLocale } from '@/config/locale';
 import enBlog from '@/config/locale/messages/en/blog.json';
 import zhTwBlog from '@/config/locale/messages/zh-TW/blog.json';
 import zhBlog from '@/config/locale/messages/zh/blog.json';
+import { hasSiteModule } from '@/config/site-capabilities';
 import { normalizeLocale } from '@/shared/i18n/locale';
 import {
   buildCanonicalUrl,
@@ -44,7 +45,7 @@ export async function resolveBlogCategoryRouteData(
     typeof localeInput === 'string' ? localeInput : null
   );
   const slug = normalizeSlug(slugInput);
-  if (!locale || !slug || !site.capabilities.blog) {
+  if (!locale || !slug || !hasSiteModule('blog')) {
     return null;
   }
 

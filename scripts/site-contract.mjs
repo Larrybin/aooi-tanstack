@@ -4,47 +4,25 @@ import { fileURLToPath } from 'node:url';
 import { resolveRequiredSiteKey } from './lib/site-config.mjs';
 import { resolveSiteDeployContract } from './lib/site-deploy-contract.mjs';
 import {
-  isFreeToolBuildContract,
-  resolveSiteRoutePrunePaths,
-} from './lib/site-route-pruning.mjs';
-import {
   isProductionAuthRequired,
   isProductionHyperdriveRequired,
 } from './site-production.mjs';
-
-const FREE_TOOL_NO_DB_REQUIRED_PRUNED_PATHS = Object.freeze([
-  'apps/web/src/routes/admin_.tsx',
-  'apps/web/src/routes/$locale/admin_.tsx',
-  'apps/web/src/routes/sign-in.tsx',
-  'apps/web/src/routes/$locale/sign-in.tsx',
-  'apps/web/src/routes/chat_.tsx',
-  'apps/web/src/routes/$locale/chat_.tsx',
-  'apps/web/src/routes/docs_.tsx',
-  'apps/web/src/routes/$locale/docs_.tsx',
-  'apps/web/src/routes/blog_.tsx',
-  'apps/web/src/routes/$locale/blog_.tsx',
-  'apps/web/src/routes/pricing.tsx',
-  'apps/web/src/routes/$locale/pricing.tsx',
-  'apps/web/src/routes/settings_.tsx',
-  'apps/web/src/routes/$locale/settings_.tsx',
-  'apps/web/src/routes/api/auth.ts',
-  'apps/web/src/routes/api/config',
-  'apps/web/src/routes/api/payment',
-  'apps/web/src/routes/api/user',
-]);
 
 function printStatus(status, label, detail = '') {
   console.log(`[${status}] ${label}${detail ? `: ${detail}` : ''}`);
 }
 
 export function deriveSiteProductProfile(contract) {
-  return isFreeToolBuildContract(contract) ? 'free-tool-no-db' : 'custom';
+  const enabledModules = contract.site.capabilities.enabledModules;
+  return enabledModules.length === 1 &&
+    enabledModules[0] === 'analytics' &&
+    contract.bindingRequirements.bindings.hyperdrive === false
+    ? 'free-tool-no-db'
+    : 'custom';
 }
 
 function assertFreeToolNoDbContract({ contract, rootDir }) {
   const failures = [];
-  const prunePaths = resolveSiteRoutePrunePaths(contract);
-  const pruneSet = new Set(prunePaths);
   const deploySettings = {
     bindingRequirements: contract.bindingRequirements,
   };
@@ -77,18 +55,9 @@ function assertFreeToolNoDbContract({ contract, rootDir }) {
     failures.push('production checks must not require auth secrets');
   }
 
-  for (const relativePath of FREE_TOOL_NO_DB_REQUIRED_PRUNED_PATHS) {
-    if (!pruneSet.has(relativePath)) {
-      failures.push(
-        `free-tool-no-db route pruning must include ${relativePath}`
-      );
-    }
-  }
-
   return {
     failures,
     profile: 'free-tool-no-db',
-    prunePaths,
   };
 }
 
@@ -111,7 +80,6 @@ export function checkSiteContract({
   return {
     failures: [],
     profile,
-    prunePaths: resolveSiteRoutePrunePaths(contract),
   };
 }
 
@@ -122,10 +90,6 @@ async function main() {
 
   printStatus('ok', 'site', siteKey);
   printStatus('ok', 'product profile', result.profile);
-
-  if (result.profile === 'free-tool-no-db') {
-    printStatus('ok', 'route pruning paths', String(result.prunePaths.length));
-  }
 
   if (result.failures.length > 0) {
     for (const failure of result.failures) {

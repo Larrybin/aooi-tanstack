@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
+import { hasSiteModule } from './site-capabilities.mjs';
 import {
   readCurrentSiteConfig,
   resolveRequiredSiteKey,
@@ -305,7 +306,7 @@ function assertCrossContractConsistency(siteConfig, workers) {
     throw new Error('site.key must be normalized');
   }
 
-  const paymentCapability = siteConfig.capabilities.payment;
+  const paymentCapability = siteConfig.capabilities.paymentProvider;
 
   if (
     paymentCapability !== 'none' &&
@@ -317,14 +318,14 @@ function assertCrossContractConsistency(siteConfig, workers) {
   }
 
   const missingCapabilityWorkers = [];
-  if (siteConfig.capabilities.auth && !('auth' in workers)) {
-    missingCapabilityWorkers.push('auth (site.capabilities.auth)');
+  if (hasSiteModule(siteConfig, 'auth') && !('auth' in workers)) {
+    missingCapabilityWorkers.push('auth (auth module)');
   }
   if (paymentCapability !== 'none' && !('payment' in workers)) {
-    missingCapabilityWorkers.push('payment (site.capabilities.payment)');
+    missingCapabilityWorkers.push('payment (billing module)');
   }
-  if (siteConfig.capabilities.ai && !('chat' in workers)) {
-    missingCapabilityWorkers.push('chat (site.capabilities.ai)');
+  if (hasSiteModule(siteConfig, 'ai') && !('chat' in workers)) {
+    missingCapabilityWorkers.push('chat (ai module)');
   }
 
   if (missingCapabilityWorkers.length > 0) {

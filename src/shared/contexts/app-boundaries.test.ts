@@ -49,22 +49,17 @@ test('landing shell 向 PublicAppProvider 注入 typed initial props', async () 
   assert.equal(content.includes('initialConfigs='), false);
 });
 
-test('product home route data keeps product shells registered explicitly', async () => {
+test('product home route data comes from the generated site entry', async () => {
   const content = await readRepoFile(
-    'src/server/landing/product-home-route-data.ts'
+    'src/server/landing/home-route-resolver.ts'
   );
 
-  assert.equal(content.includes("case 'ai-remover':"), true);
-  assert.equal(content.includes("case 'background-remover':"), true);
-  assert.equal(content.includes("case 'text-to-speech-generator':"), true);
-  assert.equal(content.includes("case 'mp4-compressor':"), true);
-  assert.equal(content.includes("siteKey === 'ai-remover'"), false);
+  assert.equal(content.includes("from '@/site-home'"), true);
+  assert.doesNotMatch(content, /case ['"](?:ai-remover|401k-calculator)['"]/);
 });
 
-test('shared product home eagerly loads the 401k calculator for hydration', async () => {
-  const content = await readRepoFile(
-    'src/surfaces/landing/home/product-home.view.tsx'
-  );
+test('401k site owns its product home implementation', async () => {
+  const content = await readRepoFile('sites/401k-calculator/home.tsx');
 
   assert.equal(
     content.includes(
@@ -110,7 +105,6 @@ test('公共消费方不再在首屏隐式读取 useSession', async () => {
   const filesToCheck = [
     'src/surfaces/landing/shell/landing-shell.view.tsx',
     'src/surfaces/landing/home/home.view.tsx',
-    'src/surfaces/landing/home/product-home.view.tsx',
     'src/surfaces/landing/pricing/pricing.view.tsx',
   ];
 

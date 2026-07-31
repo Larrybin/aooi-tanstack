@@ -78,14 +78,17 @@ test('server worker 公共入口使用 binding-only runtime env，不再同步 p
 });
 
 test('server workers 统一加载 native TanStack server artifact', async () => {
-  assert.equal(NATIVE_TANSTACK_SERVER_ARTIFACT, 'dist/server/server.mjs');
+  assert.equal(NATIVE_TANSTACK_SERVER_ARTIFACT, 'dist/server/entry.server.mjs');
 
   for (const target of CLOUDFLARE_ALL_SERVER_WORKER_TARGETS) {
     const source = await fs.readFile(
       path.join(rootDir, `cloudflare/workers/server-${target}.ts`),
       'utf8'
     );
-    assert.match(source, /import\('\.\.\/\.\.\/dist\/server\/server\.mjs'\)/);
+    assert.match(
+      source,
+      /import\('\.\.\/\.\.\/dist\/server\/entry\.server\.mjs'\)/
+    );
   }
 });
 
@@ -118,7 +121,7 @@ test('native TanStack server module declaration exists and is covered by tsconfi
   assert.ok((tsconfig.include || []).includes('src/**/*.d.ts'));
   assert.match(
     declarationSource,
-    /declare module '\.\.\/\.\.\/dist\/server\/server\.mjs'/
+    /declare module '\.\.\/\.\.\/dist\/server\/entry\.server\.mjs'/
   );
   assert.match(declarationSource, /fetch\(request: Request\)/);
 });

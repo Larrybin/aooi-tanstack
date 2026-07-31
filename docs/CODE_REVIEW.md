@@ -52,7 +52,7 @@ Run `pnpm arch:check` for any boundary-sensitive change.
 
 - Router/server/state Worker ownership remains aligned with
   `src/shared/config/cloudflare-worker-splits.ts`.
-- Server Workers load `dist/server/server.mjs` only at the explicit Worker
+- Server Workers load `dist/server/entry.server.mjs` only at the explicit Worker
   boundary.
 - Hyperdrive, R2, Durable Object, service binding, and secret requirements match
   the selected site's deploy settings.
