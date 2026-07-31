@@ -1,0 +1,205 @@
+{
+  "metadata": {
+    "title": "Random Group Generator - Split Names Into Teams",
+    "description": "Paste names, choose number of groups or people per group, then generate random teams. Copy, print, or download CSV results in your browser.",
+    "keywords": [
+      "random group generator",
+      "random team generator",
+      "group maker",
+      "classroom group generator",
+      "split names into groups",
+      "random pair generator"
+    ]
+  },
+  "shell": {
+    "generator": "Generator",
+    "howTo": "How to use",
+    "faq": "FAQ",
+    "footerDescription": "Split a roster into balanced random groups in your browser.",
+    "productGroup": "Product",
+    "tool": "Random Group Generator",
+    "trustGroup": "Trust",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "copyrightSuffix": "All rights reserved."
+  },
+  "hero": {
+    "eyebrow": "Roster to groups",
+    "title": "Random Group Generator",
+    "description": "Paste a roster, choose a split method, and make balanced random groups for classrooms, workshops, games, meetings, or events. Review the assignment sheet before sharing it.",
+    "noteTitle": "Browser-based, no signup",
+    "noteDescription": "Names stay in the current page. Review groups before assigning people, especially when skills, conflicts, or accessibility needs matter."
+  },
+  "workbench": {
+    "rosterTitle": "Paste your roster",
+    "rosterDescription": "Use one name per line, or separate names with commas.",
+    "namesLabel": "Names list",
+    "namesPlaceholder": "Ava\nBen\nCamila\nDevon",
+    "namesReady": "{count} {nameLabel} ready",
+    "nameSingular": "name",
+    "namePlural": "names",
+    "groupSingular": "group",
+    "groupPlural": "groups",
+    "sampleAction": "Load sample roster",
+    "sampleNames": [
+      "Ava",
+      "Ben",
+      "Camila",
+      "Devon",
+      "Elena",
+      "Finn",
+      "Gia",
+      "Hugo",
+      "Iris",
+      "Jamal",
+      "Kai",
+      "Lena",
+      "Maya",
+      "Noah",
+      "Priya",
+      "Theo",
+      "Uma",
+      "Victor"
+    ],
+    "splitTitle": "Choose the split",
+    "splitDescription": "Pick a fixed group count or a target group size.",
+    "splitMethod": "Split method",
+    "groupCountMode": "Number of groups",
+    "groupSizeMode": "People per group",
+    "groupCountLabel": "Number of groups",
+    "groupSizeLabel": "People per group",
+    "groupLabel": "Group label",
+    "defaultGroupLabel": "Group",
+    "decreaseCountLabel": "Decrease count",
+    "increaseCountLabel": "Increase count",
+    "generateAction": "Generate Groups",
+    "reshuffleAction": "Reshuffle",
+    "resetAction": "Reset",
+    "resultsTitle": "Assignment sheet",
+    "emptyResult": "Add a roster and generate groups. Group names, member counts, and assignments will appear here.",
+    "copyAction": "Copy Results",
+    "csvAction": "Download CSV",
+    "printAction": "Print Results",
+    "emptySummary": "Add names to preview the group sizes.",
+    "groupCountSummary": "{names} {nameLabel} will be split into {groups} random {groupLabel}. Extra-name placements: {extra}.",
+    "groupSizeSummary": "{names} {nameLabel} will create {groups} random {groupLabel} with up to {size} people per group.",
+    "emptyError": "Add at least two names before generating random groups.",
+    "initialStatus": "Generated random groups will appear here.",
+    "copiedStatus": "Copied current group results to the clipboard.",
+    "copyError": "Clipboard access was blocked. Select the visible assignment sheet and copy it manually.",
+    "csvStatus": "Downloaded current groups as CSV.",
+    "printStatus": "Print dialog opened for the current assignment sheet.",
+    "resultStatus": "{names} {nameLabel} split into {groups} {groupLabel}.",
+    "equalBalanceStatus": "Each group has {count} {people}.",
+    "unevenBalanceStatus": "Group sizes range from {smallest} to {largest} people.",
+    "reviewNote": "Uneven lists are distributed as evenly as possible, with leftover names placed one at a time. Review the assignment sheet before sharing it."
+  },
+  "howTo": {
+    "label": "How it works",
+    "title": "Create random teams in four quick steps",
+    "steps": [
+      {
+        "title": "Paste names",
+        "description": "Add students, teammates, players, guests, or participants one per line or separated by commas."
+      },
+      {
+        "title": "Choose the split",
+        "description": "Set a fixed number of groups or a preferred number of people per group."
+      },
+      {
+        "title": "Generate and review",
+        "description": "Create a randomized assignment sheet, then reshuffle if the first draft is not a practical fit."
+      },
+      {
+        "title": "Share the result",
+        "description": "Copy plain text, download a spreadsheet-friendly CSV, or print the current assignment sheet."
+      }
+    ]
+  },
+  "guides": [
+    {
+      "title": "Choosing number of groups or people per group",
+      "paragraphs": [
+        "Number of groups is best when the room already has a fixed setup: six tables, four breakout rooms, three debate teams, or five event stations. The generator keeps that group count and spreads names across it.",
+        "People per group is best for pairs, trios, lab partners, workshop discussions, or game teams. Enter the preferred size and the tool creates as many groups as the roster needs."
+      ]
+    },
+    {
+      "title": "How the assignment sheet is created",
+      "paragraphs": [
+        "The tool shuffles the current roster, then fills groups according to the selected split method. When the list does not divide evenly, extra names are spread across groups one at a time.",
+        "Use Reshuffle to keep the roster and settings while producing another random arrangement."
+      ]
+    },
+    {
+      "title": "Review checklist and limits",
+      "paragraphs": [
+        "Random groups are a useful first draft, but the tool cannot know who is absent or which participants need a different assignment."
+      ],
+      "points": [
+        "Check attendance before printing or sharing the final list.",
+        "Move names manually when skill level, accessibility, language, or conflict constraints matter.",
+        "Review sensitive participant information before displaying it on a shared screen."
+      ]
+    },
+    {
+      "title": "Exporting and sharing groups",
+      "paragraphs": [
+        "Copy Results is best for chat, email, slides, or a shared document. Download CSV is better for a spreadsheet, attendance tracker, seating plan, or lesson plan.",
+        "The normal workflow does not require an account or upload step. The working roster is handled in your current browser page."
+      ]
+    }
+  ],
+  "examples": {
+    "label": "Examples",
+    "title": "Ways to create random teams",
+    "items": [
+      {
+        "title": "Classroom activity",
+        "description": "Paste 24 student names and choose 6 groups for discussion tables, reading circles, or station rotations."
+      },
+      {
+        "title": "Workshop breakout",
+        "description": "Paste 17 participant names and set people per group to 4 for small conversations."
+      },
+      {
+        "title": "Game night pairs",
+        "description": "Paste 10 player names and set people per group to 2 to create random pairs."
+      },
+      {
+        "title": "Uneven event list",
+        "description": "Paste 31 guest names and choose 5 teams. The assignment sheet shows which groups receive one extra participant."
+      }
+    ]
+  },
+  "faq": {
+    "label": "FAQ",
+    "title": "Random group generator questions",
+    "items": [
+      {
+        "question": "Can I choose the number of groups?",
+        "answer": "Yes. Select Number of groups and enter the group count. The tool splits the roster across that many random groups."
+      },
+      {
+        "question": "Can I choose people per group?",
+        "answer": "Yes. Select People per group and enter the preferred size. The page creates the number of groups needed for that roster."
+      },
+      {
+        "question": "How are uneven lists handled?",
+        "answer": "Extra names are distributed one at a time, so final group sizes differ by no more than one in group-count mode."
+      },
+      {
+        "question": "Can I copy or download the groups?",
+        "answer": "Yes. Copy Results creates plain text, while Download CSV creates a spreadsheet-friendly file with group, position, and name."
+      },
+      {
+        "question": "Does the tool upload my names?",
+        "answer": "No account or upload step is used for the generator. The working roster stays in the current browser page."
+      },
+      {
+        "question": "Can I use it as a classroom group generator?",
+        "answer": "Yes. It can help with class activities, project teams, lab pairs, or seating changes, provided you review the final assignments."
+      }
+    ]
+  }
+}

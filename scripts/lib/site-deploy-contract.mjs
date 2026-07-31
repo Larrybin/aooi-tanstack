@@ -474,7 +474,14 @@ export function createCanonicalTypegenContract(contract) {
       },
     },
     deploySettings: {
-      bindingRequirements: contract.bindingRequirements,
+      bindingRequirements: {
+        ...contract.bindingRequirements,
+        bindings: {
+          ...contract.bindingRequirements.bindings,
+          hyperdrive: true,
+          workersAi: true,
+        },
+      },
       configVersion: 1,
       workers: Object.fromEntries(
         CLOUDFLARE_WORKER_SLOT_KEYS.map((slot) => [
