@@ -264,6 +264,9 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.3.0
+      '@tanstack/router-generator':
+        specifier: 1.167.17
+        version: 1.167.17
       '@types/markdown-it':
         specifier: ^14.1.2
         version: 14.1.2

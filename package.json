@@ -19,7 +19,7 @@
     "dev:local": "SITE=dev-local node scripts/run-with-site.mjs pnpm exec vite dev --config vite.config.mts",
     "build": "node scripts/run-with-site.mjs pnpm exec vite build --config vite.config.mts",
     "start": "node scripts/run-with-site.mjs pnpm exec vite preview --config vite.config.mts",
-    "typecheck": "node scripts/run-with-site.mjs pnpm exec tsc --noEmit --pretty false --incremental false",
+    "typecheck": "node scripts/run-with-site.mjs pnpm exec tsx scripts/generate-route-tree.ts && node scripts/run-with-site.mjs pnpm exec tsc --noEmit --pretty false --incremental false",
     "check": "pnpm lint && pnpm typecheck && pnpm test",
     "ci": "tsx scripts/ci.ts",
     "release:check": "pnpm run ci && pnpm cf:check && pnpm cf:build && pnpm cf:typegen:check",
@@ -91,6 +91,8 @@
     "@radix-ui/react-tooltip": "^1.2.9",
     "@radix-ui/react-use-controllable-state": "^1.2.3",
     "@tabler/icons-react": "^3.44.0",
+    "@tanstack/react-router": "1.170.15",
+    "@tanstack/react-start": "1.168.25",
     "@types/mdx": "^2.0.14",
     "ai": "^5.0.39",
     "aws4fetch": "^1.0.20",
@@ -135,22 +137,23 @@
     "use-stick-to-bottom": "^1.1.6",
     "uuid": "^14.0.0",
     "vaul": "^1.1.2",
-    "zod": "^4.4.3",
-    "@tanstack/react-start": "1.168.25",
-    "@tanstack/react-router": "1.170.15"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "1.40.1",
     "@eslint/eslintrc": "^3.3.5",
     "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
     "@inlang/paraglide-js": "2.18.2",
     "@inlang/plugin-message-format": "4.4.0",
     "@tailwindcss/postcss": "^4",
+    "@tanstack/router-generator": "1.167.17",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^20",
     "@types/pg": "^8.20.0",
     "@types/react": "19.2.17",
     "@types/react-copy-to-clipboard": "^5.0.7",
     "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "5.2.0",
     "autoprefixer": "^10.5.0",
     "babel-plugin-react-compiler": "^1.0.0",
     "baseline-browser-mapping": "^2.10.34",
@@ -166,10 +169,8 @@
     "tw-animate-css": "^1.3.5",
     "typescript": "^5",
     "typescript-eslint": "8.61.0",
-    "wrangler": "4.99.0",
     "vite": "7.3.6",
-    "@vitejs/plugin-react": "5.2.0",
-    "@cloudflare/vite-plugin": "1.40.1"
+    "wrangler": "4.99.0"
   },
   "pnpm": {
     "overrides": {
