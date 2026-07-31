@@ -1,6 +1,8 @@
 import { resolveCalculatorHomeCopy } from '@/domains/401k-calculator/ui/401k-calculator-home-copy';
 import { buildCalculatorStructuredData } from '@/domains/401k-calculator/ui/401k-calculator-seo';
 import { buildCalculatorHeaderFooter } from '@/domains/401k-calculator/ui/401k-calculator-shell';
+import { resolveAnagramGeneratorHomeCopy } from '@/domains/anagram-generator/ui/anagram-generator-home-copy';
+import { buildAnagramGeneratorHeaderFooter } from '@/domains/anagram-generator/ui/anagram-generator-shell';
 import { resolveBackgroundRemoverHomeCopy } from '@/domains/background-remover/ui/background-remover-home-copy';
 import { buildBackgroundRemoverHeaderFooter } from '@/domains/background-remover/ui/background-remover-shell';
 import { resolveMp4CompressorHomeCopy } from '@/domains/mp4-compressor/ui/mp4-compressor-home-copy';
@@ -66,6 +68,11 @@ export function resolveProductHomeRouteData(
         kind: 'random-group-generator',
         copy: resolveRandomGroupGeneratorHomeCopy(siteHomeContent, locale),
       };
+    case 'anagram-generator':
+      return {
+        kind: 'anagram-generator',
+        copy: resolveAnagramGeneratorHomeCopy(siteHomeContent, locale),
+      };
     default:
       return null;
   }
@@ -98,6 +105,8 @@ export function buildProductHomeHeaderFooter(
         brand,
         productHome.copy.shell
       );
+    case 'anagram-generator':
+      return buildAnagramGeneratorHeaderFooter(brand, productHome.copy.shell);
   }
 }
 
@@ -130,6 +139,7 @@ export function isProductHomeSite() {
     case 'text-to-speech-generator':
     case 'mp4-compressor':
     case 'random-group-generator':
+    case 'anagram-generator':
       return true;
     default:
       return false;

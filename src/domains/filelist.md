@@ -3,6 +3,7 @@
 - `access-control/`: access-control 业务域的应用、领域、基础设施和 UI 代码目录。
 - `account/`: account 业务域的应用、领域、基础设施和 UI 代码目录。
 - `ai/`: ai 业务域的应用、领域、基础设施和 UI 代码目录。
+- `anagram-generator/`: anagram-generator 的组合规则和产品 UI。
 - `background-remover/`: background-remover 业务域的应用、领域、基础设施和 UI 代码目录。
 - `billing/`: billing 业务域的应用、领域、基础设施和 UI 代码目录。
 - `chat/`: chat 业务域的应用、领域、基础设施和 UI 代码目录。

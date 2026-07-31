@@ -32,6 +32,13 @@ const RandomGroupGeneratorHome = lazy(() =>
     })
   )
 );
+const AnagramGeneratorHome = lazy(() =>
+  import('@/domains/anagram-generator/ui/anagram-generator-home').then(
+    ({ AnagramGeneratorHome }) => ({
+      default: AnagramGeneratorHome,
+    })
+  )
+);
 
 export function ProductHomeView({
   productHome,
@@ -79,6 +86,12 @@ export function ProductHomeView({
       return (
         <Suspense fallback={null}>
           <RandomGroupGeneratorHome copy={productHome.copy} locale={locale} />
+        </Suspense>
+      );
+    case 'anagram-generator':
+      return (
+        <Suspense fallback={null}>
+          <AnagramGeneratorHome copy={productHome.copy} locale={locale} />
         </Suspense>
       );
   }

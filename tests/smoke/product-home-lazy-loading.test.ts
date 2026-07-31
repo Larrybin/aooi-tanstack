@@ -14,6 +14,7 @@ const productModules = [
   'text-to-speech-home',
   'mp4-compressor-home',
   'random-group-generator-home',
+  'anagram-generator-home',
 ];
 
 test('product home components are loaded through separate lazy chunks', () => {
