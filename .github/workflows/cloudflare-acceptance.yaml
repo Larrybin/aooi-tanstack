@@ -187,6 +187,8 @@ jobs:
       GOOGLE_CLIENT_SECRET: ci-google-client-secret-not-for-production
       OPENROUTER_API_KEY: ci-openrouter-api-key-not-for-production
       REMOVER_CLEANUP_SECRET: ci-remover-cleanup-secret-not-for-production
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ci-turnstile-site-key-not-for-production
+      TURNSTILE_SECRET_KEY: ci-turnstile-secret-key-not-for-production
 
     steps:
       - name: Checkout repository
@@ -217,6 +219,8 @@ jobs:
 
       - name: Run Cloudflare typegen gate
         run: pnpm cf:typegen:check
+        env:
+          SITE: dev-local
 
   cloudflare-acceptance-required:
     name: cloudflare acceptance
