@@ -9,7 +9,7 @@ import { promisify } from 'node:util';
 import {
   readCurrentSitePricing,
   validateSitePricing,
-} from '../scripts/lib/site-pricing.mjs';
+} from '../scripts/lib/site-pricing.ts';
 
 const execFileAsync = promisify(execFile);
 const generatedDir = path.resolve(
@@ -24,14 +24,18 @@ test.after(async () => {
 });
 
 async function generateSiteModule(siteKey: string) {
-  await execFileAsync(process.execPath, ['scripts/generate-site-module.mjs'], {
-    cwd: process.cwd(),
-    env: {
-      ...process.env,
-      AOOI_GENERATED_DIR: generatedDir,
-      SITE: siteKey,
-    },
-  });
+  await execFileAsync(
+    process.execPath,
+    ['--import', 'tsx', 'scripts/generate-site-module.ts'],
+    {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        AOOI_GENERATED_DIR: generatedDir,
+        SITE: siteKey,
+      },
+    }
+  );
 }
 
 async function importGeneratedSite(siteKey: string) {

@@ -1,4 +1,4 @@
-import { resolve } from 'node:path';
+import { relative, resolve, sep } from 'node:path';
 import { cloudflare } from '@cloudflare/vite-plugin';
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
@@ -6,12 +6,20 @@ import react from '@vitejs/plugin-react';
 import mdx from 'fumadocs-mdx/vite';
 import { defineConfig } from 'vite';
 
-import { readCurrentSiteConfig } from './scripts/lib/site-config.mjs';
-import { buildSiteRouteIgnorePattern } from './scripts/lib/site-route-assembly.mjs';
+import { resolveSiteBuildPaths } from './scripts/lib/build-paths';
+import { readCurrentSiteConfig } from './scripts/lib/site-config.ts';
+import { buildSiteRouteIgnorePattern } from './scripts/lib/site-route-assembly.ts';
 import { docs, pages, posts } from './source.config';
 
 const projectRoot = import.meta.dirname;
 const currentSite = readCurrentSiteConfig({ rootDir: projectRoot });
+const { generatedDir, distDir } = resolveSiteBuildPaths({
+  rootDir: projectRoot,
+  siteKey: currentSite.key,
+});
+const appSourceDir = resolve(projectRoot, 'apps/web/src');
+const fromAppSource = (targetPath: string) =>
+  relative(appSourceDir, targetPath).split(sep).join('/');
 
 export default defineConfig({
   root: projectRoot,
@@ -23,28 +31,37 @@ export default defineConfig({
       },
       {
         find: '@/site',
-        replacement: resolve(projectRoot, '.generated/site.ts'),
+        replacement: resolve(generatedDir, 'site.ts'),
       },
       {
         find: '@/site-home-server',
-        replacement: resolve(projectRoot, '.generated/site-home.server.ts'),
+        replacement: resolve(generatedDir, 'site-home.server.ts'),
       },
       {
         find: '@/site-home',
-        replacement: resolve(projectRoot, '.generated/site-home.tsx'),
+        replacement: resolve(generatedDir, 'site-home.tsx'),
       },
       {
         find: '@/content-source',
-        replacement: resolve(projectRoot, '.generated/content-source.ts'),
+        replacement: resolve(generatedDir, 'content-source.ts'),
       },
       {
         find: '@/public-content',
-        replacement: resolve(projectRoot, '.generated/public-content.ts'),
+        replacement: resolve(generatedDir, 'public-content.ts'),
+      },
+      {
+        find: '@/route-tree',
+        replacement: resolve(generatedDir, 'routeTree.gen.ts'),
+      },
+      {
+        find: '@/paraglide',
+        replacement: resolve(generatedDir, 'paraglide'),
       },
       { find: '@', replacement: resolve(projectRoot, 'src') },
     ],
   },
   build: {
+    outDir: distDir,
     rollupOptions: {
       external: ['cloudflare:workers'],
     },
@@ -52,7 +69,7 @@ export default defineConfig({
   plugins: [
     paraglideVitePlugin({
       project: './project.inlang',
-      outdir: './src/paraglide',
+      outdir: resolve(generatedDir, 'paraglide'),
       strategy: ['globalVariable', 'baseLocale'],
       isServer: 'import.meta.env.SSR',
       emitGitIgnore: false,
@@ -64,14 +81,16 @@ export default defineConfig({
     tanstackStart({
       srcDirectory: 'apps/web/src',
       client: {
-        entry: '../../../.generated/entry.client.tsx',
+        entry: fromAppSource(resolve(generatedDir, 'entry.client.tsx')),
       },
       server: {
-        entry: '../../../.generated/entry.server.ts',
+        entry: fromAppSource(resolve(generatedDir, 'entry.server.ts')),
       },
       router: {
         routesDirectory: 'routes',
-        generatedRouteTree: '../../../.generated/routeTree.gen.ts',
+        generatedRouteTree: fromAppSource(
+          resolve(generatedDir, 'routeTree.gen.ts')
+        ),
         routeFileIgnorePattern: buildSiteRouteIgnorePattern({
           rootDir: projectRoot,
           site: currentSite,

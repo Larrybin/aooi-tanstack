@@ -1,26 +1,10 @@
-import type { Footer, Header } from '@/shared/types/blocks/landing';
+import { resolveGenericSiteHomeRouteData } from '@/server/landing/home-route-builders';
+import type { GenericHomeRouteData } from '@/surfaces/landing/home/home.contracts';
 
-export const isSiteProductHome = false;
+export type SiteHomeRouteData = GenericHomeRouteData;
 
-export type SiteProductHomeRouteData = { unavailable: true };
+export const resolveSiteHomeRouteData = resolveGenericSiteHomeRouteData;
 
-export const resolveSiteProductHomeRouteData = (
-  _locale: string
-): SiteProductHomeRouteData | null => null;
-
-export const buildSiteProductHomeHeaderFooter = (
-  _productHome: SiteProductHomeRouteData
-): { header: Header; footer: Footer } => {
-  throw new Error('mamamiya does not provide a product home');
-};
-
-export const getSiteProductHomeMetadata = (
-  _productHome: SiteProductHomeRouteData
-): { title: string; description: string } => {
-  throw new Error('mamamiya does not provide a product home');
-};
-
-export const getSiteProductHomeStructuredData = (
-  _productHome: SiteProductHomeRouteData,
-  _canonical: string
-) => undefined;
+export function resolveSiteHomeHeaderFooter(_locale: string) {
+  return null;
+}

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { validateSiteConfig } from '../../scripts/site-schema.mjs';
+import { validateSiteConfig } from '../../scripts/site-schema.ts';
 
 function buildSiteConfig(overrides: Record<string, unknown> = {}) {
   return {

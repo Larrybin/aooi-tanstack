@@ -7,8 +7,8 @@ import test from 'node:test';
 import {
   listConfiguredSiteKeys,
   readCurrentSiteConfig,
-} from '../../scripts/lib/site-config.mjs';
-import { buildSiteRouteIgnorePattern } from '../../scripts/lib/site-route-assembly.mjs';
+} from '../../scripts/lib/site-config.ts';
+import { buildSiteRouteIgnorePattern } from '../../scripts/lib/site-route-assembly.ts';
 
 test('route assembly enables only configured module and site groups', () => {
   const site = readCurrentSiteConfig({

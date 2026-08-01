@@ -17,9 +17,11 @@ const rootDir = path.resolve(
 const PROCESS_ENV_ALLOWLIST = new Set([
   'cloudflare/workers/create-server-worker.ts',
   'src/config/env-contract.ts',
+  'src/config/load-dotenv-core.ts',
   'src/config/load-dotenv.ts',
   'src/config/public-env.ts',
   'src/config/server-auth-base-url.ts',
+  'src/config/site-env.ts',
   'src/infra/adapters/db/config.ts',
   'src/infra/runtime/env.server.ts',
 ]);

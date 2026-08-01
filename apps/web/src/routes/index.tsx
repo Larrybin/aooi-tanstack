@@ -1,6 +1,5 @@
 import { loadHomeSurfaceData } from '@/surfaces/landing/home/home.data';
 import { getHomeSurfaceHead } from '@/surfaces/landing/home/home.seo';
-import type { HomeRouteData } from '@/surfaces/landing/home/home.types';
 import { HomeSurfaceView } from '@/surfaces/landing/home/home.view';
 import { createFileRoute, notFound } from '@tanstack/react-router';
 
@@ -12,7 +11,7 @@ export const Route = createFileRoute('/')({
     if (!data) {
       throw notFound();
     }
-    return data as HomeRouteData;
+    return data;
   },
   head: ({ loaderData }) => getHomeSurfaceHead(loaderData ?? null),
   component: HomeRoute,

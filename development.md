@@ -55,8 +55,8 @@ pnpm i18n:check --strict
 ```
 
 The root TypeScript config includes both `src/**` and `apps/web/src/**`.
-Production artifacts are `dist/client/**` and
-`dist/server/entry.server.mjs`.
+Selected-site production artifacts are `dist/<site-key>/client/**` and
+`dist/<site-key>/server/entry.server.mjs`.
 
 Use `pnpm run ci` for the complete repository gate. It runs formatting, lint,
 typecheck, tests, architecture checks, then dynamically discovers and validates
@@ -121,8 +121,9 @@ SITE=<site-key> pnpm cf:deploy
 SITE=<site-key> pnpm release:cf
 ```
 
-Do not bypass `scripts/run-with-site.mjs` for normal workflows; it generates
-the selected site module, content source, and active Worker contract.
+Do not bypass `scripts/run-with-site.ts` for normal workflows; it generates
+the selected site's isolated module, route tree, Paraglide output, content
+source, bundles, and active Worker contract.
 
 ## Site and product gates
 

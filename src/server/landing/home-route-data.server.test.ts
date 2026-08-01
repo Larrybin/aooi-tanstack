@@ -1,13 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { site, siteHomeContent, siteI18nManifest } from '@/site';
+import { resolveSiteHomeRouteData } from '@/site-home-server';
 
 import { buildCanonicalUrl } from '@/shared/seo/canonical';
 
-import { resolveHomeRouteData } from './home-route-resolver';
-
-test('resolveHomeRouteData returns default home data', async () => {
-  const data = await resolveHomeRouteData({ locale: 'en' });
+test('resolveSiteHomeRouteData returns default home data', async () => {
+  const data = await resolveSiteHomeRouteData('en');
 
   assert.ok(data);
   assert.equal(data.locale, 'en');
@@ -22,7 +21,7 @@ test('resolveHomeRouteData returns default home data', async () => {
     }
   );
 
-  if (data.variant === 'product') {
+  if (hasProductHome(data)) {
     assert.equal(
       data.head.meta?.find((meta) => 'title' in meta)?.title,
       data.productHome.copy.metadata.title
@@ -39,13 +38,13 @@ test('resolveHomeRouteData returns default home data', async () => {
       assert.equal(data.head.scripts, undefined);
     }
   } else {
-    assert.equal(data.variant, 'generic');
+    assert.ok(hasGenericPage(data));
     assert.match(data.page.hero?.title ?? '', /Launch the first version/);
   }
 });
 
-test('resolveHomeRouteData returns approved localized home data', async () => {
-  const data = await resolveHomeRouteData({ locale: 'zh' });
+test('resolveSiteHomeRouteData returns approved localized home data', async () => {
+  const data = await resolveSiteHomeRouteData('zh');
 
   if (!hasApprovedHome('zh')) {
     assert.equal(data, null);
@@ -63,17 +62,16 @@ test('resolveHomeRouteData returns approved localized home data', async () => {
   );
 });
 
-test('resolveHomeRouteData rejects invalid locales', async () => {
-  const data = await resolveHomeRouteData({ locale: 'fr' });
+test('resolveSiteHomeRouteData rejects invalid locales', async () => {
+  const data = await resolveSiteHomeRouteData('fr');
 
   assert.equal(data, null);
 });
 
-test('resolveHomeRouteData rejects locales without home messages instead of falling back to English', async () => {
-  const data = await resolveHomeRouteData({ locale: 'ja' });
+test('resolveSiteHomeRouteData rejects locales without home messages instead of falling back to English', async () => {
+  const data = await resolveSiteHomeRouteData('ja');
 
-  if (data) {
-    assert.equal(data.variant, 'product');
+  if (data && hasProductHome(data)) {
     assert.deepEqual(data.productHome.copy, getHomeContent('ja'));
     return;
   }
@@ -83,6 +81,18 @@ test('resolveHomeRouteData rejects locales without home messages instead of fall
 
 function getHomeContent(locale: string) {
   return (siteHomeContent as Readonly<Record<string, unknown>>)[locale];
+}
+
+function hasProductHome(data: object): data is typeof data & {
+  productHome: { copy: { metadata: { title: string } } };
+} {
+  return 'productHome' in data;
+}
+
+function hasGenericPage(
+  data: object
+): data is typeof data & { page: { hero?: { title?: string } } } {
+  return 'page' in data;
 }
 
 function hasApprovedHome(locale: string) {

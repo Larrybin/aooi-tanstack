@@ -14,44 +14,50 @@ import path from 'node:path';
 import test from 'node:test';
 import { promisify } from 'node:util';
 
-import { readCurrentSiteConfig } from '../scripts/lib/site-config.mjs';
-import { validateSiteContentCompleteness } from '../scripts/lib/site-content-config.mjs';
+import { readCurrentSiteConfig } from '../scripts/lib/site-config.ts';
+import { validateSiteContentCompleteness } from '../scripts/lib/site-content-config.ts';
 
 const execFileAsync = promisify(execFile);
 const rootDir = process.cwd();
-const generatedContentSourcePath = path.resolve(
-  rootDir,
-  '.generated/content-source.ts'
-);
-const generatedPublicContentPath = path.resolve(
-  rootDir,
-  '.generated/public-content.ts'
-);
+function generatedDir(siteKey: string) {
+  return path.resolve(rootDir, '.generated', 'sites', siteKey);
+}
+
+function generatedContentSourcePath(siteKey: string) {
+  return path.resolve(generatedDir(siteKey), 'content-source.ts');
+}
+
+function generatedPublicContentPath(siteKey: string) {
+  return path.resolve(generatedDir(siteKey), 'public-content.ts');
+}
 
 async function runGenerateContentSource(siteKey: string) {
   await execFileAsync(
     process.execPath,
-    ['scripts/generate-content-source-module.mjs'],
+    ['--import', 'tsx', 'scripts/generate-content-source-module.mts'],
     {
       cwd: rootDir,
       env: {
         ...process.env,
         SITE: siteKey,
+        AOOI_GENERATED_DIR: generatedDir(siteKey),
       },
     }
   );
 }
 
-async function readGeneratedContentSource() {
-  return await readFile(generatedContentSourcePath, 'utf8');
+async function readGeneratedContentSource(siteKey: string) {
+  return await readFile(generatedContentSourcePath(siteKey), 'utf8');
 }
 
-async function readGeneratedPublicContent() {
-  return await readFile(generatedPublicContentPath, 'utf8');
+async function readGeneratedPublicContent(siteKey: string) {
+  return await readFile(generatedPublicContentPath(siteKey), 'utf8');
 }
 
 async function readGeneratedArtifactIndex(siteKey: string) {
-  const pointer = parseGeneratedPointer(await readGeneratedContentSource());
+  const pointer = parseGeneratedPointer(
+    await readGeneratedContentSource(siteKey)
+  );
   assert.equal(pointer.siteKey, siteKey);
 
   return await readFile(
@@ -92,7 +98,9 @@ async function listArtifactVersions(siteKey: string) {
 
 test('@/content-source: SITE=dev-local points to versioned .source/dev-local artifact', async () => {
   await runGenerateContentSource('dev-local');
-  const pointer = parseGeneratedPointer(await readGeneratedContentSource());
+  const pointer = parseGeneratedPointer(
+    await readGeneratedContentSource('dev-local')
+  );
 
   assert.equal(pointer.siteKey, 'dev-local');
   assert.match(pointer.versionId, /^build-\d+-\d+$/);
@@ -101,7 +109,7 @@ test('@/content-source: SITE=dev-local points to versioned .source/dev-local art
 test('@/public-content: SITE=dev-local emits serializable public content manifest', async () => {
   await runGenerateContentSource('dev-local');
 
-  const publicContentSource = await readGeneratedPublicContent();
+  const publicContentSource = await readGeneratedPublicContent('dev-local');
 
   assert.match(publicContentSource, /collection": "pages"/);
   assert.match(publicContentSource, /publicContentSiteKey = "dev-local"/);
@@ -120,7 +128,7 @@ test('@/public-content: SITE=dev-local emits serializable public content manifes
 test('@/public-content: manifest TOC heading ids match markdown renderer slugs', async () => {
   await runGenerateContentSource('dev-local');
 
-  const publicContentSource = await readGeneratedPublicContent();
+  const publicContentSource = await readGeneratedPublicContent('dev-local');
 
   assert.match(publicContentSource, /#8-性能next--tailwind--ts-交叉点/);
   assert.match(
@@ -135,21 +143,23 @@ test('@/public-content: manifest TOC heading ids match markdown renderer slugs',
 test('@/public-content: tanstack validation regenerates stale site manifest', async () => {
   await runGenerateContentSource('mamamiya');
   assert.match(
-    await readGeneratedPublicContent(),
+    await readGeneratedPublicContent('mamamiya'),
     /publicContentSiteKey = "mamamiya"/
   );
 
   await runGenerateContentSource('dev-local');
 
   assert.match(
-    await readGeneratedPublicContent(),
+    await readGeneratedPublicContent('dev-local'),
     /publicContentSiteKey = "dev-local"/
   );
 });
 
 test('@/content-source: SITE=mamamiya points to versioned .source/mamamiya artifact', async () => {
   await runGenerateContentSource('mamamiya');
-  const pointer = parseGeneratedPointer(await readGeneratedContentSource());
+  const pointer = parseGeneratedPointer(
+    await readGeneratedContentSource('mamamiya')
+  );
 
   assert.equal(pointer.siteKey, 'mamamiya');
   assert.match(pointer.versionId, /^build-\d+-\d+$/);
@@ -158,7 +168,7 @@ test('@/content-source: SITE=mamamiya points to versioned .source/mamamiya artif
 test('@/public-content: SITE=mamamiya skips unsupported locale suffixes', async () => {
   await runGenerateContentSource('mamamiya');
 
-  const publicContentSource = await readGeneratedPublicContent();
+  const publicContentSource = await readGeneratedPublicContent('mamamiya');
 
   assert.doesNotMatch(publicContentSource, /terms-of-service\.zh-TW/);
 });
@@ -175,7 +185,7 @@ test('@/content-source: SITE=mamamiya emits native Vite collection entrypoints',
 
 test('@/content-source: generation failure keeps previous pointer', async () => {
   await runGenerateContentSource('dev-local');
-  const previous = await readGeneratedContentSource();
+  const previous = await readGeneratedContentSource('dev-local');
 
   const docsIndexPath = path.resolve(
     rootDir,
@@ -191,7 +201,7 @@ test('@/content-source: generation failure keeps previous pointer', async () => 
       /content\/docs\/index\.mdx is missing/
     );
 
-    const next = await readGeneratedContentSource();
+    const next = await readGeneratedContentSource('dev-local');
     assert.equal(next, previous);
   } finally {
     await writeFile(docsIndexPath, original, 'utf8');
@@ -274,38 +284,28 @@ test('@/content-source: pages directory remains required for every site', async 
   }
 });
 
-test('@/content-source: same-site publish keeps latest two versions and prunes older artifacts', async () => {
+test('@/content-source: concurrent same-site publishes keep the selected artifact complete', async () => {
   await rm(path.resolve(rootDir, '.source/dev-local'), {
     recursive: true,
     force: true,
   });
 
-  await runGenerateContentSource('dev-local');
-  const first = parseGeneratedPointer(await readGeneratedContentSource());
-  const firstVersions = await listArtifactVersions('dev-local');
+  await Promise.all(
+    Array.from({ length: 4 }, () => runGenerateContentSource('dev-local'))
+  );
 
-  await new Promise((resolve) => setTimeout(resolve, 5));
-  await runGenerateContentSource('dev-local');
-  const second = parseGeneratedPointer(await readGeneratedContentSource());
-  const secondVersions = await listArtifactVersions('dev-local');
+  const selected = parseGeneratedPointer(
+    await readGeneratedContentSource('dev-local')
+  );
+  const versions = await listArtifactVersions('dev-local');
 
-  await new Promise((resolve) => setTimeout(resolve, 5));
-  await runGenerateContentSource('dev-local');
-  const third = parseGeneratedPointer(await readGeneratedContentSource());
-  const thirdVersions = await listArtifactVersions('dev-local');
-
-  assert.equal(first.siteKey, 'dev-local');
-  assert.equal(second.siteKey, 'dev-local');
-  assert.equal(third.siteKey, 'dev-local');
-  assert.notEqual(second.versionId, first.versionId);
-  assert.notEqual(third.versionId, second.versionId);
-
-  assert.deepEqual(firstVersions, [first.versionId]);
-  assert.deepEqual(secondVersions, [first.versionId, second.versionId].sort());
-  assert.deepEqual(thirdVersions, [second.versionId, third.versionId].sort());
+  assert.equal(selected.siteKey, 'dev-local');
+  assert.ok(versions.includes(selected.versionId));
+  assert.ok(versions.length >= 4);
+  await readGeneratedArtifactIndex('dev-local');
 });
 
-test('@/content-source: cross-site publish does not collapse previous site retention window', async () => {
+test('@/content-source: concurrent cross-site publishes keep independent selected artifacts', async () => {
   await rm(path.resolve(rootDir, '.source/dev-local'), {
     recursive: true,
     force: true,
@@ -315,34 +315,23 @@ test('@/content-source: cross-site publish does not collapse previous site reten
     force: true,
   });
 
-  await runGenerateContentSource('dev-local');
-  const firstDevLocal = parseGeneratedPointer(
-    await readGeneratedContentSource()
+  await Promise.all([
+    runGenerateContentSource('dev-local'),
+    runGenerateContentSource('mamamiya'),
+  ]);
+
+  const devLocal = parseGeneratedPointer(
+    await readGeneratedContentSource('dev-local')
+  );
+  const mamamiya = parseGeneratedPointer(
+    await readGeneratedContentSource('mamamiya')
   );
 
-  await new Promise((resolve) => setTimeout(resolve, 5));
-  await runGenerateContentSource('dev-local');
-  const secondDevLocal = parseGeneratedPointer(
-    await readGeneratedContentSource()
-  );
-
-  await new Promise((resolve) => setTimeout(resolve, 5));
-  await runGenerateContentSource('mamamiya');
-
-  await new Promise((resolve) => setTimeout(resolve, 5));
-  await runGenerateContentSource('dev-local');
-  const thirdDevLocal = parseGeneratedPointer(
-    await readGeneratedContentSource()
-  );
-  const devLocalVersions = await listArtifactVersions('dev-local');
-
-  assert.equal(firstDevLocal.siteKey, 'dev-local');
-  assert.equal(secondDevLocal.siteKey, 'dev-local');
-  assert.equal(thirdDevLocal.siteKey, 'dev-local');
-  assert.deepEqual(
-    devLocalVersions,
-    [secondDevLocal.versionId, thirdDevLocal.versionId].sort()
-  );
+  assert.equal(devLocal.siteKey, 'dev-local');
+  assert.equal(mamamiya.siteKey, 'mamamiya');
+  assert.notEqual(devLocal.versionId, mamamiya.versionId);
+  await readGeneratedArtifactIndex('dev-local');
+  await readGeneratedArtifactIndex('mamamiya');
 });
 
 test('@/content-source: site.config key mismatch fails fast', async () => {

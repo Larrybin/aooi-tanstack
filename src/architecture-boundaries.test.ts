@@ -8,10 +8,10 @@ const rootDir = process.cwd();
 const sourceExtensions = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs']);
 const envReaders = new Set([
   'src/config/env-contract.ts',
-  'src/config/load-dotenv-core.mjs',
+  'src/config/load-dotenv-core.ts',
   'src/config/public-env.ts',
   'src/config/server-auth-base-url.ts',
-  'src/config/site-env.cjs',
+  'src/config/site-env.ts',
   'src/infra/runtime/env.server.ts',
 ]);
 
@@ -41,6 +41,32 @@ function imports(filePath: string) {
       ? [statement.moduleSpecifier.text]
       : []
   );
+}
+
+function readsProcessEnv(filePath: string) {
+  const sourceFile = ts.createSourceFile(
+    filePath,
+    readFileSync(filePath, 'utf8'),
+    ts.ScriptTarget.Latest,
+    true
+  );
+  let found = false;
+
+  function visit(node: ts.Node) {
+    if (
+      ts.isPropertyAccessExpression(node) &&
+      node.name.text === 'env' &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === 'process'
+    ) {
+      found = true;
+      return;
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return found;
 }
 
 test('production code does not import the testing layer', () => {
@@ -77,7 +103,7 @@ test('runtime environment reads stay behind the env contract boundary', () => {
     for (const filePath of listFiles(path.join(rootDir, root))) {
       const relative = repoPath(filePath);
       if (/\.(?:test|spec)\.[cm]?[jt]sx?$/.test(relative)) continue;
-      if (!readFileSync(filePath, 'utf8').includes('process.env')) continue;
+      if (!readsProcessEnv(filePath)) continue;
       assert.ok(envReaders.has(relative), `${relative} reads process.env`);
     }
   }

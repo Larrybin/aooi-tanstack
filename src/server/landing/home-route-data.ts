@@ -1,3 +1,4 @@
+import type { SiteHomeRouteData } from '@/site-home-server';
 import { createServerFn } from '@tanstack/react-start';
 
 type HomeRouteInput = {
@@ -13,7 +14,7 @@ export const loadHomeRouteData = createServerFn({ method: 'GET' })
       locale: typeof input.locale === 'string' ? input.locale : '',
     };
   })
-  .handler(async ({ data }) => {
-    const { resolveHomeRouteData } = await import('./home-route-resolver');
-    return resolveHomeRouteData(data);
+  .handler(async ({ data }): Promise<SiteHomeRouteData | null> => {
+    const { resolveSiteHomeRouteData } = await import('@/site-home-server');
+    return resolveSiteHomeRouteData(data.locale);
   });

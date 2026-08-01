@@ -1,4 +1,4 @@
-import { loadDotenvForScripts as loadDotenvForScriptsCore } from './load-dotenv-core.mjs';
+import { loadDotenvForScripts as loadDotenvForScriptsCore } from './load-dotenv-core';
 
 /**
  * Load `.env` files for Node scripts (tsx/ts-node/drizzle-kit), not application runtime.

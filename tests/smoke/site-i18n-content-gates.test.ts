@@ -4,11 +4,11 @@ import test from 'node:test';
 import {
   checkLocalizedText,
   findForbiddenTerms,
-} from '../../scripts/lib/site-i18n-content-gates.mjs';
+} from '../../scripts/lib/site-i18n-content-gates.ts';
 import {
   parseSiteI18nGlossary,
   readMergedI18nGlossary,
-} from '../../scripts/lib/site-i18n-glossary.mjs';
+} from '../../scripts/lib/site-i18n-glossary.ts';
 
 const glossary = {
   preserve: ['AI', 'API', 'Mamamiya'],

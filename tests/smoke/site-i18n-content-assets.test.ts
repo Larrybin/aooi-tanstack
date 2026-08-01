@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { buildLocalizedContentIssues } from '../../scripts/lib/site-i18n-content-assets.mjs';
+import { buildLocalizedContentIssues } from '../../scripts/lib/site-i18n-content-assets.ts';
 
 const site = {
   i18n: {

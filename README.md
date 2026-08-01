@@ -16,7 +16,7 @@ TypeScript, PostgreSQL, and Cloudflare Workers.
 - `src/shared/**`: generic UI, utilities, schemas, and cross-cutting types.
 - `src/testing/**`: test-only contracts and helpers; production code must not
   import this layer.
-- `cloudflare/**`: router, server Worker, state Worker, and Wrangler contracts.
+- `cloudflare/**`: App Worker, optional State Worker, and Wrangler contracts.
 - `sites/**`: per-site identity, capabilities, deploy settings, i18n, and
   content.
 - `scripts/**`: repository automation and release tooling.
@@ -60,7 +60,7 @@ pnpm dev:ai-remover:cloudflare
 | -------------------------------- | ------------------------------------------------------------------------------------ |
 | `pnpm dev`                       | Run the selected site with Vite                                                      |
 | `pnpm dev:local`                 | Run the `dev-local` site                                                             |
-| `SITE=<site> pnpm build`         | Build `dist/client/**` and `dist/server/entry.server.mjs`                            |
+| `SITE=<site> pnpm build`         | Build `dist/<site>/client/**` and `dist/<site>/server/entry.server.mjs`              |
 | `SITE=<site> pnpm start`         | Preview the production build                                                         |
 | `pnpm typecheck`                 | Type-check root and Web sources                                                      |
 | `pnpm lint`                      | Run ESLint and runtime-env guards                                                    |

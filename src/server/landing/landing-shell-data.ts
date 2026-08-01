@@ -5,10 +5,7 @@ import type {
   PublicUiConfig,
 } from '@/domains/settings/application/settings-runtime.contracts';
 import { site, siteLocalizedPricing, sitePricing } from '@/site';
-import {
-  buildSiteProductHomeHeaderFooter,
-  resolveSiteProductHomeRouteData,
-} from '@/site-home-server';
+import { resolveSiteHomeHeaderFooter } from '@/site-home-server';
 import type {
   SerializablePublicUiConfig,
   SerializablePublicUiNavItem,
@@ -72,8 +69,7 @@ export function resolveLandingShellData(locale: string): SlugShellData {
 export function resolveProductHeaderFooter(
   locale: string
 ): HeaderFooter | null {
-  const productHome = resolveSiteProductHomeRouteData(locale);
-  return productHome ? buildSiteProductHomeHeaderFooter(productHome) : null;
+  return resolveSiteHomeHeaderFooter(locale);
 }
 
 export function buildLandingShellData({
