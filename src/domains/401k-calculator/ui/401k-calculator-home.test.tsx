@@ -29,4 +29,8 @@ test('calculator home restores the projection chart and input guidance', () => {
   assert.match(html, /Age 67/);
   assert.match(html, /What each 401\(k\) input means/);
   assert.match(html, /Scenario reminder/);
+  assert.match(html, /Know what the estimate includes/);
+  assert.match(html, /Maintained by the 401k Calculator team/);
+  assert.match(html, /Last technical review: July 31, 2026/);
+  assert.match(html, /href="\/methodology"/);
 });

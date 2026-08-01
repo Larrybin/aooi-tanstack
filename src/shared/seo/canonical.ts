@@ -107,6 +107,9 @@ export function buildSeoHead(input: {
   locale: string;
   siteName: string;
 }): TanStackHead {
+  const previewImage = buildCanonicalUrl(site.brand.previewImage);
+  const previewImageAlt = `${input.siteName} preview`;
+
   return {
     meta: [
       { title: input.title },
@@ -117,9 +120,13 @@ export function buildSeoHead(input: {
       { property: 'og:title', content: input.title },
       { property: 'og:description', content: input.description },
       { property: 'og:site_name', content: input.siteName },
+      { property: 'og:image', content: previewImage },
+      { property: 'og:image:alt', content: previewImageAlt },
       { name: 'twitter:card', content: 'summary_large_image' },
       { name: 'twitter:title', content: input.title },
       { name: 'twitter:description', content: input.description },
+      { name: 'twitter:image', content: previewImage },
+      { name: 'twitter:image:alt', content: previewImageAlt },
     ],
     links: [
       { rel: 'canonical', href: input.canonical },

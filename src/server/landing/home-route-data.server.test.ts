@@ -28,7 +28,7 @@ test('resolveHomeRouteData returns default home data', async () => {
       data.productHome.copy.metadata.title
     );
     if (site.key === '401k-calculator') {
-      assert.equal(data.head.scripts?.length, 3);
+      assert.equal(data.head.scripts?.length, 2);
       assert.equal(
         data.head.scripts?.every(
           (script) => script.type === 'application/ld+json'

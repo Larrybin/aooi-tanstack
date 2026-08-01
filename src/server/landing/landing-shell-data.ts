@@ -5,8 +5,10 @@ import type {
   PublicUiConfig,
 } from '@/domains/settings/application/settings-runtime.contracts';
 import { site, siteLocalizedPricing, sitePricing } from '@/site';
-import { buildSiteProductHomeHeaderFooter } from '@/site-home';
-import { resolveSiteProductHomeRouteData } from '@/site-home-server';
+import {
+  buildSiteProductHomeHeaderFooter,
+  resolveSiteProductHomeRouteData,
+} from '@/site-home-server';
 import type {
   SerializablePublicUiConfig,
   SerializablePublicUiNavItem,

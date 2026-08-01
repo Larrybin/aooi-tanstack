@@ -13,6 +13,18 @@
       "hashScope": "seo"
     },
     {
+      "pageId": "trust.methodology",
+      "path": "/methodology",
+      "type": "seo",
+      "indexable": true,
+      "required": true,
+      "source": {
+        "kind": "site-content",
+        "path": "content/pages/methodology.mdx"
+      },
+      "hashScope": "content"
+    },
+    {
       "pageId": "legal.privacy-policy",
       "path": "/privacy-policy",
       "type": "legal",

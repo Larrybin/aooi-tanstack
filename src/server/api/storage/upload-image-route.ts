@@ -3,9 +3,9 @@ import type { StorageService } from '@/infra/adapters/storage/service-builder';
 import { BadRequestError, TooManyRequestsError } from '@/shared/lib/api/errors';
 import { jsonOk } from '@/shared/lib/api/response';
 import { withApi } from '@/shared/lib/api/route';
-import {
+import type {
+  ConfigConsistencyMode,
   resolveConfigConsistencyMode,
-  type ConfigConsistencyMode,
 } from '@/shared/lib/config-consistency';
 
 import type { uploadImageFiles } from './upload-image-files';

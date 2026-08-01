@@ -1,4 +1,4 @@
-import type { SiteProductHomeRouteData } from '@/site-home';
+import type { SiteProductHomeRouteData } from '@/site-home-server';
 
 import type { TanStackHead } from '@/shared/seo/canonical';
 import type { Image } from '@/shared/types/blocks/common';

@@ -36,24 +36,6 @@ export function buildCalculatorStructuredData(
         },
       })),
     }),
-    toJsonLdScript({
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        {
-          '@type': 'ListItem',
-          position: 1,
-          name: 'Home',
-          item: canonical,
-        },
-        {
-          '@type': 'ListItem',
-          position: 2,
-          name: '401k Calculator',
-          item: canonical,
-        },
-      ],
-    }),
   ];
 }
 

@@ -38,7 +38,7 @@ Runtime code must read site identity through `@/site`. Do not import `sites/**` 
    - `internal-admin-tool`: operator/admin workflow, not public marketing.
 
    The profile is not a second source of truth. Use it to derive or validate
-   `site.config.json`, `deploy.settings.json`, route pruning, layout shell,
+   `site.config.json`, `deploy.settings.json`, route assembly, layout shell,
    production/preview checks, and test evidence.
 
 3. Classify the work:

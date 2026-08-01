@@ -17,7 +17,6 @@ type AppEnv = Record<string, unknown> & {
 };
 
 const serverWorker = createServerWorker<AppEnv>(
-  // @ts-expect-error The site build creates this module before Wrangler bundles the worker.
   () => import('../../dist/server/entry.server.mjs')
 );
 

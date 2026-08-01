@@ -24,6 +24,7 @@
     "ci": "tsx scripts/ci.ts",
     "release:check": "pnpm run ci && pnpm cf:check && pnpm cf:build && pnpm cf:typegen:check",
     "test": "node scripts/run-with-site.mjs node scripts/run-tests.mjs",
+    "site-home-server:check": "node scripts/check-site-home-server-imports.mjs",
     "test:extended": "pnpm test:auth-spike",
     "test:auth-spike": "node --import tsx scripts/smoke.mjs auth-spike",
     "test:creem-webhook-spike": "node --test --import tsx \"src/infra/adapters/payment/creem.test.ts\" \"tests/contract/payment-notify.test.ts\"",

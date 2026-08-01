@@ -22,6 +22,5 @@ same stable semantics.
 `src/shared/schemas/api/**` contains HTTP wire contracts only. Shared UI may
 use approved platform UI entrypoints but may not instantiate adapters.
 
-The dependency graph and semantic rules are owned by
-`architecture-rules.cjs`, `dependency-cruiser.cjs`, and
-`src/architecture-boundaries.test.ts`.
+The dependency graph and semantic rules are owned by `dependency-cruiser.cjs`
+and `src/architecture-boundaries.test.ts`.

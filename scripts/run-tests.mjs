@@ -158,6 +158,34 @@ async function main() {
       process.exit(exitCode);
     }
   }
+
+  if (options.requestedFiles.length === 0) {
+    const siteHomeServerCheck = resolve(
+      ROOT_DIR,
+      'scripts/check-site-home-server-imports.mjs'
+    );
+    const exitCode = await new Promise((resolveExitCode) => {
+      const child = spawn(process.execPath, [siteHomeServerCheck], {
+        stdio: 'inherit',
+      });
+      child.on('exit', (code, signal) => {
+        if (typeof code === 'number') {
+          resolveExitCode(code);
+          return;
+        }
+        if (signal) {
+          process.stderr.write(
+            `Site home server import check terminated by signal: ${signal}\n`
+          );
+        }
+        resolveExitCode(1);
+      });
+    });
+
+    if (exitCode !== 0) {
+      process.exit(exitCode);
+    }
+  }
 }
 
 if (
