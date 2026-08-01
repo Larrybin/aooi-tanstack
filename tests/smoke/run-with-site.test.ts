@@ -7,9 +7,9 @@ import { promisify } from 'node:util';
 
 import {
   buildSiteEnv,
-  requiresBuildLock,
   requiresContentGeneration,
-} from '../../scripts/run-with-site.mjs';
+  requiresRouteGeneration,
+} from '../../scripts/run-with-site.ts';
 
 const execFileAsync = promisify(execFile);
 const generatedDir = path.resolve(
@@ -29,7 +29,7 @@ async function runWithSite(
   try {
     const result = await execFileAsync(
       process.execPath,
-      ['scripts/run-with-site.mjs', ...args],
+      ['--import', 'tsx', 'scripts/run-with-site.ts', ...args],
       {
         cwd: process.cwd(),
         env: {
@@ -108,7 +108,7 @@ test('run-with-site regenerates content for TanStack commands', () => {
     true
   );
   assert.equal(
-    requiresContentGeneration(['node', 'scripts/run-tests.mjs']),
+    requiresContentGeneration(['pnpm', 'exec', 'tsx', 'scripts/run-tests.ts']),
     true
   );
   assert.equal(
@@ -117,9 +117,41 @@ test('run-with-site regenerates content for TanStack commands', () => {
   );
 });
 
-test('run-with-site serializes commands that publish shared build artifacts', () => {
-  assert.equal(requiresBuildLock(['pnpm', 'exec', 'vite', 'build']), true);
-  assert.equal(requiresBuildLock(['pnpm', 'exec', 'vite', 'dev']), false);
+test('run-with-site generates route trees for build and typecheck commands', () => {
+  assert.equal(
+    requiresRouteGeneration(['pnpm', 'exec', 'vite', 'build']),
+    true
+  );
+  assert.equal(
+    requiresRouteGeneration(['pnpm', 'exec', 'tsc', '--noEmit']),
+    true
+  );
+  assert.equal(
+    requiresRouteGeneration(['pnpm', 'exec', 'vite', 'preview']),
+    false
+  );
+});
+
+test('run-with-site derives isolated paths for each selected site', () => {
+  const calculator = buildSiteEnv(
+    ['pnpm', 'exec', 'vite', 'build'],
+    { SITE: '401k-calculator' },
+    { originalEnv: { SITE: '401k-calculator' }, rootDir: '/repo' }
+  );
+  const mp4 = buildSiteEnv(
+    ['pnpm', 'exec', 'vite', 'build'],
+    { SITE: 'mp4-compressor' },
+    { originalEnv: { SITE: 'mp4-compressor' }, rootDir: '/repo' }
+  );
+
+  assert.equal(
+    calculator.AOOI_GENERATED_DIR,
+    '/repo/.generated/sites/401k-calculator'
+  );
+  assert.equal(calculator.AOOI_DIST_DIR, '/repo/dist/401k-calculator');
+  assert.equal(mp4.AOOI_GENERATED_DIR, '/repo/.generated/sites/mp4-compressor');
+  assert.equal(mp4.AOOI_DIST_DIR, '/repo/dist/mp4-compressor');
+  assert.notEqual(calculator.AOOI_GENERATED_DIR, mp4.AOOI_GENERATED_DIR);
 });
 
 test('run-with-site 对 lint 使用内部 dev-local site fallback', async () => {

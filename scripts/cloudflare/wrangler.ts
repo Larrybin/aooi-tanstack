@@ -6,6 +6,7 @@ type WranglerBuildOptions = {
   rootDir?: string;
   configPath: string;
   processEnv?: NodeJS.ProcessEnv;
+  appEntryPath?: string;
 };
 
 function tomlString(value: string) {
@@ -27,17 +28,15 @@ function appUrl(contract: SiteCloudflareContract) {
 function buildBase({
   contract,
   configPath,
-  rootDir,
-  entry,
+  entryPath,
 }: {
   contract: SiteCloudflareContract;
   configPath: string;
-  rootDir: string;
-  entry: string;
+  entryPath: string;
 }) {
   return [
     `name = ${tomlString(contract.workers.app)}`,
-    `main = ${tomlString(relativeFromConfig(configPath, path.resolve(rootDir, entry)))}`,
+    `main = ${tomlString(relativeFromConfig(configPath, entryPath))}`,
     'compatibility_date = "2025-03-01"',
     'compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]',
     'workers_dev = false',
@@ -52,13 +51,13 @@ export function buildAppWranglerConfig(
     rootDir = process.cwd(),
     configPath,
     processEnv = process.env,
+    appEntryPath = path.resolve(rootDir, 'cloudflare/workers/app.ts'),
   }: WranglerBuildOptions
 ) {
   const lines = buildBase({
     contract,
     configPath,
-    rootDir,
-    entry: 'cloudflare/workers/app.ts',
+    entryPath: appEntryPath,
   });
 
   lines.push(
@@ -68,7 +67,7 @@ export function buildAppWranglerConfig(
     '',
     '[assets]',
     'binding = "ASSETS"',
-    `directory = ${tomlString(relativeFromConfig(configPath, path.resolve(rootDir, 'dist/client')))}`,
+    `directory = ${tomlString(relativeFromConfig(configPath, path.resolve(rootDir, 'dist', contract.siteKey, 'client')))}`,
     '',
     '[images]',
     'binding = "IMAGES"',

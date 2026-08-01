@@ -1,9 +1,7 @@
-import type { SiteProductHomeRouteData } from './home.server';
+import { GenericHomeView } from '@/surfaces/landing/home/generic-home.view';
 
-export const getSiteProductHomeSkipLink = (
-  _productHome: SiteProductHomeRouteData
-) => null;
-export const SiteProductHomeView = (_props: {
-  productHome: SiteProductHomeRouteData;
-  locale: string;
-}) => null;
+import type { SiteHomeRouteData } from './home.server';
+
+export function SiteHomeView({ data }: { data: SiteHomeRouteData }) {
+  return <GenericHomeView data={data} />;
+}

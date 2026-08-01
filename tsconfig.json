@@ -17,15 +17,19 @@
     "tsBuildInfoFile": ".tanstack/tsconfig.tsbuildinfo",
     "paths": {
       "@/*": ["./src/*"],
-      "@/site": ["./.generated/site.ts"],
-      "@/site-home": ["./.generated/site-home.tsx"],
-      "@/site-home-server": ["./.generated/site-home.server.ts"],
-      "@/content-source": ["./.generated/content-source.ts"],
-      "@/public-content": ["./.generated/public-content.ts"]
+      "@/site": ["./.generated/sites/dev-local/site.ts"],
+      "@/site-home": ["./.generated/sites/dev-local/site-home.tsx"],
+      "@/site-home-server": [
+        "./.generated/sites/dev-local/site-home.server.ts"
+      ],
+      "@/content-source": ["./.generated/sites/dev-local/content-source.ts"],
+      "@/public-content": ["./.generated/sites/dev-local/public-content.ts"],
+      "@/route-tree": ["./.generated/sites/dev-local/routeTree.gen.ts"],
+      "@/paraglide/*": ["./.generated/sites/dev-local/paraglide/*"]
     }
   },
   "include": [
-    ".generated/**/*.ts",
+    ".generated/sites/dev-local/**/*.ts",
     "apps/web/src/**/*.ts",
     "apps/web/src/**/*.tsx",
     "src/**/*.d.ts",

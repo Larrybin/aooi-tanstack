@@ -6,7 +6,7 @@ import {
   parseSiteI18nPages,
   readSiteI18nPackage,
   validateSiteI18nPackage,
-} from '../../scripts/lib/site-i18n-pages.mjs';
+} from '../../scripts/lib/site-i18n-pages.ts';
 
 const validPages = parseSiteI18nPages({
   pages: [

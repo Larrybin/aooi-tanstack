@@ -23,11 +23,12 @@ provider adapters, runtime settings, and Cloudflare binding scope.
 
 ## Generated artifacts
 
-- Site module: `.generated/site.ts`
-- Content pointers: `.generated/content-source.ts` and
-  `.generated/public-content.ts`
-- Client bundle: `dist/client/**`
-- Server bundle: `dist/server/entry.server.mjs`
+- Site module: `.generated/sites/<site-key>/site.ts`
+- Content pointers: `.generated/sites/<site-key>/content-source.ts` and
+  `.generated/sites/<site-key>/public-content.ts`
+- Route tree and Paraglide output: `.generated/sites/<site-key>/**`
+- Client bundle: `dist/<site-key>/client/**`
+- Server bundle: `dist/<site-key>/server/entry.server.mjs`
 - Cloudflare type declarations: `src/shared/types/cloudflare.d.ts`
 
 Build artifacts must not become ordinary source dependencies. Worker entries

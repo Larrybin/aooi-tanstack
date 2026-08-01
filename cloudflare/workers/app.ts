@@ -16,9 +16,11 @@ type AppEnv = Record<string, unknown> & {
   REMOVER_CLEANUP_SECRET?: string;
 };
 
-const serverWorker = createServerWorker<AppEnv>(
-  () => import('../../dist/server/entry.server.mjs')
-);
+type ServerModule = Parameters<
+  typeof createServerWorker<AppEnv>
+>[0] extends () => Promise<infer Module>
+  ? Module
+  : never;
 
 function isStaticAssetRequest(url: URL) {
   return (
@@ -34,57 +36,60 @@ function getStringBinding(env: AppEnv, key: keyof AppEnv) {
   return typeof value === 'string' ? value.trim() : '';
 }
 
-const appWorker = {
-  async fetch(request: Request, env: AppEnv, ctx: ExecutionContext) {
-    const requestId = getOrCreateRequestId(request.headers);
-    const url = new URL(request.url);
+export function createAppWorker(loadServerModule: () => Promise<ServerModule>) {
+  const serverWorker = createServerWorker<AppEnv>(loadServerModule);
+  const appWorker = {
+    async fetch(request: Request, env: AppEnv, ctx: ExecutionContext) {
+      const requestId = getOrCreateRequestId(request.headers);
+      const url = new URL(request.url);
 
-    if (isStaticAssetRequest(url) && env.ASSETS) {
-      const assetResponse = await env.ASSETS.fetch(request);
-      if (assetResponse.status !== 404) {
-        return withRouterResponseHeaders(assetResponse, request, requestId);
+      if (isStaticAssetRequest(url) && env.ASSETS) {
+        const assetResponse = await env.ASSETS.fetch(request);
+        if (assetResponse.status !== 404) {
+          return withRouterResponseHeaders(assetResponse, request, requestId);
+        }
       }
-    }
 
-    const middlewareResult = applyNativeRouterMiddleware(request);
-    if (middlewareResult instanceof Response) {
-      return withRouterResponseHeaders(middlewareResult, request, requestId);
-    }
+      const middlewareResult = applyNativeRouterMiddleware(request);
+      if (middlewareResult instanceof Response) {
+        return withRouterResponseHeaders(middlewareResult, request, requestId);
+      }
 
-    const appRequest = buildNativeForwardingRequest(
-      middlewareResult,
-      requestId,
-      request
-    );
-    const response = await serverWorker.fetch(appRequest, env, ctx);
-    return withRouterResponseHeaders(response, request, requestId);
-  },
-
-  async scheduled(_controller: unknown, env: AppEnv, ctx: ExecutionContext) {
-    const cleanupSecret = getStringBinding(env, 'REMOVER_CLEANUP_SECRET');
-    if (!cleanupSecret) return;
-
-    const appUrl = getStringBinding(env, 'NEXT_PUBLIC_APP_URL');
-    if (!appUrl) {
-      throw new Error(
-        '[remover-cleanup] NEXT_PUBLIC_APP_URL is not configured'
+      const appRequest = buildNativeForwardingRequest(
+        middlewareResult,
+        requestId,
+        request
       );
-    }
+      const response = await serverWorker.fetch(appRequest, env, ctx);
+      return withRouterResponseHeaders(response, request, requestId);
+    },
 
-    const response = await appWorker.fetch(
-      new Request(new URL('/api/remover/cleanup', appUrl), {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${cleanupSecret}` },
-      }),
-      env,
-      ctx
-    );
-    if (!response.ok) {
-      throw new Error(
-        `[remover-cleanup] scheduled cleanup failed with status ${response.status}`
+    async scheduled(_controller: unknown, env: AppEnv, ctx: ExecutionContext) {
+      const cleanupSecret = getStringBinding(env, 'REMOVER_CLEANUP_SECRET');
+      if (!cleanupSecret) return;
+
+      const appUrl = getStringBinding(env, 'NEXT_PUBLIC_APP_URL');
+      if (!appUrl) {
+        throw new Error(
+          '[remover-cleanup] NEXT_PUBLIC_APP_URL is not configured'
+        );
+      }
+
+      const response = await appWorker.fetch(
+        new Request(new URL('/api/remover/cleanup', appUrl), {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${cleanupSecret}` },
+        }),
+        env,
+        ctx
       );
-    }
-  },
-};
+      if (!response.ok) {
+        throw new Error(
+          `[remover-cleanup] scheduled cleanup failed with status ${response.status}`
+        );
+      }
+    },
+  };
 
-export default appWorker;
+  return appWorker;
+}

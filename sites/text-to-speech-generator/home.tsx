@@ -1,23 +1,16 @@
 import { TextToSpeechGeneratorHome } from '@/domains/text-to-speech-generator/ui/text-to-speech-home';
+import { HomeLayoutView } from '@/surfaces/landing/home/home-layout.view';
 
-import type { SiteProductHomeRouteData } from './home.server';
+import type { SiteHomeRouteData } from './home.server';
 
-export const getSiteProductHomeSkipLink = (
-  _productHome: SiteProductHomeRouteData
-) => null;
-
-export function SiteProductHomeView({
-  productHome,
-  locale,
-}: {
-  productHome: SiteProductHomeRouteData;
-  locale: string;
-}) {
+export function SiteHomeView({ data }: { data: SiteHomeRouteData }) {
   return (
-    <TextToSpeechGeneratorHome
-      copy={productHome.copy}
-      locale={locale}
-      turnstileSiteKey={productHome.turnstileSiteKey}
-    />
+    <HomeLayoutView data={data}>
+      <TextToSpeechGeneratorHome
+        copy={data.productHome.copy}
+        locale={data.locale}
+        turnstileSiteKey={data.productHome.turnstileSiteKey}
+      />
+    </HomeLayoutView>
   );
 }

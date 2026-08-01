@@ -52,8 +52,8 @@ Run `pnpm arch:check` for any boundary-sensitive change.
 
 - Each site has one App Worker and only derived Durable Object requirements add
   a State Worker.
-- The App Worker loads `dist/server/entry.server.mjs` only at the explicit
-  Worker boundary.
+- The App Worker loads `dist/<site-key>/server/entry.server.mjs` only at the
+  explicit Worker boundary.
 - Hyperdrive, R2, Durable Object, variable, and secret requirements are derived
   from site modules and product runtime contracts.
 - Cloudflare changes include `cf:check`, build, and typegen evidence.

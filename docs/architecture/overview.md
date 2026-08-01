@@ -2,9 +2,10 @@
 
 ## Runtime
 
-The repository has one Web runtime: TanStack Start on Vite. Cloudflare Workers
-load the native server artifact at `dist/server/entry.server.mjs`; browser assets are
-emitted to `dist/client/**`.
+The repository has one Web runtime: TanStack Start on Vite. Each Cloudflare App
+Worker loads its native server artifact at
+`dist/<site-key>/server/entry.server.mjs`; browser assets are emitted to
+`dist/<site-key>/client/**`.
 
 ```text
 apps/web/src/routes  ->  apps/web/src/server  ->  src/server
@@ -65,7 +66,8 @@ Test-only contracts and helpers. Production code under `apps/web/src`,
 ## Persistent guards
 
 - `pnpm arch:check` checks the dependency graph and semantic constraints.
-- Generated `.generated/routeTree.gen.ts` is site-scoped and excluded from graph traversal.
+- Generated `.generated/sites/<site-key>/routeTree.gen.ts` is site-scoped and
+  excluded from graph traversal.
 - Optional and product routes use pathless `(module_<id>)` and
   `(site_<site-key>)` groups. TanStack treats dots inside group names as route
   separators, so these filesystem names intentionally use underscores while

@@ -1,11 +1,5 @@
 import assert from 'node:assert/strict';
-import {
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -13,7 +7,7 @@ import test from 'node:test';
 import {
   loadDotenvForScripts,
   loadRootDotenv,
-} from '../src/config/load-dotenv-core.mjs';
+} from '../src/config/load-dotenv-core.ts';
 
 function withTempProject(fn: (rootDir: string) => void | Promise<void>) {
   return async () => {
@@ -252,14 +246,3 @@ test(
     assert.equal(env.VALUE, 'shell');
   })
 );
-
-test('run-with-site uses the shared dotenv core', () => {
-  const source = readFileSync('scripts/run-with-site.mjs', 'utf8');
-
-  assert.match(source, /load-dotenv-core\.mjs/);
-  assert.doesNotMatch(source, /@next\/env/);
-  assert.match(
-    source,
-    /try\s*{\s*loadRootDotenv\(process\.env\);\s*}\s*catch\s*{/s
-  );
-});

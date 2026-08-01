@@ -1,17 +1,15 @@
 import { BackgroundRemoverHome } from '@/domains/background-remover/ui/background-remover-home';
+import { HomeLayoutView } from '@/surfaces/landing/home/home-layout.view';
 
-import type { SiteProductHomeRouteData } from './home.server';
+import type { SiteHomeRouteData } from './home.server';
 
-export const getSiteProductHomeSkipLink = (
-  _productHome: SiteProductHomeRouteData
-) => null;
-
-export function SiteProductHomeView({
-  productHome,
-  locale,
-}: {
-  productHome: SiteProductHomeRouteData;
-  locale: string;
-}) {
-  return <BackgroundRemoverHome copy={productHome.copy} locale={locale} />;
+export function SiteHomeView({ data }: { data: SiteHomeRouteData }) {
+  return (
+    <HomeLayoutView data={data}>
+      <BackgroundRemoverHome
+        copy={data.productHome.copy}
+        locale={data.locale}
+      />
+    </HomeLayoutView>
+  );
 }

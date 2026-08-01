@@ -6,17 +6,15 @@ import path from 'node:path';
 import test from 'node:test';
 import { promisify } from 'node:util';
 
-import siteEnvModule from '../../src/config/site-env.cjs';
-
-const execFileAsync = promisify(execFile);
-const loadDotenvPath = path.resolve(process.cwd(), 'src/config/load-dotenv.ts');
-
-const {
+import {
   applySiteLocalEnvOverlay,
   parseSiteEnvFileContent,
   readSiteLocalEnv,
   resolveSiteLocalEnvPath,
-} = siteEnvModule;
+} from '../../src/config/site-env.ts';
+
+const execFileAsync = promisify(execFile);
+const loadDotenvPath = path.resolve(process.cwd(), 'src/config/load-dotenv.ts');
 
 test('parseSiteEnvFileContent parses simple local env assignments', () => {
   assert.deepEqual(

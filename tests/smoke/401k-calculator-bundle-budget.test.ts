@@ -4,7 +4,10 @@ import { resolve } from 'node:path';
 import test from 'node:test';
 import { gzipSync } from 'node:zlib';
 
-const clientAssetsDir = resolve(process.cwd(), 'dist/client/assets');
+const clientAssetsDir = resolve(
+  process.cwd(),
+  'dist/401k-calculator/client/assets'
+);
 const hasClientBuild = existsSync(clientAssetsDir);
 const isTargetSite = process.env.SITE === '401k-calculator';
 

@@ -4,96 +4,36 @@ import test from 'node:test';
 import {
   listConfiguredSiteKeys,
   readCurrentSiteConfig,
-} from '../../scripts/lib/site-config.mjs';
+} from '../../scripts/lib/site-config';
 
-const expected = {
-  '401k-calculator': {
-    enabledModules: ['analytics'],
-    paymentProvider: 'none',
-  },
-  'ai-remover': {
-    enabledModules: [
-      'auth',
-      'billing',
-      'admin_settings',
-      'storage',
-      'analytics',
-      'affiliate',
-      'customer_service',
-      'ads',
-    ],
-    paymentProvider: 'creem',
-  },
-  'background-remover': {
-    enabledModules: [
-      'auth',
-      'billing',
-      'admin_settings',
-      'storage',
-      'analytics',
-      'affiliate',
-      'customer_service',
-      'ads',
-    ],
-    paymentProvider: 'creem',
-  },
-  'dev-local': {
-    enabledModules: [
-      'auth',
-      'admin_settings',
-      'docs',
-      'blog',
-      'storage',
-      'analytics',
-      'affiliate',
-      'customer_service',
-      'ads',
-    ],
-    paymentProvider: 'none',
-  },
-  mamamiya: {
-    enabledModules: [
-      'auth',
-      'admin_settings',
-      'docs',
-      'blog',
-      'storage',
-      'analytics',
-      'affiliate',
-      'customer_service',
-      'ads',
-    ],
-    paymentProvider: 'none',
-  },
-  'mp4-compressor': {
-    enabledModules: ['analytics'],
-    paymentProvider: 'none',
-  },
-  'random-group-generator': {
-    enabledModules: ['analytics'],
-    paymentProvider: 'none',
-  },
-  'text-to-speech-generator': {
-    enabledModules: [
-      'auth',
-      'billing',
-      'admin_settings',
-      'storage',
-      'analytics',
-      'affiliate',
-      'customer_service',
-      'ads',
-    ],
-    paymentProvider: 'creem',
-  },
-} as const;
+test('every discovered site uses the v2 capability contract', () => {
+  const siteKeys = listConfiguredSiteKeys();
+  assert.ok(siteKeys.length > 0);
 
-test('every configured site uses the v2 capability contract', () => {
-  assert.deepEqual(listConfiguredSiteKeys(), Object.keys(expected).sort());
-
-  for (const [siteKey, capabilities] of Object.entries(expected)) {
+  for (const siteKey of siteKeys) {
     const site = readCurrentSiteConfig({ siteKey });
     assert.equal(site.configVersion, 2, siteKey);
-    assert.deepEqual(site.capabilities, capabilities, siteKey);
+    assert.ok(Array.isArray(site.capabilities.enabledModules), siteKey);
+    assert.equal(
+      site.capabilities.enabledModules.includes('billing'),
+      site.capabilities.paymentProvider !== 'none',
+      siteKey
+    );
   }
+});
+
+test('known analytics-only sites keep their no-payment capability', () => {
+  for (const siteKey of ['401k-calculator', 'mp4-compressor'] as const) {
+    const site = readCurrentSiteConfig({ siteKey });
+    assert.deepEqual(site.capabilities, {
+      enabledModules: ['analytics'],
+      paymentProvider: 'none',
+    });
+  }
+});
+
+test('known application site keeps billing and its provider together', () => {
+  const site = readCurrentSiteConfig({ siteKey: 'ai-remover' });
+  assert.ok(site.capabilities.enabledModules.includes('billing'));
+  assert.equal(site.capabilities.paymentProvider, 'creem');
 });

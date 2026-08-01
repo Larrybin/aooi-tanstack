@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { getCurrentSiteAppUrl } from './lib/current-site.mjs';
+import { getCurrentSiteAppUrl } from './lib/current-site.ts';
 
 const REQUEST_TIMEOUT_MS = Number.parseInt(
   process.env.CF_APP_SMOKE_REQUEST_TIMEOUT_MS || '30000',

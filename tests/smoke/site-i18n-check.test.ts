@@ -15,7 +15,7 @@ import {
   buildSiteI18nReport,
   resolveSiteI18nReportPath,
   writeSiteI18nReport,
-} from '../../scripts/lib/site-i18n-check.mjs';
+} from '../../scripts/lib/site-i18n-check.ts';
 
 const site = {
   i18n: {
@@ -275,7 +275,7 @@ test('site i18n CLI exits non-zero for strict report errors', () => {
     const result = spawnSync(
       process.execPath,
       [
-        path.join(repoRoot, 'scripts', 'check-site-i18n.mjs'),
+        path.join(repoRoot, 'scripts', 'check-site-i18n.ts'),
         '--site',
         'ai-remover',
         '--strict',

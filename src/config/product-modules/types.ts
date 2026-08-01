@@ -1,8 +1,8 @@
 import type { SettingTabName } from '@/domains/settings/tab-names';
 
-import type { PRODUCT_MODULE_IDS } from './registry.mjs';
+import type { PRODUCT_MODULE_IDS } from './registry';
 
-export { PRODUCT_MODULE_IDS } from './registry.mjs';
+export { PRODUCT_MODULE_IDS } from './registry';
 
 export const PRODUCT_MODULE_TIERS = [
   'mainline',

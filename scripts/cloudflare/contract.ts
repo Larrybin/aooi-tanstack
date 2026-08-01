@@ -101,7 +101,10 @@ function assertExactKeys(
   }
 }
 
-function assertNonEmptyString(value: unknown, label: string) {
+function assertNonEmptyString(
+  value: unknown,
+  label: string
+): asserts value is string {
   if (typeof value !== 'string' || value.trim() === '') {
     throw new Error(`${label} is required`);
   }

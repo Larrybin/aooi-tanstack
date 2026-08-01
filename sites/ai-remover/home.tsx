@@ -1,23 +1,16 @@
 import { RemoverHome } from '@/domains/remover/ui/remover-home';
+import { HomeLayoutView } from '@/surfaces/landing/home/home-layout.view';
 
-import type { SiteProductHomeRouteData } from './home.server';
+import type { SiteHomeRouteData } from './home.server';
 
-export const getSiteProductHomeSkipLink = (
-  _productHome: SiteProductHomeRouteData
-) => null;
-
-export function SiteProductHomeView({
-  productHome,
-  locale,
-}: {
-  productHome: SiteProductHomeRouteData;
-  locale: string;
-}) {
+export function SiteHomeView({ data }: { data: SiteHomeRouteData }) {
   return (
-    <RemoverHome
-      copy={productHome.copy}
-      locale={locale}
-      signInCallbackPath="/activity/ai-tasks"
-    />
+    <HomeLayoutView data={data}>
+      <RemoverHome
+        copy={data.productHome.copy}
+        locale={data.locale}
+        signInCallbackPath="/activity/ai-tasks"
+      />
+    </HomeLayoutView>
   );
 }
