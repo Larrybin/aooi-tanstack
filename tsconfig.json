@@ -38,6 +38,7 @@
     "cloudflare/**/*.ts"
   ],
   "exclude": [
+    ".generated/sites/*/cloudflare/**/*.ts",
     "tests",
     "scripts/**/*.test.ts",
     "src/**/*.test.ts",
