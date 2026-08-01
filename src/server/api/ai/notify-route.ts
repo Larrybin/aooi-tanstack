@@ -3,7 +3,7 @@ import {
   ServiceUnavailableError,
 } from '@/shared/lib/api/errors';
 import { jsonOk } from '@/shared/lib/api/response';
-import { readRequestBodyByteCountUpTo } from '@/shared/lib/runtime/request-body';
+import type { readRequestBodyByteCountUpTo } from '@/shared/lib/runtime/request-body';
 
 type AiNotifyLog = {
   info(message: string, meta?: unknown): void;

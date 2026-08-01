@@ -9,8 +9,8 @@ import {
   getSiteProductHomeMetadata,
   getSiteProductHomeStructuredData,
   isSiteProductHome,
-} from '@/site-home';
-import { resolveSiteProductHomeRouteData } from '@/site-home-server';
+  resolveSiteProductHomeRouteData,
+} from '@/site-home-server';
 import type {
   HomeButtonData,
   HomePageData,

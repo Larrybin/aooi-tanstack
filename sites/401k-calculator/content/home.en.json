@@ -14,6 +14,7 @@
     "skipToCalculator": "Skip to calculator",
     "formula": "Formula",
     "howTo": "How to use",
+    "methodology": "Methodology",
     "faq": "FAQ",
     "footerDescription": "A free educational 401(k) projection calculator that runs locally in your browser.",
     "productGroup": "Calculator",
@@ -165,6 +166,14 @@
     ],
     "reminderTitle": "Scenario reminder",
     "reminderDescription": "Small changes in salary growth, contribution rate, match, and return assumptions can produce very different long-term results. Compare scenarios before relying on one estimate."
+  },
+  "trust": {
+    "label": "Trust and methodology",
+    "title": "Know what the estimate includes",
+    "description": "Review the calculation order, modeled assumptions, and known exclusions before relying on a projection.",
+    "maintainedBy": "Maintained by the 401k Calculator team",
+    "lastReviewed": "Last technical review: July 31, 2026",
+    "methodologyLink": "Read the methodology"
   },
   "faq": {
     "title": "401k Calculator FAQ",

@@ -23,10 +23,10 @@ test('buildCalculatorStructuredData returns application and FAQ JSON-LD', () => 
     'https://401k-calculator.net/'
   );
 
-  assert.equal(scripts.length, 3);
+  assert.equal(scripts.length, 2);
   assert.deepEqual(
     scripts.map((script) => script.type),
-    ['application/ld+json', 'application/ld+json', 'application/ld+json']
+    ['application/ld+json', 'application/ld+json']
   );
 
   const application = JSON.parse(scripts[0]?.children ?? '{}') as {
@@ -44,6 +44,10 @@ test('buildCalculatorStructuredData returns application and FAQ JSON-LD', () => 
   };
   assert.equal(faq['@type'], 'FAQPage');
   assert.equal(faq.mainEntity.length, 1);
+  assert.equal(
+    scripts.some((script) => script.children.includes('BreadcrumbList')),
+    false
+  );
 });
 
 test('structured data escapes literal less-than characters', () => {

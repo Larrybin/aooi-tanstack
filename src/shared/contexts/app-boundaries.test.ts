@@ -54,8 +54,30 @@ test('product home route data comes from the generated site entry', async () => 
     'src/server/landing/home-route-resolver.ts'
   );
 
-  assert.equal(content.includes("from '@/site-home'"), true);
+  assert.equal(content.includes("from '@/site-home-server'"), true);
+  assert.equal(content.includes("from '@/site-home'"), false);
   assert.doesNotMatch(content, /case ['"](?:ai-remover|401k-calculator)['"]/);
+});
+
+test('site server home contracts do not re-export interactive home modules', async () => {
+  const sitesDir = path.resolve(repoRoot, 'sites');
+  const siteKeys = fs
+    .readdirSync(sitesDir, { withFileTypes: true })
+    .filter(
+      (entry) =>
+        entry.isDirectory() &&
+        fs.existsSync(path.resolve(sitesDir, entry.name, 'home.server.ts'))
+    )
+    .map((entry) => entry.name)
+    .sort();
+
+  for (const siteKey of siteKeys) {
+    const relativePath = `sites/${siteKey}/home.server.ts`;
+    const content = await readRepoFile(relativePath);
+
+    assert.equal(content.includes("from './home'"), false, relativePath);
+    assert.doesNotMatch(content, /from ['"].*\/[^'"]*-home['"]/, relativePath);
+  }
 });
 
 test('401k site owns its product home implementation', async () => {

@@ -8,7 +8,6 @@ import { LocaleSelector } from '@/shared/blocks/common/locale-selector';
 import { useRouter } from '@/shared/blocks/common/navigation';
 import type { PromptInputMessage } from '@/shared/components/ai-elements/prompt-input';
 import { SidebarTrigger } from '@/shared/components/ui/sidebar';
-import { usePublicAppContext } from '@/shared/contexts/app';
 import { useAuthSnapshot } from '@/shared/contexts/auth-snapshot';
 import { useChatContext } from '@/shared/contexts/chat';
 import { isPlainObject } from '@/shared/lib/api/client';

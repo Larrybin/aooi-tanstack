@@ -1,0 +1,33 @@
+---
+title: Methodology
+description: How the 401k Calculator projects balances, contributions, employer match, growth, and illustrative retirement income.
+created_at: 2026-07-31
+---
+
+# 401k Calculator Methodology
+
+This page documents the calculation order and scope used by the 401k Calculator. The implementation and explanation were last technically reviewed on July 31, 2026.
+
+## Annual Projection Order
+
+The calculator projects one year at a time. In each projected year it:
+
+1. increases salary by the selected annual salary increase;
+2. calculates the employee contribution from that updated salary;
+3. limits the matchable contribution percentage to the lower of the employee contribution percentage and match limit;
+4. calculates employer match from the updated salary, eligible match percentage, and employer match percentage; and
+5. applies the annual return to the prior balance before adding that year's employee contribution and employer match.
+
+The projected monthly retirement income is an illustration equal to 4% of the final projected balance divided by 12.
+
+## What Is Not Modeled
+
+The estimate does not model taxes, investment fees, IRS contribution limits, catch-up contributions, vesting schedules, plan loans, withdrawals, required minimum distributions, inflation-adjusted spending, or changing market returns. It assumes the entered percentages remain constant throughout the projection.
+
+## Local Processing
+
+Calculator inputs and results are processed in the browser. No account or database is required for the calculation.
+
+## Appropriate Use
+
+Use the output to compare hypothetical scenarios, not as a guarantee or as financial, investment, tax, or legal advice.

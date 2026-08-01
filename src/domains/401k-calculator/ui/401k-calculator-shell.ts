@@ -28,6 +28,7 @@ export function buildCalculatorHeaderFooter(
       items: [
         { title: copy.formula, url: '/#formula', icon: 'Sigma' },
         { title: copy.howTo, url: '/#guide', icon: 'ListChecks' },
+        { title: copy.methodology, url: '/methodology', icon: 'BookOpen' },
         { title: copy.faq, url: '/#faq', icon: 'CircleHelp' },
       ],
     },
@@ -64,6 +65,7 @@ export function buildCalculatorHeaderFooter(
         {
           title: copy.trustGroup,
           children: [
+            { title: copy.methodology, url: '/methodology' },
             { title: copy.privacyPolicy, url: '/privacy-policy' },
             { title: copy.termsOfService, url: '/terms-of-service' },
           ],

@@ -3,7 +3,8 @@
 > Historical report: this document is a point-in-time architecture audit
 > snapshot, not the current architecture baseline. For current repository
 > structure, dependency direction, and module ownership, use
-> `docs/architecture/overview.md` together with `architecture-rules.cjs`.
+> `docs/architecture/overview.md`, `dependency-cruiser.cjs`, and
+> `src/architecture-boundaries.test.ts`.
 > Legacy paths or layer names mentioned below, such as `src/core`,
 > `src/shared/models`, and `src/shared/services`, are historical context only.
 

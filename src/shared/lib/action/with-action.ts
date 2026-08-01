@@ -1,8 +1,5 @@
 import { createUseCaseLogger } from '@/infra/platform/logging/logger.server';
-import {
-  generateRequestId,
-  getOrCreateRequestId,
-} from '@/infra/platform/logging/request-id.server';
+import { generateRequestId } from '@/infra/platform/logging/request-id.server';
 
 import { BusinessError, ExternalError, PublicError } from '@/shared/lib/errors';
 

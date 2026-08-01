@@ -152,6 +152,34 @@ export function CalculatorHome({
         </div>
       </section>
 
+      <section className="border-b border-[#D8E3DC] bg-[#EDF5F0]">
+        <div className="container py-14 lg:py-18">
+          <SectionKicker index="05">{copy.trust.label}</SectionKicker>
+          <div className="mt-3 grid gap-6 rounded-2xl border border-[#C9DCCF] bg-white p-6 shadow-[0_12px_36px_rgba(20,60,38,0.05)] md:p-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+            <div>
+              <h2 className="text-3xl font-semibold tracking-tight text-[#153724]">
+                {copy.trust.title}
+              </h2>
+              <p className="mt-4 max-w-3xl leading-7 text-[#52695B]">
+                {copy.trust.description}
+              </p>
+              <a
+                href="/methodology"
+                className="mt-6 inline-flex min-h-11 items-center rounded-lg bg-[#26724A] px-5 text-sm font-semibold text-white transition hover:bg-[#1F613E]"
+              >
+                {copy.trust.methodologyLink}
+              </a>
+            </div>
+            <aside className="self-start rounded-xl bg-[#173D29] p-5 text-sm leading-7 text-[#DCECE2]">
+              <p className="font-semibold text-white">
+                {copy.trust.maintainedBy}
+              </p>
+              <p className="mt-2">{copy.trust.lastReviewed}</p>
+            </aside>
+          </div>
+        </div>
+      </section>
+
       <section id="faq" className="container py-14 lg:py-18">
         <h2 className="text-center text-3xl font-semibold tracking-tight text-[#153724]">
           {copy.faq.title}

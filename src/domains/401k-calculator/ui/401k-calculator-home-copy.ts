@@ -15,6 +15,7 @@ export type CalculatorHomeCopy = {
     skipToCalculator: string;
     formula: string;
     howTo: string;
+    methodology: string;
     faq: string;
     footerDescription: string;
     productGroup: string;
@@ -82,6 +83,14 @@ export type CalculatorHomeCopy = {
     }[];
     reminderTitle: string;
     reminderDescription: string;
+  };
+  trust: {
+    label: string;
+    title: string;
+    description: string;
+    maintainedBy: string;
+    lastReviewed: string;
+    methodologyLink: string;
   };
   faq: {
     title: string;
