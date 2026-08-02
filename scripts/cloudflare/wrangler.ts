@@ -65,7 +65,13 @@ export function buildAppWranglerConfig(
     `"@/site" = ${tomlString(
       relativeFromConfig(
         configPath,
-        path.resolve(rootDir, '.generated', 'sites', contract.siteKey, 'site.ts')
+        path.resolve(
+          rootDir,
+          '.generated',
+          'sites',
+          contract.siteKey,
+          'site.ts'
+        )
       )
     )}`,
     '',
