@@ -58,6 +58,18 @@ test('product and module contracts derive bindings instead of deploy settings fl
   assert.ok(tts.requiredVars.includes('NEXT_PUBLIC_TURNSTILE_SITE_KEY'));
 });
 
+test('every app Wrangler aliases @/site to its generated site module', () => {
+  for (const siteKey of listSiteKeys()) {
+    const contract = resolveSiteCloudflareContract({ siteKey });
+    const app = buildAppWranglerConfig(contract, {
+      configPath: `/repo/.generated/sites/${siteKey}/cloudflare/wrangler.app.toml`,
+      rootDir: '/repo',
+    });
+
+    assert.match(app, /\[alias\]\n"@\/site" = "\.\.\/site\.ts"/);
+  }
+});
+
 test('Wrangler output contains only app/state topology', () => {
   const contract = resolveSiteCloudflareContract({ siteKey: 'ai-remover' });
   const app = buildAppWranglerConfig(contract, {
