@@ -61,6 +61,14 @@ export function buildAppWranglerConfig(
   });
 
   lines.push(
+    '[alias]',
+    `"@/site" = ${tomlString(
+      relativeFromConfig(
+        configPath,
+        path.resolve(rootDir, '.generated', 'sites', contract.siteKey, 'site.ts')
+      )
+    )}`,
+    '',
     '[[routes]]',
     `pattern = ${tomlString(contract.site.domain)}`,
     'custom_domain = true',
