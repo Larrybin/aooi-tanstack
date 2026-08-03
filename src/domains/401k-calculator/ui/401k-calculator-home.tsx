@@ -152,12 +152,18 @@ export function CalculatorHome({
         </div>
       </section>
 
-      <section className="border-b border-[#D8E3DC] bg-[#EDF5F0]">
+      <section
+        className="border-b border-[#D8E3DC] bg-[#EDF5F0]"
+        aria-labelledby="trust-methodology-heading"
+      >
         <div className="container py-14 lg:py-18">
           <SectionKicker index="05">{copy.trust.label}</SectionKicker>
           <div className="mt-3 grid gap-6 rounded-2xl border border-[#C9DCCF] bg-white p-6 shadow-[0_12px_36px_rgba(20,60,38,0.05)] md:p-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
             <div>
-              <h2 className="text-3xl font-semibold tracking-tight text-[#153724]">
+              <h2
+                id="trust-methodology-heading"
+                className="text-3xl font-semibold tracking-tight text-[#153724]"
+              >
                 {copy.trust.title}
               </h2>
               <p className="mt-4 max-w-3xl leading-7 text-[#52695B]">
