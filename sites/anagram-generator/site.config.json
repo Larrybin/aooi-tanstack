@@ -1,0 +1,24 @@
+{
+  "key": "anagram-generator",
+  "domain": "anagram-generator.net",
+  "brand": {
+    "appName": "Anagram Generator",
+    "appUrl": "https://anagram-generator.net",
+    "supportEmail": "support@anagram-generator.net",
+    "logo": "/anagram-generator-logo.svg",
+    "favicon": "/anagram-generator-logo.svg",
+    "previewImage": "/anagram-generator-logo.svg"
+  },
+  "capabilities": {
+    "enabledModules": ["analytics"],
+    "paymentProvider": "none"
+  },
+  "i18n": {
+    "defaultLocale": "en",
+    "supportedLocales": ["en"],
+    "localePrefix": "as-needed",
+    "localeDetection": false,
+    "strictPublishing": true
+  },
+  "configVersion": 2
+}

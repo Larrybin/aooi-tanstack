@@ -1,0 +1,7 @@
+{
+  "configVersion": 2,
+  "workers": {
+    "app": "aooi-anagram-generator-router"
+  },
+  "resources": {}
+}

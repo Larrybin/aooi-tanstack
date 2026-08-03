@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Anagram Generator</title>
+  <rect width="64" height="64" rx="14" fill="#166534"/>
+  <rect x="10" y="13" width="19" height="19" rx="5" fill="#ffffff"/>
+  <rect x="35" y="32" width="19" height="19" rx="5" fill="#fef3c7"/>
+  <path d="M29 22h9l-3-3m3 3-3 3M35 42h-9l3-3m-3 3 3 3" fill="none" stroke="#fbbf24" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M16 27l4-9 4 9m-6-4h4" fill="none" stroke="#166534" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M41 37v9m0-9h4a3 3 0 010 6h-4m4 0a3 3 0 010 6h-4" fill="none" stroke="#166534" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
