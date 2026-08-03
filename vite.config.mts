@@ -21,7 +21,7 @@ const appSourceDir = resolve(projectRoot, 'apps/web/src');
 const fromAppSource = (targetPath: string) =>
   relative(appSourceDir, targetPath).split(sep).join('/');
 
-export default defineConfig({
+export default defineConfig(({ command, isPreview }) => ({
   root: projectRoot,
   resolve: {
     alias: [
@@ -77,7 +77,14 @@ export default defineConfig({
       emitReadme: false,
       emitTsDeclarations: true,
     }),
-    cloudflare({ viteEnvironment: { name: 'ssr' } }),
+    cloudflare({
+      ...(command === 'serve' && !isPreview
+        ? {
+            configPath: resolve(generatedDir, 'cloudflare/wrangler.app.toml'),
+          }
+        : {}),
+      viteEnvironment: { name: 'ssr' },
+    }),
     tanstackStart({
       srcDirectory: 'apps/web/src',
       client: {
@@ -100,4 +107,4 @@ export default defineConfig({
     mdx({ docs, pages, posts }, { generateIndexFile: false }),
     react(),
   ],
-});
+}));
