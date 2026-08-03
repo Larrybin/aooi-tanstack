@@ -1,0 +1,199 @@
+{
+  "metadata": {
+    "title": "Anagram Generator - Make Words and Phrases from Letters",
+    "description": "Use this anagram generator to rearrange letters into word and phrase ideas, filter by word count or length, and copy useful results for puzzles or word games.",
+    "keywords": [
+      "anagram generator",
+      "anagram maker",
+      "word anagram generator",
+      "multi-word anagrams",
+      "unscramble letters",
+      "phrase anagram generator"
+    ]
+  },
+  "shell": {
+    "generator": "Generator",
+    "examples": "Examples",
+    "howTo": "How to use",
+    "limitations": "Limitations",
+    "faq": "FAQ",
+    "footerDescription": "Rearrange letters into word and phrase ideas in your browser.",
+    "productGroup": "Product",
+    "tool": "Anagram Generator",
+    "trustGroup": "Trust",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "copyrightSuffix": "All rights reserved."
+  },
+  "hero": {
+    "eyebrow": "Letters to ideas",
+    "title": "Anagram Generator",
+    "description": "Enter letters, a word, or a phrase to find anagram ideas you can filter, review, copy, and download. Start broad, then narrow the list by word count, minimum length, required fragments, or excluded words.",
+    "tags": [
+      "anagram maker",
+      "multi-word anagrams",
+      "unscramble letters",
+      "word games",
+      "dictionary filter"
+    ],
+    "noteTitle": "Review note",
+    "note": "Dictionary coverage and game word lists may vary. Review results before using them in a puzzle, publication, classroom, or game."
+  },
+  "workbench": {
+    "workspaceLabel": "Anagram generator workspace",
+    "inputTitle": "Input & Options",
+    "inputLabel": "Enter letters, word, or phrase",
+    "inputHelp": "Use letters, spaces, or punctuation. Results are not case-sensitive.",
+    "inputPlaceholder": "e.g., race, listen up, dormitory",
+    "characterCount": "{count} / {limit}",
+    "dictionaryLabel": "Dictionary",
+    "dictionaries": {
+      "common": "English (Common Words)",
+      "games": "Word game friendly",
+      "phrases": "Phrase ideas"
+    },
+    "maxWordsLabel": "Max words in a result",
+    "maxWordsOptions": [
+      "1 word only",
+      "2 words",
+      "3 words",
+      "4 words",
+      "5 (phrases up to 5 words)"
+    ],
+    "minimumLengthLabel": "Minimum word length",
+    "mustIncludeLabel": "Must include",
+    "optionalLabel": "(optional)",
+    "mustIncludePlaceholder": "e.g., st, er, a",
+    "mustIncludeHelp": "Letters or fragments that must appear.",
+    "excludeWordsLabel": "Exclude words",
+    "excludeWordsPlaceholder": "e.g., bad, ugly, test",
+    "excludeWordsHelp": "Comma-separated words to exclude.",
+    "resultLimitLabel": "Result limit",
+    "generateAction": "Generate Anagrams",
+    "sampleAction": "Try Sample",
+    "clearAction": "Clear",
+    "resultsTitle": "Results",
+    "copyAllAction": "Copy All",
+    "downloadAction": "Download TXT",
+    "emptyTitle": "Empty state (start here)",
+    "emptyDescription": "Your anagram results will appear here. Enter letters or a phrase and click Generate Anagrams.",
+    "noResultsTitle": "No results",
+    "noResultsDescription": "No anagrams were found for the current settings. Try relaxing filters, reducing the minimum length, or allowing more words.",
+    "populatedTitle": "Results grouped by word count",
+    "resultSummary": "{groups} groups - {results} results",
+    "groupSummary": "{label} ({count})",
+    "copyGroupAction": "Copy",
+    "copyGroupStatus": "Copied {label} results",
+    "copyAllStatus": "Copied all visible results",
+    "copyErrorStatus": "Copy failed",
+    "downloadStatus": "Downloaded TXT"
+  },
+  "examples": {
+    "label": "Examples",
+    "title": "Try familiar words and phrases",
+    "description": "These examples come from the recovered tool. They illustrate its preset phrase ideas and smaller built-in word list; they do not represent every possible anagram.",
+    "items": [
+      "race → care, acre",
+      "listen up → silent up, enlist up, inlets up",
+      "dormitory → dirty room, riot do my, deity form",
+      "debit card → bad credit",
+      "eleven plus two → twelve plus one"
+    ]
+  },
+  "howTo": {
+    "label": "How it works",
+    "title": "Generate and narrow anagram ideas",
+    "description": "The most practical workflow is to generate a broad list first, review it, then change one filter at a time so you can see which constraint removed a promising result.",
+    "steps": [
+      {
+        "title": "Enter text",
+        "description": "Add letters, one word, or a phrase. Spaces, punctuation, and letter case are ignored during matching."
+      },
+      {
+        "title": "Adjust filters",
+        "description": "Choose dictionary mode, maximum words, minimum word length, required fragments, excluded words, and a result limit."
+      },
+      {
+        "title": "Generate and review",
+        "description": "Run the generator, inspect each word-count group, and confirm that useful suggestions fit your actual clue or rules."
+      },
+      {
+        "title": "Copy or download",
+        "description": "Copy one group, copy every visible result, or save the current list as a plain-text TXT file."
+      }
+    ]
+  },
+  "limitations": {
+    "label": "Limitations",
+    "title": "Treat the output as a focused suggestion list",
+    "description": "This migration preserves the original built-in words, preset phrases, filters, ordering, and result limits. It intentionally does not expand or silently correct that recovered data.",
+    "items": [
+      "Results depend on a small built-in word list and the selected dictionary mode.",
+      "Proper nouns, brand names, slang, regional words, and specialist vocabulary may be missing.",
+      "Single-word suggestions can use a subset of the available letters; generated multi-word phrases use the remaining letters.",
+      "Preset phrase suggestions are preserved exactly from the source and may need extra review.",
+      "Long or unusual inputs may return few useful results within the selected maximum word count.",
+      "Scrabble, Words With Friends, crossword editors, and other games can use different accepted word lists."
+    ]
+  },
+  "guides": [
+    {
+      "title": "Make anagrams from letters, words, and phrases",
+      "paragraphs": [
+        "Anagram Generator rearranges available letters into possible word and phrase ideas. It can help when you want to unscramble a short letter set, inspect a familiar word, explore a phrase, or compare several combinations before choosing one. Enter the source text, generate results, and then use the visible controls to keep the list focused.",
+        "For a single word, the first group contains built-in words that can be made from the available letters. The recovered behavior permits these single-word suggestions to use only part of the source. When more than one word is allowed, the generator also searches for combinations that consume the remaining letters. Known source phrases such as listen up and dormitory include preserved preset suggestions."
+      ]
+    },
+    {
+      "title": "Use filters one constraint at a time",
+      "paragraphs": [
+        "Minimum word length removes shorter candidates before phrase combinations are searched. Maximum words controls whether the tool stays with single-word suggestions or explores longer combinations. Must include keeps results whose normalized text contains a chosen fragment. Exclude words removes exact comma-separated component words from the final list.",
+        "The dictionary selector preserves the original modes. Common words and phrase ideas use the same recovered candidate pool. Word game friendly prevents words longer than eight letters from participating in generated phrases, while still showing eligible single-word suggestions and preserved preset phrases. The result limit is applied after filtering and de-duplication."
+      ]
+    },
+    {
+      "title": "Review results for your exact use case",
+      "paragraphs": [
+        "An online anagram maker is useful for brainstorming, but it cannot decide whether a suggestion is accepted by a particular game, crossword, classroom activity, publication, or naming exercise. Compare any important result with the dictionary or rule set you actually use. Read phrase ideas aloud and remove awkward, misleading, or inappropriate combinations.",
+        "If the result list is empty, lower the minimum length, allow more words, remove a required fragment, or clear an excluded word. Rare letter combinations and longer inputs may still produce no result because this tool keeps the compact word data recovered from the attachment rather than claiming broad dictionary coverage."
+      ]
+    },
+    {
+      "title": "Copy and keep useful groups",
+      "paragraphs": [
+        "Results are grouped by word count so you can scan short words separately from phrases. Each row previews up to eight items, while its Copy action includes the full group. Copy All includes every result currently visible after the limit and filters are applied.",
+        "Download TXT creates a plain-text list with the current input and a review reminder. The generator runs in the current browser page without an account. Copied and downloaded content is controlled by your browser, device, and the applications where you place it."
+      ]
+    }
+  ],
+  "faq": {
+    "label": "FAQ",
+    "title": "Anagram generator questions",
+    "items": [
+      {
+        "question": "What is an anagram?",
+        "answer": "An anagram rearranges letters from a word or phrase to create another word or phrase. This tool also shows eligible single words made from a subset of the available letters, matching the recovered source behavior."
+      },
+      {
+        "question": "Why are some anagrams missing?",
+        "answer": "The generator uses a compact built-in word list and a small set of preset phrases. Proper nouns, slang, regional terms, and words from other dictionaries may not be included."
+      },
+      {
+        "question": "Can I use the results for word games?",
+        "answer": "You can use them as ideas, but check the exact word list and rules for your game before playing. Different games and editions accept different words."
+      },
+      {
+        "question": "How are results ordered?",
+        "answer": "Eligible single words are ordered by length from longest to shortest and then alphabetically. Preset phrases follow, then generated multi-word combinations. Duplicate text is removed before the result limit is applied."
+      },
+      {
+        "question": "Does every result use every letter?",
+        "answer": "Generated multi-word combinations search until no letters remain. Single-word suggestions only need to be buildable from the available letters, so they may leave unused letters."
+      },
+      {
+        "question": "Can I make multi-word anagrams?",
+        "answer": "Yes. Set maximum words above one to search phrase combinations. The available combinations still depend on the built-in candidate words and your other filters."
+      }
+    ]
+  }
+}

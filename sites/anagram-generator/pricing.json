@@ -1,0 +1,52 @@
+{
+  "metadata": {
+    "title": "Anagram Generator Pricing",
+    "description": "Anagram Generator is free to use in your browser with no signup or checkout."
+  },
+  "pricing": {
+    "id": "pricing",
+    "sr_only_title": "Anagram Generator Pricing",
+    "title": "Anagram Generator Pricing",
+    "description": "The browser-based generator is free: no account, subscription, or checkout.",
+    "items": [
+      {
+        "title": "Free",
+        "description": "Generate, filter, copy, and download anagram ideas in your browser.",
+        "features_title": "Includes",
+        "features": [
+          "Single-word and multi-word ideas",
+          "Visible dictionary and length filters",
+          "Copy and TXT download actions",
+          "No account required"
+        ],
+        "interval": "month",
+        "amount": 0,
+        "currency": "USD",
+        "price": "$0",
+        "unit": "",
+        "button": {
+          "title": "Generate Anagrams",
+          "url": "/#generator",
+          "icon": "RiShuffleFill"
+        },
+        "product_id": "free",
+        "product_name": "Anagram Generator Free",
+        "plan_name": "Free",
+        "checkout_enabled": false,
+        "entitlements": {
+          "browser_anagram_generation": true
+        }
+      }
+    ]
+  },
+  "faq": {
+    "id": "pricing-faq",
+    "title": "Anagram Generator pricing questions",
+    "items": [
+      {
+        "question": "Is Anagram Generator free?",
+        "answer": "Yes. The generator is free and does not require signup or checkout."
+      }
+    ]
+  }
+}
